@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 /* New header file for classes storing lattice points. */
 

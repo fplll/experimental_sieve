@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #define SIEVE_GAUSS_SINGLE_THREADED
 

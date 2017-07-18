@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef FPLLL_SIEVE_COMMON_H
 #define FPLLL_SIEVE_COMMON_H

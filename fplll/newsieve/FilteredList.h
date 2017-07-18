@@ -1,7 +1,7 @@
 #ifndef FILTEREDLIST_H
 #define FILTEREDLIST_H
 
-//clang-format off
+// clang-format off
 
 class FilteredList;
 

@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef TERM_COND_NEW_H
 #define TERM_COND_NEW_H

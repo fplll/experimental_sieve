@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef SAMPLER_CPP
 #define SAMPLER_CPP

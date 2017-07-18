@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef SAMPLER_H
 #define SAMPLER_H

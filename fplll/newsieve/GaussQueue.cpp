@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef GAUSS_QUEUE_CPP
 #define GAUSS_QUEUE_CPP

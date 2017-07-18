@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef POINT_LIST_NEW_CPP
 #define POINT_LIST_NEW_CPP

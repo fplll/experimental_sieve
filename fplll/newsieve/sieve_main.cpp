@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #define USE_REGULAR_QUEUE //comment out to not use priority-queue
 /*

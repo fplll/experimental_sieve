@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef LATTICE_VECTOR_CLASS_NEW_CPP
 #define LATTICE_VECTOR_CLASS_NEW_CPP

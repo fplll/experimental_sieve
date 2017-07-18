@@ -1,4 +1,4 @@
-//clang-format of
+// clang-format of
 
 #include <fstream>
 #include <getopt.h>

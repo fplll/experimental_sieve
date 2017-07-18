@@ -1,7 +1,7 @@
 #ifndef APPROXIMATE_LATTICE_POINT_H
 #define APPROXIMATE_LATTICE_POINT_H
 
-//clang-format off
+// clang-format off
 
 /*
     ApproximateLatticePoint stores an approximation to a lattice point in the form

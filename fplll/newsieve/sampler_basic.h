@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 /* "Trapdoors for Hard Lattices and New Cryptographic Constructions"
    Craig Gentry, Chris Peikert, Vinod Vaikuntanathan */

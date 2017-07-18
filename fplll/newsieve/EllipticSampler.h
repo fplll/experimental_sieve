@@ -8,7 +8,7 @@
 
 #include <random>
 
-//clang-format off
+// clang-format off
 
 template<class ET, bool MT, class Engine, class Sseq>
 class EllipticSampler;

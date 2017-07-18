@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef EXACT_LATTICE_POINT_CPP
 #define EXACT_LATTICE_POINT_CPP

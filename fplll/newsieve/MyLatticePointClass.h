@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef MY_LATTICE_POINT_CLASS_H
 #define MY_LATTICE_POINT_CLASS_H

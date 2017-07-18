@@ -1,3 +1,5 @@
+// clang-format off
+
 //This is the header file for the Gauss Sieve (both single-threaded and multi-threaded version).
 //Note:
 //With C++ lacking a good "static_if" / "constexpr if" that is broadly supported by compilers (as of early 2017), we use some pre-processor shenanigans to avoid code duplication:

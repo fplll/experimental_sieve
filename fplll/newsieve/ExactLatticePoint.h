@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-//clang-format off
+// clang-format off
 
 /*
     ExactLatticePoint stores an (exact) lattice point, together with its squared length.

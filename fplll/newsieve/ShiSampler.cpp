@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef SHI_SAMPLER_CPP
 #define SHI_SAMPLER_CPP

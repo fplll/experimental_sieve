@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #pragma deprecated //actually not deprecated, just not working ATM
 

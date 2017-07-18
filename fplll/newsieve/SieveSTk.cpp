@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */

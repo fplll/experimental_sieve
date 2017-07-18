@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP

@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 #ifndef GAUSS_QUEUE_H
 #define GAUSS_QUEUE_H
 /* defines the classes used for the main Queues in the Gauss Sieve */

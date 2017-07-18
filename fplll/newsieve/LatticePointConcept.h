@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H

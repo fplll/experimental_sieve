@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef COMPRESSED_LATTICE_POINT_CPP
 #define COMPRESSED_LATTICE_POINT_CPP

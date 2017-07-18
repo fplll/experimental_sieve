@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format off
 
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
