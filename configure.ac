@@ -20,7 +20,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_HEADER(config.h)
 
-DEFAULT_CXXFLAGS="-O3 -Wall"
+DEFAULT_CXXFLAGS="-O3 -Wall -pg"
 
 CXXFLAGS=${CXXFLAGS:-$DEFAULT_CXXFLAGS}
 
@@ -113,6 +113,7 @@ AC_C_VOLATILE
 # Checks for library functions.
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([floor pow rint sqrt strtol])
+AX_PTHREAD
 
 # enumeration dimension
 max_enumeration_dimension=256
