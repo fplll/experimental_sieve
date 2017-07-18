@@ -55,7 +55,7 @@ public:
 
     explicit MyLatticePoint(MatrixRow<ET> const & row)
     {
-        data = (row.get_underlying_row()).get();
+        data = (row.get_underlying_row()).get_underlying_vector();
         update_norm2();
         
     };
