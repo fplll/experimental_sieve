@@ -12,6 +12,6 @@ long dot_num;
 long count_bad;
 #endif
 
-//using namespace std;
+// using namespace std;
 
-//clang-format on
+// clang-format on

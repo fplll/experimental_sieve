@@ -1,4 +1,4 @@
-//NOT WOKING ATM, does not yet used new lattic point classes.
+// NOT WOKING ATM, does not yet used new lattic point classes.
 #error Does not work
 
 #ifndef ELLIPTIC_SAMPLER_H

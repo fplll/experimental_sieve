@@ -136,7 +136,7 @@ public:
       data = v.data;
   }
 
-  vector<T>& get_underlying_vector() { return data; } //for newsieve
+  vector<T> &get_underlying_vector() { return data; }  // for newsieve
 
   void swap(NumVect &v) { data.swap(v.data); }
 
