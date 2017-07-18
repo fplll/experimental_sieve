@@ -112,7 +112,7 @@ public:
     using FastAccess_Point = GaussSieve::FastAccess_Point<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
     using MainQueueType    = GaussQueue<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>; //FIXME
     using MainListType     = GaussListNew<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
-    using LatticeBasisType = ZZ_mat<typename ET::underlying_data_type>;
+    using LatticeBasisType = ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
     //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;
     //using FilteredListType = std::vector<FilteredPoint<ET, float>>; //queue is also fine for our purposes; scalar products are not of type ET, two-templates; float for now; may be changed.
 
