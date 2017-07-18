@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef MY_LATTICE_POINT_CLASS_CPP
 #define MY_LATTICE_POINT_CLASS_CPP
 
@@ -119,3 +121,5 @@ void print (std::ostream &os, MyLatticePoint<ET,nfixed> const &A, Dimension<nfix
 }
 */
 #endif
+
+//clang-format on

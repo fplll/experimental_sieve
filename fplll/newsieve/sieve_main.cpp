@@ -1,3 +1,5 @@
+//clang-format off
+
 #define USE_REGULAR_QUEUE //comment out to not use priority-queue
 /*
   This provides an implementation of Gauss sieving, including using
@@ -393,3 +395,5 @@ int main(int argc, char **argv)
 #endif
   return 1;
 }
+
+//clang-format on

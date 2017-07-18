@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
 
@@ -76,9 +78,9 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
 {
     GaussSieve::GaussQueue_ReturnType<ET,false,nfixed> p;
     int i=0;
-    
+
     cout << "start 2-sieve " << endl;
-    
+
     while (!check_if_done() )
     {
         p = main_queue.true_pop();
@@ -226,3 +228,5 @@ else if(count % 100 == 80)
 //#include "SieveSTk.cpp"
 
 #endif
+
+//clang-format on

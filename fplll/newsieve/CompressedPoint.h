@@ -3,6 +3,8 @@
 
 #include "ExactLatticePoint.h"
 
+//clang-format off
+
 template<class ET, bool MT, int nfixed>
 class CompressedPoint
 {
@@ -69,5 +71,7 @@ template<class ET, bool MT, int nfixed> CompressedPoint<ET,MT,nfixed>::~Compress
 {
     delete details;
 }
+
+//clang-format on
 
 #endif

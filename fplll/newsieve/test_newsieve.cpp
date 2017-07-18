@@ -1,3 +1,5 @@
+//clang-format off
+
 #define USE_REGULAR_QUEUE //comment out if you use priority-queue
 
 #include "GaussQueue.h"
@@ -124,10 +126,10 @@ void TestMyLatticePointClass()
 
     MyLatticePoint<Z_NR<mpz_t>, -1> test_pointA1;
     MyLatticePoint<Z_NR<mpz_t>, -1> test_pointA2;
-    
+
     Z_NR<mpz_t> sc_prod = compute_sc_product(test_pointA, test_pointB);
     cout << sc_prod << endl;
-    
+
     Z_NR<mpz_t> sc_prod1 = compute_sc_product(test_pointA1, test_pointA2);
     cout << "sc_prod1 " << sc_prod1 << endl;
 
@@ -154,14 +156,14 @@ void test_2sieve()
     //BTest.gen_trg(1.1);
     srand (1);
     BTest.gen_qary_prime(1, 10*dim);
-    
+
     if (dim >= 60)
         bkz_reduction(BTest, 8, BKZ_DEFAULT, FT_DEFAULT, 0);
     else
         lll_reduction(BTest, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER);
-    
+
     Sieve<Z_NR<mpz_t>, false> Test_2Sieve(BTest);
-    
+
     bool constexpr multithreaded = false;
     TerminationCondition<Z_NR<mpz_t>,multithreaded> * termcond = new MinkowskiTerminationCondition<Z_NR<mpz_t>, multithreaded>;
     Test_2Sieve.set_termination_condition(termcond);
@@ -177,7 +179,7 @@ int main(int argc, char **argv)
     PlainLatticePoint<Z_NR<mpz_t>,-1> X;
 
     TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
-    
+
     test_2sieve();
 
 
@@ -209,3 +211,5 @@ int main(int argc, char **argv)
 //   ofs.close();
   return 1;
 }
+
+//clang-format on

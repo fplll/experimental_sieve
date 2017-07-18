@@ -1,3 +1,5 @@
+//clang-format of
+
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
@@ -11,3 +13,5 @@ long count_bad;
 #endif
 
 //using namespace std;
+
+//clang-format on

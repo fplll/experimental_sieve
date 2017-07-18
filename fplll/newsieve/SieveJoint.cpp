@@ -1,3 +1,5 @@
+//clang-format off
+
 //SIEVE_JOINT_CPP_ST and
 //SIEVE_JOINT_CPP_MT are separate include guards for the single and multi-threaded pass over this file.
 //SIEVE_JOINT_CPP is set *after* we have passed over this file once. Use it to condition on the second run.
@@ -216,7 +218,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     if(verbosity>=2)    {cout << "Sorting ...";}
         main_list.sort();
     for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {cout << (*it).get_norm2() << endl;}; //check for sort()
-        
+
     if(verbosity>=2)    {cout << "is finished." << endl;}
 
 
@@ -224,7 +226,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
 
     shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
     cout << "shortest_vector_found is initialized " << endl << flush;
-    
+
 //    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //TODO : enable sorting for multithreaded case.
     #if GAUSS_SIEVE_IS_MULTI_THREADED==true
@@ -232,7 +234,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     #endif
     assert(main_queue.sampler!=nullptr);
     main_queue.sampler->init(this);
-    
+
     cout << "sampler is initialized " << endl << flush;
 
 };
@@ -255,3 +257,5 @@ bool Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::check_if_done()
 
 #define SIEVE_JOINT_CPP
 #endif
+
+//clang-format on

@@ -1,4 +1,5 @@
 //NOT WOKING ATM, does not yet used new lattic point classes.
+#error Does not work
 
 #ifndef ELLIPTIC_SAMPLER_H
 #define ELLIPTIC_SAMPLER_H
@@ -6,6 +7,8 @@
 #include "Sampler.h"
 
 #include <random>
+
+//clang-format off
 
 template<class ET, bool MT, class Engine, class Sseq>
 class EllipticSampler;
@@ -73,6 +76,6 @@ LatticePoint<ET> EllipticSampler<ET,MT,Engine, Sseq>::sample(int thread)
     return vec; //converts to LatticePoint<ET>
 }
 
-
+//clang-format on
 
 #endif

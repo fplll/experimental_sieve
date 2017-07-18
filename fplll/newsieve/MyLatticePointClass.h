@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef MY_LATTICE_POINT_CLASS_H
 #define MY_LATTICE_POINT_CLASS_H
 
@@ -57,7 +59,7 @@ public:
     {
         data = (row.get_underlying_row()).get_underlying_vector();
         update_norm2();
-        
+
     };
 
 
@@ -104,7 +106,7 @@ public:
             data[i] = zero;
         }
     };
-    
+
     bool operator< (MyLatticePoint const & other) const { return this->get_norm2() < other.get_norm2();}
     bool operator> (MyLatticePoint const & other) const { return this->get_norm2() > other.get_norm2();}
 
@@ -131,3 +133,5 @@ template <class ET,int nfixed> ET compute_sc_product (MyLatticePoint<ET, nfixed>
 
 
 #endif
+
+//clang-format on

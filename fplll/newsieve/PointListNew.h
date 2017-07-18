@@ -1,3 +1,5 @@
+//clang-format off
+
 //
 // PointList.h
 //
@@ -721,3 +723,5 @@ void GarbageBin<DT>::empty_trash()
 
 
 #endif
+
+//clang-format on

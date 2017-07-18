@@ -1,3 +1,5 @@
+//clang-format off
+
 #define SIEVE_GAUSS_SINGLE_THREADED
 
 #ifndef SIEVE_GAUSS_CPP
@@ -27,3 +29,5 @@
 #endif // SIEVE_GAUSS_MULTI_THREADED
 
 #endif
+
+//clang-format on

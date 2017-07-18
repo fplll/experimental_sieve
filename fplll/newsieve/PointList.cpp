@@ -1,3 +1,4 @@
+//clang-format off
 #pragma deprecated
 
 //continuation from PointList.h
@@ -481,3 +482,5 @@ void GarbageBin<DT>::empty_trash()
     }
 };
 
+
+//clang-format on

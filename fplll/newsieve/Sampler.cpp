@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef SAMPLER_CPP
 #define SAMPLER_CPP
 
@@ -136,3 +138,5 @@ template class Sampler<Z_NR<long>, false, std::mt19937_64,std::seed_seq>;
 
 
 #endif
+
+//clang-format on

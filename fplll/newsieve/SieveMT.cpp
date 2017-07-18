@@ -1,3 +1,5 @@
+//clang-format off
+
 #pragma deprecated //actually not deprecated, just not working ATM
 
 #ifndef SIEVE_GAUSS_MULTI_THREADED_CPP
@@ -157,3 +159,5 @@ template<class ET> void Sieve<ET,true>::sieve_2_thread(int const thread_id)
 */
 
 #endif
+
+//clang-format on

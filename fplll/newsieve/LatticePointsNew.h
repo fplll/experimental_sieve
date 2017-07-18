@@ -1,3 +1,5 @@
+//clang-format off
+
 /* New header file for classes storing lattice points. */
 
 #ifndef LATTICE_VECTOR_CLASS_NEW_H
@@ -241,3 +243,5 @@ template<> class MaybeRational<Z_NR<double>> {public: static bool constexpr val=
 
 //FIXME: Enable or use a constructor
 //template<class ET,int nfixed=-1> ExactLatticePoint<ET,nfixed> conv_matrixrow_to_lattice_point (MatrixRow<ET> const &row);
+
+//clang-format on

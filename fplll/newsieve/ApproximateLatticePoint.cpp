@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef APPROXIMATE_LATTICE_POINT_CPP
 #define APPROXIMATE_LATTICE_POINT_CPP
 
@@ -94,3 +96,5 @@ template<class ET> double ApproximateLatticePoint<ET,-1>::get_norm2_d() const
 }
 
 #endif
+
+//clang-format on

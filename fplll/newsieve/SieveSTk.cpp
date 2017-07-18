@@ -1,3 +1,5 @@
+//clang-format off
+
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */
 
@@ -8,3 +10,5 @@ void Sieve<ET,false>::sieve_k_iteration (LatticePoint<ET> &p)
 {
 
 }
+
+//clang-format on

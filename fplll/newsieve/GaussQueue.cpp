@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef GAUSS_QUEUE_CPP
 #define GAUSS_QUEUE_CPP
 
@@ -203,3 +205,5 @@ template<class ET, int nfixed> GaussQueue<ET,false,nfixed>::~GaussQueue()
 template class GaussQueue<Z_NR<long>,false,-1>;
 
 #endif
+
+//clang-format on

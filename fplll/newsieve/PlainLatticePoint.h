@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef PLAIN_LATTICE_POINT_H
 #define PLAIN_LATTICE_POINT_H
 
@@ -36,3 +38,4 @@ class PlainLatticePoint : public GeneralLatticePoint< PlainLatticePoint<ET,nfixe
 
 
 #endif
+//clang-format on

@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
 
@@ -32,3 +34,5 @@ namespace GaussSieve{
 
 
 #endif
+
+//clang-format on

@@ -1,3 +1,5 @@
+//clang-format off
+
 /* "Trapdoors for Hard Lattices and New Cryptographic Constructions"
    Craig Gentry, Chris Peikert, Vinod Vaikuntanathan */
 
@@ -93,3 +95,5 @@ template <class ZT, class F> Z_NR<ZT> sample_z_basic_alt(F c, F s)
 }
 
 #endif
+
+//clang-format on

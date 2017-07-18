@@ -1,3 +1,5 @@
+//clang-format off
+
 #include "sampler_basic.h"
 
 int main()
@@ -106,3 +108,5 @@ int main()
 
   return 0;
 }
+
+//clang-format on

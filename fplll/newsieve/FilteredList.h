@@ -1,6 +1,8 @@
 #ifndef FILTEREDLIST_H
 #define FILTEREDLIST_H
 
+//clang-format off
+
 class FilteredList;
 
 //We store filtered lists as a tree.
@@ -14,5 +16,7 @@ class FilteredList{
 
 
 };
+
+//clang-format on
 
 #endif

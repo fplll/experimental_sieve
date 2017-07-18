@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+//clang-format off
+
 /*
     ExactLatticePoint stores an (exact) lattice point, together with its squared length.
     We also have some elementary arithmetic (addition, substraction etc. ) defined on them.
@@ -69,5 +71,7 @@ template <class ET,int nfixed> void scalar_mult (ExactLatticePoint<ET,nfixed> &A
 //template <class ET,int nfixed> void compute_exact_sc_product (ET &result, const ExactLatticePoint<ET,nfixed> &p1, const ExactLatticePoint<ET,nfixed> &p2); only use version above, for simplicity. With Return Value Optimization mandated by now, there is no reason for this.
 template <class ET,int nfixed> ExactLatticePoint<ET,nfixed> conv_matrixrow_to_lattice_point (MatrixRow<ET> const &row);
 template <class ET,int nfixed> ET exact_scalar_product(ExactLatticePoint<ET,nfixed> const &p1, ExactLatticePoint<ET,nfixed> const & p2);
+
+//clang-format on
 
 #endif

@@ -1,3 +1,5 @@
+//clang-format off
+
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */
 
@@ -1956,3 +1958,5 @@ void Sieve<ET,false>::sieve_3_iteration_new (LatticePoint<ET> &p)
     filtered_list2.clear();
 
 }
+
+//clang-format on

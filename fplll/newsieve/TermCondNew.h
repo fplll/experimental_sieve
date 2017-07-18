@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef TERM_COND_NEW_H
 #define TERM_COND_NEW_H
 
@@ -198,3 +200,5 @@ TODO: reading is unused so far.
 //    template<bool MT>
 //    int check_vec(GaussSieve<ET,MT> const & sieve, ET const & length) = delete;
 //}
+
+//clang-format on

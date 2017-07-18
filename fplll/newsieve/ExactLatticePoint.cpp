@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef EXACT_LATTICE_POINT_CPP
 #define EXACT_LATTICE_POINT_CPP
 
@@ -101,3 +103,5 @@ template <class ET,int nfixed> ExactLatticePoint<ET,nfixed> conv_matrixrow_to_la
 }
 
 #endif
+
+//clang-format on

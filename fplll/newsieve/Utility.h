@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
@@ -13,17 +15,15 @@ This macro emits a new template class definition with the name CheckerClassName.
 TypeToCheck must not be void.
 
 Usage:
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS(NiceTypedef, IsMyClassGood);
-This creates the template class IsMyClassGood.
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName);
+This creates(!) the template class CheckerClassName.
 
 Then CheckerClassName<SomeSuspiciousClass>::value will be true if
-SomeSuspicousClass::NiceTypedef exists, false otherwise
+SomeSuspicousClass::TypeToCheck exists, false otherwise
 
 Note that the missing semicolon at the end is intentional.
-The user needs to put it.
+The user needs to put it to emphasize that this is a declaration.
 */
-
-// clang-format off
 
 #define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName)\
 template<class ClassToCheck> class CheckerClassName                     \
@@ -53,8 +53,6 @@ public:                                                                         
                 decltype(foo< ClassToCheck > (0)) >::value>;                                \
                 static bool constexpr value = value_t::value;                               \
 }
-
-// clang-format on
 
 
 //class that ignores its argument. Can be used to optimize away unused parameters in function templates...
@@ -210,3 +208,5 @@ template<class ET,bool MT, int nfixed> CompressedPoint<ET,MT,nfixed> GaussSieve:
 
 
 #endif // GAUSS_SIEVE_UTILITY_H
+
+//clang-format on

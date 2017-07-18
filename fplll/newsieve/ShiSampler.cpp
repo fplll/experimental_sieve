@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef SHI_SAMPLER_CPP
 #define SHI_SAMPLER_CPP
 
@@ -77,3 +79,5 @@ template<class ET,bool MT, class Engine, class Sseq, int nfixed> typename GaussS
 }
 
 #endif
+
+//clang-format on

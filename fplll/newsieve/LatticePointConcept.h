@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H
 
@@ -159,3 +161,5 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 
 #endif
+
+//clang-format on

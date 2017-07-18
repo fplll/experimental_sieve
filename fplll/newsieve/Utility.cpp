@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef GAUSS_SIEVE_UTILITY_CPP
 #define GAUSS_SIEVE_UTILITY_CPP
 
@@ -295,3 +297,5 @@ inline Z_NR<mpz_t> GaussSieve::compute_mink_bound(ZZ_mat<mpz_t> const & basis)
 
 //}
 #endif
+
+//clang-format on

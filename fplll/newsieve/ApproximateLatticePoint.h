@@ -1,6 +1,7 @@
 #ifndef APPROXIMATE_LATTICE_POINT_H
 #define APPROXIMATE_LATTICE_POINT_H
 
+//clang-format off
 
 /*
     ApproximateLatticePoint stores an approximation to a lattice point in the form
@@ -80,5 +81,7 @@ inline                                 LatticeApproximationsNew::ApproximationNo
 //FIXME: templating by nfixed does not work here. Correct way is to make ApproxEntryType* a template.
 //The error message is weird and makes me suspect compiler bugs (the issue is with template function signature not depending on template param, but it give namespace errors (GCC)
 };
+
+//clang-format on
 
 #endif // APPROX_LATTICE_POINT_H

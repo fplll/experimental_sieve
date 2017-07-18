@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef SAMPLER_H
 #define SAMPLER_H
 
@@ -151,3 +153,5 @@ template<class ET,bool MT, class Engine, class Sseq> std::istream & operator>>(s
 
 
 #endif
+
+//clang-format on

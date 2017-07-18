@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef SHI_SAMPLER_H //equivalent to Shi's old sampler, using new framework.
 #define SHI_SAMPLER_H
 
@@ -39,3 +41,5 @@ class ShiSampler: public Sampler<ET,MT, Engine, Sseq,nfixed>
 
 
 #endif
+
+//clang-format on

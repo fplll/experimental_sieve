@@ -1,3 +1,5 @@
+//clang-format off
+
 #ifndef LATTICE_VECTOR_CLASS_NEW_CPP
 #define LATTICE_VECTOR_CLASS_NEW_CPP
 
@@ -86,3 +88,5 @@ template class CompressedPoint<Z_NR<mpz_t>,false>;
 template class CompressedPoint<Z_NR<double>,false>;
 */
 #endif
+
+//clang-format on

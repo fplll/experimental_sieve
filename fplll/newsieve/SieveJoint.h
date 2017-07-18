@@ -1,3 +1,5 @@
+//clang-format off
+
 /*
 ------DO NOT INCLUDE THIS FILE MANUALLY.--------
 ------     USE SieveGauss.h INSTEAD     --------
@@ -324,3 +326,5 @@ Reads length(str) chars from stream is, expecting them to equal str. If what is 
 
 #define SIEVE_JOINT_H
 #endif // DO_INCLUDE_SIEVE_JOINT_H
+
+//clang-format on
