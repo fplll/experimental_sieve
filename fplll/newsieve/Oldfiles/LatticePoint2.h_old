@@ -1,0 +1,553 @@
+#pragma deprecated
+//
+//  LatticePoint.h -- new version
+//
+#ifndef LATTICE_VECTOR_CLASS2_H
+#define LATTICE_VECTOR_CLASS2_H
+
+#include "sieve_common.h" //needed (at least for convertions from MatrixRow (the header has to be revised);
+#include "LatticePoint.h"
+#include <type_traits>
+#include <numeric>
+#include <iomanip>   //to check precision in computing innder-products
+
+//forward declarations:
+
+template <class ET,bool insideMTList=false, int n_fixed=-1> //insideMTList: Is this point stored inside our Multithreaded list class? -> May change some data types, memory layout and ownership semantics.
+                                                            //insideMTList is currently unused.
+                                                            //n : compile-time fixed dimension with n=-1 meaning dynamic. Currently unused.
+class ApproxLatticePoint;
+
+template<class ET, bool insideMTList, int n_fixed>
+ostream & operator<< (ostream &os, ApproxLatticePoint<ET,insideMTList,n_fixed> const & appLP); //output.
+
+namespace LatticeApproximations //helper types etc. enclosed in namespace
+{
+inline signed int get_exponent (Z_NR<mpz_t> const & val)     {return val!=0 ?val.exponent() : std::numeric_limits<signed int>::min();}     //returns smallest t s.t. abs(val) < 2^t (i.e. the bit-length for integral types)
+inline signed int get_exponent (Z_NR<long> const & val)      {return val!=0 ?val.exponent() : std::numeric_limits<signed int>::min();}     //for val==0, we return the most negative value that fits into an int.
+inline signed int get_exponent (Z_NR<double> const & val)    {return val!=0 ?val.exponent() : std::numeric_limits<signed int>::min();}     //Note that the function is already implemented in Z_NR< > - types.
+template<class ET> [[ deprecated ("Using badly supported type") ]] signed int get_exponent (ET const & val);                               //Non-Z_NR< > - cases. Note that non-templates take precedence.
+
+template<class ApproxType, class ET> ApproxType do_approximate( typename enable_if< is_same<ET, Z_NR<double> >::value, ET>::type const & val, signed int const delta);
+template<class ApproxType, class ET> ApproxType do_approximate( typename enable_if< is_same<ET, Z_NR<mpz_t> >::value , ET>::type const & val, signed int const delta);
+template<class ApproxType, class ET> ApproxType do_approximate( typename enable_if< is_same<ET, Z_NR<long> >::value , ET>::type const & val, signed int const delta);
+// "if constexpr" (from C++17), you are badly needed...
+
+using ApproxTypeNorm2 = int32_t; //determines bit-length of approximation, by making sure that n* (MAXAPPROX^2) must fit into it.
+using ApproxType = int32_t; //at least half the size of the above. Same size might work better for vectorization.
+
+//The above should be read as specialisations of
+//template<class ET,class ApproxType>
+//ApproxType do_approximate(ET const & val, signed int const delta );
+//for E = Z_NR<...>
+
+template<class ET>
+class MaybeRational;
+
+template<class ET> class MaybeRational {public: static bool constexpr val=true;};       //helper template that selects whether the underlying type *might* be able to represent values strictly between 0 and 1.
+template<> class MaybeRational<Z_NR<long > >{public: static bool constexpr val=false;}; //this distinction just to serves to avoid correct, but needless approximations if the values are small enough to not need approximations in the first place.
+template<> class MaybeRational<Z_NR<mpz_t> >{public: static bool constexpr val=false;}; //(otherwise, we would pad with zeros from the right(!), which is correct (but useless and hurts readability for debug outputs).
+template<> class MaybeRational<Z_NR<double> >{public: static bool constexpr val=true;};
+//template<class ET>
+
+inline ApproxTypeNorm2 compute_sc_prod(ApproxType const * const arg1, ApproxType const * const arg2, unsigned int len);
+
+template<class ET>
+inline bool Compare_Sc_Prod(ApproxLatticePoint<ET,false,-1> const & arg1, ApproxLatticePoint<ET,false,-1> const & arg2, ApproxTypeNorm2 abslimit, int limit_exp, int dim);
+
+inline void Determine_Sc_Prod (ApproxTypeNorm2 len_max, ApproxTypeNorm2 len_x1, ApproxTypeNorm2 len_x2,  float & x1x2, float & px1, float & px2);
+
+template<class ET>
+inline bool Compare_Sc_Prod_3red(ApproxLatticePoint<ET,false, -1> const & pApprox, ApproxLatticePoint<ET,false, -1> const & x1, int dim, float px1,  ApproxTypeNorm2 & approx_inner_product);
+
+inline double detConf (float px1, float px2, float x1x2);
+}
+
+
+//end of forward declarations.
+
+//TODO: Consider Renaming AppproxLatticePoint -> LatticePoint and
+//                        LatticePoint        -> LatticePointDetails
+//to better match the semantics.
+
+template <class ET>
+class ApproxLatticePoint<ET, false, -1>     //Approx. Lattice Point. Stores approximations to a lattice point LP in the form LP = 2^length_exponent * (*approx).
+                                            //i.e. essentially like a floating-point type, but with an exponent that is shared between all coordinates.
+                                            //The underlying exact value can be obtained by get_details.
+
+                            //Note that the pointer/handle to the underlying LatticePoint is owning.
+                            //The reasong for this strange design choice (rather doing it the other way round, i.e. attaching the approx. to the real thing)
+                            //is that the memory layout of the approx. data is completly under our control, does not depend on <ET>, does not grow and
+                            //every potential sequence of bytes represents at least some valid object.
+                            //In a multi-threaded environment, the latter allows us to forego some locking / relax memory order requirements at the expense of having approximations that actually are wrong.
+                            //Dealing with this may be cheaper than having memory fences at every read. Of course, reading from the "true" values requires some more care in that case.
+                            //Even in single-threaded environment, this potentially allows better custom allocation.
+
+{
+    public:
+    using ApproxType        = LatticeApproximations::ApproxType;
+    using ApproxTypeNorm2   = LatticeApproximations::ApproxTypeNorm2;
+    using DetailType        = LatticePoint<ET>;
+    using EntryType         = ET;
+    using ExactType         = LatticePoint<ET>;
+
+    public: //consider making some constructors private and befriend the list class(es).
+    ApproxLatticePoint() : length_exponent(0),approx(nullptr), approxn2(0), details(nullptr) {}; //should only ever be used in move semantics
+    //explicit ApproxLatticePoint(int n) : //n=ambient dimension = length of vector
+    //    length_exponent(0), approx(new ApproxType[n]),approxn2(0),details(new DetailType (n) ) {update_approximation();} ;
+    ApproxLatticePoint(DetailType const & LP): //creates an approx. LP structure holding a copy of LP.
+        length_exponent(0),approx(new ApproxType[LP.size()] ),approxn2(0),details(new DetailType (LP)) {update_approximation();};
+    //explicit ApproxLatticePoint(DetailType const * const LPp): //creates an approx LP structure that gains ownership of *LPp. Use only on dynamically allocated LPs.
+    //    length_exponent(0),approx(new ApproxType[LPp->size()]),approxn2(0),details(LPp) {update_approximation();};
+
+    ApproxLatticePoint(ApproxLatticePoint const &other):
+        length_exponent(other.length_exponent),approx(nullptr),approxn2(other.approxn2),details(nullptr)
+    {
+        if (other.details!=nullptr)
+        {
+            int n = (other.details)->size();
+            approx= new ApproxType[n];
+            for(int i=0;i<n;++i) approx[i]=other.approx[i];
+            details = new DetailType (*other.details);
+        }
+    }
+    ApproxLatticePoint(ApproxLatticePoint && other) :
+        length_exponent(other.length_exponent), approx(other.approx), approxn2(other.approxn2),details(other.details)  {other.invalidate();}; //invalidation should not be neccessary.
+    //ApproxLatticePoint & operator= (ApproxLatticePoint const & other) = delete;
+    ApproxLatticePoint & operator= (ApproxLatticePoint other)
+    {
+        length_exponent = other.length_exponent;
+        swap(approx,other.approx);
+        approxn2=other.approxn2;
+        swap(details,other.details);
+        return *this;
+    }
+
+    ~ApproxLatticePoint(){delete details; delete approx;};
+    ApproxType * get_approx()           const               {return approx;};
+    ApproxType   get_approx_norm2()     const               {return approxn2;};
+    signed int get_length_exponent()  const                 {return length_exponent;};
+    DetailType get_details()    const                       {return *details;};
+    //LatticePoint<ET> get_details()    const                 {return *details;};
+    DetailType & get_details_ref()                          {return *details;}; //technically, this is const, as it does not change the pointer.
+    DetailType const * get_details_ptr()  const             {return details;};
+    DetailType const * get_details_ptr_r()const             {return details;};
+    DetailType * get_details_ptr_rw() const                 {return details;};
+    unsigned int get_dim() const                            {return details->size();};
+    bool operator< (ApproxLatticePoint const &other ) const {return (this->details->norm2 < other.get_details_ptr()->norm2);};
+    bool operator<=(ApproxLatticePoint const &other ) const {return (this->details->norm2 <=other.get_details_ptr()->norm2);};
+    bool operator> (ApproxLatticePoint const &other ) const {return (this->details->norm2 > other.get_details_ptr()->norm2);};
+    bool operator>=(ApproxLatticePoint const &other ) const {return (this->details->norm2 >=other.get_details_ptr()->norm2);};
+    //private: //internal member functions
+    void update_approximation(); //computes approximation from *approx. Assumes memory is already allocated.
+    void invalidate(){approx= nullptr;details=nullptr;}
+    //friend
+    private: //internal data
+    signed int length_exponent; //note : May be negative
+    ApproxType *approx;
+    ApproxTypeNorm2 approxn2;
+    //The approximation itself is given by 2^length_exponent * approx
+    //The approximation to the norm^2 is given by 2^2length_exponent * approxn2
+    //Note that we need to care about overflows here by truncating accordingly.
+    DetailType *details; //actual lattice point structure.
+};
+
+//TODO: Implementation will be changed
+template<class ET, bool insideMTList, int n_fixed>
+ostream & operator<< (ostream &os, ApproxLatticePoint<ET,insideMTList,n_fixed> const & appLP)
+{
+    os << appLP.get_details() << endl;
+    os << "Approximation:[";
+    for (unsigned int i=0;i<appLP.get_dim(); ++i)
+    {
+        os<<(appLP.get_approx())[i]<<","; //gives trailing comma after last arg. Too lazy to fix.
+    }
+    os<<"]";
+    os<<" with multiplier 2^" << appLP.get_length_exponent() << endl;
+    os<<"norm2-Approx = " << appLP.get_approx_norm2() << endl;
+    return os;
+}
+
+
+template <class ET>
+void ApproxLatticePoint<ET,false, -1>::update_approximation()
+{
+    assert(details!=nullptr);
+    int const n = details->size(); //should be unsigned
+    assert(n!=0);
+    static_assert (std::numeric_limits<ApproxType>::is_specialized, "bad ApproxType");
+    static_assert (std::numeric_limits<ApproxTypeNorm2>::is_specialized,"bad ApproxTypeNorm2");
+    static_assert (std::numeric_limits<ApproxTypeNorm2>::digits /2 <= std::numeric_limits<ApproxType>::digits, "bad Types"); //ensures that we have enough bits in ApproxType. Note that /2 rounds down, which is correct.
+    static_assert ( (! is_same<ET,Z_NR<mpz_t>>::value) || ( ( std::numeric_limits<ApproxTypeNorm2>::digits / 2 ) <= std::numeric_limits<long>::digits )," " ); //otherwise, mpz_get_si in the GMP class may not work correctly.
+    unsigned int const max_bits = ( std::numeric_limits<ApproxTypeNorm2>::digits - floor(log2(n)) )/2;
+    //may use __builtin_clz on GCC for improved efficiency, floor(log2(n)) is ridiculous...
+    signed int number_length = std::numeric_limits<signed int>::min();
+    for(int i=0; i<n;++i)
+    {
+        number_length = std::max(number_length, LatticeApproximations::get_exponent ( (*details)[i] ) );
+    }
+    if(number_length == std::numeric_limits<signed int>::min()) // *details is all-zero vector. should never happen in the algorithm.
+    {
+        cerr << "Warning: approximating all-zero vector.";
+        length_exponent=0;
+        for(int i=0;i<n;++i){approx[i]=0;}
+        approxn2=0;
+        return;
+    }
+    else      // length_exponent is minimal, s.t. abs ( (*details)[i] / 2^length_exponent ) < 1 for all i
+    {
+        for(int i=0;i<n;++i)
+        {
+            length_exponent = number_length - max_bits;
+            if(LatticeApproximations::MaybeRational<ET>::val == false) {length_exponent = max(0,length_exponent);} //constexpr if, actually...
+            approx[i] = LatticeApproximations::do_approximate<ApproxType,ET> ( (*details)[i], length_exponent );
+        }
+        approxn2 = LatticeApproximations::do_approximate<ApproxTypeNorm2,ET> ( (*details).get_norm2(),2*length_exponent   );
+    }
+}
+
+template<class ApproxType, class ET>
+ApproxType LatticeApproximations::do_approximate( typename enable_if< is_same<ET, Z_NR<mpz_t> >::value , ET>::type const & val, signed int const delta)
+//ApproxType do_approximate(Z_NR<mpz_t> const & val, signed int const delta )
+{
+    assert(delta>=0);
+    Z_NR<mpz_t> temp;
+    temp.div_2si (val,delta);
+    return temp.get_si();
+}
+
+//Note that nr_Z_l 's div_2si uses >> and << operators on signed values.
+//This would lead to undefined behaviour (as explicitly stated in nr_Z) in our case as of C++17 (although it would work with most compilers).
+//(This is the single reason we don't default to Z_NR's capabilities here.
+
+
+template<class ApproxType, class ET>
+ApproxType LatticeApproximations::do_approximate( typename enable_if< is_same<ET, Z_NR<long> >::value , ET>::type const & val, signed int const delta)
+//ApproxType do_approximate(Z_NR<long> const & val, signed int const delta)
+{
+    assert(delta>=0);
+    return ( val.get_data() / (2L << delta ) );
+}
+
+template<class ApproxType, class ET>
+ApproxType LatticeApproximations::do_approximate( typename enable_if< is_same<ET, Z_NR<double> >::value , ET>::type const & val, signed int const delta)
+//Read : ApproxType do_approximate(Z_NR<double> const & val, signed int const delta)
+{
+    return (std::ldexp(val.get_data(),-delta) ); //Note : Conversion from double to integral type rounds towards zero. This is needed to prevent overflows.
+}
+
+/*get_exponent :
+returns minimal r, s.t. |val| < 2^r (or INTMIN, if val = 0)
+*/
+
+template <class ET> //fallback version, should never be called anyway.
+[[ deprecated ("Using badly supported type") ]] signed int LatticeApproximations::get_exponent(ET const & val)
+{
+
+    if(val==0) return std::numeric_limits<signed int>::min();
+    ET absval = abs(val);
+    if(absval >= 1)
+    {
+        signed int res=0;
+        while(absval>=1)
+        {
+            ++res;
+            absval = absval /2;
+        }
+        return res;
+    }
+    else
+    {
+        signed int res=1;
+        while(absval<1)
+        {
+            --res;
+            absval = absval*2;
+        }
+        return res;
+    }
+}
+
+inline LatticeApproximations::ApproxTypeNorm2 LatticeApproximations::compute_sc_prod(ApproxType const * const arg1, ApproxType const * const arg2, unsigned int len)
+{
+
+    //syntax: inner_product(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init); init accumelates the result
+    return std::inner_product(arg1, arg1+len, arg2,0);
+    /*
+    ApproxTypeNorm2 res=0;
+    for(unsigned int i=0;i<len;++i)
+    {
+        res+=arg1[i]*arg2[i];
+    }
+    return res;
+    */
+}
+
+template<class ET>
+inline bool LatticeApproximations::Compare_Sc_Prod(ApproxLatticePoint<ET,false,-1> const & arg1, ApproxLatticePoint<ET,false,-1> const & arg2, ApproxTypeNorm2 abslimit, int limit_exp, int dim)
+{
+    int rel = arg1.get_length_exponent() + arg2.get_length_exponent() - limit_exp;
+    ApproxTypeNorm2 sc = abs(compute_sc_prod(arg1.get_approx(),arg2.get_approx(),dim));
+    if(rel > 0)
+    {
+        return sc > (abslimit >> rel);
+    }
+    else
+    {
+        return (sc >> -rel) > abslimit;
+    }
+}
+
+template<class ET>
+inline bool LatticeApproximations::Compare_Sc_Prod_3red(ApproxLatticePoint<ET,false,-1> const & pApprox, ApproxLatticePoint<ET,false,-1> const & x1, int dim, float px1, ApproxTypeNorm2 & approx_inner_product)
+{
+    approx_inner_product = (compute_sc_prod(pApprox.get_approx(), x1.get_approx(), dim));
+    //cout << "sc = " << approx_inner_product  << endl;
+    //cout << "pApproxnorm2 = " << pApprox.get_approx_norm2() << endl;
+    //cout << "x1Approxnorm2 = " << x1.get_approx_norm2() << endl;
+    //cout <<"p Length exp = " <<pApprox.get_length_exponent() << endl;
+
+    //TODO: Make more efficient
+    //float approx_inner_product_sc = (float)approx_inner_product / ( (float)(pow(pApprox.get_approx_norm2(), 0.5)) * (float)(pow (x1.get_approx_norm2(), 0.5) ) ) ;
+    float approx_inner_product_sc = (float)approx_inner_product / (sqrt ( (float) pApprox.get_approx_norm2() * (float) x1.get_approx_norm2()) );
+    //cout << approx_inner_product_double << endl;(pow
+
+    float eps = .025; // TODO: to adjust and make as input
+
+    //cout << "to_compare " << approx_inner_product_sc << endl;
+    //cout << "target " << px1 << endl;
+
+    //TODO: delete the or-condition
+    if (abs ( abs ( approx_inner_product_sc ) - abs(px1))  <= eps || abs(approx_inner_product_sc) > 0.31 )
+        return true;
+    else
+        return false;
+}
+
+
+/*
+    According to Maple, given len_x1 = || x_1||^2, len_p = || p||^2, and len_x2 = ||x_2||^2, the optimal <p, x1>, <p,x2>, <x1x2> (all divided by the corresp. lengthes) are given by  the formulas we compute below
+
+    These formulas assume p = max {x1, x2, p};  The order of {x1, x2} does not matter. The total order of the triple is assumed to be correct (sieve should know it).
+
+
+*/
+inline void LatticeApproximations::Determine_Sc_Prod (LatticeApproximations::ApproxTypeNorm2 const len_max, LatticeApproximations::ApproxTypeNorm2 const len_x1, LatticeApproximations::ApproxTypeNorm2 const len_x2, float & x1x2, float & px1, float & px2)
+{
+
+    //LatticeApproximations:: ApproxTypeNorm2 len_max_quad= len_max * len_max;
+    //LatticeApproximations:: ApproxTypeNorm2 len_x1_quad = len_x1 * len_x1;
+    //LatticeApproximations:: ApproxTypeNorm2 len_x2_quad = len_x2 * len_x2;
+
+    // compute x1x2 - the inner product of two shorter vectors
+    // float should be enough
+
+    float len_max_quad = (float)len_max*(float)len_max;
+    float len_x1_quad = (float)len_x1*(float)len_x1;
+    float len_x2_quad = (float)len_x2*(float)len_x2;
+
+    float term_x1x2 = 16 * len_max_quad - (float)(8*(float)len_x1*(float)len_max) - (float) (8*(float)len_x2 * (float)len_max) + len_x1_quad + (float)(14 * (float)len_x1 * (float)len_x2) + len_x2_quad; //without casting each length individually the result is wrong. -- TO IMPROVE
+
+    float sqrt_term_x1x2 = sqrt(term_x1x2);
+
+    float term2 = (-4*(float)len_max + (float)len_x1 + (float)len_x2);
+
+    float num = term2 + sqrt_term_x1x2;
+
+    long product = 36 * (long)len_x1 * (long)len_x2; //does not fit otherwise
+
+    float denom = sqrt((float) product);
+
+
+//    cout << "num = " << num << " denom = " << denom << endl;
+//    cout << "term_x1x2 = " << setprecision(16) << term_x1x2 << endl;
+//    cout << "sqrt_term_x1x2 = " << setprecision(16) << sqrt_term_x1x2 << endl;
+//    cout << "term2 = " << term2 << endl;
+//    cout << "lex_max = " << len_max << endl;
+//    cout << "len_x1 = " << len_x1 << endl;
+//    cout << "len_x2 = " << len_x2 << endl;
+
+    x1x2 =  - num / denom;
+
+    //compute px1
+
+    float x1x2_sq = x1x2*x1x2;
+    float x1x2quad =x1x2_sq*x1x2_sq;
+    float sqrt_len_x1 = sqrt(len_x1);
+
+    float term_px1 = float ((float) (9*len_x1) * x1x2quad + (float)(16 *len_max)*x1x2_sq - (float)(10*len_x1)*x1x2_sq + (float)len_x1);
+
+    num = 3*x1x2_sq* sqrt_len_x1- 3*sqrt_len_x1 + sqrt(term_px1);
+
+    denom = 4 * sqrt((float)len_max);
+
+    px1  = num / denom;
+
+    //cout << "px1 = " << setprecision(16) <<  px1 << endl;
+
+    //compute px2
+
+    num = x1x2_sq * sqrt_len_x1 - sqrt_len_x1 +sqrt(term_px1);
+    denom = 4*x1x2*sqrt(float(len_max));
+
+    px2 = num / denom;
+
+    //cout << "num = " << num << " denom = " << denom << endl;
+    //cout << "px2 = " << setprecision(16) <<  px2 << endl;
+
+
+}
+
+//want: x1x2/(x1_len * x2_len) <=  (-px2/(x1_len * x2_len) - x1_len/(2* x2_len) - x2_len/(2* x1_len))  - px1/(x1_len * x2_len)  (also with different signs)
+// NOTE: x1x2 stores the assumed absolute value ('promissingness').
+// NOTE: we require sgn(px1) * sgn(px2) * sgn(x1x2) =-1
+void Compute_px1_bound(LatticeApproximations::ApproxTypeNorm2 x1_len, LatticeApproximations::ApproxTypeNorm2 x2_len, LatticeApproximations::ApproxTypeNorm2 px2, float x1x2_scaled, float & res_upper)
+{
+
+
+    //float x1_len_sqrt = sqrt((float) x1_len);
+    //float x2_len_sqrt = sqrt((float) x2_len);
+    //float len_sqrt_x1x2 = x1_len_sqrt * x2_len_sqrt;
+
+    float len_sqrt_x1x2 =sqrt((float) x1_len * (float) x2_len);
+
+
+    //cout << "---- in Compute_px1_bound ---- " << endl;
+    //cout << "x2_len " << x2_len << endl;
+    //cout << "x1_len_sqrt = " << x1_len_sqrt << " x2_len_sqrt = " << x2_len_sqrt << " px2 = " << px2 << endl;
+
+
+    if (px2>=0)
+        res_upper = abs(x1x2_scaled * len_sqrt_x1x2 + px2 - ((float)x1_len) / 2 - ((float)x2_len) /2);
+    else
+        res_upper = abs(x1x2_scaled * len_sqrt_x1x2 - px2 - ((float)x1_len) / 2 - ((float)x2_len) /2);
+
+    //cout << "--------------" << endl;
+
+}
+
+// Same as the above except all inner-products (scaled) are set to 1/3
+void Compute_one_third_bound(LatticeApproximations::ApproxTypeNorm2 x1_len, LatticeApproximations::ApproxTypeNorm2 x2_len, LatticeApproximations::ApproxTypeNorm2 px2, float & res_upper)
+{
+    float len_sqrt_x1x2 =sqrt((float) x1_len * (float) x2_len);
+    if (px2>=0)
+        res_upper = abs(0.33 * len_sqrt_x1x2 + px2 - ((float)x1_len) / 2 - ((float)x2_len) /2);
+    else
+        res_upper = abs(0.33 * len_sqrt_x1x2 - px2 - ((float)x1_len) / 2 - ((float)x2_len) /2);
+}
+
+// OLD IMPLEMENTATION
+/*
+inline void Compare_Sc_Prod_p (LatticeApproximations::ApproxTypeNorm2 len_p, LatticeApproximations::ApproxTypeNorm2 len_x1, LatticeApproximations::ApproxTypeNorm2 len_x2, double x1x2, double px1, double px2)
+{
+
+    LatticeApproximations:: ApproxTypeNorm2 len_p_quad = len_p * len_p;  // need to make sure it fits
+    LatticeApproximations:: ApproxTypeNorm2 len_x1_quad = len_x1 * len_x1;
+    LatticeApproximations:: ApproxTypeNorm2 len_x2_quad = len_x2 * len_x2;
+
+
+    // compute x1x2
+
+
+    int term_x1x2 = 16 * len_p_quad - 8*(len_x1 + len_x2) * len_p + len_x1_quad + (14 * len_x1 * len_x2) + len_x2_quad;
+
+    double sqrt_term_x1x2 = sqrt(term_x1x2);
+
+
+    int term2 = -4 * len_p + len_x1 + len_x2;
+
+    double denom = sqrt(36 * len_p * len_x2);
+
+    double nom = (double) term2 + sqrt_term_x1x2;
+
+    x1x2 = - nom / denom;
+
+    //compute px1
+
+    double x1x2_sq = x1x2*x1x2;
+    double x1x2quad =x1x2_sq*x1x2_sq;
+    double sqrt_len_x1 = sqrt(len_x1);
+
+    double term_px1 = double ((double) (9*len_x1) * x1x2quad + (double)(16 *len_p)*x1x2_sq - (double)(10*len_x1)*x1x2_sq + (double)len_x1);
+
+    nom = 3*x1x2_sq* sqrt_len_x1- 3*sqrt_len_x1 + sqrt(term_px1);
+
+    denom = 4 * sqrt(len_p);
+
+    px1  = nom / denom;
+
+    //compute px2
+
+    nom = x1x2_sq * sqrt_len_x1 - sqrt_len_x1 +sqrt(term_px1);
+    denom = 4*x1x2*sqrt(len_p);
+
+    px2 = nom / denom;
+
+}
+*/
+/*
+
+    Same as above but now we assume x1 = max {x1, x2, p}
+*/
+/*
+inline void Compare_Sc_Prod_x1 (LatticeApproximations::ApproxTypeNorm2 len_p, LatticeApproximations::ApproxTypeNorm2 len_x1, LatticeApproximations::ApproxTypeNorm2 len_x2, double x1x2, double px1, double px2)
+
+{
+    LatticeApproximations:: ApproxTypeNorm2 len_p_quad = len_p * len_p;  // need to make sure it fits
+    LatticeApproximations:: ApproxTypeNorm2 len_x1_quad = len_x1 * len_x1;
+    LatticeApproximations:: ApproxTypeNorm2 len_x2_quad = len_x2 * len_x2;
+
+
+    // compute px2
+
+    int term_px2 = 16 * len_x1_quad - 8*(len_p + len_x2) * len_x1 + len_p_quad + (14 * len_p * len_x2) + len_x2_quad;
+
+    double sqrt_term_px2 = sqrt(term_px2);
+
+
+    int term2 = -4 * len_x1 + len_p + len_x2;
+
+    double denom = sqrt(36 * len_p * len_x2);
+
+    double nom = (double) term2 + sqrt_term_px2;
+
+    px2 = - nom / denom;
+
+    //compute px1
+
+    double px2_sq = px2*px2;
+    double px2_quad =px2_sq*px2_sq;
+    double sqrt_len_p = sqrt(len_p);
+
+    double term_px1 = double ((double) (9*len_p) * px2_quad + (double)(16 *len_x1)*px2_sq - (double)(10*len_p)*px2_sq + (double)len_p);
+
+    nom = 3*px2_sq* sqrt_len_p- 3*sqrt_len_p + sqrt(term_px1);
+
+    denom = 4 * sqrt(len_x1);
+
+    px1  = nom / denom;
+
+    //compute x1x2
+
+    nom = px2_sq * sqrt_len_p - sqrt_len_p +sqrt(term_px1);
+    denom = 4*px2*sqrt(len_x1);
+
+    x1x2 = nom / denom;
+
+}
+*/
+/*
+Computes the determinant of
+                [1 px1 px2]
+                [px1 1 x1x2]
+                [px2 x1x2 1]
+
+*/
+inline double LatticeApproximations::detConf (float px1, float px2, float x1x2)
+{
+    return 2 * px1 * px2 * x1x2 - px1 * px1 - px2 * px2 - x1x2 * x1x2 + 1;
+}
+
+
+
+#endif // LATTICE_VECTOR_CLASS_2H
