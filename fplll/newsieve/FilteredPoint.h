@@ -1,3 +1,5 @@
+// clang-format off
+
 //
 //  FilteredPoint.h
 //
@@ -37,14 +39,14 @@ class FilteredPoint
         this->minus = sign;
     }
 
-    
+
     /*
     FilteredPoint(ApproxLatticePoint<ET> x, LatticeApproximations::ApproxTypeNorm2 sc)
     {
         this->point = x;
         this->sc_prod = sc;
     }
-    
+
 
     FilteredPoint(ApproxLatticePoint<ET> x, float sc)
     {
@@ -72,10 +74,10 @@ class FilteredPoint
 private:
     //members
     ApproxLatticePoint<ET> point;
-    
+
     // always positive
     SC sc_prod;
-    
+
     //true is sc_prod is correct for point
     // false if for -point
     bool minus;
