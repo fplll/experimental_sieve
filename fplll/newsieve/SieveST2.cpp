@@ -12,21 +12,20 @@
 template<class ET,int nfixed>
 bool check2red (GaussSieve::FastAccess_Point<ET,false,nfixed> const &p1, GaussSieve::FastAccess_Point<ET,false,nfixed> const &p2, ET & scalar)
 {
-
+    
     ET sc_prod, abs_2scprod;
     sc_prod= compute_sc_product(p1, p2);
     abs_2scprod.mul_ui(sc_prod,2);
     abs_2scprod.abs(abs_2scprod);
 
     // check if |2 * <p1, p2>| <= |p2|^2. If yes, no reduction
-    if (abs_2scprod <= p2.norm2)
+    if (abs_2scprod <= p2.get_norm2())
         return false;
-
     //compute the multiple mult s.t. res = p1 \pm mult* p2;
     //mult = round ( <p1, p2> / ||p2||^2 )
     FP_NR<double> mult, tmp;
     mult.set_z(sc_prod); //conversions
-    tmp.set_z(p2.norm2);
+    tmp.set_z(p2.get_norm2());
 
     mult.div(mult, tmp);
     mult.rnd(mult);
@@ -109,23 +108,6 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         return;
     }
 
-
-    //convert to GaussList_StoredPoint first
-    GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p));
-
-    //insert the converted point into the main_list
-    cout << " insert p of norm = " << p.get_norm2() << endl;
-    main_list.insert_before(it_comparison_flip, std::move(p_converted));
-     ++current_list_size;
-
-    if(update_shortest_vector_found(p))
-    {
-        if(verbosity>=2)
-        {
-            cout << "New shortest vector found. Norm2 = " << get_best_length2() << endl;
-        }
-    }
-
     for (typename MainListType::Iterator it =it_comparison_flip; it!=main_list.cend(); ++it)
     {
 
@@ -135,6 +117,9 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         ++number_of_total_scprods_level1;
 
         ET scalar;
+        p.write_to_stream(cout);
+        cout << endl;
+        
         if ( check2red(*it, p, scalar) )
         {
                 cout << "check2red 2" << endl;
@@ -159,6 +144,28 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
             cout << "check2 red is false" << endl;
 
     }
+    
+    
+    
+     //convert to GaussList_StoredPoint first
+     GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p));
+     
+     //insert the converted point into the main_list
+     cout << " insert p of norm = " << p.get_norm2() << endl;
+     main_list.insert_before(it_comparison_flip, std::move(p_converted));
+     ++current_list_size;
+    
+    /*
+     if(update_shortest_vector_found(p))
+     {
+         if(verbosity>=2)
+         {
+             cout << "New shortest vector found. Norm2 = " << get_best_length2() << endl;
+         }
+     }
+     */
+     
+    cout << "finished 2-sieve iteration" << endl;
 }
 
 
