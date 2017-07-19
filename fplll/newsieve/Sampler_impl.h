@@ -10,6 +10,8 @@
 #include "SieveGauss.h"
 #include <type_traits>
 
+// actually needed, even though destructor is pure virtual as the base class destructor is
+// eventually called implicitly.
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 Sampler<ET, MT, Engine, Sseq, nfixed>::~Sampler()
 {
@@ -19,7 +21,7 @@ template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 void Sampler<ET, MT, Engine, Sseq, nfixed>::init(Sieve<ET, MT, nfixed> *const sieve)
 {
   sieveptr = sieve;
-  //    std::cout << "Initializing RNGS engines" << std::endl << flush;
+  //    std::cout << "Initializing RNGS engines" << std::endl << std::flush;
   engine.init(sieve->get_num_threads());
   //    cout << "Done. Starting custom initialization of specific sampler" << endl << flush;
   custom_init();

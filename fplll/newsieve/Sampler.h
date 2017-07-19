@@ -23,9 +23,9 @@
 //#include <cfenv>
 
 // forward declarations
-
 template <class ET, bool MT, int nfixed> class Sieve;
 
+// declared in this file, as specialization for each possible MT.
 template <class ET, bool MT, class Engine, class Sseq, int nfixed> class Sampler;
 
 // printing
@@ -106,14 +106,4 @@ protected:
 
 // clang-format on
 
-// clang-format off
-
-
-#include "SieveGauss.h"
-
-
-//actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
-
 #endif
-
-//clang-format on
