@@ -14,12 +14,12 @@
 #define SAMPLER_H
 
 // forward declarations
+#include "MTPRNG.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include <iostream>
 #include <random>
 #include <type_traits>
-#include "MTPRNG.h"
 //#include <cfenv>
 
 // forward declarations
@@ -45,9 +45,6 @@ enum class SamplerType
   shi_sampler      = 2,
   gauss_sampler    = 3
 };
-
-
-
 
 /**
 This class is a generic Sampler. It serves as interface and all other sampler are derived from it.
@@ -109,8 +106,6 @@ protected:
 // clang-format on
 
 // clang-format off
-
-
 
 
 #include "SieveGauss.h"
