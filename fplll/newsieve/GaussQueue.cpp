@@ -6,7 +6,7 @@
 #include "GaussQueue.h"
 #include "SieveGauss.cpp"
 #include "ShiSampler.cpp"
-#include "Sampler.cpp"
+#include "Sampler_impl.h"
 
 template<class ET,int nfixed> GaussQueue<ET,false,nfixed>::GaussQueue( Sieve<ET,false,nfixed> *caller_sieve)  //constructor
 :

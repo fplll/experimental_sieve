@@ -35,7 +35,7 @@
 
 #ifndef SIEVE_JOINT_CPP //code in this block only read once.
 
-#include "Sampler.cpp"
+#include "Sampler_impl.h"
 #include "GaussQueue.cpp"
 #include "PointListNew.cpp"
 

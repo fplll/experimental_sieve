@@ -5,13 +5,14 @@ This is done to make sure that (at least if we don't change basis), the set of v
 sampled is at least somewhat consistent among different runs.
 
 This file also contains some basic rejection sampling routines for sampling Gaussians on Z.
+
+Header-only
 */
 
 #ifndef MTPRNG_H
 #define MTPRNG_H
 
 #include "SieveUtility.h"
-#include "Typedefs.h"
 #include <iostream>
 #include <random>
 #include <type_traits>

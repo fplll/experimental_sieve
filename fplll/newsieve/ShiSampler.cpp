@@ -5,7 +5,7 @@
 
 //Add includes for GSO
 #include "ShiSampler.h"
-#include "Sampler.cpp"
+#include "Sampler_impl.h"
 
 template<class ET,bool MT, class Engine, class Sseq, int nfixed> void ShiSampler<ET,MT,Engine,Sseq,nfixed>::custom_init()
 {

@@ -70,7 +70,7 @@ public:
       : engine(initial_seed), sieveptr(nullptr) {}
 
   // We call init first, then custom_init (via init).
-  void init(Sieve<ET, MT, nfixed> *const sieve);
+  inline void init(Sieve<ET, MT, nfixed> *const sieve);
   virtual ~Sampler() = 0;  // needs to be virtual
 
   /**
