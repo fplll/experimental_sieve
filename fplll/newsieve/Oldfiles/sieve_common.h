@@ -13,7 +13,7 @@
 #include <forward_list>
 
 #include "../defs.h"
-#include "sampler_basic.h"
+//#include "sampler_basic.h"
 //#include "sieve_gauss_str.h"
 
 using namespace std;
