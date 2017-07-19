@@ -140,7 +140,7 @@ template <class Engine, class Sseq> void MTPRNG<Engine, true, Sseq>::reseed(Sseq
 };
 
 template <class Engine, class Sseq>
-void MTPRNG<Engine, true, Sseq>::init(unsigned int const _num_threads)
+inline void MTPRNG<Engine, true, Sseq>::init(unsigned int const _num_threads)
 {
   if (_num_threads <= num_threads)  // no need to initalize.
   {
