@@ -20,8 +20,7 @@ template<class ET, bool MT, class Engine, class Sseq,int nfixed>
 class ShiSampler: public Sampler<ET,MT, Engine, Sseq,nfixed>
 {
     public:
-    ShiSampler(Sseq & seq, double const _cutoff = 2.0)
-        :   Sampler<ET,MT,Engine,Sseq>(seq), dim(0), cutoff(_cutoff) {};
+    ShiSampler(Sseq & seq, double const _cutoff = 2.0): Sampler<ET,MT,Engine,Sseq,nfixed>(seq), dim(nfixed<0?0:nfixed), cutoff(_cutoff) {};
     virtual SamplerType  sampler_type() const override                          {return SamplerType::shi_sampler;};
     virtual ~ShiSampler();
     virtual typename GaussSieve::GaussSampler_ReturnType<ET,MT,nfixed> sample(int thread=0) override;
@@ -36,8 +35,8 @@ class ShiSampler: public Sampler<ET,MT, Engine, Sseq,nfixed>
     unsigned int rank;
     double cutoff;
     protected:
-    using Sampler<ET,MT,Engine,Sseq>::sieveptr;
-    using Sampler<ET,MT,Engine,Sseq>::engine;
+    using Sampler<ET,MT,Engine,Sseq,nfixed>::sieveptr;
+    using Sampler<ET,MT,Engine,Sseq,nfixed>::engine;
 //    vector<MyLatticePoint> basis;
 };
 
