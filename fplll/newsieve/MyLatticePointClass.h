@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <type_traits>
-#include "Utility.h"
+#include "SieveUtility.h"
 #include <vector>
 #include "LatticePointConcept.h"
 

@@ -5,7 +5,7 @@
 
 //TODO: Remove the concept idea below, we replace it by CRTP (i.e. inheritance without virtual functions, using templates)
 
-#include "Utility.h"
+#include "SieveUtility.h"
 #include <iostream>
 #include <string>
 
