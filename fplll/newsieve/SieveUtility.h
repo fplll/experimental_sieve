@@ -64,7 +64,7 @@ class IgnoreAnyArg
 {
 public:
   template <class T> constexpr IgnoreAnyArg(T val){};
-  constexpr IgnoreAnyArg()=default;
+  constexpr IgnoreAnyArg() = default;
 };
 
 // same, but enforces the type of the ignored argument.
@@ -82,7 +82,7 @@ template <> class Dimension<-1>
 public:
   using IsFixed = false_type;
   Dimension(unsigned int const new_dim) : dim(new_dim){};
-  Dimension() = delete;
+  Dimension() = delete;  // Not sure whether we should allow uninitialized dims here.
   inline operator unsigned int() const { return dim; };
   unsigned int dim;
 };
@@ -91,26 +91,26 @@ template <int nfixed> class Dimension
 {
 public:
   using IsFixed = true_type;
-  Dimension() = default;
+  Dimension()   = default;
   Dimension(IgnoreArg<unsigned int> new_dim){};  // assert(new_dim==nfixed);}
   //    Dimension(unsigned int){};
   inline constexpr operator unsigned int() const { return nfixed; };
   static constexpr unsigned int dim = nfixed;
 };
 
-// clang-format off
-
-namespace GaussSieve //helper functions
+namespace GaussSieve  // helper functions
 {
 /**
-string_consume(is, str, elim_ws, verbose)
-reads from stream is.
-If the next read on is is not the string str, it returns false, otherwise it throws away str from is.
-elim_ws==true means that string_consume remove whitespace from the stream before and after its operations.
-If verbose is set to true, in the case that the function returns false, we also write diagnostic to cerr.
+string_consume(is, str, elim_ws, verbose) reads from stream is.
+If the next read on is is not the string str, it returns false,
+otherwise it throws away str from is.
+elim_ws==true means that string_consume removes whitespace from the stream before and after its
+operations.
+If verbose is set to true, in the case that the function returns false, we additionally write
+diagnostics to cerr.
 
-More precisely, we first remove whitespace (optional),
-then read and remove len(str) chars from is. If there is not enough data on the stream, we read and remove all there is.
+More precisely, we first remove whitespace (optional), then read and remove len(str) chars from is.
+If there is not enough data on the stream, we read and remove all there is.
 If we read what was expected, return true, otherwise false.
 We also remove whitespace from is afterwards (optional)
 
@@ -119,42 +119,44 @@ This utility function is used to parse dumps.
 string_consume assumes that str itself does not start/end with whitespace.
 */
 
-inline bool string_consume(istream &is, std::string const & str, bool elim_ws= true, bool verbose=true);   //helper function for dumping/reading
+inline bool string_consume(istream &is, std::string const &str, bool elim_ws = true,
+                           bool verbose = true);  // helper function for dumping/reading
 }
 
-inline bool GaussSieve::string_consume(istream &is, std::string const & str, bool elim_ws, bool verbose)
+inline bool GaussSieve::string_consume(istream &is, std::string const &str, bool elim_ws,
+                                       bool verbose)
 {
-    unsigned int len = str.length();
-    char *buf = new char[len+1];
-    buf[len] = 0; //for error message.
-    if (elim_ws)
+  unsigned int len = str.length();
+  char *buf        = new char[len + 1];
+  buf[len]         = 0;  // for error message.
+  if (elim_ws)
+  {
+    is >> std::ws;
+  }
+  is.read(buf, len);
+  if (is.gcount() != len)
+  {
+    if (verbose)
     {
-        is >> std::ws;
+      cerr << "Failure reading header: Expected to read" << str << endl;
+      cerr << "Read only " << is.gcount() << "bytes. String read was" << buf << endl;
     }
-    is.read(buf,len);
-    if(is.gcount() != len)
+    return false;
+  }
+  if (elim_ws)
+  {
+    is >> std::ws;
+  }
+  if (str.compare(0, len, buf, len) != 0)
+  {
+    if (verbose)
     {
-        if(verbose)
-        {
-            cerr << "Failure reading header: Expected to read" << str << endl;
-            cerr << "Read only "<<is.gcount() << "bytes. String read was" << buf<<endl;
-        }
-        return false;
+      cerr << "Failure reading header: Expected to read" << str << endl;
+      cerr << "Read instead:" << buf << endl;
     }
-    if(elim_ws)
-    {
-        is >> std::ws;
-    }
-    if(str.compare(0,len,buf,len)!=0)
-    {
-        if(verbose)
-        {
-            cerr << "Failure reading header: Expected to read" << str << endl;
-            cerr << "Read instead:" << buf << endl;
-        }
-        return false;
-    }
-    return true;
+    return false;
+  }
+  return true;
 }
 
-#endif // GAUSS_SIEVE_UTILITY_H
+#endif  // GAUSS_SIEVE_UTILITY_H
