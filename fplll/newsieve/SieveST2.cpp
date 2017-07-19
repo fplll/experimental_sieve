@@ -1,5 +1,6 @@
 // clang-format off
-
+using namespace std;
+using namespace fplll; //for now...
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */
 
@@ -12,7 +13,7 @@
 template<class ET,int nfixed>
 bool check2red (GaussSieve::FastAccess_Point<ET,false,nfixed> const &p1, GaussSieve::FastAccess_Point<ET,false,nfixed> const &p2, ET & scalar)
 {
-    
+
     ET sc_prod, abs_2scprod;
     sc_prod= compute_sc_product(p1, p2);
     abs_2scprod.mul_ui(sc_prod,2);
@@ -119,7 +120,7 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         ET scalar;
         p.write_to_stream(cout);
         cout << endl;
-        
+
         if ( check2red(*it, p, scalar) )
         {
                 cout << "check2red 2" << endl;
@@ -144,17 +145,17 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
             cout << "check2 red is false" << endl;
 
     }
-    
-    
-    
+
+
+
      //convert to GaussList_StoredPoint first
      GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p));
-     
+
      //insert the converted point into the main_list
      cout << " insert p of norm = " << p.get_norm2() << endl;
      main_list.insert_before(it_comparison_flip, std::move(p_converted));
      ++current_list_size;
-    
+
     /*
      if(update_shortest_vector_found(p))
      {
@@ -164,7 +165,7 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
          }
      }
      */
-     
+
     cout << "finished 2-sieve iteration" << endl;
 }
 

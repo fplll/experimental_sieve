@@ -55,7 +55,7 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::st
     assert(!check_whether_sieve_is_running());
     if(verbosity>=2)
     {
-        cout << "Dumping to file " << outfilename << " ..." << endl;
+        std::cout << "Dumping to file " << outfilename << " ..." << std::endl;
     }
     if(!overwrite)
     {
@@ -65,7 +65,7 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::st
         {
             if (verbosity>=1)
             {
-                cerr << "Trying to dump to existing file without overwrite flag set. Aborting dump." << endl;
+                std::cerr << "Trying to dump to existing file without overwrite flag set. Aborting dump." << std::endl;
             }
             return;
         }
@@ -74,13 +74,14 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::st
     dump_status_to_stream(of, 3); //verbosity set to 3 to dump everything.
     if(verbosity>=2)
     {
-        cout << "Dump finished." << endl;
+        std::cout << "Dump finished." << std::endl;
     }
 }
 
 template<class ET,int nfixed>
-void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_stream(ostream &of, int verb)
+void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_stream(std::ostream &of, int verb)
 {
+    using std::endl;
     int howverb = verb==-1 ? verbosity : verb;
     if(howverb>=2) of << SIEVE_FILE_ID << endl;
     if(howverb>=2) of << SIEVE_VER_STR << endl;
@@ -146,7 +147,7 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_stream(ostre
         of << "--End of Main List--" << endl << endl;
         of << "--Main Queue--" << endl;
 //  for(auto it = main_queue.begin();it!=main_queue.end();++it)
-        cerr << "Dumping of main queue not supported yet.";
+        std::cerr << "Dumping of main queue not supported yet.";
         of << "--End of Main Queue--";
         {
 
@@ -202,7 +203,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     //unsigned int n = lattice_rank;
     //auto it = main_list.before_begin();
     //assert(main_list.empty()); We don't have a function to check that yet...
-    if (verbosity>=2) {cout <<"Initializing list with original basis..." << endl;}
+    if (verbosity>=2) {std::cout <<"Initializing list with original basis..." << std::endl;}
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
@@ -214,17 +215,17 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     }
     current_list_size+=lattice_rank;
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
-    if(verbosity>=2)    {cout << "Sorting ...";}
+    if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
-    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {cout << (*it).get_norm2() << endl;}; //check for sort()
+    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
-    if(verbosity>=2)    {cout << "is finished." << endl;}
+    if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
 
     //FIXME: Initialize shortest vector
 
     shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
-    cout << "shortest_vector_found is initialized " << endl << flush;
+    std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
 
 //    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //TODO : enable sorting for multithreaded case.
@@ -234,7 +235,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     assert(main_queue.sampler!=nullptr);
     main_queue.sampler->init(this);
 
-    cout << "sampler is initialized " << endl << flush;
+    std::cout << "sampler is initialized " << std::endl << std::flush;
 
 };
 

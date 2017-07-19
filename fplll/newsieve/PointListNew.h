@@ -31,8 +31,9 @@ template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
 #include "assert.h"
 #include <stack>
 //#include "sieve_common.h"
-#include "LatticePointsNew.h"
+//#include "LatticePointsNew.h"
 #include "Typedefs.h"
+#include <list>
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)

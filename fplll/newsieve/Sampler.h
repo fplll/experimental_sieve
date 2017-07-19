@@ -138,11 +138,11 @@ template <class ET,bool MT, class Engine, class Sseq, int nfixed> Sampler<ET,MT,
 template <class ET,bool MT, class Engine, class Sseq, int nfixed> void Sampler<ET,MT,Engine,Sseq,nfixed>::init(Sieve<ET,MT,nfixed> * const sieve)
 {
     sieveptr = sieve;
-    cout << "Initializing RNGS engines" << endl << flush;
+//    std::cout << "Initializing RNGS engines" << std::endl << flush;
     engine.init(sieve->get_num_threads());
-    cout << "Done. Starting custom initialization of specific sampler" << endl << flush;
+//    cout << "Done. Starting custom initialization of specific sampler" << endl << flush;
     custom_init();
-    cout << "Finished custom initialization" << endl << flush;
+//    cout << "Finished custom initialization" << endl << flush;
 }
 
 template<class ET,bool MT, class Engine, class Sseq> std::ostream & operator<<(std::ostream &os,Sampler<ET,MT,Engine,Sseq>* const samplerptr){return samplerptr->dump_to_stream(os);};

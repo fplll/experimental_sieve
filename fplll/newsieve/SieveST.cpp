@@ -38,21 +38,21 @@ template<class ET,int nfixed> ET Sieve<ET,false,nfixed>::get_best_length2()
 
 template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
 {
-    if (verbosity >=2) cout << "the shortest vector in the input basis has norm2 = " << get_shortest_vector_found().get_norm2() << endl;
+    if (verbosity >=2) std::cout << "the shortest vector in the input basis has norm2 = " << get_shortest_vector_found().get_norm2() << std::endl;
     //int MaxIteration = 8000;
     if (term_cond==nullptr)
     {
-        if (verbosity >=1) cerr << "No termination condition set. Aborting.";
+        if (verbosity >=1) std::cerr << "No termination condition set. Aborting.";
         return;
     }
     if(sieve_k <=1)
     {
-        if(verbosity >=1) cerr << "sieve_k <=1. Aborting.";
+        if(verbosity >=1) std::cerr << "sieve_k <=1. Aborting.";
         return;
     }
     sieve_status=SieveStatus::sieve_status_running;
     term_cond->init(this); //initialisation of termination conditions.
-    if (verbosity >=2) cout << "start " << sieve_k << "-Sieve" << endl;
+    if (verbosity >=2) std::cout << "start " << sieve_k << "-Sieve" << std::endl;
 
     //dispatch
 
@@ -79,7 +79,7 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
     GaussSieve::GaussQueue_ReturnType<ET,false,nfixed> p;
     int i=0;
 
-    cout << "start 2-sieve " << endl;
+    std::cout << "start 2-sieve " << std::endl;
 
     while (!check_if_done() )
     {
@@ -93,7 +93,7 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-            cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << endl;
+            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl;
         }
     }
 }

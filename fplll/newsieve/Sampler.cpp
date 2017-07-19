@@ -4,6 +4,7 @@
 #define SAMPLER_CPP
 
 #include "Sampler.h"
+#include <type_traits>
 
 template<class Engine, class Sseq> void MTPRNG<Engine,true,Sseq>::reseed(Sseq & _seq)
 {
@@ -60,7 +61,7 @@ template<class Z, class Engine> Z GaussSieve::sample_z_gaussian(double s, double
 //#pragma STDC FENV_ACCESS on
 //This is too compiler/implementation-specific and does not work most of the time...
 
-    static_assert(is_integral<Z>::value,"Return type for sample_z_gaussian must be POD integral type.");
+    static_assert(std::is_integral<Z>::value,"Return type for sample_z_gaussian must be POD integral type.");
     Z maxdev = static_cast<Z>(std::ceil(s * cutoff)); //maximum deviation of the Gaussian from the center. Note that maxdev may be 1.
     std::uniform_int_distribution<Z> uniform_in_range (std::floor(center-maxdev),std::ceil(center+maxdev));
     std::uniform_real_distribution<double> rejection_test(0.0,1.0); //defaults to value from [0,1), used in rejection sampling.
@@ -99,7 +100,7 @@ template<class Z, class Engine> Z GaussSieve::sample_z_gaussian_VMD(double const
 //#pragma STDC FENV_ACCESS on
 //This is too compiler/implementation-specific and does not work most of the time...
 
-    static_assert(is_integral<Z>::value,"Return type for sample_z_gaussian must be POD integral type.");
+    static_assert(std::is_integral<Z>::value,"Return type for sample_z_gaussian must be POD integral type.");
     std::uniform_int_distribution<Z> uniform_in_range (std::floor(center-maxdeviation),std::ceil(center+maxdeviation));
     std::uniform_real_distribution<double> rejection_test(0.0,1.0); //defaults to value from [0,1), used in rejection sampling.
     Z closest_int = std::round(center); //closest int to center, i.e. most likely value.
@@ -133,7 +134,7 @@ template<class Z, class Engine> Z GaussSieve::sample_z_gaussian_VMD(double const
 
 template class MTPRNG<std::mt19937_64,false, std::seed_seq>;
 //template class MTPRNG<std::mt19937,true,  std::seed_seq>;
-template class Sampler<Z_NR<long>, false, std::mt19937_64,std::seed_seq>;
+template class Sampler<fplll::Z_NR<long>, false, std::mt19937_64,std::seed_seq>;
 //template class Sampler<Z_NR<long>, true,  std::mt19937,std::seed_seq>;
 
 

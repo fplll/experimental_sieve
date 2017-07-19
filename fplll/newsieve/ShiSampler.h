@@ -9,8 +9,11 @@ template<class ET, bool MT, class Engine, class Sseq, int nfixed> class ShiSampl
 #include "Sampler.h"
 #include "Typedefs.h"
 #include "SieveUtility.h"
-
-
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr_Z.inl"
+#include <vector>
 //only defined for nfixed==-1 for now.
 
 template<class ET, bool MT, class Engine, class Sseq,int nfixed>
@@ -24,11 +27,11 @@ class ShiSampler: public Sampler<ET,MT, Engine, Sseq,nfixed>
     virtual typename GaussSieve::GaussSampler_ReturnType<ET,MT,nfixed> sample(int thread=0) override;
     private:
     virtual void custom_init() override;
-    ZZ_mat<typename ET::underlying_data_type> current_basis;
-    vector<MyLatticePoint <ET,nfixed> > helper_current_basis;
-    Matrix<FP_NR<double > > mu;
-    vector<double> s2pi; //stores standard dev. for each dimension, already squared and multiplied by pi.
-    vector<double> maxdeviations; //stores s*cutoff for each dimension.
+    fplll::ZZ_mat<typename ET::underlying_data_type> current_basis;
+    std::vector<MyLatticePoint <ET,nfixed> > helper_current_basis;
+    fplll::Matrix<fplll::FP_NR<double > > mu;
+    std::vector<double> s2pi; //stores standard dev. for each dimension, already squared and multiplied by pi.
+    std::vector<double> maxdeviations; //stores s*cutoff for each dimension.
     Dimension<nfixed> dim;
     unsigned int rank;
     double cutoff;

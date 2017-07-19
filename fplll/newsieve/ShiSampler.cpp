@@ -12,9 +12,9 @@ template<class ET,bool MT, class Engine, class Sseq, int nfixed> void ShiSampler
     current_basis = sieveptr->get_original_basis();
     dim = static_cast<Dimension<nfixed>>( sieveptr->get_ambient_dimension() );
     rank = sieveptr->get_lattice_rank();
-    Matrix<ET> u, u_inv,g; //intentionally uninitialized.
+    fplll::Matrix<ET> u, u_inv,g; //intentionally uninitialized.
 
-    MatGSO<ET, FP_NR<double> > GSO(current_basis, u, u_inv, MatGSOInterfaceFlags::GSO_INT_GRAM);
+    fplll::MatGSO<ET, fplll::FP_NR<double> > GSO(current_basis, u, u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM);
     GSO.update_gso(); //todo: raise exception in case of error.
 
     mu = GSO.get_mu_matrix();
@@ -24,10 +24,10 @@ template<class ET,bool MT, class Engine, class Sseq, int nfixed> void ShiSampler
 
     g  = GSO.get_g_matrix();
 
-    FP_NR<double> maxbistar2 = GSO.get_max_bstar();
+    fplll::FP_NR<double> maxbistar2 = GSO.get_max_bstar();
 
-    FP_NR<double> tmp;
-    FP_NR<double> tmp2;
+    fplll::FP_NR<double> tmp;
+    fplll::FP_NR<double> tmp2;
     for (unsigned int i = 0; i < rank; ++i)
     {
         tmp.set_z(g(i, i));
@@ -57,7 +57,7 @@ template<class ET,bool MT, class Engine, class Sseq, int nfixed> typename GaussS
     MyLatticePoint<ET,nfixed> vec;
     vec.fill_with_zero();
     //vec->NumVect<ET>::fill(0); //current vector built up so far. //Note: We treat vec as a NumVect until the end, because we don't want to normalize intermediate results.
-    vector<double> shifts(rank, 0.0); //shift, expressed in coordinates wrt the Gram-Schmidt basis.
+    std::vector<double> shifts(rank, 0.0); //shift, expressed in coordinates wrt the Gram-Schmidt basis.
     for(int j=rank-1; j>=0; --j)
     {
         long const newcoeff = GaussSieve::sample_z_gaussian_VMD<long,Engine>(s2pi[j],shifts[j],engine.rnd(),maxdeviations[j]); //coefficient of b_j in vec.
