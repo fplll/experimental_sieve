@@ -87,18 +87,18 @@ public:
   unsigned int dim;
 };
 
-// clang-format off
-
-template<int nfixed>
-class Dimension{
-    public:
-    using IsFixed=true_type;
-    Dimension(){};
-    Dimension(IgnoreArg<unsigned int> new_dim){}; //assert(new_dim==nfixed);}
-//    Dimension(unsigned int){};
-    inline constexpr operator unsigned int() const {return nfixed;};
-    static constexpr unsigned int dim = nfixed;
+template <int nfixed> class Dimension
+{
+public:
+  using IsFixed = true_type;
+  Dimension(){};
+  Dimension(IgnoreArg<unsigned int> new_dim){};  // assert(new_dim==nfixed);}
+  //    Dimension(unsigned int){};
+  inline constexpr operator unsigned int() const { return nfixed; };
+  static constexpr unsigned int dim = nfixed;
 };
+
+// clang-format off
 
 namespace GaussSieve //helper functions
 {
