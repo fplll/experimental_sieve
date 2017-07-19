@@ -1,5 +1,3 @@
-// clang-format off
-
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
@@ -208,5 +206,3 @@ template<class ET,bool MT, int nfixed> CompressedPoint<ET,MT,nfixed> GaussSieve:
 
 
 #endif // GAUSS_SIEVE_UTILITY_H
-
-//clang-format on
