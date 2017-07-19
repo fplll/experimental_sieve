@@ -14,11 +14,11 @@
 #define SAMPLER_H
 
 // forward declarations
+#include "SieveUtility.h"
 #include "Typedefs.h"
 #include <iostream>
 #include <random>
 #include <type_traits>
-#include "SieveUtility.h"
 //#include <cfenv>
 
 // forward declarations
@@ -106,58 +106,66 @@ engine and not the engine given as template parameter.
 
 */
 
-// clang-format off
-
-//multithreaded case of MTPRNG
-template<class Engine, class Sseq>  class MTPRNG<Engine,true, Sseq>
+// multithreaded case of MTPRNG
+template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
 {
-    public:
+public:
+  // constructs an uninitialized MTPRNG
+  explicit MTPRNG(Sseq &_seq = {}) : seeder(_seq), engines(0), num_threads(0){};
 
-    //constructs an uninitialized MTPRNG
-    explicit MTPRNG(Sseq & _seq = {}) : seeder(_seq), engines(0), num_threads(0)       {};
+  inline void reseed(Sseq &_seq);
 
-    inline void reseed(Sseq & _seq);
-
-    /**
-    will make sure at least _num_threads engines are actually running, starting new ones as desired. Will never reseed/restart already running engines. Reducing the number of threads and increasing it back saves the random state (unless we reseed).
-    */
-    inline void init(unsigned int const _num_threads);
-    Engine & rnd(unsigned int const thread)                                 {return engines[thread];};
-    private:
-    //seeded with initial seq and consecutively used to seed the children PRNGs.
-    std::mt19937_64 seeder;
-    std::vector<Engine> engines;
-    //number of initialized engines. May differ from size of the vector. In particular, num_threads = 0 means uninitialized.
-    unsigned int num_threads;
-    Sseq seq;
-    static unsigned int constexpr seed_length = 20; //number of 32bit values to use as seeds for the underlying engine(s).
-                                                    //Technically, we could use state_size if the engine provides it, but not even all default engines do.
+  /**
+  will make sure at least _num_threads engines are actually running, starting new ones as desired.
+  Will never reseed/restart already running engines. Reducing the number of threads and increasing
+  it back saves the random state (unless we reseed).
+  */
+  inline void init(unsigned int const _num_threads);
+  Engine &rnd(unsigned int const thread) { return engines[thread]; };
+private:
+  // seeded with initial seq and consecutively used to seed the children PRNGs.
+  std::mt19937_64 seeder;
+  std::vector<Engine> engines;
+  // number of initialized engines. May differ from size of the vector. In particular, num_threads =
+  // 0 means uninitialized.
+  unsigned int num_threads;
+  Sseq seq;
+  /**
+     number of 32bit values to use as seeds for the underlying engine(s). Technically, we could use
+     state_size if the engine provides it, but not even all default engines do.
+  */
+  static unsigned int constexpr seed_length = 20;
 };
 
-//singlethreaded case of MTPRNG: just wrapper around Engine
-template<class Engine, class Sseq>  class MTPRNG<Engine, false, Sseq>
+// singlethreaded case of MTPRNG: just wrapper around Engine
+template <class Engine, class Sseq> class MTPRNG<Engine, false, Sseq>
 {
-    public:
-    MTPRNG(Sseq & _seq ={}) : engine()                      {reseed(_seq);};
-    inline void reseed(Sseq & _seq);
-    void init(unsigned int const = 1)                       {} //does nothing.
-    Engine & rnd(IgnoreArg<unsigned int const>)                        {return engine;};   //Argument is number of thread. It is ignored.
-    Engine & rnd()                                          {return engine;};   //Version without thread-id
-    private:
-    Engine engine;
+public:
+  MTPRNG(Sseq &_seq = {}) : engine() { reseed(_seq); };
+  inline void reseed(Sseq &_seq);
+  void init(unsigned int const = 1) {}  // does nothing.
+  Engine &rnd(IgnoreArg<unsigned int const>)
+  {
+    return engine;
+  };                                 // Argument is number of thread. It is ignored.
+  Engine &rnd() { return engine; };  // Version without thread-id
+private:
+  Engine engine;
+/**
+     number of 32bit values to use as seeds for the underlying engine(s). Technically, we could use
+     state_size if the engine provides it, but not even all default engines do.
+  */
+  static unsigned int constexpr seed_length = 20;
+};  // End of MTPRNG
 
 
-    //number of 32bit values to use as (per-thread) seed for the underlying engine. Technically, we could use state_size if the engine provides it, but not all default engines do.
-        static unsigned int constexpr seed_length = 20;
-};  //End of MTPRNG
+/**
+This class is a generic Sampler. It serves as interface and all other sampler are derived from it.
 
-
-
-
-
-//generic Sampler. All other sampler are derived from it.
-template<class ET,bool MT, class Engine, class Sseq, int nfixed> //Sseq is supposed to satisfy the C++ concept "SeedSequence". The standard library has std::seed_seq as a canonical example.
-                                                     //Engine is supposed to satisfy the C++ concept of a "Random Number Engine". <random> provides several of those, e.g. std::mt19937_64.
+Sseq is supposed to satisfy the C++ concept "SeedSequence". The standard library has std::seed_seq as a canonical example.
+Engine is supposed to satisfy the C++ concept of a "Random Number Engine". <random> provides several of those, e.g. std::mt19937_64.
+*/
+template<class ET,bool MT, class Engine, class Sseq, int nfixed>
 class Sampler
 //Note :    In multi-threaded environment, we only have 1 sampler object. thread-number is given to sample();
 {
@@ -170,23 +178,32 @@ class Sampler
     //We call init first, then custom_init (via init).
     void init(Sieve<ET,MT,nfixed> * const sieve);
     virtual ~Sampler()=0; //needs to be virtual
-    virtual SamplerType  sampler_type() const {return SamplerType::user_defined;};    //run-time type information.
+
+    //run-time type information.
                                                                     //This may be used to determine how to interpret a dump file.
                                                                     //defaults to user-defined.
                                                                     //Other values mean that the GaussSieve dumping routine is aware of the type, simplifying the syntax for dumping / reading.
-    //TODO : Write some explanation how to do that.
+                                                                    //TODO: Not yet implemented
+    virtual SamplerType  sampler_type() const {return SamplerType::user_defined;};
+
     virtual GaussSampler_ReturnType sample(int thread=0)=0; //thread is the index of the calling thread (we need to keep separate PRNGs for each thread)
+
     //TODO : Allow sampling in subspaces, updating basis.
 
     private:
-    virtual void custom_init()                                                                  {}         //called before any points are sampled;
-    virtual std::ostream & dump_to_stream(std::ostream &os)  {return os;};    //dummy implementation of << operator.
-    virtual std::istream & read_from_stream(std::istream &is){return is;};    //dummy implementation of >> operator.
+    //called before any points are sampled. This function is called from init after sieveptr is set.
+    virtual void custom_init()                                                                  {};
+    //dummy implementation of << operator.
+    virtual std::ostream & dump_to_stream(std::ostream &os)  {return os;};
+    //dummy implementation of >> operator.
+    virtual std::istream & read_from_stream(std::istream &is){return is;};
     protected:
     MTPRNG<Engine, MT, Sseq> engine; //or engines
     Sieve<ET,MT,nfixed> * sieveptr; //pointer to parent sieve. Set in init();
 };
 
+
+// clang-format off
 
 #include "SieveGauss.h"
 
