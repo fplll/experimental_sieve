@@ -88,7 +88,8 @@ public:
   using IsFixed = std::false_type;
 
   Dimension(unsigned int const new_dim) : dim(new_dim){};
-  Dimension() = default;  // Not sure whether we should allow uninitialized dims here. The issue is that we want the same interface in both cases.
+  Dimension() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
+                          // that we want the same interface in both cases.
   inline operator unsigned int() const { return dim; };
   unsigned int dim;
 };

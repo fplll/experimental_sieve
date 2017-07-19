@@ -23,8 +23,17 @@
 template <class ET, bool MT, int nfixed> class Sieve;
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed> class Sampler;
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> inline std::ostream &operator<<(std::ostream &os, Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);  // printing
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> inline std::istream &operator>>(std::istream &is, Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);  // reading (may also be used by constructor from istream)
+
+// printing
+template <class ET, bool MT, class Engine, class Sseq, int nfixed>
+inline std::ostream &operator<<(std::ostream &os,
+                                Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
+
+// reading (may also be used by constructor from istream)
+template <class ET, bool MT, class Engine, class Sseq, int nfixed>
+inline std::istream &operator>>(std::istream &is,
+                                Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
+
 enum class SamplerType
 {
   user_defined     = 0,
@@ -35,27 +44,48 @@ enum class SamplerType
 
 template <class Engine, bool MT, class Sseq>
 class MTPRNG;  // wrapper around (a vector of) random number engines of type Engine
-// This is used to unify the single and multi-threaded case
-
-// clang-format off
-
+               // This is used to unify the single and multi-threaded case
 
 namespace GaussSieve
 {
-template<class Z, class Engine>     Z sample_z_gaussian(double s, double const center, Engine & engine, double const cutoff);
-template<class Z, class Engine>     Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine & engine, double const maxdeviation);
-    //samples from a discrete Gaussian distribution with parameter s and center c. We cutoff the Gaussian at s*cutoff.
-    //i.e. the distribution is discrete on Z with output probability for x being proportional to exp(- pi(x-c)^2/s^2). Note the scaling by pi in the exponent.
-    //For reasons of numerical stability, center should not be very large in absolute value (it is possible to reduce to |center|<1 anyway), s.t.
-    //center +/- cutoff * s does not overflow.
-    //Z must be among one of short, int, long, long long. center needs to be representable as an (exact) double.
-    //We do NOT support mpz_t here! Note that the output takes the role of coefficients wrt a given basis.
-    //We only support double. For sieving algorithms, there is no really good reason to support higher precision.
-    //Note: if one wants to have higher precision, one also needs to adjust the PRNGs to actually output high precision.
 
-    //The variant sample_z_gaussian_VMD takes s2pi = s^2 * pi and cutoff * s as parameters.
+/**
 
+ These functions sample from a discrete Gaussian distribution with parameter s and center c
+ on (the 1-dimensional lattice given by) the integers Z.
+
+ We cutoff the Gaussian at s*cutoff. This means that the distribution is discrete on a subset of
+ Z with  output probability for x being proportional to exp(-pi(x-c)^2/s^2). Note the scaling by pi
+ in the exponent.
+
+ For reasons of numerical stability, center should not be very large in absolute value (it is
+ possible to reduce to |center|<1 anyway), such that  center +/- cutoff * s does not overflow.
+ Z must be an integral POD type (e.g. short, int, long, long long).
+ center needs to be representable as an (exact) double.
+ We do NOT support mpz_t here! The output will take the role of coefficients wrt a given basis.
+
+ We only support double for the floating point numbers. For sieving algorithms, there is no really
+ good reason for now to support different precisions, as sampling does not dominate anyway.
+
+ Note: if one ever wants to have higher precision, one also needs to adjust the PRNGs to actually
+ output high precision.
+
+ engine is supposed to be a random number engine (as defined by the STL).
+
+ The variant sample_z_gaussian_VMD takes
+ s2pi = s^2 * pi and maxdeviation = cutoff * s as parameters.
+
+ **/
+
+template <class Z, class Engine>
+Z sample_z_gaussian(double s, double const center, Engine &engine, double const cutoff);
+
+template <class Z, class Engine>
+Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
+                        double const maxdeviation);
 }
+
+// clang-format off
 
 //The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
 //Due to the fact that we support multi-threading, MTPRNG<Engine,true,.> is a wrapper around
@@ -228,7 +258,7 @@ template<class Z, class Engine> Z GaussSieve::sample_z_gaussian_VMD(double const
     //Furthermore, if cutoff is large or if s<<1 (in this case, the issue is the rounding when we determined the range), the argument to exp can be extremely small, leading to further potential underruns.
     //We do not care about this for now...
 
-        if( rejection_test(engine) <  std::exp(-std::fma(dist,dist,adj)/s2pi))
+        if( rejection_test(engine) < std::exp(-std::fma(dist,dist,adj)/s2pi))
         {
             //std::feclearexcept(FE_UNDERFLOW);
             //std::feupdateenv(&env);
