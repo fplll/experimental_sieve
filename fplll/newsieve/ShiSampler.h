@@ -44,7 +44,7 @@ private:
   std::vector<double> s2pi;
   std::vector<double> maxdeviations;  // stores s*cutoff for each dimension.
   Dimension<nfixed> dim;
-  unsigned int rank;
+  unsigned int lattice_rank;
   double cutoff;
 
 protected:
