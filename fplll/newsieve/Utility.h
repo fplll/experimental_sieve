@@ -1,9 +1,8 @@
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
-#include <type_traits>
 #include "LatticePointsNew.cpp"
-
+#include <type_traits>
 
 /**
 This macro is used to test the presence of a (public) member typedef in a class
@@ -23,62 +22,72 @@ Note that the missing semicolon at the end is intentional.
 The user needs to put it to emphasize that this is a declaration.
 */
 
-#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName)\
-template<class ClassToCheck> class CheckerClassName                     \
-{                                                                       \
-private:                                                                \
-    template<class Arg> static typename Arg:: TypeToCheck foo(int);     \
-    template<class ...> void                              foo(...);     \
-public:                                                                 \
-    using value_t = std::integral_constant<bool,                        \
-        !(std::is_void<decltype(foo< ClassToCheck >(0))>::value)>;      \
-    static bool constexpr value = value_t::value;                       \
-}
+// clang-format off
+
+#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName)                           \
+  template <class ClassToCheck> class CheckerClassName                                             \
+  {                                                                                                \
+  private:                                                                                         \
+    template <class Arg> static typename Arg::TypeToCheck foo(int);                                \
+    template <class ...> void                             foo(...);                                \
+                                                                                                   \
+  public:                                                                                          \
+    using value_t =                                                                                \
+        std::integral_constant<bool, !(std::is_void<decltype(foo<ClassToCheck>(0))>::value)>;      \
+    static bool constexpr value = value_t::value;                                                  \
+  }
 
 /**
 Similar to the above, creates a checker template class that checks wether
 TypeToCheck exists and is equal to TypeShouldBe
 */
 
-#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(TypeToCheck,TypeShouldBe,CheckerClassName) \
-template<class ClassToCheck> class CheckerClassName                                         \
-{                                                                                           \
-private:                                                                                    \
-    template<class Arg> static typename Arg:: TypeToCheck foo(int);                         \
-    template<class ...> void                              foo(...);                         \
-public:                                                                                     \
-    using value_t = std::integral_constant<bool, std::is_same< TypeShouldBe,                \
-                decltype(foo< ClassToCheck > (0)) >::value>;                                \
-                static bool constexpr value = value_t::value;                               \
-}
+#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(TypeToCheck, TypeShouldBe, CheckerClassName)      \
+  template <class ClassToCheck> class CheckerClassName                                             \
+  {                                                                                                \
+  private:                                                                                         \
+    template <class Arg> static typename Arg::TypeToCheck foo(int);                                \
+    template <class ...> void                             foo(...);                                \
+                                                                                                   \
+  public:                                                                                          \
+    using value_t =                                                                                \
+        std::integral_constant<bool,                                                               \
+                               std::is_same<TypeShouldBe, decltype(foo<ClassToCheck>(0))>::value>; \
+    static bool constexpr value = value_t::value;                                                  \
+  }
 
+// clang-format on
 
-//class that ignores its argument. Can be used to optimize away unused parameters in function templates...
-class IgnoreAnyArg{
-    public:
-    template<class T> constexpr IgnoreAnyArg(T val){};
-    constexpr IgnoreAnyArg(){};
+// class that ignores its argument. Can be used to optimize away unused parameters in function
+// templates...
+class IgnoreAnyArg
+{
+public:
+  template <class T> constexpr IgnoreAnyArg(T val){};
+  constexpr IgnoreAnyArg(){};
 };
 
-//same, but enforces the type of the ignored argument.
-template<class T>
-class IgnoreArg{
-    public:
-    inline constexpr IgnoreArg(T val){};
-    IgnoreArg(){};
+// same, but enforces the type of the ignored argument.
+template <class T> class IgnoreArg
+{
+public:
+  inline constexpr IgnoreArg(T val){};
+  IgnoreArg(){};
 };
 
-template<int nfixed=-1> class Dimension;
+template <int nfixed = -1> class Dimension;
 
-template<>
-class Dimension<-1>{
-    public:
-    using IsFixed=false_type;
-    Dimension(unsigned int const new_dim):dim(new_dim){};
-    Dimension()=delete;
-    inline operator unsigned int() const {return dim;};
-    unsigned int dim;
+template <> class Dimension<-1>
+{
+public:
+  using IsFixed = false_type;
+  Dimension(unsigned int const new_dim) : dim(new_dim){};
+  Dimension() = delete;
+  inline operator unsigned int() const { return dim; };
+  unsigned int dim;
 };
+
+// clang-format off
 
 template<int nfixed>
 class Dimension{
