@@ -1,7 +1,12 @@
+// This file contains utility (boilerplate) functions and classes only. It should not have
+// dependencies on other files within the Gauss Sieve and be header-only.
+
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
-#include "LatticePointsNew.cpp"
+#include <iostream>
+#include <istream>
+#include <string>
 #include <type_traits>
 
 /**
