@@ -1,11 +1,15 @@
-// clang-format off
+/**
+Implementation file for ShiSampler
+*/
 
-#ifndef SHI_SAMPLER_CPP
-#define SHI_SAMPLER_CPP
+#ifndef SHI_SAMPLER_IMPL_H
+#define SHI_SAMPLER_IMPL_H
 
-//Add includes for GSO
+
 #include "ShiSampler.h"
 #include "Sampler_impl.h"
+
+// clang-format off
 
 template<class ET,bool MT, class Engine, class Sseq, int nfixed> void ShiSampler<ET,MT,Engine,Sseq,nfixed>::custom_init()
 {
@@ -79,5 +83,3 @@ template<class ET,bool MT, class Engine, class Sseq, int nfixed> typename GaussS
 }
 
 #endif
-
-//clang-format on
