@@ -45,7 +45,7 @@ template<class Z, class Engine>     Z sample_z_gaussian(double s, double const c
 }
 
 //includes
-#include "LatticePointsNew.h"
+//#include "LatticePointsNew.h"
 
 //The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
 //Due to the fact that we support multi-threading, MTPRNG<Engine,true,.> is a wrapper around

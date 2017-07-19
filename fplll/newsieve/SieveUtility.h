@@ -85,7 +85,7 @@ template <int nfixed = -1> class Dimension;
 template <> class Dimension<-1>
 {
 public:
-  using IsFixed = false_type;
+  using IsFixed = std::false_type;
   Dimension(unsigned int const new_dim) : dim(new_dim){};
   Dimension() = delete;  // Not sure whether we should allow uninitialized dims here.
   inline operator unsigned int() const { return dim; };
@@ -95,7 +95,7 @@ public:
 template <int nfixed> class Dimension
 {
 public:
-  using IsFixed = true_type;
+  using IsFixed = std::true_type;
   Dimension()   = default;
   Dimension(IgnoreArg<unsigned int> new_dim){};  // assert(new_dim==nfixed);}
   //    Dimension(unsigned int){};
@@ -124,12 +124,10 @@ This utility function is used to parse dumps.
 string_consume assumes that str itself does not start/end with whitespace.
 */
 
-inline bool string_consume(istream &is, std::string const &str, bool elim_ws = true,
-                           bool verbose = true);  // helper function for dumping/reading
+inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws = true, bool verbose = true);  // helper function for dumping/reading
 }
 
-inline bool GaussSieve::string_consume(istream &is, std::string const &str, bool elim_ws,
-                                       bool verbose)
+inline bool GaussSieve::string_consume(std::istream &is, std::string const &str, bool elim_ws, bool verbose)
 {
   unsigned int len = str.length();
   char *buf        = new char[len + 1];
@@ -143,8 +141,8 @@ inline bool GaussSieve::string_consume(istream &is, std::string const &str, bool
   {
     if (verbose)
     {
-      cerr << "Failure reading header: Expected to read" << str << endl;
-      cerr << "Read only " << is.gcount() << "bytes. String read was" << buf << endl;
+      std::cerr << "Failure reading header: Expected to read" << str << std::endl;
+      std::cerr << "Read only " << is.gcount() << "bytes. String read was" << buf << std::endl;
     }
     return false;
   }
@@ -156,8 +154,8 @@ inline bool GaussSieve::string_consume(istream &is, std::string const &str, bool
   {
     if (verbose)
     {
-      cerr << "Failure reading header: Expected to read" << str << endl;
-      cerr << "Read instead:" << buf << endl;
+      std::cerr << "Failure reading header: Expected to read" << str << std::endl;
+      std::cerr << "Read instead:" << buf << std::endl;
     }
     return false;
   }

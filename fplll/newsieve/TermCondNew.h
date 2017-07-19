@@ -45,8 +45,8 @@ template<class ET, bool MT, int nfixed=-1> class TerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class NeverTerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class LengthTerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class MinkowskiTerminationCondition;
-template<class ET, bool MT, int nfixed=-1> ostream & operator<<(ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond); //printing
-template<class ET, bool MT, int nfixed=-1> istream & operator>>(istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond); //reading (also used by constructor from istream)
+template<class ET, bool MT, int nfixed=-1> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond); //printing
+template<class ET, bool MT, int nfixed=-1> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond); //reading (also used by constructor from istream)
 
 enum class TerminationConditionType
 {
@@ -56,19 +56,23 @@ enum class TerminationConditionType
     minkowski_condition =3
 };
 
-
 #include "SieveGauss.h"
 #include "SieveUtility.h"
+#include "iostream"
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr_Z.inl"
 
 namespace GaussSieve{
-inline    Z_NR<mpz_t> compute_mink_bound(ZZ_mat<mpz_t> const & basis);                                        //computes a meaningful Minkowski bound for the length of the shortest vector
+inline    fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis);                                        //computes a meaningful Minkowski bound for the length of the shortest vector
 }
 
 template<class ET,bool MT, int nfixed> class TerminationCondition
 {
     public:
-    friend ostream & operator<< <ET,MT,nfixed>(ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond);
-    friend istream & operator>> <ET,MT,nfixed>(istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond);
+    friend std::ostream & operator<< <ET,MT,nfixed>(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond);
+    friend std::istream & operator>> <ET,MT,nfixed>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond);
     virtual void init(Sieve<ET,MT,nfixed> * const sieve) {};     //TODO: Fix const-correctness. Problem is with cbegin() from main_list, really...
     virtual int check(Sieve<ET,MT,nfixed> * const sieve) = 0;
     virtual int check_vec(Sieve<ET,MT,nfixed> * const sieve, ET const & length2) = 0;
@@ -81,15 +85,15 @@ template<class ET,bool MT, int nfixed> class TerminationCondition
     //TODO : Write some explanation how to do that.
 
     private:
-    virtual ostream & dump_to_stream(ostream &os)  {return os;};    //implementation of << operator.
-    virtual istream & read_from_stream(istream &is){return is;};    //implementation of >> operator.
+    virtual std::ostream & dump_to_stream(std::ostream &os)  {return os;};    //implementation of << operator.
+    virtual std::istream & read_from_stream(std::istream &is){return is;};    //implementation of >> operator.
 
 };
 
 template <class ET,bool MT,int nfixed> TerminationCondition<ET,MT,nfixed>::~TerminationCondition() {} //actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
 
-template<class ET,bool MT,int nfixed> ostream & operator<<(ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->dump_to_stream(os);};
-template<class ET,bool MT,int nfixed> istream & operator>>(istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->read_from_stream(is);};
+template<class ET,bool MT,int nfixed> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->dump_to_stream(os);};
+template<class ET,bool MT,int nfixed> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->read_from_stream(is);};
 
 
 
@@ -117,8 +121,8 @@ template<class ET,bool MT,int nfixed> class LengthTerminationCondition : public 
     {
         public: bad_dumpread_LengthTermCond():runtime_error("Dump read failed for LengthTerminationCondition") {}
     }; //exception indicating that read from dump failed.
-    virtual ostream & dump_to_stream(ostream &os) override                              {os << "Target Length=" << target_length << endl; return os;}
-    virtual istream & read_from_stream(istream &is) override
+    virtual std::ostream & dump_to_stream(std::ostream &os) override                              {os << "Target Length=" << target_length << std::endl; return os;}
+    virtual std::istream & read_from_stream(std::istream &is) override
     {
         if(!GaussSieve::string_consume(is,"Target Length=")) throw bad_dumpread_LengthTermCond();
         is >> target_length;
@@ -142,16 +146,16 @@ template<class ET,bool MT, int nfixed> class MinkowskiTerminationCondition : pub
     ET target_length;
 };
 
-inline Z_NR<mpz_t> GaussSieve::compute_mink_bound(ZZ_mat<mpz_t> const & basis)
+inline fplll::Z_NR<mpz_t> GaussSieve::compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis)
 {
     assert(basis.get_rows() == basis.get_cols()); //Note : Alg might work even otherwise. This assertion failure is just a reminder that this needs to be checked.
     //compute Gram-Schmidt-Orthogonalization.
-    ZZ_mat<mpz_t> Empty_mat;
-    ZZ_mat<mpz_t> basis2 = basis; //need to copy, as BGSO is not const-specified...
-    MatGSO<Z_NR<mpz_t>, FP_NR<double>> BGSO(basis2, Empty_mat, Empty_mat, 0);
+    fplll::ZZ_mat<mpz_t> Empty_mat;
+    fplll::ZZ_mat<mpz_t> basis2 = basis; //need to copy, as BGSO is not const-specified...
+    fplll::MatGSO<fplll::Z_NR<mpz_t>, fplll::FP_NR<double>> BGSO(basis2, Empty_mat, Empty_mat, 0);
     BGSO.update_gso();
 
-    FP_NR<double> entry;
+    fplll::FP_NR<double> entry;
 
     //for (int i=0; i<basis.get_rows(); i++)
     //{
@@ -163,21 +167,21 @@ inline Z_NR<mpz_t> GaussSieve::compute_mink_bound(ZZ_mat<mpz_t> const & basis)
 
     // returns det(B)^{2/dim}
 
-    FP_NR<double> root_det2 = BGSO.get_root_det (1, basis.get_rows());
-    FP_NR<double> log_det2 = BGSO.get_log_det (1, basis.get_rows());
+    fplll::FP_NR<double> root_det2 = BGSO.get_root_det (1, basis.get_rows());
+    fplll::FP_NR<double> log_det2 = BGSO.get_log_det (1, basis.get_rows());
     //cout << "root_det2: " << root_det2 << endl;
     //cout << "log_det2: " << log_det2 << endl;
 
     //lambda_1^2 = n * det(B)^{2/n}
 
-    FP_NR<double> MinkBound_double = 0.074 * root_det2 * static_cast<double> (basis.get_rows() ); //technically, we need to multiply by Hermite's constant in dim n here. We are at least missing a constant factor here.
+    fplll::FP_NR<double> MinkBound_double = 0.074 * root_det2 * static_cast<double> (basis.get_rows() ); //technically, we need to multiply by Hermite's constant in dim n here. We are at least missing a constant factor here.
     //DUE TO [KL79], the best know multiple (for the squared norm) whould be 1/(pi* exp(1)*2^{2*0.099} ~ 0.102) for n->infinity. Blichfeldt's bound: 1 / (pi*exp(1))=0.117.
     // Darmstadt's challenge suggests: 1.10 / (2*pi*exp(1)) = 0.0644;
 
     //cout << "after MinkBound_double is assigned... " << endl;
-    Z_NR<mpz_t> Minkowski;
+    fplll::Z_NR<mpz_t> Minkowski;
     Minkowski.set_f(MinkBound_double);
-    cout << "Mink. bound = " << Minkowski << endl;
+    std::cout << "Mink. bound = " << Minkowski << std::endl;
     return Minkowski;
 }
 
