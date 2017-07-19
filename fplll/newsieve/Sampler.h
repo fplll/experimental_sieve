@@ -1,12 +1,14 @@
-// This file provided the interface for the lattice point sampler.
-// To this end, this file provides a virtual interface template class Sampler, from which the actual
-// samplers are derived.
+/**
+ This file provided the interface for the lattice point sampler.
+ To this end, this file provides a virtual interface template class Sampler, from which the actual
+ samplers are derived.
 
-// Dependencies:
-// The sampler instance contains a pointer back to the sieve main object, creating circular
-// dependencies.
-// For this reason, parts of the implementation are in Sampler_impl.h or Sampler.cpp (TODO: Decide
-// on whether we want header-only)
+ Dependencies:
+ The sampler instance contains a pointer back to the sieve main object, creating circular
+ dependencies.
+ For this reason, parts of the implementation are in Sampler_impl.h or Sampler.cpp (TODO: Decide
+ on whether we want header-only)
+*/
 
 #ifndef SAMPLER_H
 #define SAMPLER_H
@@ -16,6 +18,7 @@
 #include <iostream>
 #include <random>
 #include <type_traits>
+#include "SieveUtility.h"
 //#include <cfenv>
 
 // forward declarations
@@ -75,7 +78,7 @@ namespace GaussSieve
  The variant sample_z_gaussian_VMD takes
  s2pi = s^2 * pi and maxdeviation = cutoff * s as parameters.
 
- **/
+ */
 
 template <class Z, class Engine>
 Z sample_z_gaussian(double s, double const center, Engine &engine, double const cutoff);
@@ -85,53 +88,68 @@ Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                         double const maxdeviation);
 }
 
+/**
+The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
+Due to the fact that we support multi-threading, MTPRNG<Engine,true,.> is a wrapper around
+a vector of Engines, whereas, MTPRNG<Engine,false,.> is a wrapper around Engine.
+reseed seeds *all* engines. Use rnd(thread-id) to obtain the underlying Engine.
+Thread-safety: Init and reseed are not thread-safe. Concurrent calls to rnd are fine.
+You may concurrently call rnd and use init to increase (but not decrease) the number of threads.
+
+Randomness path:
+The global (master) seed that is input to the constructor resp. to reseed is used to create
+20x32 = 640 bit per-thread-seeds for each actual Engine.
+The output from theses engine(s) is then accessed using rnd(thread-number).
+This is done even in the single-threaded case to ensure consistency.
+Note that for obtaining the per-thread seeds from the master seeds, we use a fixed Mersenne twister
+engine and not the engine given as template parameter.
+
+*/
+
 // clang-format off
 
-//The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
-//Due to the fact that we support multi-threading, MTPRNG<Engine,true,.> is a wrapper around
-//a vector of Engines, whereas, MTPRNG<Engine,false,.> is a wrapper around Engine.
-//reseed seeds *all* engines. Use rnd(thread-id) to obtain the underlying Engine.
-//Thread-safety: Init and reseed are not thread-safe. Concurrent calls to rnd are fine.
-//You may concurrently call rnd and use init to increase (but not decrease) the number of threads.
-
-//Randomness path:
-//The global (master) seed that is input to the constructor resp. to reseed is used to create 20x32 bit per-thread-seeds for each actual Engine.
-//The output from theses engine(s) is then accessed using rnd(thread-number).
-//This is done even in the single-threaded case to ensure consistency.
-//Note that for obtaining the per-thread seeds from the master seeds, we use a fixed Mersenne twister engine and not the engine given as template parameter.
-
-template<class Engine, class Sseq>  class MTPRNG<Engine,true, Sseq> //multithreaded case of MTPRNG
+//multithreaded case of MTPRNG
+template<class Engine, class Sseq>  class MTPRNG<Engine,true, Sseq>
 {
     public:
-    MTPRNG(Sseq & _seq = {}) : seeder(_seq), engines(0), num_threads(0)       {}; //constructs an uninitialized MTPRNG
-    void reseed(Sseq & _seq);
-    void init(unsigned int const _num_threads); //will make sure at least _num_threads engines are actually running, starting new ones as desired.
-                                                //Will never reseed/restart already running engines.
-                                                //Reducing the number of threads and increasing it back saves the random state (unless we reseed).
+
+    //constructs an uninitialized MTPRNG
+    explicit MTPRNG(Sseq & _seq = {}) : seeder(_seq), engines(0), num_threads(0)       {};
+
+    inline void reseed(Sseq & _seq);
+
+    /**
+    will make sure at least _num_threads engines are actually running, starting new ones as desired. Will never reseed/restart already running engines. Reducing the number of threads and increasing it back saves the random state (unless we reseed).
+    */
+    inline void init(unsigned int const _num_threads);
     Engine & rnd(unsigned int const thread)                                 {return engines[thread];};
     private:
-    std::mt19937_64 seeder; //seeded with initial seq and consecutively used to seed the children PRNGs.
+    //seeded with initial seq and consecutively used to seed the children PRNGs.
+    std::mt19937_64 seeder;
     std::vector<Engine> engines;
-    unsigned int num_threads; //number of initialized engines. May differ from size of the vector. In particular, num_threads = 0 means uninitialized.
+    //number of initialized engines. May differ from size of the vector. In particular, num_threads = 0 means uninitialized.
+    unsigned int num_threads;
     Sseq seq;
     static unsigned int constexpr seed_length = 20; //number of 32bit values to use as seeds for the underlying engine(s).
-                                                    //Technically, we could use state_size if the engine provides it, but not all default engines do.
+                                                    //Technically, we could use state_size if the engine provides it, but not even all default engines do.
 };
 
-
-template<class Engine, class Sseq>  class MTPRNG<Engine, false, Sseq>           //singlethreaded case of MTPRNG: just wrapper around Engine
+//singlethreaded case of MTPRNG: just wrapper around Engine
+template<class Engine, class Sseq>  class MTPRNG<Engine, false, Sseq>
 {
     public:
     MTPRNG(Sseq & _seq ={}) : engine()                      {reseed(_seq);};
-    void reseed(Sseq & _seq);
+    inline void reseed(Sseq & _seq);
     void init(unsigned int const = 1)                       {} //does nothing.
-    Engine & rnd(unsigned int const)                        {return engine;};   //Argument is number of thread. It is ignored.
+    Engine & rnd(IgnoreArg<unsigned int const>)                        {return engine;};   //Argument is number of thread. It is ignored.
     Engine & rnd()                                          {return engine;};   //Version without thread-id
     private:
     Engine engine;
-    static unsigned int constexpr seed_length = 20; //number of 32bit values to use as (per-thread) seed for the underlying engine.
-                                                    //Technically, we could use state_size if the engine provides it, but not all default engines do.
-};      //End of MTPRNG
+
+
+    //number of 32bit values to use as (per-thread) seed for the underlying engine. Technically, we could use state_size if the engine provides it, but not all default engines do.
+        static unsigned int constexpr seed_length = 20;
+};  //End of MTPRNG
 
 
 
