@@ -86,6 +86,7 @@ template <> class Dimension<-1>
 {
 public:
   using IsFixed = std::false_type;
+
   Dimension(unsigned int const new_dim) : dim(new_dim){};
   Dimension() = delete;  // Not sure whether we should allow uninitialized dims here.
   inline operator unsigned int() const { return dim; };
@@ -96,7 +97,8 @@ template <int nfixed> class Dimension
 {
 public:
   using IsFixed = std::true_type;
-  Dimension()   = default;
+
+  Dimension() = default;
   Dimension(IgnoreArg<unsigned int> new_dim){};  // assert(new_dim==nfixed);}
   //    Dimension(unsigned int){};
   inline constexpr operator unsigned int() const { return nfixed; };
@@ -124,10 +126,12 @@ This utility function is used to parse dumps.
 string_consume assumes that str itself does not start/end with whitespace.
 */
 
-inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws = true, bool verbose = true);  // helper function for dumping/reading
+inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws = true,
+                           bool verbose = true);  // helper function for dumping/reading
 }
 
-inline bool GaussSieve::string_consume(std::istream &is, std::string const &str, bool elim_ws, bool verbose)
+inline bool GaussSieve::string_consume(std::istream &is, std::string const &str, bool elim_ws,
+                                       bool verbose)
 {
   unsigned int len = str.length();
   char *buf        = new char[len + 1];
