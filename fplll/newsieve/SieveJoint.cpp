@@ -38,7 +38,6 @@
 #include "Sampler.cpp"
 #include "GaussQueue.cpp"
 #include "PointListNew.cpp"
-#include "TermCondNew.cpp"
 
 //End of things included only once.
 #endif // SIEVE_JOINT_CPP
