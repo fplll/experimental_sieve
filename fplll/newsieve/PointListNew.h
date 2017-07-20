@@ -20,9 +20,6 @@
     nfixed: Is the dimension fixed? -1 means dynamic.
 */
 
-//forward declarations with default arguments
-template <class ET, bool MT, int n_fixed> class GaussListNew; //holds approximations
-template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
 
 #include <mutex>
 #include <atomic>
@@ -34,6 +31,8 @@ template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
 //#include "LatticePointsNew.h"
 #include "Typedefs.h"
 #include <list>
+#include "MyLatticePointClass.cpp"
+#include "SieveUtility.h"
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)
@@ -43,6 +42,11 @@ template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
 //The structure of the algorithm allows for relatively simple garbage collection.
 //Note that we do NOT assume a sequentially constistent memory model here. Relaxing from that should gain a bit of performance:
 //Be aware that reading time from the lattice point list even asymptotically leading order.
+
+
+//forward declarations
+template <class ET, bool MT, int n_fixed> class GaussListNew; //holds approximations
+template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
 
 
 template <class ET,int nfixed>

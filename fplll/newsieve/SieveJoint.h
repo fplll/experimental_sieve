@@ -54,7 +54,6 @@ NEED TO GO HERE OR TO SieveGauss.h:
   These go before includes to allow cyclic dependencies
 */
 
-template<class ET, bool MultiThreaded, int nfixed> class Sieve;
 
 
 /* TODO: Move these into the files where they are used... */
@@ -72,13 +71,16 @@ template<class ET, bool MultiThreaded, int nfixed> class Sieve;
 //#include "TermCond.h"
 #include "GaussQueue.h"
 //#include "FilteredPoint.h"
-#include "TermCondNew.h"
+#include "DefaultTermConds_impl.h" // TODO: Change
 //#include "LatticePoint.h"
 //#include "LatticePointsNew.h"
 //#include "PointList.h"
 #include "PointListNew.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
+
+template<class ET, bool MultiThreaded, int nfixed> class Sieve;
+
 
 #endif //end of ONLY-ONCE part
 

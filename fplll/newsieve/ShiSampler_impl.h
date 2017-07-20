@@ -7,9 +7,15 @@ TODO: Change internal representation of basis.
 #ifndef SHI_SAMPLER_IMPL_H
 #define SHI_SAMPLER_IMPL_H
 
-#include "Sampler_impl.h"
+#include "Sampler.h"
 #include "ShiSampler.h"
 #include "SieveGauss.h"
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr_Z.inl"
+#include <vector>
+#include <random>
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 void ShiSampler<ET, MT, Engine, Sseq, nfixed>::custom_init()

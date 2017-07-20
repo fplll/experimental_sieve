@@ -21,6 +21,7 @@
 #include <random>
 #include <type_traits>
 //#include <cfenv>
+#include "MyLatticePointClass.cpp"
 
 // forward declarations
 template <class ET, bool MT, int nfixed> class Sieve;

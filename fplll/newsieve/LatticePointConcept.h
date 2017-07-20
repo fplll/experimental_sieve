@@ -99,13 +99,13 @@ class GeneralLatticePoint
     ScalarProductReturnType get_norm2(AuxDataType const & aux_data={}) const = delete;
     unsigned int get_dim(AuxDataType const &aux_data={}) const = delete;
     std::istream & read_from_stream(std::istream &is = std::cin, AuxDataType const &aux_data={})=delete;
-    std::ostream & write_to_stream(std::ostream &os = std::cout, AuxDataType const &aux_data={}); //=delete;
+    std::ostream & write_to_stream(std::ostream &os = std::cout, AuxDataType const &aux_data={})=delete; //=delete;
     static std::string class_name() {return "General Lattice Point";};
     void increment_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
     void decrement_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
-    bool operator< (Implementation const & other) const;
-    bool operator> (Implementation const & other) const;
-    void sanitize();
+    bool operator< (Implementation const & other) const = delete;
+    bool operator> (Implementation const & other) const = delete;
+    void sanitize() = delete;
     Implementation& operator+(Implementation const &second) = delete;
     Implementation& operator+(Implementation &&second) = delete;
     Implementation& operator-(Implementation const &second) = delete;
@@ -140,7 +140,7 @@ bool GeneralLatticePoint<Implementation>::operator> (Implementation const & othe
 }
  */
 
-
+/*
 
 template<class LP>
 std::istream & operator>> (std::istream & is, typename std::enable_if<IsALatticePoint<LP>::value, LP>::type &lp)
@@ -158,6 +158,7 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
     return os;
 }
 
+*/
 
 
 #endif

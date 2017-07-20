@@ -41,6 +41,16 @@
 //For custom termination conditions making use of statistics, assume that check() is only called rarely and that statistics collected might be lagging behind (due to inter-thread synchronisation buffers).
 //In particular, only ever compare >= or <= and never ==.
 
+
+
+//#include "SieveGauss.h"
+#include "SieveUtility.h"
+#include "iostream"
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr_Z.inl"
+
 template<class ET, bool MT, int nfixed=-1> class TerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class NeverTerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class LengthTerminationCondition;
@@ -56,17 +66,7 @@ enum class TerminationConditionType
     minkowski_condition =3
 };
 
-#include "SieveGauss.h"
-#include "SieveUtility.h"
-#include "iostream"
-#include "fplll/defs.h"
-#include "fplll/gso.h"
-#include "fplll/nr/matrix.h"
-#include "fplll/nr/nr_Z.inl"
-
-namespace GaussSieve{
-inline    fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis);                                        //computes a meaningful Minkowski bound for the length of the shortest vector
-}
+template<class ET, bool MT, int nfixed> class Sieve;
 
 template<class ET,bool MT, int nfixed> class TerminationCondition
 {
@@ -95,157 +95,6 @@ template <class ET,bool MT,int nfixed> TerminationCondition<ET,MT,nfixed>::~Term
 template<class ET,bool MT,int nfixed> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->dump_to_stream(os);};
 template<class ET,bool MT,int nfixed> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->read_from_stream(is);};
 
-
-
-//default Termination Conditions here:
-template<class ET,bool MT, int nfixed> class NeverTerminationCondition : public TerminationCondition<ET,MT,nfixed> //never terminate
-{
-    public:
-    virtual int check(Sieve<ET,MT,nfixed> * const sieve) override                              {return 0;};
-    virtual int check_vec(Sieve<ET,MT,nfixed> * const sieve, ET const & length2) override      {return 0;};
-    virtual bool is_simple() const override                                             {return true;};
-    virtual ~NeverTerminationCondition() {};
-    virtual TerminationConditionType  termination_condition_type() const override       {return TerminationConditionType::never_terminate;};    //run-time type information.
-};
-
-template<class ET,bool MT,int nfixed> class LengthTerminationCondition : public TerminationCondition<ET,MT,nfixed> //Length Termination Condition
-{
-    public:
-    LengthTerminationCondition(ET const & init_target_length) : target_length(init_target_length) {};
-    virtual int check(Sieve<ET,MT,nfixed> * const sieve) override                               {return (sieve -> get_best_length2()<=target_length)?1:0;};
-    virtual int check_vec(Sieve<ET,MT,nfixed> * const sieve, ET const & length2) override       {return (length2<=target_length)?1:0;};
-    virtual bool is_simple() const override                                                     {return true;};
-    virtual TerminationConditionType  termination_condition_type() const override               {return TerminationConditionType::length_condition;};    //run-time type information.
-    virtual ~LengthTerminationCondition() {};
-    class bad_dumpread_LengthTermCond:public std::runtime_error
-    {
-        public: bad_dumpread_LengthTermCond():runtime_error("Dump read failed for LengthTerminationCondition") {}
-    }; //exception indicating that read from dump failed.
-    virtual std::ostream & dump_to_stream(std::ostream &os) override                              {os << "Target Length=" << target_length << std::endl; return os;}
-    virtual std::istream & read_from_stream(std::istream &is) override
-    {
-        if(!GaussSieve::string_consume(is,"Target Length=")) throw bad_dumpread_LengthTermCond();
-        is >> target_length;
-        return is;
-    };
-    private:
-    ET target_length;
-};
-
-template<class ET,bool MT, int nfixed> class MinkowskiTerminationCondition : public TerminationCondition<ET,MT,nfixed> //Length Termination Condition
-{
-    public:
-    MinkowskiTerminationCondition() : target_length() {}; //unitialised. We are guaranteed that init() is run before use.
-    virtual int check(Sieve<ET,MT,nfixed>  * const sieve) override                          {return (sieve -> get_best_length2()<=target_length)?1:0;};
-    virtual int check_vec(Sieve<ET,MT,nfixed>  * const sieve, ET const & length2) override  {return (length2<=target_length)?1:0;};
-    virtual bool is_simple() const override                                                 {return true;};
-    virtual TerminationConditionType  termination_condition_type() const override           {return TerminationConditionType::minkowski_condition;};    //run-time type information.
-    virtual ~MinkowskiTerminationCondition() {};
-    virtual void init(Sieve<ET,MT,nfixed> * const sieve) override                           {target_length = GaussSieve::compute_mink_bound(sieve->get_original_basis());};
-    private:
-    ET target_length;
-};
-
-inline fplll::Z_NR<mpz_t> GaussSieve::compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis)
-{
-    assert(basis.get_rows() == basis.get_cols()); //Note : Alg might work even otherwise. This assertion failure is just a reminder that this needs to be checked.
-    //compute Gram-Schmidt-Orthogonalization.
-    fplll::ZZ_mat<mpz_t> Empty_mat;
-    fplll::ZZ_mat<mpz_t> basis2 = basis; //need to copy, as BGSO is not const-specified...
-    fplll::MatGSO<fplll::Z_NR<mpz_t>, fplll::FP_NR<double>> BGSO(basis2, Empty_mat, Empty_mat, 0);
-    BGSO.update_gso();
-
-    fplll::FP_NR<double> entry;
-
-    //for (int i=0; i<basis.get_rows(); i++)
-    //{
-// 	for (int j=0; j<basis.get_rows(); j++)
-//        	//cout << BGSO.get_gram(entry, j, j) << endl;
-//		cout << (BGSO.get_r(entry, j, j)) << "  " << log(BGSO.get_r(entry, j, j)) << endl;
-//        cout << endl;
-//   }
-
-    // returns det(B)^{2/dim}
-
-    fplll::FP_NR<double> root_det2 = BGSO.get_root_det (1, basis.get_rows());
-    fplll::FP_NR<double> log_det2 = BGSO.get_log_det (1, basis.get_rows());
-    //cout << "root_det2: " << root_det2 << endl;
-    //cout << "log_det2: " << log_det2 << endl;
-
-    //lambda_1^2 = n * det(B)^{2/n}
-
-    fplll::FP_NR<double> MinkBound_double = 0.074 * root_det2 * static_cast<double> (basis.get_rows() ); //technically, we need to multiply by Hermite's constant in dim n here. We are at least missing a constant factor here.
-    //DUE TO [KL79], the best know multiple (for the squared norm) whould be 1/(pi* exp(1)*2^{2*0.099} ~ 0.102) for n->infinity. Blichfeldt's bound: 1 / (pi*exp(1))=0.117.
-    // Darmstadt's challenge suggests: 1.10 / (2*pi*exp(1)) = 0.0644;
-
-    //cout << "after MinkBound_double is assigned... " << endl;
-    fplll::Z_NR<mpz_t> Minkowski;
-    Minkowski.set_f(MinkBound_double);
-    std::cout << "Mink. bound = " << Minkowski << std::endl;
-    return Minkowski;
-}
-
-
-
 #endif
-
-
-//Note : Igonore idea below, because we want run-time typing.
-/* Concept "TerminationCondition":
-
-A termination condition is a template<class ET> class TerminationCondition with at least the following public members: (see DummyTerminationCondition for an example)
-
-- public member typedef simple, set to either std::true_type or std::false_type (Note : May need to #include <type_traits> )
-- public default constructor
-- public member function templates
-template<bool MT> void init(GaussSieve<ET,MT> const & sieve);
-template<bool MT> int check(GaussSieve<ET,MT> const & sieve);
-template<bool MT> int check_vec(GaussSieve<ET,MT> const & sieve, ET const & norm2);
-
-- non-member function templates
-template<class ET> ostream & operator<<(ostream &os,TerminationCondition<ET> const &term_cond);
-template<class ET> istream & operator>>(istream &is,TerminationCondition<ET> &term_cond);
-
-It needs to have the following semantics:
-
-init(...) is called if the GaussSieve is started. You may assume that the parameters do no longer change. Note that init() may be called multiple times if the sieve is suspended and parameters change.
-check(...) returns 1 if sieve is considered finished, 0 otherwise. Needs to be reentrant if MT==true.
-check_vec(...) has the same semantics as check, but is called whenever a new lattice point of norm^2 norm2 is found. Needs to be reentrant if MT==true.
-
-If simple==true_type, we assume that check() is a function of length only. In this case, we only call check_vec() if a new shortest (so far) vector is found.
-check() may be called rarely.
-
-Note : Output of check functions is int rather than bool to enable future extensions to output return values indicating "suspend" or "dump"
-
-The stream operators are for dumping / reading.
-We assume that if we dump a Termination condition T1 to a filestream and read it into T2, then T2 will be in the same status as T1.
-TODO: reading is unused so far.
-*/
-
-/*
-    example dummy Termination condition below
-*/
-
-//template<class ET> ostream & operator<<(ostream &os,DummyTerminationCondition<ET> const &term_cond); //printing
-//template<class ET> istream & operator>>(istream &is,DummyTerminationCondition<ET> &term_cond); //reading (also used by constructor from istream)
-//template<class ET>
-//class DummyTerminationCondition //This class serves only to exemplify the interface, lacking support for "Concepts" in any compiler execpt GCC (experimental) atm.
-//{
-//    public:
-//    template<class ET> ostream & operator<<(ostream &os,TerminationConditions<ET> const &term_cond); //printing
-//    template<class ET> istream & operator>>(istream &is,TerminationConditions<ET> &term_cond); //reading (also used by constructor from istream)
-//    using simple = std::true_type;
-//
-//    DummyTerminationCondition() = default;
-//
-//    template<bool MT>
-//    void init(GaussSieve<ET,MT> const & sieve) = delete;
-//
-//    template<bool MT>
-//    int check(GaussSieve<ET,MT> const & sieve) = delete;
-//
-//    template<bool MT>
-//    int check_vec(GaussSieve<ET,MT> const & sieve, ET const & length) = delete;
-//}
 
 //clang-format on

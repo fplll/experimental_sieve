@@ -5,6 +5,9 @@
 
 
 #include "MyLatticePointClass.h"
+// REMOVE THESE!
+using namespace fplll;
+using namespace std;
 
 
 template <class ET,int nfixed>

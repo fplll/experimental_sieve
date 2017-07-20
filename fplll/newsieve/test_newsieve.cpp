@@ -2,22 +2,22 @@
 
 #define USE_REGULAR_QUEUE //comment out if you use priority-queue
 
-#include "GaussQueue.h"
-#include "Sampler.h"
+//#include "GaussQueue.h"
+//#include "Sampler.h"
 #include "sieve_main.h"
 #include "fplll.h"
 //#include "LatticePoint.h"
 //#include "PointList.h"
 #include <thread>
 #include <chrono>
-#include "SieveGauss.cpp"
+#include "SieveGauss_main.h"
 //#include "LatticePoint2.h"
 #include <iostream>
 #include <fstream>
 #include <random>
-#include "MyLatticePointClass.cpp"
-#include "LatticePointConcept.h"
-#include "PlainLatticePoint.h"
+//#include "MyLatticePointClass.cpp"
+//#include "LatticePointConcept.h"
+//#include "PlainLatticePoint.h"
 
 
 
@@ -143,12 +143,12 @@ void TestMyLatticePointClass()
 
     //test_pointA.fill_with_zero();
     //test_pointA.write_to_stream(cout);
-    
+
     MyLatticePoint<Z_NR<mpz_t>, -1> test_point_copy = test_pointA.make_copy();
     test_pointA.write_to_stream(cout);
     test_point_copy.write_to_stream(cout);
-    
-    
+
+
 
 
 }
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 //sample_gaussians<long>(50, 10.0, 0.3, 4.0);
 //sample_gaussians<long>(50, 0.0000001, 0.48, 4.0); //should still be fast.
 
-    PlainLatticePoint<Z_NR<mpz_t>,-1> X;
+//    PlainLatticePoint<Z_NR<mpz_t>,-1> X;
 
     //TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
 

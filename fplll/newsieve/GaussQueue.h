@@ -3,23 +3,10 @@
 #define GAUSS_QUEUE_H
 /* defines the classes used for the main Queues in the Gauss Sieve */
 
-template <class ET, bool MT, int nfixed> class GaussQueue;
+
 
 //template <class ET> class IsLongerVector_class; //class wrapper to compare vectors by length. Needs to be wrapped in a class to work seamlessly with some STL containers.
 //template <class ET> class IsLongerVector_classPtr;
-
-
-//template <class ET>
-//class GaussQueue<ET,true>;
-//
-//template <class ET>
-//class GaussQueue<ET,false>;
-//
-//template <class ET>
-//using GaussQueueST=GaussQueue<ET,false>;
-//
-//template <class ET>
-//using GaussQueueMT=GaussQueue<ET,true>;
 
 #include <mutex>
 #include <atomic>
@@ -32,6 +19,13 @@ template <class ET, bool MT, int nfixed> class GaussQueue;
 #include "Typedefs.h"
 //#include "EllipticSampler.h"
 
+// declares GaussQueue class, to be specialized.
+template <class ET, bool MT, int nfixed> class GaussQueue;
+
+
+/**
+TODO: Documentation, enable sorted queue.
+*/
 
 //template<class ET,int nfixed> class IsLongerVector_class //TODO : Move to GaussQueue.h
 //{
@@ -77,24 +71,24 @@ public:
     using size_type = typename QueueType::size_type;
     //using SamplerType =    KleinSampler<typename ET::underlying_data_type, FP_NR<double> > ;
     GaussQueue()=delete;
-    GaussQueue(Sieve<ET,false,nfixed> *caller_sieve); //only constructor
+    explicit inline GaussQueue(Sieve<ET,false,nfixed> *caller_sieve); //only constructor
     GaussQueue(GaussQueue const &old) = delete;
     GaussQueue(GaussQueue &&old) = delete;
     GaussQueue& operator= (GaussQueue const &old)=delete;
     GaussQueue& operator= (GaussQueue &&old) = delete;
-    ~GaussQueue();
+    inline ~GaussQueue();
 
-    [[deprecated("The queue is never empty from the callers POV")]]
+    [[deprecated("The queue is never empty from the callers POV.")]]
     bool empty() const              {return main_queue.empty();};  //we might as well always return false (or make this private)!
     size_type size() const          {return main_queue.size();};   //returns size of queue (used for diagnostics and statistics only)
     void push(DataType const &val) = delete; //puts a copy of val in the queue : deleted
-    void push(DataType && val);     //uses move semantics for that.
+    inline void push(DataType && val);     //uses move semantics for that.
     //void push(DataType * &val); //uses move semantics! val is changed to nullptr
 
 //    [[deprecated("Ownership transfer clashes with compressed storage.")]]
 //    void give_ownership(LPType * const valptr); //takes a pointer to a list point and puts the point into the queue, moves ownership (avoids copying)
 
-    RetType true_pop(); //removes front element from queue *and returns it*.
+    inline RetType true_pop(); //removes front element from queue *and returns it*.
     //RetType true_pop() = delete;
 
 //    [[deprecated("Use copy elison rather than ownership transfer.")]]

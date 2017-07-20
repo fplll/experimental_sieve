@@ -9,6 +9,8 @@
 #include "Sampler.h"
 #include "SieveGauss.h"
 #include <type_traits>
+#include <iostream>
+#include <random>
 
 // actually needed, even though destructor is pure virtual as the base class destructor is
 // eventually called implicitly.

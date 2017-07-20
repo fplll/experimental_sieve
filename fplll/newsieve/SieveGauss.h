@@ -6,7 +6,8 @@
 
 //TODO : explain
 
-#define SIEVE_GAUSS_SINGLE_THREADED
+//This is set from SieveGauss_main.h
+//#define SIEVE_GAUSS_SINGLE_THREADED
 
 #ifndef SIEVE_GAUSS_H
 #define SIEVE_GAUSS_H

@@ -7,17 +7,17 @@
   based on Panagiotis Voulgaris's implementation of the Gauss sieve.
 */
 
-#include "GaussQueue.h"
-#include "Sampler.h"
+//#include "GaussQueue.h"
+//#include "Sampler.h"
 #include "sieve_main.h"
 #include "fplll.h"
 //#include "LatticePoint.h"
 //#include "PointList.h"
 #include <thread>
 #include <chrono>
-#include "SieveGauss.cpp"
+#include "SieveGauss_main.h"
 //#include "LatticePoint2.h"
-#include "TermCondNew.h"
+//#include "TermCondNew.h"
 //#include "FilteredPoint.h"
 
 //Don't do this:

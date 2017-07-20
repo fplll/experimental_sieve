@@ -8,6 +8,11 @@
 #include "SieveUtility.h"
 #include <vector>
 #include "LatticePointConcept.h"
+// TODO : Remove these
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr_Z.inl"
 
 
 template<class ET,int nfixed> class MyLatticePoint;

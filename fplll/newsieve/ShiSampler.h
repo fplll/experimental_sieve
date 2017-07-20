@@ -31,7 +31,7 @@ public:
       : Sampler<ET, MT, Engine, Sseq, nfixed>(seq), dim(nfixed < 0 ? 0 : nfixed), cutoff(_cutoff){};
   virtual SamplerType sampler_type() const override { return SamplerType::shi_sampler; };
   virtual ~ShiSampler();
-  virtual typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>
+  virtual inline typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>
   sample(int thread = 0) override;
 
 private:
