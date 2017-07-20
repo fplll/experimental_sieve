@@ -141,8 +141,14 @@ void TestMyLatticePointClass()
 
     cout << test_pointA.get_norm2() << endl;
 
-    test_pointA.fill_with_zero();
+    //test_pointA.fill_with_zero();
+    //test_pointA.write_to_stream(cout);
+    
+    MyLatticePoint<Z_NR<mpz_t>, -1> test_point_copy = test_pointA.make_copy();
     test_pointA.write_to_stream(cout);
+    test_point_copy.write_to_stream(cout);
+    
+    
 
 
 }
@@ -150,7 +156,7 @@ void TestMyLatticePointClass()
 //template <class ZT>
 void test_2sieve()
 {
-    const int dim = 20;
+    const int dim = 40;
     ZZ_mat<mpz_t> BTest;
     BTest.resize(dim, dim);
     //BTest.gen_trg(1.1);
@@ -167,7 +173,7 @@ void test_2sieve()
     bool constexpr multithreaded = false;
     TerminationCondition<Z_NR<mpz_t>,multithreaded> * termcond = new MinkowskiTerminationCondition<Z_NR<mpz_t>, multithreaded>;
     Test_2Sieve.set_termination_condition(termcond);
-    //Test_2Sieve.run();
+    Test_2Sieve.run();
 }
 
 
@@ -178,7 +184,7 @@ int main(int argc, char **argv)
 
     PlainLatticePoint<Z_NR<mpz_t>,-1> X;
 
-    TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
+    //TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
 
     test_2sieve();
 
