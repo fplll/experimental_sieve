@@ -27,7 +27,7 @@ template <class ET, bool MT, int nfixed> class GaussQueue;
 #include <utility>
 #include <random>
 //#include "LatticePoint.h"
-#include "LatticePointsNew.h"
+//#include "LatticePointsNew.h"
 #include "assert.h"
 #include "Typedefs.h"
 //#include "EllipticSampler.h"

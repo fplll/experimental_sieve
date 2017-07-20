@@ -74,10 +74,10 @@ template<class ET, bool MultiThreaded, int nfixed> class Sieve;
 //#include "FilteredPoint.h"
 #include "TermCondNew.h"
 //#include "LatticePoint.h"
-#include "LatticePointsNew.h"
+//#include "LatticePointsNew.h"
 //#include "PointList.h"
 #include "PointListNew.h"
-#include "Utility.h"
+#include "SieveUtility.h"
 #include "Typedefs.h"
 
 #endif //end of ONLY-ONCE part
@@ -114,7 +114,7 @@ public:
     using FastAccess_Point = GaussSieve::FastAccess_Point<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
     using MainQueueType    = GaussQueue<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>; //FIXME
     using MainListType     = GaussListNew<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
-    using LatticeBasisType = ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
+    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
     //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;
     //using FilteredListType = std::vector<FilteredPoint<ET, float>>; //queue is also fine for our purposes; scalar products are not of type ET, two-templates; float for now; may be changed.
 
@@ -185,9 +185,9 @@ public:
     #endif
 
 
-    void print_status(int verb = -1, std::ostream &out = cout) {dump_status_to_stream(out,verb);};      //prints status to out. verb overrides the verbosity unless set to -1.
+    void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};      //prints status to out. verb overrides the verbosity unless set to -1.
     void dump_status_to_file(std::string const &outfilename, bool overwrite = false);                   //dumps to file (verbosity overridden to 3)
-    void dump_status_to_stream(ostream &of, int verb=-1);       //dumps to stream. Can be read back if verb>= 3. Otherwise, verbosity determines what is output.
+    void dump_status_to_stream(std::ostream &of, int verb=-1);       //dumps to stream. Can be read back if verb>= 3. Otherwise, verbosity determines what is output.
 
 //getter / setter functions
 
@@ -299,9 +299,9 @@ private:
 //TODO: total time spent?
 };
 
-template class Sieve<Z_NR<long>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
-template class Sieve<Z_NR<double>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
-template class Sieve<Z_NR<mpz_t>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+template class Sieve<fplll::Z_NR<long>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+template class Sieve<fplll::Z_NR<double>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+template class Sieve<fplll::Z_NR<mpz_t>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
 
 /*DUMPING / READING ROUTINES */
 

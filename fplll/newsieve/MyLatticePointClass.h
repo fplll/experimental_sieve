@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <type_traits>
-#include "Utility.h"
+#include "SieveUtility.h"
 #include <vector>
 #include "LatticePointConcept.h"
 
@@ -28,7 +28,7 @@ template<class ET,int nfixed>
 class MyLatticePoint : public GeneralLatticePoint< MyLatticePoint<ET, nfixed> >
 {
     public:
-    using LatticePointTag = true_type;
+    using LatticePointTag = std::true_type;
     using AuxDataType = typename ImplementationTraits<MyLatticePoint>::AuxDataType;
     using ScalarProductReturnType = ET;
 
@@ -55,7 +55,7 @@ public:
 //        norm2 = norm;
 //    };
 
-    explicit MyLatticePoint(MatrixRow<ET> const & row)
+    explicit MyLatticePoint(fplll::MatrixRow<ET> const & row)
     {
         data = (row.get_underlying_row()).get_underlying_vector();
         update_norm2();
@@ -90,7 +90,7 @@ public:
             os << data[i] << " " ;
         }
 
-        os <<"]" << endl;
+        os <<"]" << std::endl;
         return os;
     }
 

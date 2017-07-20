@@ -5,8 +5,8 @@
 
 #include "GaussQueue.h"
 #include "SieveGauss.cpp"
-#include "ShiSampler.cpp"
-#include "Sampler.cpp"
+#include "ShiSampler_impl.h"
+#include "Sampler_impl.h"
 
 template<class ET,int nfixed> GaussQueue<ET,false,nfixed>::GaussQueue( Sieve<ET,false,nfixed> *caller_sieve)  //constructor
 :
@@ -17,9 +17,9 @@ sampler(nullptr)
     assert(caller_sieve!=nullptr);
     std::seed_seq seed{1,2,4}; //just some arbitrary numbers
     //sampler = new EllipticSampler<ET,false, std::mt19937_64, std::seed_seq> (seed);
-    cout << "Initializing Sampler" << endl << flush;
+//    std::cout << "Initializing Sampler" << std::endl << std::flush;
     sampler = new ShiSampler<ET,false, std::mt19937_64, std::seed_seq,nfixed> (seed);
-    cout << "Finished Initializing Sampler" << endl << flush;
+//    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
     assert(sampler!=nullptr);
 }
 
@@ -202,7 +202,7 @@ template<class ET, int nfixed> GaussQueue<ET,false,nfixed>::~GaussQueue()
 //    }
 //}
 
-template class GaussQueue<Z_NR<long>,false,-1>;
+template class GaussQueue<fplll::Z_NR<long>,false,-1>;
 
 #endif
 

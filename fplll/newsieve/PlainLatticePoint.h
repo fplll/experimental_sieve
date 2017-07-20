@@ -4,7 +4,7 @@
 #define PLAIN_LATTICE_POINT_H
 
 #include "LatticePointConcept.h"
-#include "Utility.h"
+#include "SieveUtility.h"
 
 //most simple Lattice Point that just wraps around a vector / array of ET's.
 

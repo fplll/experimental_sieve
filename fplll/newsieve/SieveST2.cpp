@@ -1,5 +1,6 @@
 // clang-format off
-
+using namespace std;
+using namespace fplll; //for now...
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */
 
@@ -12,7 +13,7 @@
 template<class ET,int nfixed>
 bool check2red (GaussSieve::FastAccess_Point<ET,false,nfixed> const &p1, GaussSieve::FastAccess_Point<ET,false,nfixed> const &p2, ET & scalar)
 {
-    
+
     ET sc_prod, abs_2scprod;
     sc_prod= compute_sc_product(p1, p2);
     abs_2scprod.mul_ui(sc_prod,2);
@@ -53,29 +54,10 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
     if (p.get_norm2() == 0) return;
     bool loop = true;
 
-    //cout << " p = ";
-    //p.write_to_stream(cout);
-    //cout << " of norm " << p.get_norm2();
-    //cout << endl << flush;
-    
-    
-     //typename MainListType::Iterator it1 = main_list.cbegin();
-    
-    /*
-     cout  << "main_list.size(): " << current_list_size << endl << flush;
-     for (it1 = main_list.cbegin(); it1!=main_list.cend(); ++it1) {
-         //N++;
-         //(*it1).write_to_stream(cout);
-     cout << (*it1).get_norm2()  << endl << flush;
-     
-     }
-    */
-
 
     typename MainListType::Iterator it_comparison_flip=main_list.cend();
     typename MainListType::Iterator it = main_list.cbegin();
     
-    //cout << "start the 1st loop" << endl << flush;
 
     while (loop) {
         loop = false;
@@ -83,13 +65,9 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         
         for (it = main_list.cbegin(); it!=main_list.cend(); ++it)
         {
-            //(*it).write_to_stream(cout);
-            //cout << endl;
-            //cout << (*it).get_norm2() << endl << flush;
 
             if (p.get_norm2() < (*it).get_norm2())
             {
-                //cout << "if 1 "<< endl << flush;
                 it_comparison_flip = it;
                 break;
             }
@@ -98,14 +76,9 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
             ET scalar;
             if ( check2red(p, *it, scalar) )
             {
-                //cout << "check2red " << endl << flush;
-
                 p = perform2red(p, *it, scalar);
 
-                //cout << "new p of norm = " << p.get_norm2() << endl << flush;
                 loop = true;
-
-                //assert(false);
                 break;
             }
 
@@ -115,7 +88,6 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
 
     if (p.get_norm2() == 0)
     {
-        //cout << "collision on p " << endl << flush;
         number_of_collisions++;
         return;
     }
@@ -126,34 +98,20 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
     //convert FastAccess_Point to GaussList_StoredPoint
     GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p_copy));
     
-    //insert the converted point into the main_list
-    //cout << " insert p of norm = " << p_converted.get_norm2() << endl << flush;
-    //if (it_comparison_flip!=main_list.cend())
-        //cout << " it_comparison_flip.get_norm2()  = " << (*it_comparison_flip).get_norm2() << endl << flush;
     main_list.insert_before(it_comparison_flip, std::move(p_converted));
-    //cout << "p is inserted " << endl << flush;
     ++current_list_size;
-    
-     //cout << "start the 2nd loop" << endl << flush;
     
     it =it_comparison_flip;
 
     while( it!=main_list.cend() )
     {
 
-        //cout << "it = ";
-        //(*it).write_to_stream(cout);
-        //cout << (*it).get_norm2() << endl << flush;
-
         ++number_of_total_scprods_level1;
 
         ET scalar;
-        
-        
         if ( check2red(*it, p, scalar) )
         {
             
-                //cout << "check2red 2" << endl << flush;
             
                 GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
                 v_new = perform2red(*it, p, scalar );
@@ -180,42 +138,20 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         
         else
         {
-            //cout << "check2red is false" << endl << flush;
             ++it;
         }
         
 
     }
-    /*
-    cout << "main_list before the insertion: " << endl << flush;
-    for (it1 = main_list.cbegin(); it1!=main_list.cend(); ++it1) {
-        //N++;
-        //(*it1).write_to_stream(cout);
-        cout << (*it1).get_norm2()  << endl << flush;
-        
-    }
 
-    
-    
-    cout << "main_list after the insertion: " << endl << flush;
-    for (it1 = main_list.cbegin(); it1!=main_list.cend(); ++it1) {
-        //N++;
-        //(*it1).write_to_stream(cout);
-        cout << (*it1).get_norm2()  << endl << flush;
-        
-    }
-    */
-    
-     if(update_shortest_vector_found(p))
+
+    if(update_shortest_vector_found(p))
      {
          if(verbosity>=2)
          {
              cout << "New shortest vector found. Norm2 = " << get_best_length2() << endl;
          }
      }
-     
-     
-    //cout << "finished 2-sieve iteration" << endl << flush;
 }
 
 
