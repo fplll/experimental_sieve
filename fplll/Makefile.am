@@ -40,9 +40,14 @@ nobase_include_fplll_HEADERS=defs.h fplll.h \
 
 bin_PROGRAMS=fplll latticegen latsieve newlatsieve testsieve
 check_PROGRAMS=llldiff
-EXTRA_PROGRAMS=fplll_dbg latticegen_dbg
+EXTRA_PROGRAMS=fplll_dbg latticegen_dbg classtests
 lib_LTLIBRARIES=libfplll.la
 EXTRA_LTLIBRARIES=libfplllv.la libfpllld.la
+
+#sievetests_gotti
+classtests_SOURCES=newsieve/classtests.cpp
+classtests_LDADD = libfplll.la $(LIBQD_LIBADD)
+classtests_CXXFLAGS = -pthread $(AM_CXXFLAGS)
 
 # fplll bin
 fplll_SOURCES=main.cpp main.h
@@ -71,7 +76,7 @@ latsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
 # newlatsieve bin
 newlatsieve_SOURCES=newsieve/sieve_main.cpp
 newlatsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
-newlatsieve_CXXFLAGS=-pthread $(AM_XCCFLAGS)
+newlatsieve_CXXFLAGS=-pthread $(AM_CXXFLAGS)
 
 #testsieve bin
 testsieve_SOURCES=newsieve/test_newsieve.cpp

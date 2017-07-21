@@ -42,6 +42,7 @@ The user needs to put it to emphasize that this is a declaration.
     static bool constexpr value = value_t::value;                                                  \
   }
 
+
 /**
 Similar to the above, creates a checker template class that checks wether
 TypeToCheck exists and is equal to TypeShouldBe

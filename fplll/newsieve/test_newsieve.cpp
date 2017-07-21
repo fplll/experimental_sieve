@@ -176,7 +176,6 @@ void test_2sieve()
     Test_2Sieve.run();
 }
 
-
 int main(int argc, char **argv)
 {
 //sample_gaussians<long>(50, 10.0, 0.3, 4.0);
@@ -185,6 +184,7 @@ int main(int argc, char **argv)
 //    PlainLatticePoint<Z_NR<mpz_t>,-1> X;
 
     //TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
+
 
     test_2sieve();
 

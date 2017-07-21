@@ -25,8 +25,8 @@
 //
 //semantics:
 //init(sieve) is called if the GaussSieve is started. Note that init() may be called multiple times if the sieve is suspended and parameters change. You may assume that the main parameters do not change without init being called again.
-//check(sieve) returns 1 if sieve is considered finished, 0 otherwise. Needs to be reentrant if MT==true.
-//check_vec(sieve,norm2) has the same semantics as check, but is called whenever a new lattice point of norm^2 norm2 is found. Needs to be reentrant if MT==true.
+//check(sieve) returns 1 if sieve is considered finished, 0 otherwise. Needs to be thread-safe if MT==true.
+//check_vec(sieve,norm2) has the same semantics as check, but is called whenever a new lattice point of norm^2 norm2 is found. Needs to be thread-safe if MT==true.
 //
 //is_simple needs to be either {return true;} or {return false;} (i.e. essentially a class-dependant constant). If it returns true, we assume that check() is a function of length only. In this case, we only call check_vec() whenever a new shortest (so far) vector is found.
 //Note: Even if is_simple returns true, check() may still be called rarely.

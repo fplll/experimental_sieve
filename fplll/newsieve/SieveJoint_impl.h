@@ -176,7 +176,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     verbosity(verbosity_),
     term_cond(termcond),
     sieve_status(SieveStatus::sieve_status_init),
-    shortest_vector_found(nullptr), //TODO : initialize to meaningful value, e.g. any vector of B.
+    shortest_vector_found(nullptr), // NOTE: Static data in class not initialized!
     number_of_collisions(0),
     number_of_points_sampled(0),
     number_of_points_constructed(0),
