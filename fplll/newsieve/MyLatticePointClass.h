@@ -18,7 +18,7 @@
 template<class ET,int nfixed> class MyLatticePoint;
 
 template<class ET,int nfixed>
-class ImplementationTraits<MyLatticePoint<ET,nfixed> > : public ImplementationTraitsBase
+class LatticePointTraits<MyLatticePoint<ET,nfixed> >
 {
     public:
     using AuxDataType = Dimension<nfixed>;
@@ -34,7 +34,7 @@ class MyLatticePoint : public GeneralLatticePoint< MyLatticePoint<ET, nfixed> >
 {
     public:
     using LatticePointTag = std::true_type;
-    using AuxDataType = typename ImplementationTraits<MyLatticePoint>::AuxDataType;
+    using AuxDataType = typename GetAuxDataType<MyLatticePoint>::type;
     using ScalarProductReturnType = ET;
 
 public:

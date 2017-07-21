@@ -55,27 +55,44 @@ bool compare_sc_product(LatticePoint const &A, LatticePoint const & B, ScalarPro
 
 //This class template stores the typedefs that the individual lattice point classes have
 //There has to be a specialization for each lattice point class
-class ImplementationTraitsBase
+//class ImplementationTraitsBase
+//{
+//    public:
+//    using AuxDataType = IgnoreAnyArg;
+//};
+
+// This class template stores the typedefs that the individual lattice point classes have
+// There has to be a specialization for each lattice point class.
+// The general template must never be instantiated.
+template<class LatticePoint> class LatticePointTraits
 {
-    public:
-    using AuxDataType = IgnoreAnyArg;
+  using Invalid=std::true_type;
+  // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
 };
 
-template<class Implementation> class ImplementationTraits;
+//template<class Implementation> class ImplementationTraits;
 template<class Implementation> class GeneralLatticePoint;
 
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductReturnType, DeclaresScalarProductReturnType);
+//CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductReturnType, DeclaresScalarProductReturnType);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
+CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductReturnType, HasScalarProductReturnType);
+MAKE_TRAIT_GETTER(LatticePointTraits, AuxDataType, IgnoreAnyArg, GetAuxDataType);
+MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductReturnType, void, GetScPType);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 
-template<class Implementation>
+template<class LatP>
 class GeneralLatticePoint
 {
+    static_assert(!HasNoLPTraits<LatP>::value);
+//    static_assert(IsALatticePoint<LatP>::value,"Could not recognize lattice point class.");
+    static_assert(HasScalarProductReturnType<LatP>::value, "Lattice Point class does not typedef its scalar product type");
     public:
-    //using LatticePointTag = std::true_type;
-    using AuxDataType = typename ImplementationTraits<Implementation>::AuxDataType;
-    static_assert(DeclaresScalarProductReturnType<ImplementationTraits<Implementation>>::value, "Lattice Point class does not typedef its scalar product type");
-    using ScalarProductReturnType = typename ImplementationTraits<Implementation>::ScalarProductReturnType;
-    explicit constexpr GeneralLatticePoint()=default; //only ever called from its children
+    friend LatP;
+    using AuxDataType = typename GetAuxDataType<LatP>::type;
+    using ScalarProductReturnType = typename GetScPType<LatP>::type;
+    private:
+    explicit constexpr GeneralLatticePoint()=default; //only callable from its friends.
+    public:
     GeneralLatticePoint(GeneralLatticePoint const &other)=delete; //This is just to match the implementation of a typical instantiation. Only the default constructor is ever used.
     GeneralLatticePoint(GeneralLatticePoint &&other)=default;
     GeneralLatticePoint& operator=(GeneralLatticePoint const & other) = delete;
@@ -95,22 +112,22 @@ class GeneralLatticePoint
     //
     //A using GeneralLatticePoint - directive in the derived class changes that behavior, so you may not want to do that.
 
-    Implementation make_copy(AuxDataType const & aux_data={}) = delete;
-    ScalarProductReturnType get_norm2(AuxDataType const & aux_data={}) const = delete;
-    unsigned int get_dim(AuxDataType const &aux_data={}) const = delete;
-    std::istream & read_from_stream(std::istream &is = std::cin, AuxDataType const &aux_data={})=delete;
-    std::ostream & write_to_stream(std::ostream &os = std::cout, AuxDataType const &aux_data={})=delete; //=delete;
+//    LatP make_copy(AuxDataType const & aux_data={}) = delete;
+//    ScalarProductReturnType get_norm2(AuxDataType const & aux_data={}) const = delete;
+//    unsigned int get_dim(AuxDataType const &aux_data={}) const = delete;
+//    std::istream & read_from_stream(std::istream &is = std::cin, AuxDataType const &aux_data={})=delete;
+//    std::ostream & write_to_stream(std::ostream &os = std::cout, AuxDataType const &aux_data={})=delete; //=delete;
     static std::string class_name() {return "General Lattice Point";};
-    void increment_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
-    void decrement_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
-    bool operator< (Implementation const & other) const = delete;
-    bool operator> (Implementation const & other) const = delete;
-    void sanitize() = delete;
-    Implementation& operator+(Implementation const &second) = delete;
-    Implementation& operator+(Implementation &&second) = delete;
-    Implementation& operator-(Implementation const &second) = delete;
-    Implementation& operator-(Implementation &&second) = delete;
-    Implementation& operator-() = delete;
+//    void increment_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
+//    void decrement_by(GeneralLatticePoint const &how_much, AuxDataType const &aux_data={})=delete;
+//    bool operator< (Implementation const & other) const;// = delete;
+//    bool operator> (Implementation const & other) const = delete;
+//    void sanitize() = delete;
+//    Implementation& operator+(Implementation const &second) = delete;
+//    Implementation& operator+(Implementation &&second) = delete;
+//    Implementation& operator-(Implementation const &second) = delete;
+//    Implementation& operator-(Implementation &&second) = delete;
+//    Implementation& operator-() = delete;
 };
 
 //template<class Implementation>
@@ -125,14 +142,16 @@ class GeneralLatticePoint
 //}
 
 
-//This code fails
-/*
-template<class Implementation>
-bool GeneralLatticePoint<Implementation>::operator< (Implementation const & other) const
-{
-    return Implementation:: this->get_norm2() < other.get_norm2();
-}
 
+//This code fails
+
+//template<class Implementation>
+//bool GeneralLatticePoint<Implementation>::operator< (Implementation const & other) const
+//{
+//  return (static_cast<Implementation const&>(*this)).get_norm2() < other.get_norm2();
+//}
+
+/*
 template<class Implementation>
 bool GeneralLatticePoint<Implementation>::operator> (Implementation const & other) const
 {
@@ -159,6 +178,7 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 }
 
 */
+
 
 
 #endif
