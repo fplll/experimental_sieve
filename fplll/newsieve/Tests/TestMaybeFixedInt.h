@@ -4,6 +4,7 @@
 
 bool test_maybe_fixed_int()
 {
+  using GaussSieve::Dimension;
   Dimension<-1> n1; n1=2;
   Dimension<-1> n12{2};
   Dimension<-1> n13(2);
