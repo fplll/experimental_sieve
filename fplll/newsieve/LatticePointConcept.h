@@ -104,6 +104,15 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, AbsoluteCoos, std::true_type, CoosAreAbsolute);
 
+#define MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE \
+template<class Impl=LatP, typename std::enable_if<CoosAreAbsolute<Impl>::value,int>::type = 0>
+
+#define MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR \
+template<class Impl=LatP, typename std::enable_if<IsCooVector<Impl>::value,int>::type = 0>
+
+#define IMPL_IS_LATP \
+static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type")
+
 template<class LatP>
 class GeneralLatticePoint
 {
@@ -126,6 +135,51 @@ class GeneralLatticePoint
     ~GeneralLatticePoint()=default;
     static void class_init(AuxDataType const &aux_data) = delete;
     static constexpr std::string class_name() {return "General Lattice Point";};
+
+    MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE
+    std::ostream& write_to_stream(std::ostream &os) const
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Using generic writer for " << LatP::class_name() )
+      auto dim = static_cast<LatP const*>(this)->get_dim();
+      os << "[";
+      for (unsigned int i =0; i<dim; ++i)
+        {
+            os << static_cast<LatP const*>(this)->operator[](i) << " ";
+        }
+        os <<"]" << std::endl;
+      return os;
+    }
+
+    MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
+    void fill_with_zero()
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
+      auto dim= static_cast<LatP*>(this)->get_dim();
+      for (unsigned int i=0;i<dim;++i)
+      {
+        static_cast<LatP*>(this)->operator[](i) = 0;
+      }
+      static_cast<LatP*>(this)->sanitize();
+    }
+
+// This assumes that NewLP[i] actually allows assignment. Be aware that Z_NR has no move-assignment.
+    MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
+    LatP make_copy() const
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Using generic copy for " << LatP::class_name() )
+      auto dim=static_cast<LatP const*>(this)->get_dim();
+      LatP NewLP(dim);
+      for (unsigned int i=0; i<dim; ++i)
+      {
+        NewLP[i] = static_cast<LatP*>(this)->operator[](i);
+      }
+      NewLP.sanitize();
+      return NewLP;
+    }
+
 
     //Note:
     //Once the derived class Implementation defines a member function with the same name f as a function below,
@@ -165,12 +219,55 @@ class GeneralLatticePoint
 //    }
 //}
 
+// dispatch to add function.
+
+#define FOR_LATTICE_POINT_LP \
+template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
+
+#define FOR_LATTICE_POINTS_LP1_LP2 \
+template<class LP1, class LP2, typename std::enable_if< \
+         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
+
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 const &x1, LP2 const &x2) { return add(x1,x2); }
+
+FOR_LATTICE_POINT_LP
+LP operator+(LP && x1, LP const &x2) { return add(std::move(x1),x2); }
+
+FOR_LATTICE_POINT_LP
+LP operator+(LP const &x1, LP && x2) { return add(std::move(x2),x1); }
+
+// dispatch to sub function
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
+
+FOR_LATTICE_POINT_LP
+LP operator-(LP && x1, LP const &x2) { return sub(std::move(x1),x2); }
+
+FOR_LATTICE_POINT_LP
+LP operator-(LP const &x1, LP &&x2) { return sub(x1,std::move(x2)); }
+
+// dispatch to possible member function
+
+FOR_LATTICE_POINT_LP
+std::istream& operator>>(std::istream &is, LP &LatP)
+{
+  return LatP.read_from_stream(is);
+}
+
+FOR_LATTICE_POINT_LP
+std::ostream& operator<<(std::ostream &os, LP const &LatP)
+{
+  return LatP.write_to_stream(os);
+}
+
+// implementations of generic functions for lattice points:
+
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-         int>::type = 0
-
-
-         >
+         int>::type = 0>
 LP add(LP const &x1, LP const &x2)
 {
   DEBUG_TRACEGENERIC( "generically adding" << x1.class_name() )
@@ -190,83 +287,30 @@ LP add(LP const &x1, LP const &x2)
 }
 
 
-
-template<class LP1, class LP2,
-         typename std::enable_if<
-          IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value
-         ,int>::type=0>
-LP1 operator+(LP1 const &x1, LP2 const &x2){ return add(x1,x2); }
-
-/*
-template<class LP,
-         typename std::enable_if<
-          IsALatticePoint<LP>::value
-         ,int>::type=0>
-LP operator+(LP && x1, LP const &x2) { return add(std::move(x1),x2); }
-
-template<class LP,
-         typename std::enable_if<
-         IsALatticePoint<LP>::value
-         ,int>::type=0>
-LP operator+(LP const &x1, LP && x2) { return add(std::move(x2),x1); }
-*/
-
-//template<class LP,
-//         typename std::enable_if<
-//         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-//         int>::type = 0
-//        >
-//LP operator+(LP &&x1, LP const &x2)
-//{
-//  DEBUG_TRACEGENERIC( "generically adding; consume first" << x1.class_name() )
-//  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-//  auto const dim1 = x1.get_dim();
-//  auto const dim2 = x2.get_dim();
-//  assert( dim1 == dim2 );
-//  #endif
-//  auto const dim = x1.get_dim();
-//  LP NewLP(std::move(x1));
-//  for(unsigned int i = 0; i < dim; ++i )
-//  {
-//    NewLP[i].add(NewLP[i],x2[i]); //there is no increment function in Z_NR...
-//  }
-//  NewLP.sanitize();
-//  return NewLP;
-//}
-//
-//template<class LP,
-//         typename std::enable_if<
-//         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-//         int>::type = 0
-//        >
-//LP operator+(LP const x1, LP &&x2)
-//{
-//  DEBUG_TRACEGENERIC( "generically adding; consume second" << x1.class_name() )
-//  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-//  auto const dim1 = x1.get_dim();
-//  auto const dim2 = x2.get_dim();
-//  assert( dim1 == dim2 );
-//  #endif
-//  auto const dim = x2.get_dim();
-//  LP NewLP(std::move(x2));
-//  for(unsigned int i = 0; i < dim; ++i )
-//  {
-//    NewLP[i].add(NewLP[i],x1[i]); //there is no increment function in Z_NR...
-//  }
-//  NewLP.sanitize();
-//  return NewLP;
-//}
-//
+template<class LP, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::type = 0>
+LP sub(LP const &x1, LP const &x2)
+{
+  DEBUG_TRACEGENERIC("generically subtracting" << x1.class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = x1.get_dim();
+  auto const dim2 = x2.get_dim();
+  assert(dim1==dim2);
+  #endif
+  auto const dim = x1.get_dim();
+  LP NewLP(dim);
+  for(unsigned int i=0; i < dim ; ++i )
+  {
+    NewLP[i].sub(x1[i],x2[i]);
+  }
+  NewLP.sanitize();
+  return NewLP;
+}
 
 
 
-//This code fails
 
-//template<class Implementation>
-//bool GeneralLatticePoint<Implementation>::operator< (Implementation const & other) const
-//{
-//  return (static_cast<Implementation const&>(*this)).get_norm2() < other.get_norm2();
-//}
 
 /*
 template<class Implementation>

@@ -24,6 +24,7 @@ class LatticePointTraits<PlainLatticePoint<ET,nfixed>>
   using ScalarProductReturnType = ET;
   using CoordinateVector = std::true_type;
   using CoordinateAccess = std::true_type;
+  using AbsoluteCoos     = std::true_type;
 };
 
 template<class ET, int nfixed>
@@ -85,6 +86,7 @@ class PlainLatticePoint<ET,-1> : public GeneralLatticePoint< PlainLatticePoint<E
     using AuxDataType = typename GetAuxDataType<PlainLatticePoint>::type;
     using ScalarProductReturnType = ET;
     using Container = std::vector<ET>;
+    using GeneralLatticePoint<PlainLatticePoint<ET,-1> >::get_dim;
     static void class_init(AuxDataType const aux_data)
     {
       dim = aux_data;
@@ -94,14 +96,14 @@ class PlainLatticePoint<ET,-1> : public GeneralLatticePoint< PlainLatticePoint<E
     };
     static Dimension<-1> get_dim() { return dim; };
 
-    explicit PlainLatticePoint() : data(static_cast<unsigned int>(get_dim()))
+    explicit PlainLatticePoint() : data(10) //static_cast<unsigned int>(get_dim()))
     {
       #ifdef DEBUG_SIEVE_LP_INIT
       assert((PlainLatticePoint<ET,-1>::class_initialized));
       #endif
     };
 
-    explicit PlainLatticePoint(Dimension<-1> const dim) : data(static_cast<unsigned int>(get_dim()))
+    explicit PlainLatticePoint(Dimension<-1> const dim) : data(10) //static_cast<unsigned int>(get_dim()))
     {
       #ifdef DEBUG_SIEVE_LP_INIT
       assert((PlainLatticePoint<ET,-1>::class_initialized));
@@ -128,17 +130,9 @@ class PlainLatticePoint<ET,-1> : public GeneralLatticePoint< PlainLatticePoint<E
     Container data;
 
     public:
-//    PlainLatticePoint& operator+(PlainLatticePoint const &second){ std::cout << "Overload"; return *this;};
+//    std::ostream& write_to_stream(std::ostream &os) const { return os;};
 
 };
-
-  template<class ET, int nfixed>
-  PlainLatticePoint<ET,nfixed> add(PlainLatticePoint<ET,nfixed> const &x1, PlainLatticePoint<ET,nfixed> const &x2)
-  {
-    std::cout << "Overload";
-    return PlainLatticePoint<ET,nfixed>();
-  }
-
 
 
 
