@@ -17,9 +17,11 @@
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
-#include "fplll/nr/nr_Z.inl"
+#include "fplll/nr/nr.h"
 #include <random>
 #include <vector>
+
+namespace GaussSieve{
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed> class ShiSampler;
 
@@ -53,5 +55,7 @@ protected:
   // TODO: Store basis in a different way.
   //    vector<MyLatticePoint> basis;
 };
+
+}
 
 #endif

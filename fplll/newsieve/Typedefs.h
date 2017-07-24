@@ -14,7 +14,6 @@ namespace GaussSieve
 long double constexpr pi_long = 3.14159265358979323846264338327950288419716939937510L;
 double constexpr pi_double    = 3.14159265358979323846264338327950288419716939937510;
 long double constexpr pi      = 3.14159265358979323846264338327950288419716939937510L;
-};
 
 // forward-declarations:
 template <class ET, int nfixed> class MyLatticePoint;
@@ -23,8 +22,7 @@ template <class ET, int nfixed> class MyLatticePoint;
 
 // lines are too long, clang-format destroys vertical alignment
 // clang-format off
-namespace GaussSieve
-{
+
 template <class ET, bool MT, int nfixed> using GaussSampler_ReturnType = MyLatticePoint<ET, nfixed>;
 
 template <class ET, bool MT, int nfixed> using GaussList_ReturnType    = MyLatticePoint<ET, nfixed>;
@@ -35,7 +33,9 @@ template <class ET, bool MT, int nfixed> using GaussQueue_DataType     = GaussQu
 
 // for a small number of lattice points that we need to access very often.
 template <class ET, bool MT, int nfixed> using FastAccess_Point = MyLatticePoint<ET, nfixed>;
-};
+
 // clang-format on
+
+};
 
 #endif

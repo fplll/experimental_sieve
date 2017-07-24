@@ -14,6 +14,9 @@
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
 
+namespace GaussSieve
+{
+
 
 template<class ET,int nfixed> class MyLatticePoint;
 
@@ -122,7 +125,7 @@ public:
     ET norm2;
 };
 
-template <class ET, int nfixed> typename MyLatticePoint<ET,nfixed>::AuxDataType MyLatticePoint<ET,nfixed>::dim=Dimension<nfixed>(0);
+template <class ET, int nfixed> typename MyLatticePoint<ET,nfixed>::AuxDataType MyLatticePoint<ET,nfixed>::dim=Dimension<nfixed>(nfixed<0?0:nfixed);
 
 
 template <class ET,int nfixed> MyLatticePoint<ET, nfixed> add (MyLatticePoint<ET,nfixed> const &A, MyLatticePoint<ET,nfixed> const &B);
@@ -136,6 +139,7 @@ template <class ET,int nfixed> ET compute_sc_product (MyLatticePoint<ET, nfixed>
 //template <class ET,int nfixed> MyLatticePoint<ET, nfixed> void print (std::ostream &os = cout, MyLatticePoint<ET,nfixed> const &A, Dimension<nfixed> const & auxdata);
 
 
+}
 
 #endif
 

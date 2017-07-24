@@ -8,6 +8,9 @@
 #include "ShiSampler.h"
 #include "Sampler.h"
 
+namespace GaussSieve
+{
+
 template<class ET,int nfixed> GaussQueue<ET,false,nfixed>::GaussQueue( Sieve<ET,false,nfixed> *caller_sieve)  //constructor
 :
 main_queue(),
@@ -203,6 +206,8 @@ template<class ET, int nfixed> GaussQueue<ET,false,nfixed>::~GaussQueue()
 //}
 
 //template class GaussQueue<fplll::Z_NR<long>,false,-1>;
+
+}
 
 #endif
 

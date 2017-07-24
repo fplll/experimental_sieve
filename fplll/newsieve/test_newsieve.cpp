@@ -22,6 +22,7 @@
 
 
 using namespace fplll;
+using namespace GaussSieve;
 
 // Z_NR can be either long, double, or mpz_t
 

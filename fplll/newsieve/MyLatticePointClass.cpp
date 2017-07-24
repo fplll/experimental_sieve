@@ -9,6 +9,7 @@
 using namespace fplll;
 using namespace std;
 
+namespace GaussSieve{
 
 template <class ET,int nfixed>
 MyLatticePoint<ET, nfixed> add (MyLatticePoint<ET,nfixed> const &A, MyLatticePoint<ET,nfixed> const &B)
@@ -123,6 +124,9 @@ void print (std::ostream &os, MyLatticePoint<ET,nfixed> const &A, Dimension<nfix
 
 }
 */
+
+}
+
 #endif
 
 //clang-format on

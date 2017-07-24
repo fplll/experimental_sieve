@@ -12,6 +12,8 @@
 #include <iostream>
 #include <random>
 
+namespace GaussSieve{
+
 // actually needed, even though destructor is pure virtual as the base class destructor is
 // eventually called implicitly.
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
@@ -48,5 +50,7 @@ template class MTPRNG<std::mt19937_64, false, std::seed_seq>;
 // template class MTPRNG<std::mt19937,true,  std::seed_seq>;
 template class Sampler<fplll::Z_NR<long>, false, std::mt19937_64, std::seed_seq, -1>;
 // template class Sampler<Z_NR<long>, true,  std::mt19937,std::seed_seq>;
+
+}
 
 #endif

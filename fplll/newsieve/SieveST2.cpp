@@ -7,6 +7,8 @@ using namespace fplll; //for now...
 #include "Typedefs.h"
 #include "MyLatticePointClass.cpp"
 
+namespace GaussSieve{
+
 /*
  Assume ||p1|| > ||p2||
  */
@@ -57,12 +59,12 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
 
     typename MainListType::Iterator it_comparison_flip=main_list.cend();
     typename MainListType::Iterator it = main_list.cbegin();
-    
+
 
     while (loop) {
         loop = false;
 
-        
+
         for (it = main_list.cbegin(); it!=main_list.cend(); ++it)
         {
 
@@ -91,16 +93,16 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         number_of_collisions++;
         return;
     }
-    
-    
+
+
     GaussSieve::FastAccess_Point<ET,false,nfixed> p_copy = p.make_copy();
-    
+
     //convert FastAccess_Point to GaussList_StoredPoint
     GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p_copy));
-    
+
     main_list.insert_before(it_comparison_flip, std::move(p_converted));
     ++current_list_size;
-    
+
     it =it_comparison_flip;
 
     while( it!=main_list.cend() )
@@ -111,8 +113,8 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
         ET scalar;
         if ( check2red(*it, p, scalar) )
         {
-            
-            
+
+
                 GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
                 v_new = perform2red(*it, p, scalar );
 
@@ -132,15 +134,15 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
                 it = main_list.erase(it);
                 if (it!=main_list.cend())
                 --current_list_size;
-                 
+
             //++it;
         }
-        
+
         else
         {
             ++it;
         }
-        
+
 
     }
 
@@ -270,3 +272,5 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
 //}
 
 //clang-format on
+
+}

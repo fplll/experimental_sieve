@@ -51,6 +51,8 @@
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
 
+namespace GaussSieve{
+
 template<class ET, bool MT, int nfixed=-1> class TerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class NeverTerminationCondition;
 template<class ET, bool MT, int nfixed=-1> class LengthTerminationCondition;
@@ -94,6 +96,8 @@ template <class ET,bool MT,int nfixed> TerminationCondition<ET,MT,nfixed>::~Term
 
 template<class ET,bool MT,int nfixed> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->dump_to_stream(os);};
 template<class ET,bool MT,int nfixed> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->read_from_stream(is);};
+
+}
 
 #endif
 

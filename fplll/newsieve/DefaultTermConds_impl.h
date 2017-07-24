@@ -3,7 +3,9 @@
 
 #include "DefaultTermConds.h"
 
-inline fplll::Z_NR<mpz_t> GaussSieve::compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis)
+namespace GaussSieve{
+
+inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis)
 {
     assert(basis.get_rows() == basis.get_cols()); //Note : Alg might work even otherwise. This assertion failure is just a reminder that this needs to be checked.
     //compute Gram-Schmidt-Orthogonalization.
@@ -57,9 +59,9 @@ return (sieve -> get_best_length2()<=target_length)?1:0;
 template<class ET, bool MT, int nfixed>
 inline void MinkowskiTerminationCondition<ET, MT, nfixed>::init(Sieve<ET,MT,nfixed> * const sieve)
 {
-target_length = GaussSieve::compute_mink_bound(sieve->get_original_basis());
+target_length = compute_mink_bound(sieve->get_original_basis());
 }
 
-
+}
 
 #endif

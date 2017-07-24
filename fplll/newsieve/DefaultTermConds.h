@@ -8,6 +8,8 @@ namespace GaussSieve{
 inline    fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const & basis);                                        //computes a meaningful Minkowski bound for the length of the shortest vector
 }
 
+namespace GaussSieve{
+
 //default Termination Conditions here:
 template<class ET,bool MT, int nfixed> class NeverTerminationCondition : public TerminationCondition<ET,MT,nfixed> //never terminate
 {
@@ -35,7 +37,7 @@ template<class ET,bool MT,int nfixed> class LengthTerminationCondition : public 
     virtual std::ostream & dump_to_stream(std::ostream &os) override                              {os << "Target Length=" << target_length << std::endl; return os;}
     virtual std::istream & read_from_stream(std::istream &is) override
     {
-        if(!GaussSieve::string_consume(is,"Target Length=")) throw bad_dumpread_LengthTermCond();
+        if(string_consume(is,"Target Length=")) throw bad_dumpread_LengthTermCond();
         is >> target_length;
         return is;
     };
@@ -57,6 +59,6 @@ template<class ET,bool MT, int nfixed> class MinkowskiTerminationCondition : pub
     ET target_length;
 };
 
-
+}
 
 #endif

@@ -7,6 +7,8 @@
 #error SieveST.cpp included with wrong macro settings
 #endif
 
+namespace GaussSieve{
+
 //We may always assumed that SieveJoint.cpp is prepended before this file
 
 
@@ -222,6 +224,8 @@ else if(count % 100 == 80)
 	//cout << endl;
 }
 */
+
+}
 
 #include "SieveST2.cpp"
 //#include "SieveST3.cpp"

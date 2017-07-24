@@ -18,12 +18,13 @@ Header-only
 #include <type_traits>
 #include <vector>
 
+namespace GaussSieve{
+
+
 // wrapper around (a vector of) random number engines of type Engine
 // This is used to unify the single and multi-threaded case
 template <class Engine, bool MT, class Sseq> class MTPRNG;
 
-namespace GaussSieve
-{
 /**
 
  These functions sample from a discrete Gaussian distribution with parameter s and center c
@@ -59,7 +60,6 @@ Z sample_z_gaussian(double s, double const center, Engine &engine, double const 
 template <class Z, class Engine>
 Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                         double const maxdeviation);
-}
 
 /**
 The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
@@ -78,6 +78,7 @@ Note that for obtaining the per-thread seeds from the master seeds, we use a fix
 engine and not the engine given as template parameter.
 
 */
+
 
 // multithreaded case of MTPRNG
 template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
@@ -177,7 +178,7 @@ template <class Engine, class Sseq> void MTPRNG<Engine, false, Sseq>::reseed(Sse
 
 // implementation of the samplers. Just rejection sampling.
 template <class Z, class Engine>
-inline Z GaussSieve::sample_z_gaussian(double s, double const center, Engine &engine,
+inline Z sample_z_gaussian(double s, double const center, Engine &engine,
                                        double const cutoff)
 {
   // Note : The following allows to access / modify floating point exceptions and modes.
@@ -240,7 +241,7 @@ inline Z GaussSieve::sample_z_gaussian(double s, double const center, Engine &en
 
 // Version taking in s^2/pi and (absolute) maximum deviation. Works just as above.
 template <class Z, class Engine>
-inline Z GaussSieve::sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
+inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                                            double const maxdeviation)
 {
   // Note : The following allows to access / modify floating point exceptions and modes.
@@ -270,6 +271,8 @@ inline Z GaussSieve::sample_z_gaussian_VMD(double const s2pi, double const cente
       return result;
     }
   }
+}
+
 }
 
 #endif

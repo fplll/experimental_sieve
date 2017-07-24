@@ -17,6 +17,8 @@ TODO: Change internal representation of basis.
 #include <vector>
 #include <random>
 
+namespace GaussSieve{
+
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 void ShiSampler<ET, MT, Engine, Sseq, nfixed>::custom_init()
 {
@@ -77,7 +79,7 @@ ShiSampler<ET, MT, Engine, Sseq, nfixed>::sample(int thread)
   std::vector<double> shifts(lattice_rank, 0.0);
   for (int j = lattice_rank - 1; j >= 0; --j)
   {
-    long const newcoeff = GaussSieve::sample_z_gaussian_VMD<long, Engine>(
+    long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
         s2pi[j], shifts[j], engine.rnd(), maxdeviations[j]);  // coefficient of b_j in vec.
     ET newcoeffET;
     newcoeffET = newcoeff;
@@ -95,6 +97,8 @@ ShiSampler<ET, MT, Engine, Sseq, nfixed>::sample(int thread)
   return vec;
   //    return static_cast<CompressedPoint<ET,MT,-1> > (vec); //Note: This makes copies, which are
   //    unneccessary...
+}
+
 }
 
 #endif

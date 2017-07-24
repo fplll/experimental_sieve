@@ -19,6 +19,8 @@
 #include "Typedefs.h"
 //#include "EllipticSampler.h"
 
+namespace GaussSieve{
+
 // declares GaussQueue class, to be specialized.
 template <class ET, bool MT, int nfixed> class GaussQueue;
 
@@ -156,7 +158,7 @@ private:
 
 */
 
-
+}
 
 #endif // GAUSS_QUEUE_H
 //clang-format on

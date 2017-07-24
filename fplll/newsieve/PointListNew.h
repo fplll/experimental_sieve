@@ -43,6 +43,7 @@
 //Note that we do NOT assume a sequentially constistent memory model here. Relaxing from that should gain a bit of performance:
 //Be aware that reading time from the lattice point list even asymptotically leading order.
 
+namespace GaussSieve{
 
 //forward declarations
 template <class ET, bool MT, int n_fixed> class GaussListNew; //holds approximations
@@ -726,6 +727,7 @@ void GarbageBin<DT>::empty_trash()
 
 */
 
+}
 
 #endif
 

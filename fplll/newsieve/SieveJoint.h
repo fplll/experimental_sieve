@@ -79,8 +79,9 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "SieveUtility.h"
 #include "Typedefs.h"
 
+namespace GaussSieve{
 template<class ET, bool MultiThreaded, int nfixed> class Sieve;
-
+}
 
 #endif //end of ONLY-ONCE part
 
@@ -107,6 +108,7 @@ GO HERE.
 #error Something very bad just happened
 #endif
 
+namespace GaussSieve{
 
 template<class ET, int nfixed> class Sieve<ET, GAUSS_SIEVE_IS_MULTI_THREADED,nfixed >
 {
@@ -324,7 +326,7 @@ template class Sieve<fplll::Z_NR<mpz_t>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
 /*
 Reads length(str) chars from stream is, expecting them to equal str. If what is read differs we output false. If verbose, we also display an error.
 */
-
+}
 
 #define SIEVE_JOINT_H
 #endif // DO_INCLUDE_SIEVE_JOINT_H

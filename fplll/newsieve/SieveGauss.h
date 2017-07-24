@@ -32,6 +32,7 @@
 #define SIEVE_GAUSS_DEFAULT_THREADED false
 #endif
 
+namespace GaussSieve{
 template<class ET, bool MultiThreaded, int nfixed=-1>
 class Sieve;
 
@@ -43,7 +44,7 @@ using SieveST = Sieve<ET,false>;
 
 template<class ET>
 using SieveMT = Sieve<ET,true>;
-
+}
 
 #ifdef  GAUSS_SIEVE_IS_MULTI_THREADED
 #undef  GAUSS_SIEVE_IS_MULTI_THREADED

@@ -9,7 +9,7 @@
 
 //#include "GaussQueue.h"
 //#include "Sampler.h"
-#include "sieve_main.h"
+//#include "sieve_main.h"
 #include "fplll.h"
 //#include "LatticePoint.h"
 //#include "PointList.h"
@@ -19,9 +19,15 @@
 //#include "LatticePoint2.h"
 //#include "TermCondNew.h"
 //#include "FilteredPoint.h"
+#include <fstream>
+#include <getopt.h>
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
 
 //Don't do this:
 using namespace fplll;
+using namespace GaussSieve;
 //using namespace LatticeApproximations;
 
 /**

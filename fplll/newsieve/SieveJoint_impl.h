@@ -49,6 +49,8 @@
 //version string for dump file
 #define SIEVE_VER_STR "Version TEST1"
 
+namespace GaussSieve{
+
 template<class ET,int nfixed>
 void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::string const &outfilename, bool overwrite)
 {
@@ -254,6 +256,7 @@ bool Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::check_if_done()
     return (term_cond->check(this) != 0)?true:false;
 };
 
+}
 
 #define SIEVE_JOINT_CPP
 #endif
