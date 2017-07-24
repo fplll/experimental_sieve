@@ -4,7 +4,6 @@
 
 //#include "GaussQueue.h"
 //#include "Sampler.h"
-#include "sieve_main.h"
 #include "fplll.h"
 //#include "LatticePoint.h"
 //#include "PointList.h"
@@ -18,6 +17,11 @@
 //#include "MyLatticePointClass.cpp"
 //#include "LatticePointConcept.h"
 //#include "PlainLatticePoint.h"
+#include <fstream>
+#include <getopt.h>
+#include <iostream>
+#include <stdio.h>
+#include <unistd.h>
 
 
 
