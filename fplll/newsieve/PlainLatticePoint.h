@@ -8,8 +8,8 @@
 #include "DebugAll.h"
 #include "assert.h"
 
-namespace
-GaussSieve{
+namespace GaussSieve
+{
 
 // most simple Lattice Point that just wraps around a vector / array of ET's.
 // dimension is static
@@ -25,6 +25,7 @@ class LatticePointTraits<PlainLatticePoint<ET,nfixed>>
   using CoordinateVector = std::true_type;
   using CoordinateAccess = std::true_type;
   using AbsoluteCoos     = std::true_type;
+  using CoordinateType   = ET;
 };
 
 template<class ET, int nfixed>
@@ -71,6 +72,7 @@ class PlainLatticePoint : public GeneralLatticePoint< PlainLatticePoint<ET,nfixe
 
 
     private:
+
     static constexpr Dimension<nfixed> dim = Dimension<nfixed>(nfixed);
     #ifdef DEBUG_SIEVE_LP_INIT
     static bool class_initialized;
@@ -96,14 +98,14 @@ class PlainLatticePoint<ET,-1> : public GeneralLatticePoint< PlainLatticePoint<E
     };
     static Dimension<-1> get_dim() { return dim; };
 
-    explicit PlainLatticePoint() : data(10) //static_cast<unsigned int>(get_dim()))
+    explicit PlainLatticePoint() : data(static_cast<unsigned int>(get_dim()))
     {
       #ifdef DEBUG_SIEVE_LP_INIT
       assert((PlainLatticePoint<ET,-1>::class_initialized));
       #endif
     };
 
-    explicit PlainLatticePoint(Dimension<-1> const dim) : data(10) //static_cast<unsigned int>(get_dim()))
+    explicit PlainLatticePoint(Dimension<-1> const dim) : data(static_cast<unsigned int>(get_dim()))
     {
       #ifdef DEBUG_SIEVE_LP_INIT
       assert((PlainLatticePoint<ET,-1>::class_initialized));

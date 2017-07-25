@@ -88,6 +88,7 @@ template<class LatticePoint> struct LatticePointTraits
                      After calling sanitize(), the class will be in a valid state.
   AbsoluteCoos : Set to true_type to indicate that the class exposes an operator[] and that
                  the entries are absolute coordinates.
+  CoordinateType : return type of operator[] if available.
 */
 
 
