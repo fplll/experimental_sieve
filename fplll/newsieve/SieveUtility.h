@@ -4,6 +4,7 @@
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
+#include "assert.h"
 #include <iostream>
 #include <istream>
 #include <string>
@@ -45,7 +46,6 @@ The user needs to put it to emphasize that this is a declaration.
 
 // clang-format on
 
-
 /**
 Similar to the above, creates a checker template class that checks wether
 TypeToCheck exists and is equal to TypeShouldBe
@@ -69,7 +69,6 @@ TypeToCheck exists and is equal to TypeShouldBe
   }
 
 // clang-format on
-
 
 /**
   Checks whether TypeToCheck exists in TraitClass<ClassToCheck>.
@@ -128,14 +127,14 @@ TypeToCheck exists and is equal to TypeShouldBe
   {                                                                                                \
   private:                                                                                         \
     template <class Arg> static typename Arg::TypeToCheck foo(int);                                \
-    template <class ...> static DefaultType               foo(...);                                \
+    template <class...> static DefaultType foo(...);                                               \
                                                                                                    \
   public:                                                                                          \
     using type = decltype(foo<TraitClass<ClassToCheck>>(0));                                       \
   }
 
-
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 // class that ignores its argument. Can be used to optimize away unused parameters in function
 // templates...
@@ -171,21 +170,16 @@ template <int nfixed> class Dimension
 {
 public:
   static constexpr bool IsFixed = true;
-  constexpr Dimension() = default;
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  constexpr Dimension(unsigned int const new_dim)
-  {
-  assert(new_dim == nfixed);
-  }
-  #else
+  constexpr Dimension()         = default;
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
+  constexpr Dimension(unsigned int const new_dim) { assert(new_dim == nfixed); }
+#else
   constexpr Dimension(IgnoreArg<unsigned int const>){};
-  #endif
+#endif
   //    Dimension(unsigned int){};
   inline constexpr operator unsigned int() const { return nfixed; };
   static constexpr unsigned int dim = nfixed;
 };
-
-
 
 /**
 string_consume(is, str, elim_ws, verbose) reads from stream is.
@@ -209,8 +203,7 @@ string_consume assumes that str itself does not start/end with whitespace.
 inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws = true,
                            bool verbose = true);  // helper function for dumping/reading
 
-inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws,
-                                       bool verbose)
+inline bool string_consume(std::istream &is, std::string const &str, bool elim_ws, bool verbose)
 {
   unsigned int len = str.length();
   char *buf        = new char[len + 1];
@@ -245,6 +238,6 @@ inline bool string_consume(std::istream &is, std::string const &str, bool elim_w
   return true;
 }
 
-}
+} // end namespace
 
 #endif  // GAUSS_SIEVE_UTILITY_H

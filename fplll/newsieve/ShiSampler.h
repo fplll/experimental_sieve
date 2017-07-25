@@ -21,7 +21,8 @@
 #include <random>
 #include <vector>
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed> class ShiSampler;
 
@@ -56,6 +57,6 @@ protected:
   //    vector<MyLatticePoint> basis;
 };
 
-}
+} // end namespace
 
 #endif

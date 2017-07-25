@@ -14,10 +14,11 @@ TODO: Change internal representation of basis.
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
-#include <vector>
 #include <random>
+#include <vector>
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 void ShiSampler<ET, MT, Engine, Sseq, nfixed>::custom_init()
@@ -98,7 +99,6 @@ ShiSampler<ET, MT, Engine, Sseq, nfixed>::sample(int thread)
   //    return static_cast<CompressedPoint<ET,MT,-1> > (vec); //Note: This makes copies, which are
   //    unneccessary...
 }
-
 }
 
 #endif

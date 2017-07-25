@@ -32,10 +32,9 @@ template <class ET, bool MT, int nfixed> using GaussQueue_ReturnType   = GaussSa
 template <class ET, bool MT, int nfixed> using GaussQueue_DataType     = GaussQueue_ReturnType<ET, MT, nfixed>;
 
 // for a small number of lattice points that we need to access very often.
-template <class ET, bool MT, int nfixed> using FastAccess_Point = MyLatticePoint<ET, nfixed>;
+template <class ET, bool MT, int nfixed> using FastAccess_Point        = MyLatticePoint<ET, nfixed>;
 
 // clang-format on
-
 };
 
 #endif

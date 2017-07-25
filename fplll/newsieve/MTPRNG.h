@@ -18,8 +18,8 @@ Header-only
 #include <type_traits>
 #include <vector>
 
-namespace GaussSieve{
-
+namespace GaussSieve
+{
 
 // wrapper around (a vector of) random number engines of type Engine
 // This is used to unify the single and multi-threaded case
@@ -78,7 +78,6 @@ Note that for obtaining the per-thread seeds from the master seeds, we use a fix
 engine and not the engine given as template parameter.
 
 */
-
 
 // multithreaded case of MTPRNG
 template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
@@ -178,8 +177,7 @@ template <class Engine, class Sseq> void MTPRNG<Engine, false, Sseq>::reseed(Sse
 
 // implementation of the samplers. Just rejection sampling.
 template <class Z, class Engine>
-inline Z sample_z_gaussian(double s, double const center, Engine &engine,
-                                       double const cutoff)
+inline Z sample_z_gaussian(double s, double const center, Engine &engine, double const cutoff)
 {
   // Note : The following allows to access / modify floating point exceptions and modes.
   //#pragma STDC FENV_ACCESS on
@@ -242,7 +240,7 @@ inline Z sample_z_gaussian(double s, double const center, Engine &engine,
 // Version taking in s^2/pi and (absolute) maximum deviation. Works just as above.
 template <class Z, class Engine>
 inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
-                                           double const maxdeviation)
+                               double const maxdeviation)
 {
   // Note : The following allows to access / modify floating point exceptions and modes.
   //#pragma STDC FENV_ACCESS on
@@ -273,6 +271,6 @@ inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &e
   }
 }
 
-}
+}  // end of namespace
 
 #endif

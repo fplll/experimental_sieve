@@ -23,7 +23,8 @@
 //#include <cfenv>
 #include "MyLatticePointClass.cpp"
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 // forward declarations
 template <class ET, bool MT, int nfixed> class Sieve;
@@ -109,6 +110,7 @@ protected:
 
 // clang-format on
 
-}
+} // end namespace
+
 
 #endif
