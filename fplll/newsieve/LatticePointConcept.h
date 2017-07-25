@@ -1,4 +1,3 @@
-// clang-format off
 
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H
@@ -11,65 +10,24 @@
 #include "DebugAll.h"
 #include "assert.h"
 
-
-/**
-
-TODO: Rewrite explanation, we use CRTP instead.
-
-Lattice points represent points in the lattice.
-
-We treat LatticePoints as a concept, in the sense that a lattice point is any class that implements the following interface:
-(or a subset thereof)
-(This is WIP, not sure what should be mandatory)
-//Note that functions might also have a different interface with arguments that are convertible from AuxDataType
-
-
-class LatticePoint{
-public: //typedefs
-using LatticePoint_Tag = true_type //required, because we static_assert that this is there or use it for SFINAE
-using AuxDataType = ... //optional public typedef that specifies some class, defaults to IgnoreAnyArg
-using ScalarProductReturnType //type returned by scalar products and norms
-
-public: //member functions:
-LatticePoint make_copy(AuxDataType& const aux_data); //actually makes a copy
-LatticePoint(LatticePoint &&); //move constructor
-LatticePoint(LatticePoint const &)=delete //copy constructor deleted. Always make copies explicitly
-LatticePoint& operator=(LatticePoint const &old)=delete;
-LatticePoint& operator=(LatticePoint && old);
-ScalarProductReturnType get_norm2(AuxDataType const &aux_data);
-void negate(AuxDataType); //negate function.
-explicit LatticePoint(Dimension<nfixed> dim, AuxDataType const& aux_data); //creates an unitialized point of dimension dim.
-void make_zero(AuxDataType);
-
-
-}
-
-//non-member functions:
-LatticePoint add(LatticePoint const & A, LatticePoint const & B, A::AuxDataType);
-LatticePoint subtract(LatticePoint const &A, LatticePoint const & B, A::AuxDataType);
-A::ScalarProductReturnType compute_sc_product(LatticePoint const &A, LatticePoint const B, AuxDataType const &aux_data;
-bool compare_abs_sc_product(LatticePoint const &A, LatticePoint const & B, ScalarProductReturnType target, AuxDataType const &aux_data); //compares whether the absolute value of the scalar product is at least target. This function might err.
-bool compare_sc_product(LatticePoint const &A, LatticePoint const & B, ScalarProductReturnType target, AuxDataType const &aux_data); // Checks whether <A,B> > t
-
-*/
+// clang-format off
 
 namespace GaussSieve{
 
-//This class template stores the typedefs that the individual lattice point classes have
-//There has to be a specialization for each lattice point class
-//class ImplementationTraitsBase
-//{
-//    public:
-//    using AuxDataType = IgnoreAnyArg;
-//};
+/**
+  TODO: Write explanation, we use CRTP now.
+*/
 
 // This class template stores the typedefs that the individual lattice point classes have
 // There has to be a specialization for each lattice point class.
 // The general template must never be instantiated.
+// Note that we can not put these traits into the lattice points classes directly, because that
+// would case circular references due to CRTP.
 template<class LatticePoint> struct LatticePointTraits
 {
   public:
   using Invalid=std::true_type;
+  // void Invalid
   // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
 };
 
@@ -104,6 +62,18 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTr
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, IsCooVector);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, AbsoluteCoos, std::true_type, CoosAreAbsolute);
+CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordinateType);
+MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
+
+#ifdef MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE
+#error Macros clash
+#endif // MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE
+#ifdef MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
+#error Macros clash
+#endif
+#ifdef IMPL_IS_LATP
+#error Macros clash
+#endif
 
 #define MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE \
 template<class Impl=LatP, typename std::enable_if<CoosAreAbsolute<Impl>::value,int>::type = 0>
@@ -117,9 +87,11 @@ static_assert(std::is_same<Impl,LatP>::value,"Using template member function wit
 template<class LatP>
 class GeneralLatticePoint
 {
-    static_assert(!HasNoLPTraits<LatP>::value);
+    static_assert(!HasNoLPTraits<LatP>::value, "Trait class not specialized.");
+//    Does not work: We cannot access typedefs of our children directly (hence the traits class)
 //    static_assert(IsALatticePoint<LatP>::value,"Could not recognize lattice point class.");
-    static_assert(HasScalarProductReturnType<LatP>::value, "Lattice Point class does not typedef its scalar product type");
+    static_assert(HasScalarProductReturnType<LatP>::value,
+                  "Lattice Point class does not typedef its scalar product type");
     public:
     friend LatP; // makes children able to access private (in addition to protected) members.
                  // since the constructor is private, this enforces correct usage.
@@ -137,12 +109,18 @@ class GeneralLatticePoint
     static void class_init(AuxDataType const &aux_data) = delete;
     static constexpr std::string class_name() {return "General Lattice Point";};
 
+
+
+//    bool operator< ( LatP const &x1 ) const
+//    { return static_cast<LatP const*>(this)->get_norm2() < x1.get_norm2(); }
+
+
     MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE
     std::ostream& write_to_stream(std::ostream &os) const
     {
       IMPL_IS_LATP;
       DEBUG_TRACEGENERIC("Using generic writer for " << LatP::class_name() )
-      auto dim = static_cast<LatP const*>(this)->get_dim();
+      auto const dim = static_cast<LatP const*>(this)->get_dim();
       os << "[";
       for (unsigned int i =0; i<dim; ++i)
         {
@@ -152,12 +130,19 @@ class GeneralLatticePoint
       return os;
     }
 
+/**
+  Fills a lattice point with zeros.
+  Note that freshly constructed lattice points may contain uninitialized values.
+  The latter depends subtly on the constructors used (empty vs. default constructor...)
+  and may differ depending on whether nfixed==-1.
+*/
+
     MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
     void fill_with_zero()
     {
       IMPL_IS_LATP;
       DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
-      auto dim= static_cast<LatP*>(this)->get_dim();
+      auto const dim = static_cast<LatP*>(this)->get_dim();
       for (unsigned int i=0;i<dim;++i)
       {
         static_cast<LatP*>(this)->operator[](i) = 0;
@@ -165,13 +150,36 @@ class GeneralLatticePoint
       static_cast<LatP*>(this)->sanitize();
     }
 
+/**
+  Tests whether a lattice point is all-zero
+*/
+    MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
+    bool is_zero()
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
+      auto const dim = static_cast<LatP*>(this)->get_dim();
+      for (unsigned int i=0;i<dim;++i)
+      {
+        if(static_cast<LatP*>(this)->operator[](i) != 0)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+/**
+  Makes an (explicit) copy of the current point;
+*/
+
 // This assumes that NewLP[i] actually allows assignment. Be aware that Z_NR has no move-assignment.
     MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
     LatP make_copy() const
     {
       IMPL_IS_LATP;
       DEBUG_TRACEGENERIC("Using generic copy for " << LatP::class_name() )
-      auto dim=static_cast<LatP const*>(this)->get_dim();
+      auto const dim=static_cast<LatP const*>(this)->get_dim();
       LatP NewLP(dim);
       for (unsigned int i=0; i<dim; ++i)
       {
@@ -221,6 +229,13 @@ class GeneralLatticePoint
 //}
 
 // dispatch to add function.
+
+#ifdef FOR_LATTICE_POINT_LP
+#error Macros clash
+#endif // FOR_LATTICE_POINT_LP
+#ifdef FOR_LATTICE_POINTS_LP1_LP2
+#error Macros clash
+#endif
 
 #define FOR_LATTICE_POINT_LP \
 template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
@@ -281,7 +296,7 @@ LP add(LP const &x1, LP const &x2)
   LP NewLP(dim);
   for(unsigned int i = 0; i < dim; ++i )
   {
-    NewLP[i].add(x1[i],x2[i]);
+    NewLP[i] = x1[i] +x2[i];
   }
   NewLP.sanitize();
   return NewLP;
@@ -303,12 +318,71 @@ LP sub(LP const &x1, LP const &x2)
   LP NewLP(dim);
   for(unsigned int i=0; i < dim ; ++i )
   {
-    NewLP[i].sub(x1[i],x2[i]);
+    NewLP[i] = x1[i] - x2[i];
   }
   NewLP.sanitize();
   return NewLP;
 }
 
+// this function can be used to initialize an LP with container types that allow []-access.
+// Note that there is an explicit static_cast to LP's entry types.
+// In particular, this can convert mpz_t to mpz_class...
+
+template<class LP, class SomeContainer, int fixeddim, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::value=0>
+LP make_from_any_vector(SomeContainer const &container, Dimension<fixeddim> dim)
+{
+  static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
+  using ET = typename GetCooType<LP>::type;
+  DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
+  LP NewLP(dim);
+  for(unsigned int i =0; i<dim; ++i)
+  {
+    NewLP[i] = static_cast<ET>( container[i] );
+  }
+  NewLP.sanitize();
+  return NewLP;
+}
+
+// Same as above, but un-Z_NR's the container.
+
+template<class LP, class SomeZNRContainer, int fixeddim, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::value=0>
+LP make_from_znr_vector(SomeZNRContainer const &container, Dimension<fixeddim> dim)
+{
+  static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
+  using ET = typename GetCooType<LP>::type;
+  DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
+  LP NewLP(dim);
+  for(unsigned int i =0; i<dim; ++i)
+  {
+    NewLP[i] = static_cast<ET>( container[i].get_data() );
+  }
+  NewLP.sanitize();
+  return NewLP;
+}
+
+template<class LP, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::type = 0>
+typename GetCooType<LP>::type compute_sc_product(LP const &lp1, LP const &lp2)
+{
+  DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = lp1.get_dim();
+  auto const dim2 = lp2.get_dim();
+  assert(dim1 == dim2 );
+  #endif // DEBUG_SIEVE_LP_MATCHDIM
+  using ET = typename GetCooType<LP>::type;
+  auto const dim = lp1.get_dim();
+  ET result = 0; // assumes that ET can be initialized from 0...
+  for(unsigned int i=0; i<dim; ++i)
+  {
+    result += lp1[i]*lp2[i];
+  }
+}
 
 
 
@@ -343,6 +417,15 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 
 }
+
+// cleaning up macros, since there is no namespace for them.
+
+#undef MEMBER_ONLY_EXISTS_IF_COOS_ARE_ABSOLUTE
+#undef MEMBER_ONLY_EXISTS_IF_IS_COO_VECTOR
+#undef IMPL_IS_LATP
+#undef FOR_LATTICE_POINT_LP
+#undef FOR_LATTICE_POINTS_LP1_LP2
+
 #endif
 
 //clang-format on
