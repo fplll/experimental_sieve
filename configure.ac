@@ -82,6 +82,8 @@ AC_CHECK_LIB(mpfr, mpfr_add, , [AC_MSG_ERROR(
 AC_CHECK_LIB(mpfr, mpfr_fms, , [AC_MSG_ERROR(
 [MPFR version too old, need >= 2.3.0, see http://www.mpfr.org])])
 
+AC_CHECK_LIB(gmpxx,main,,AC_MSG_WARN([gmpxx library not found. Please enable C++ bindings for gmp. Newsieve might not work.]))
+
 AC_ARG_WITH(qd, AS_HELP_STRING([--with-qd=@<:@=DIR@:>@], [quaddouble install directory]),)
 
 AS_IF([test "x$with_qd" != "xno"], [

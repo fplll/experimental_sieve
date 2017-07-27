@@ -5,7 +5,7 @@
 #define DEBUG_SIEVE_SILENT_ALL
 
 // very verbose...
-#define DEBUG_SIEVE_LP_TRACEGENERIC
+//#define DEBUG_SIEVE_LP_TRACEGENERIC
 
 //#include "SieveGauss_main.h"
 #include <iostream>
