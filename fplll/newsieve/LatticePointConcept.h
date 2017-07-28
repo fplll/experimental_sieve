@@ -10,6 +10,7 @@
 #include "DebugAll.h"
 #include "assert.h"
 #include <cstdint>
+#include <cmath>
 
 // clang-format off
 
@@ -207,7 +208,7 @@ class GeneralLatticePoint
         os <<"]";
       if(include_norm2)
       {
-        os <<", norm2= " << get_norm2();
+        os <<", norm2= " << CREALTHIS->get_norm2();
       }
       // No endl here (this is the caller's job).
       return os;
@@ -500,7 +501,6 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
          int>::type = 0>
-
 typename GetCooType<LP>::type compute_sc_product(LP const &lp1, LP const &lp2)
 {
   DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
@@ -518,6 +518,7 @@ typename GetCooType<LP>::type compute_sc_product(LP const &lp1, LP const &lp2)
   }
   return result;
 }
+
 
 
 

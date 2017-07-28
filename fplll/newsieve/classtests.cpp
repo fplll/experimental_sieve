@@ -13,6 +13,7 @@
 //#include "Tests/TestTraitClasses.h"
 #include "Tests/TestPlainLatticePoint.h"
 #include "Tests/TestMaybeFixedInt.h"
+#include "Tests/TestExactLatticePoint.h"
 
 int main(int argc, char **argv)
 {
@@ -27,6 +28,10 @@ int main(int argc, char **argv)
   if (test_plain_LP())
   {
     std::cout << "Plain Lattice Points work as expected." << std::endl;
+  }
+  if (test_exact_LP() )
+  {
+    std::cout << "Exact Lattice Points work as expected." << std::endl;
   }
 
   return 0; // indicating success.

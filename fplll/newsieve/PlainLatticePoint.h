@@ -66,7 +66,7 @@ public:
   PlainLatticePoint &operator=(PlainLatticePoint &&other) = default;
   ET &operator[](unsigned int idx) { return data[idx]; };
   ET const &operator[](unsigned int idx) const { return data[idx]; };
-  static constexpr std::string class_name() { return "Plain Lattice Point, fixed dim"; };
+  static std::string class_name() { return "Plain Lattice Point, fixed dim"; };
 
 private:
   static constexpr Dimension<nfixed> dim = Dimension<nfixed>(nfixed);
@@ -118,7 +118,7 @@ public:
   ET &operator[](unsigned int idx) { return data[idx]; };
   ET const &operator[](unsigned int idx) const { return data[idx]; };
 
-  static constexpr std::string class_name() { return "Plain Lattice Point, variable dim"; };
+  static std::string class_name() { return "Plain Lattice Point, variable dim"; };
 
 private:
   static Dimension<-1> dim;
