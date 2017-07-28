@@ -1,5 +1,3 @@
-// clang-format off
-
 #ifndef GAUSS_QUEUE_CPP
 #define GAUSS_QUEUE_CPP
 
@@ -11,7 +9,9 @@
 namespace GaussSieve
 {
 
-template<class ET,int nfixed> GaussQueue<ET,false,nfixed>::GaussQueue( Sieve<ET,false,nfixed> *caller_sieve)  //constructor
+//constructor
+template<class SieveTraits>
+GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false,nfixed> *caller_sieve)
 :
 main_queue(),
 gauss_sieve(caller_sieve),

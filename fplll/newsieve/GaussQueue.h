@@ -1,13 +1,9 @@
-// clang-format off
 #ifndef GAUSS_QUEUE_H
 #define GAUSS_QUEUE_H
 /* defines the classes used for the main Queues in the Gauss Sieve */
 
-
-
-//template <class ET> class IsLongerVector_class; //class wrapper to compare vectors by length. Needs to be wrapped in a class to work seamlessly with some STL containers.
-//template <class ET> class IsLongerVector_classPtr;
-
+#include "DebugAll.h"
+#include "SieveUtility.h"
 #include <mutex>
 #include <atomic>
 #include <queue>
@@ -22,7 +18,7 @@
 namespace GaussSieve{
 
 // declares GaussQueue class, to be specialized.
-template <class ET, bool MT, int nfixed> class GaussQueue;
+template <class SieveTraits, bool MT> class GaussQueue;
 
 
 /**
@@ -46,8 +42,9 @@ TODO: Documentation, enable sorted queue.
 //};
 
 //forward-declarations:
-template<class ET,bool MT, int nfixed> class Sieve;
-template<class ET,bool MT, class Engine, class Sseq, int nfixed> class Sampler;
+template<class ET,bool MT, int nfixed> class Sieve; // TODO: Change To ST
+
+template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
 
 /*
 template<class ET,bool MT, int nfixed> class IsLongerVector_ExactPtr
@@ -59,55 +56,50 @@ template<class ET,bool MT, int nfixed> class IsLongerVector_ExactPtr
 };
 */
 
-template<class ET,int nfixed> //single-threaded version:
-class GaussQueue<ET,false,nfixed>
+template<class SieveTraits> //single-threaded version:
+class GaussQueue<SieveTraits,false>
 {
 public:
-    using DataType = typename GaussSieve::GaussQueue_DataType<ET,false,nfixed>;    //Type of Data internally stored
-    using RetType=   typename GaussSieve::GaussQueue_ReturnType<ET,false,nfixed>;    //Type of Data returned
+    using DataType = typename SieveTraits::GaussQueue_DataType;    //Type of Data internally stored
+    using RetType=   typename SieveTraits::GaussQueue_ReturnType;    //Type of Data returned
     #ifndef USE_REGULAR_QUEUE
+    // TODO: Make this one work (and actually a template argument)
+    static_assert(false, "Only regular queue might work at the moment");
     using QueueType =      std::priority_queue< DataType* , std::vector<DataType* >, IsLongerVector_ExactPtr<ET,false,nfixed> >;
     #else
     using QueueType =      std::queue<DataType*>;
     #endif
-    using size_type = typename QueueType::size_type;
-    //using SamplerType =    KleinSampler<typename ET::underlying_data_type, FP_NR<double> > ;
     GaussQueue()=delete;
-    explicit inline GaussQueue(Sieve<ET,false,nfixed> *caller_sieve); //only constructor
+    explicit inline GaussQueue(Sieve<SieveTraits,false> *caller_sieve); //only constructor
     GaussQueue(GaussQueue const &old) = delete;
     GaussQueue(GaussQueue &&old) = delete;
     GaussQueue& operator= (GaussQueue const &old)=delete;
     GaussQueue& operator= (GaussQueue &&old) = delete;
     inline ~GaussQueue();
 
+    //we might as well always return false (or make this private)!
     [[deprecated("The queue is never empty from the callers POV.")]]
-    bool empty() const              {return main_queue.empty();};  //we might as well always return false (or make this private)!
-    size_type size() const          {return main_queue.size();};   //returns size of queue (used for diagnostics and statistics only)
+    bool empty() const  {return main_queue.empty();};
+
+    //returns size of queue (used for diagnostics and statistics only)
+    auto size() const {return main_queue.size();};
     void push(DataType const &val) = delete; //puts a copy of val in the queue : deleted
     inline void push(DataType && val);     //uses move semantics for that.
-    //void push(DataType * &val); //uses move semantics! val is changed to nullptr
 
-//    [[deprecated("Ownership transfer clashes with compressed storage.")]]
-//    void give_ownership(LPType * const valptr); //takes a pointer to a list point and puts the point into the queue, moves ownership (avoids copying)
+    // allow pushing via pointer?
 
     inline RetType true_pop(); //removes front element from queue *and returns it*.
-    //RetType true_pop() = delete;
-
-//    [[deprecated("Use copy elison rather than ownership transfer.")]]
-//    RetType* pop_take_ownership() ; //removes front elements from queue and returns handle to it.
-                                   //Transfers ownership to the caller. Return type might change, but should be dereferencable, deleteable.
-                                   //might become deprecated
 
 private:
     QueueType main_queue;           //actual queue of lattice points to be processed.
-    Sieve<ET,false,nfixed>* gauss_sieve;   //pointer to caller object.
+    Sieve<SieveTraits,false>* gauss_sieve;   //pointer to caller object.
     //SamplerType *sampler; //controlled by the GaussSieve currently. TODO: Change that
 public:
-    Sampler<ET,false,std::mt19937_64, std::seed_seq,nfixed> * sampler; //or a type derived from it.
+    Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> * sampler; //or a type derived from it.
 };
 
 
-
+// clang-format off
 
 
 /*

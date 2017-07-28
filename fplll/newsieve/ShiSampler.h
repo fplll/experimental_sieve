@@ -24,18 +24,20 @@
 namespace GaussSieve
 {
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> class ShiSampler;
+template <class SieveTraits, bool MT, class Engine, class Sseq> class ShiSampler;
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
-class ShiSampler final : public Sampler<ET, MT, Engine, Sseq, nfixed>
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+class ShiSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
 {
 public:
   explicit ShiSampler(Sseq &seq, double const _cutoff = 2.0)
-      : Sampler<ET, MT, Engine, Sseq, nfixed>(seq), dim(nfixed < 0 ? 0 : nfixed), cutoff(_cutoff){};
+      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), dim(nfixed < 0 ? 0 : nfixed), cutoff(_cutoff)
+      {
+        DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.")
+      };
   virtual SamplerType sampler_type() const override { return SamplerType::shi_sampler; };
-  virtual ~ShiSampler();
-  virtual inline typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>
-  sample(int thread = 0) override;
+  virtual ~ShiSampler() {};
+  virtual inline typename SieveTraits::GaussSampler_ReturnType sample(int thread = 0) override;
 
 private:
   inline virtual void custom_init() override;

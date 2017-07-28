@@ -26,8 +26,19 @@
 
 #endif  // DEBUG_SIEVE_SILENT_ALL
 
+
+// Outputs late-initializations of modules from GaussSieve
+#define DEBUG_SIEVE_INITIALIZATIONS
+
+#ifdef DEBUG_SIEVE_INITIALIZATIONS
+  #define DEBUG_SIEVE_TRACEINITIATLIZATIONS(STR) std::cout << STR << std::endl << std::flush;
+#else
+  #define DEBUG_SIEVE_TRACEINITIATLIZATIONS(STR)
+#endif
+
+
 // verbosely trace calls of generic functions for LPs.
-// Disabled by default
+// Disabled by default:
 
 // #define DEBUG_SIEVE_LP_TRACEGENERIC
 #ifdef DEBUG_SIEVE_LP_TRACEGENERIC

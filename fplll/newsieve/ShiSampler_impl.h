@@ -60,10 +60,6 @@ void ShiSampler<ET, MT, Engine, Sseq, nfixed>::custom_init()
   }
 }
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
-ShiSampler<ET, MT, Engine, Sseq, nfixed>::~ShiSampler()
-{
-}
 
 template <class ET, bool MT, class Engine, class Sseq, int nfixed>
 typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>

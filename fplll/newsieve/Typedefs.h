@@ -7,6 +7,8 @@
 #ifndef GAUSS_SIEVE_TYPEDEFS_H
 #define GAUSS_SIEVE_TYPEDEFS_H
 
+#include <type_traits>
+
 namespace GaussSieve
 {
 // unfortunately, trigonometric functions to compute pi don't have constexpr variants on all
@@ -17,6 +19,47 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 
 // forward-declarations:
 template <class ET, int nfixed> class MyLatticePoint;
+
+class JustSomeExampleSieveTraitsThatDoNotWork
+{
+  using IsSieveTraitsClass = std::true_type;
+  using GaussSampler_ReturnType = void;
+
+  using GaussList_ReturnType = void;
+  using GaussList_StoredPoint= void;
+
+  using GaussQueue_ReturnType= void;
+  using GaussQueue_DataType  = void;
+  using FastAccess_Point     = void;
+  using DimensionType        = int;
+
+// Note that MT is intentionally missing here. MT is its own Data type.
+};
+
+template< class ET, bool MT, int nfixed>
+class DefaultSieveTraits
+{
+  using IsSieveTraitsClass = std::true_type;
+  using GaussSampler_ReturnType = MyLatticePoint<ET,nfixed>;
+  using GaussList_StoredPoint   = MyLatticePoint<ET,nfixed>;
+  using GaussQueue_ReturnType   = GaussSampler_ReturnType;
+  using GaussQueue_DataType     = GaussQueue_ReturnType;
+  using FastAccess_Point        = MyLatticePoint<ET,nfixed>;
+  using DimensionType           = Dimension<nfixed>;
+};
+
+// unused:
+
+template<class SieveTraits>
+class GetSamplerTraits
+{
+  static_assert(SieveTraits::IsSieveTraitsClass::value,
+  "GetSamplerTraits only works on SieveTraits.")
+  using IsSamplerTraitsClass = std::true_type;
+  using GaussSampler_ReturnType = typename SieveTraits::GaussSampler_ReturnType;
+  using DimensionType = typename SieveTraits::DimensionType;
+}
+
 
 // various typedef declarations that control the types used by our classes.
 

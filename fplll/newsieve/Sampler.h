@@ -27,20 +27,20 @@ namespace GaussSieve
 {
 
 // forward declarations
-template <class ET, bool MT, int nfixed> class Sieve;
+template <class SieveTraits, bool MT> class Sieve;
 
 // declared in this file, as specialization for each possible MT.
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> class Sampler;
+template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
 
 // printing
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
+template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::ostream &operator<<(std::ostream &os,
-                                Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
+                                Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
 // reading (may also be used by constructor from istream)
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
+template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::istream &operator>>(std::istream &is,
-                                Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
+                                Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
 enum class SamplerType
 {
@@ -62,20 +62,23 @@ of those, e.g. std::mt19937_64.
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
 // clang-format off
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> class Sampler
+template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
 {
 public:
-  using GaussSampler_ReturnType = typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>;
-  friend std::ostream & operator<< <ET, MT, Engine, Sseq, nfixed>
-            (std::ostream &os, Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
-  friend std::istream & operator>> <ET, MT, Engine, Sseq, nfixed>
-            (std::istream &is, Sampler<ET, MT, Engine, Sseq, nfixed> *const samplerptr);
+  using GaussSampler_ReturnType = typename SieveTraits::GaussSampler_ReturnType;
+  friend std::ostream & operator<< <SieveTraits, MT, Engine, Sseq>
+            (std::ostream &os, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
+  friend std::istream & operator>> <SieveTraits, MT, Engine, Sseq>
+            (std::istream &is, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
-  explicit Sampler<ET, MT, Engine, Sseq, nfixed>(Sseq &initial_seed)
-      : engine(initial_seed), sieveptr(nullptr) {}
+  explicit Sampler<SieveTraits, MT, Engine, Sseq>(Sseq &initial_seed)
+          : engine(initial_seed), sieveptr(nullptr)
+    {
+      DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing Sampler (general).")
+    }
 
   // We call init first, then custom_init (via init).
-  inline void init(Sieve<ET, MT, nfixed> *const sieve);
+  inline void init(Sieve<SieveTraits, MT> *const sieve);
   virtual ~Sampler() = 0;  // needs to be virtual
 
   /**
@@ -97,7 +100,10 @@ public:
 
 private:
   // called before any points are sampled. This function is called from init after sieveptr is set.
-  virtual void custom_init(){};
+  virtual void custom_init()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("No custom initialization for sampled requested.")
+  };
   // dummy implementation of << operator.
   virtual std::ostream &dump_to_stream(std::ostream &os) { return os; };
   // dummy implementation of >> operator.
@@ -105,7 +111,7 @@ private:
 
 protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
-  Sieve<ET, MT, nfixed> *sieveptr;  // pointer to parent sieve. Set in init();
+  Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 };
 
 // clang-format on
