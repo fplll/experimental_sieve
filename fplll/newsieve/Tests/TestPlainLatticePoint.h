@@ -1,4 +1,8 @@
+#ifndef TEST_PLAIN_LATTICE_POINT_H
+#define TEST_PLAIN_LATTICE_POINT_H
+
 #include <type_traits>
+#include "../SieveUtility.h"
 #include "../PlainLatticePoint.h"
 
 #include "fplll/defs.h"
@@ -111,3 +115,5 @@ bool test_plain_LP()
   std::cout << Z1 << Z2 << Z3 << std::endl << std::flush;
   return true;
 };
+
+#endif

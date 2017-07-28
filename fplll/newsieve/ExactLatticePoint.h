@@ -89,7 +89,6 @@ public:
   explicit ExactLatticePoint() : data(static_cast<unsigned int>(get_dim())) {}
 #endif
 
-
   FOR_FIXED_DIM
   explicit ExactLatticePoint(Dimension<nfixed>)
   {
@@ -128,7 +127,6 @@ public:
     return norm2;
   }
 
-
 private:
   static Dimension<nfixed> dim; // note that for nfixed != -1, this variable is actually unused.
 #ifdef DEBUG_SIEVE_LP_INIT
@@ -137,7 +135,6 @@ private:
   Container data;
   ET norm2;
 };
-
 
 // initialize static data:
 

@@ -4,6 +4,7 @@
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
+#include "DebugAll.h"
 #include "assert.h"
 #include <iostream>
 #include <istream>

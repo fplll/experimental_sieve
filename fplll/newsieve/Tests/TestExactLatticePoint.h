@@ -1,3 +1,6 @@
+#ifndef TEST_EXACT_LATTICE_POINT_H
+#define TEST_EXACT_LATTICE_POINT_H
+
 #include <type_traits>
 #include "../ExactLatticePoint.h"
 
@@ -111,3 +114,5 @@ bool test_exact_LP()
   std::cout << Z1 << Z2 << Z3 << std::endl << std::flush;
   return true;
 };
+
+#endif
