@@ -2,15 +2,16 @@
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H
 
-//TODO: Remove the concept idea below, we replace it by CRTP (i.e. inheritance without virtual functions, using templates)
+// TODO: Remove the concept idea below, we replace it by CRTP (i.e. inheritance without virtual
+// functions, using templates)
 
+#include "DebugAll.h"
 #include "SieveUtility.h"
+#include "assert.h"
+#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <string>
-#include "DebugAll.h"
-#include "assert.h"
-#include <cstdint>
-#include <cmath>
 
 // clang-format off
 

@@ -1,3 +1,6 @@
+#ifndef TEST_MAYBE_FIXED_INT_H
+#define TEST_MAYBE_FIXED_INT_H
+
 #include <type_traits>
 #include "assert.h"
 #include "../SieveUtility.h"
@@ -48,3 +51,5 @@ bool test_maybe_fixed_int()
 
   return true;
 }
+
+#endif

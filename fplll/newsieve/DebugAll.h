@@ -20,6 +20,10 @@
 // tests that operations on LP have matching dimensions
   #define DEBUG_SIEVE_LP_MATCHDIM
 
+// tests that the RNG engine is called with valid parameters
+  #define DEBUG_SIEVE_MTPRNG
+
+
 #endif  // DEBUG_SIEVE_SILENT_ALL
 
 // verbosely trace calls of generic functions for LPs.

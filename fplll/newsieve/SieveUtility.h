@@ -239,6 +239,6 @@ inline bool string_consume(std::istream &is, std::string const &str, bool elim_w
   return true;
 }
 
-} // end namespace
+}  // end namespace
 
 #endif  // GAUSS_SIEVE_UTILITY_H

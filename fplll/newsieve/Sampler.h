@@ -110,7 +110,6 @@ protected:
 
 // clang-format on
 
-} // end namespace
-
+}  // end namespace
 
 #endif

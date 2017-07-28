@@ -1,3 +1,6 @@
+#ifndef TEST_TRAIT_CLASSES_H
+#define TEST_TRAIT_CLASSES_H
+
 #include <type_traits>
 #include "../SieveUtility.h"
 
@@ -72,3 +75,5 @@ bool test_trait_classes()
   static_assert(std::is_same<bool, GetB<C3>::type>::value,"");
   return true;
 }
+
+#endif

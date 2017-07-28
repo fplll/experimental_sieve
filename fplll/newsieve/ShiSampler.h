@@ -57,6 +57,6 @@ protected:
   //    vector<MyLatticePoint> basis;
 };
 
-} // end namespace
+}  // end namespace
 
 #endif

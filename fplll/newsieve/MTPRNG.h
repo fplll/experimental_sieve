@@ -12,7 +12,9 @@ Header-only
 #ifndef MTPRNG_H
 #define MTPRNG_H
 
+#include "DebugAll.h"
 #include "SieveUtility.h"
+#include "Typedefs.h"
 #include <iostream>
 #include <random>
 #include <type_traits>
@@ -72,11 +74,20 @@ You may concurrently call rnd and use init to increase (but not decrease) the nu
 Randomness path:
 The global (master) seed that is input to the constructor resp. to reseed is used to create
 20x32 = 640 bit per-thread-seeds for each actual Engine.
-The output from theses engine(s) is then accessed using rnd(thread-number).
-This is done even in the single-threaded case to ensure consistency.
+
+The output from theses engine(s) is then accessed using rnd(thread-number) with
+0<=thread-number < num_threads.
+Note that rnd(thread-number) returns a reference to the engine. To get actual random data,
+use rnd(thread-number)() or feed the engine to a distribution, e.g.
+std::uniform_int_distribution<int> six_sided_die(1,6)
+int result = six_sided_die(rnd(thread-id));
+
+The usage syntax is the same for the single-threaded case to ensure consistency.
+(in particular, rnd takes a thread-id, which should be zero). The randomness path is the same,
+so for a given master seed, rnd(0) does not depend on whether the single- or multi-threaded variant
+is used.
 Note that for obtaining the per-thread seeds from the master seeds, we use a fixed Mersenne twister
 engine and not the engine given as template parameter.
-
 */
 
 // multithreaded case of MTPRNG
@@ -84,7 +95,7 @@ template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
 {
 public:
   // constructs an uninitialized MTPRNG
-  explicit MTPRNG(Sseq &_seq = {}) : seeder(_seq), engines(0), num_threads(0){};
+  explicit MTPRNG(Sseq &_seq) : seeder(_seq), engines(0), num_threads(0){};
 
   inline void reseed(Sseq &_seq);
 
@@ -94,7 +105,20 @@ public:
   it back saves the random state (unless we reseed).
   */
   inline void init(unsigned int const _num_threads);
-  Engine &rnd(unsigned int const thread) { return engines[thread]; };
+  Engine &rnd(unsigned int const thread)
+  {
+
+// Note that if init is used to decrease num_threads, then
+// rnd(thread-number) for thread-number that was was made invalid by the decrease
+// would actually work until reseed is called.
+// This is considered wrong usage of the class and not allowed.
+#ifdef DEBUG_SIEVE_MTPRNG
+    assert(num_threads >= 0);
+    assert(thread < num_threads);
+#endif
+    return engines[thread];
+  };
+
 private:
   // seeded with initial seq and consecutively used to seed the children PRNGs.
   std::mt19937_64 seeder;
@@ -114,7 +138,7 @@ private:
 template <class Engine, class Sseq> class MTPRNG<Engine, false, Sseq>
 {
 public:
-  explicit MTPRNG(Sseq &_seq = {}) : engine() { reseed(_seq); };
+  explicit MTPRNG(Sseq &_seq) : engine() { reseed(_seq); };
   inline void reseed(Sseq &_seq);
   void init(unsigned int const = 1) {}  // does nothing.
   Engine &rnd(IgnoreArg<unsigned int const>)
