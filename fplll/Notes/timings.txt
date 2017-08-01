@@ -1,0 +1,3 @@
+k=2 version, old code: d=60, T = 138sec. (singlethreaded)
+k=2 version, old code: d=59, T = 122sec. (singlethreaded)
+k=3 version, old code: d=40, T = 0.25sec.(ST)

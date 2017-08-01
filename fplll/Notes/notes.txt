@@ -1,0 +1,61 @@
+This file is just for me to take notes -- Gotti
+
+
+Members of Sieve:
+
+    MainListType main_list;
+    MainQueueType main_queue;
+    FilteredListType filtered_list;
+    LatticeBasisType original_basis;
+    unsigned int lattice_rank;
+    unsigned int ambient_dimension; //consider merging these into a latticespec struct.
+    bool multi_threaded_wanted;
+    #if GAUSS_SIEVE_IS_MULTI_THREADED == true
+    unsigned int num_threads_wanted;        //number of threads that we spawn
+    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+    unsigned int sieve_k; //parameter k of the sieve currently running.
+    SamplerType sampler; //TODO: Thread-safety. Move control to queue.
+    int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
+    TerminationConditions<ET> term_cond;
+    enum class SieveStatus
+    {
+        sieve_status_error  =  -1, //indicates an error (add error codes as neccessary)
+        sieve_status_init   =  1, //we have initialized data (and may yet initialize some more, but sieve has not started
+        sieve_status_running=  2, //sieve is currently running
+        sieve_status_finished=100 //sieve has finished
+    } sieve_status; //thread safety?
+    LPType shortest_vector_found; //including its length //TODO: Thread-safety
+#if GAUSS_SIEVE_IS_MULTI_THREADED == false
+    unsigned long int number_of_collisions;
+    unsigned long int number_of_points_sampled;
+    unsigned long long int number_of_points_constructed; //sampling  + succesful pairs
+    unsigned long int current_list_size;
+    unsigned long long int number_of_scprods;
+#else //note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
+    atomic_ulong number_of_collisions;
+    atomic_ulong number_of_points_sampled;
+    atomic_ullong number_of_points_constructed; //sampling  + succesful pairs
+    atomic_ulong current_list_size;
+    atomic_ullong number_of_scprods;
+#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
+    GarbageBin<typename MainListType::DataType> * garbage_bins; //dynamically allocated array of garbage bins.
+    std::mutex dump_mutex;
+#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+
+
+
+MainListType main_list;
+    MainQueueType main_queue;
+    FilteredListType filtered_list;
+    LatticeBasisType original_basis;
+    #if GAUSS_SIEVE_IS_MULTI_THREADED == true
+    unsigned int num_threads_wanted;        //number of threads that we spawn
+    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+    SamplerType sampler; //TODO: Thread-safety. Move control to queue.
+
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
+    GarbageBin<typename MainListType::DataType> * garbage_bins; //dynamically allocated array of garbage bins.
+    std::mutex dump_mutex;
+#endif // GAUSS_SIEVE_IS_MULTI_THREADED
