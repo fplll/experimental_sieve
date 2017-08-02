@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <utility>
 
 // clang-format off
 
@@ -186,9 +187,13 @@ class GeneralLatticePoint
     // get_dim must be overloaded.
 
     MEMBER_ONLY_EXISTS_IF_COO_READ
-    auto get_vec_size() const { return CREALTHIS->get_dim(); }
+    auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() )
+    {
+      DEBUG_TRACEGENERIC("Generically getting vec_size for" << LatP::class_name() )
+      return CREALTHIS->get_dim();
+    }
 
-    auto get_dim() const = delete; // Note that we have no return type...
+    void get_dim() const = delete; // Note that we have void return type. I really want C++14 auto.
 
 /**
   Used for output to stream. Note that operator<< calls this (or an overloaded version)
