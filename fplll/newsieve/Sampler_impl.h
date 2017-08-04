@@ -40,19 +40,19 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::ostream &operator<<(std::ostream &os,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr)
 {
-  return samplerptr->dump_to_stream(os);
+  return samplerptr->dump_to_stream(os); // virtual dispatch
 }
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::istream &operator>>(std::istream &is,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr)
 {
-  return samplerptr->read_from_stream(is);
+  return samplerptr->read_from_stream(is); //virtual dispatch
 }
 
 template class MTPRNG<std::mt19937_64, false, std::seed_seq>;
 // template class MTPRNG<std::mt19937,true,  std::seed_seq>;
-//template class Sampler<fplll::Z_NR<long>, false, std::mt19937_64, std::seed_seq, -1>;
+// template class Sampler<fplll::Z_NR<long>, false, std::mt19937_64, std::seed_seq, -1>;
 template class Sampler<DefaultSieveTraits, false, std::mt19937_64, std::seed_seq>;
 
 // template class Sampler<Z_NR<long>, true,  std::mt19937,std::seed_seq>;

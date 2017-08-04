@@ -26,7 +26,7 @@ template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
 public:
-  using AuxDataType             = Dimension<nfixed>;
+  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductReturnType = ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
@@ -54,14 +54,14 @@ public:
   };
 
   FOR_FIXED_DIM
-  static constexpr Dimension<nfixed> get_dim()
+  static constexpr MaybeFixed<nfixed> get_dim()
   {
     static_assert(X == nfixed);
-    return Dimension<nfixed>(nfixed);
+    return MaybeFixed<nfixed>(nfixed);
   }
 
   FOR_VARIABLE_DIM
-  static Dimension<-1> get_dim()
+  static MaybeFixed<-1> get_dim()
   {
     static_assert(nfixed == -1);
     return dim;
@@ -90,7 +90,7 @@ public:
 #endif
 
   FOR_FIXED_DIM
-  explicit ExactLatticePoint(Dimension<nfixed>)
+  explicit ExactLatticePoint(MaybeFixed<nfixed>)
   {
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((ExactLatticePoint<ET, nfixed>::class_initialized));
@@ -98,7 +98,7 @@ public:
   };
 
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint(Dimension<nfixed> dim) : data(static_cast<unsigned int>(dim))
+  explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : data(static_cast<unsigned int>(dim))
   {
     static_assert(nfixed == -1);
 #ifdef DEBUG_SIEVE_LP_INIT
@@ -122,7 +122,7 @@ public:
   ET get_norm2() const { return norm2; }
 
 private:
-  static Dimension<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
+  static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
@@ -133,7 +133,7 @@ private:
 // initialize static data:
 
 template <class ET, int nfixed>
-Dimension<nfixed> ExactLatticePoint<ET, nfixed>::dim = Dimension<nfixed>(nfixed < 0 ? 0 : nfixed);
+MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool ExactLatticePoint<ET, nfixed>::class_initialized = false;

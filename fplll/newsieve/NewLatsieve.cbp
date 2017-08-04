@@ -20,6 +20,7 @@
 		<Unit filename="ExactLatticePoint.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
+		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="MyLatticePointClass.cpp" />
@@ -38,6 +39,7 @@
 		<Unit filename="SieveST2.cpp" />
 		<Unit filename="SieveUtility.h" />
 		<Unit filename="TermCondNew.h" />
+		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />

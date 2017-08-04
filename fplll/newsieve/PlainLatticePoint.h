@@ -18,7 +18,7 @@ template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, nfixed>>
 {
 public:
-  using AuxDataType             = Dimension<nfixed>;
+  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductReturnType = ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
@@ -43,7 +43,7 @@ public:
     class_initialized = true;
 #endif
   };
-  static constexpr Dimension<nfixed> get_dim() { return dim; };
+  static constexpr MaybeFixed<nfixed> get_dim() { return dim; };
 
 #ifdef DEBUG_SIEVE_LP_INIT
   explicit PlainLatticePoint()
@@ -54,7 +54,7 @@ public:
 #else
   explicit PlainLatticePoint() = default;
 #endif
-  explicit PlainLatticePoint(Dimension<nfixed>)
+  explicit PlainLatticePoint(MaybeFixed<nfixed>)
   {
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((PlainLatticePoint<ET, nfixed>::class_initialized));
@@ -69,7 +69,7 @@ public:
   static std::string class_name() { return "Plain Lattice Point, fixed dim"; };
 
 private:
-  static constexpr Dimension<nfixed> dim = Dimension<nfixed>(nfixed);
+  static constexpr MaybeFixed<nfixed> dim = MaybeFixed<nfixed>(nfixed);
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
@@ -92,7 +92,7 @@ public:
     class_initialized = true;
 #endif
   };
-  static Dimension<-1> get_dim() { return dim; };
+  static MaybeFixed<-1> get_dim() { return dim; };
 
   explicit PlainLatticePoint() : data(static_cast<unsigned int>(get_dim()))
   {
@@ -101,7 +101,7 @@ public:
 #endif
   };
 
-  explicit PlainLatticePoint(Dimension<-1> const dim) : data(static_cast<unsigned int>(get_dim()))
+  explicit PlainLatticePoint(MaybeFixed<-1> const dim) : data(static_cast<unsigned int>(get_dim()))
   {
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((PlainLatticePoint<ET, -1>::class_initialized));
@@ -121,7 +121,7 @@ public:
   static std::string class_name() { return "Plain Lattice Point, variable dim"; };
 
 private:
-  static Dimension<-1> dim;
+  static MaybeFixed<-1> dim;
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
@@ -131,9 +131,9 @@ public:
   //    std::ostream& write_to_stream(std::ostream &os) const { return os;};
 };
 
-template <class ET, int nfixed> constexpr Dimension<nfixed> PlainLatticePoint<ET, nfixed>::dim;
-// = Dimension<nfixed>(nfixed<0?0:nfixed);
-template <class ET> Dimension<-1> PlainLatticePoint<ET, -1>::dim = Dimension<-1>(0);
+template <class ET, int nfixed> constexpr MaybeFixed<nfixed> PlainLatticePoint<ET, nfixed>::dim;
+// = MaybeFixed<nfixed>(nfixed<0?0:nfixed);
+template <class ET> MaybeFixed<-1> PlainLatticePoint<ET, -1>::dim = MaybeFixed<-1>(0);
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool PlainLatticePoint<ET, nfixed>::class_initialized = false;
 template <class ET> bool PlainLatticePoint<ET, -1>::class_initialized = false;

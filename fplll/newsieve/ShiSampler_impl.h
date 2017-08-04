@@ -20,11 +20,11 @@ TODO: Change internal representation of basis.
 namespace GaussSieve
 {
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
-void ShiSampler<ET, MT, Engine, Sseq, nfixed>::custom_init()
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+void ShiSampler<SieveTratis, MT, Engine, Sseq>::custom_init()
 {
-  current_basis = sieveptr->get_original_basis();
-  dim           = static_cast<Dimension<nfixed>>(sieveptr->get_ambient_dimension());
+  typename SieveTraits::InputBasisType  current_basis = sieveptr->get_original_basis();
+  dim           = static_cast<DimensionType>(sieveptr->get_ambient_dimension());
   lattice_rank  = sieveptr->get_lattice_rank();
   fplll::Matrix<ET> u, u_inv, g;  // intentionally uninitialized.
 

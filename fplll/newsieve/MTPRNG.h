@@ -177,7 +177,7 @@ template <class Engine, class Sseq>
 inline void MTPRNG<Engine, true, Sseq>::init(unsigned int const _num_threads)
 {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("(Re-)initializing Multithreaded RNG Engines")
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("setting number of threads as" << _num_treads)
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("setting number of threads as" << _num_threads)
 
   // no need to initalize. We do not actually change num_threads until reseed is called.
   if (_num_threads <= num_threads)

@@ -3,6 +3,8 @@
 
 #include <type_traits>
 #include "../SieveUtility.h"
+#include "../Typedefs.h"
+#include "gmpxx.h"
 
 class C1{};
 class C2{};
@@ -73,7 +75,31 @@ bool test_trait_classes()
   static_assert(std::is_same<int, GetB<C1>::type>::value,"");
   static_assert(std::is_same<double, GetB<C2>::type>::value,"");
   static_assert(std::is_same<bool, GetB<C3>::type>::value,"");
-  return true;
+
+  using GaussSieve::IsZNRClass;
+  using GaussSieve::UnZNR;
+  using GaussSieve::AddZNR;
+  using GaussSieve::FixZNR;
+  using fplll::Z_NR;
+
+  static_assert(!IsZNRClass<long>::value,"");
+  static_assert(IsZNRClass<Z_NR<long>>{},"");
+  static_assert(IsZNRClass<Z_NR<mpz_t>>(),"");
+  static_assert(!IsZNRClass<mpz_class>::value);
+
+  static_assert(std::is_same<long,UnZNR<Z_NR<long>>::type>::value,"" );
+  static_assert(std::is_same<double,UnZNR<Z_NR<double>>::type>::value,"" );
+  static_assert(std::is_same<mpz_class,UnZNR<Z_NR<mpz_t>>::type>::value,"" );
+  static_assert(std::is_same<bool,UnZNR<bool>::type>::value,"" );
+  static_assert(std::is_same<AddZNR<long>::type, Z_NR<long> >::value,"");
+  static_assert(std::is_same<AddZNR<mpz_t>::type, Z_NR<mpz_t> >::value,"");
+  static_assert(std::is_same<AddZNR<mpz_class>::type, Z_NR<mpz_t> >::value,"");
+
+  static_assert(std::is_same<FixZNR<bool>::type,bool>::value,"" );
+  static_assert(std::is_same<FixZNR<long>::type,long>::value,"" );
+  static_assert(std::is_same<FixZNR<Z_NR<mpz_t>>::type,Z_NR<mpz_t>>::value,"" );
+  static_assert(std::is_same<FixZNR<mpz_class>::type,mpz_t>::value,"" );
+return true;
 }
 
 #endif
