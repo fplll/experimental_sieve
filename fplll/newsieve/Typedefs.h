@@ -51,6 +51,8 @@ class JustSomeExampleSieveTraitsThatDoNotWork
 // Note that MT is intentionally missing here. MT is its own template argument.
 };
 
+// Note: ET does *not* include Z_NR<...> here
+
 template< class ET, bool MT, int nfixed>
 class DefaultSieveTraits
 {

@@ -42,6 +42,17 @@ bool test_basis_utils()
     std::cout << std::endl;
   }
 
+  auto g = sieve_basis.get_g_matrix();
+  std::cout << "g-matrix:" << std::endl;
+  for(uint_fast16_t i=0; i < dim ; ++i)
+  {
+    for(uint_fast16_t j=0;j<dim;++j)
+    {
+    std::cout << g[i][j] << " ";
+    }
+    std::cout << std::endl;
+  }
+
   return true;
 }
 

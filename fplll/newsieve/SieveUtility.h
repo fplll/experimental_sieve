@@ -221,8 +221,9 @@ public:
           Z_NR<double> into a double and
           Z_NR<mpz_t> into a mpz_class.
           The latter conversion is to get an arithmetic type that supports +, *, etc.
+          If you want mpz_t, just use typename IsZNRClass<...>::GetUnderlyingType.
 
-          If you want mpz_t, just use typename IsZNRClass<...>::GetUnderlyingType
+          Other types are unchanged.
 */
 
 template<class T> class UnZNR
