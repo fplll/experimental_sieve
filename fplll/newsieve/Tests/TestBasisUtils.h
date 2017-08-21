@@ -37,7 +37,12 @@ bool test_basis_utils()
   {
     for(uint_fast16_t j=0;j<dim;++j)
     {
-    std::cout << mu[i][j] << " ";
+      std::cout << mu[i][j] << " ";
+
+      if (j>i)
+      {
+        assert(mu[i][j] == sieve_basis.get_mu(i,j));
+      }
     }
     std::cout << std::endl;
   }
@@ -48,7 +53,11 @@ bool test_basis_utils()
   {
     for(uint_fast16_t j=0;j<dim;++j)
     {
-    std::cout << g[i][j] << " ";
+      std::cout << g[i][j] << " ";
+      if (j>=i)
+      {
+        assert(g[i][j] == sieve_basis.get_g(i,j));
+      }
     }
     std::cout << std::endl;
   }

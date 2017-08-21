@@ -65,12 +65,13 @@ class DefaultSieveTraits
   using FastAccess_Point        = MyLatticePoint<ET,nfixed>;
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
-  using ZNREntryType            = typename AddZNR<ET>::type;
+  using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type
   using InputBasisType = typename fplll::ZZ_mat< typename ZNREntryType::underlying_data_type>;
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
+  static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
 };
 
 // unused:

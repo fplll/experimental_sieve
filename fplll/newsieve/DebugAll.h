@@ -23,6 +23,10 @@
 // tests that the RNG engine is called with valid parameters
   #define DEBUG_SIEVE_MTPRNG
 
+// Tests that accesses to the mu and g-matrices only access entries that are potentially non-zero.
+// While code may reasonably access such entries that are always zero, we give an error, because
+// it's more likely to be a bug rather than intended.
+  #define DEBUG_SIEVE_LOWERTRIANGULAR_MUG
 
 #endif  // DEBUG_SIEVE_SILENT_ALL
 
