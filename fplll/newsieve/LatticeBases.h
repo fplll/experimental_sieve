@@ -178,6 +178,13 @@ class SieveLatticeBasis< SieveTraits, MT,
     return (g_matrix)[i][j];
   }
 
+  // Returns ith basis vector.
+  BasisVectorType const & get_basis_vector(uint_fast16_t i) const
+  {
+    assert(i<lattice_rank);
+    return basis_vectors[i];
+  }
+
   private:
 
   // Note that we are using unsigned int const types here, rather than

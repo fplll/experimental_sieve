@@ -61,6 +61,10 @@ bool test_basis_utils()
     }
     std::cout << std::endl;
   }
+  for(uint_fast16_t i=0; i<dim;++i)
+  {
+    std::cout << sieve_basis.get_basis_vector(i) << std::endl;
+  }
 
   return true;
 }
