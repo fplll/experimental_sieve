@@ -93,7 +93,8 @@ class SieveLatticeBasis< SieveTraits, MT,
 
     // extract and convert the actual lattice vectors.
 
-    BasisVectorType::class_init(MaybeFixed<SieveTraits::get_nfixed>{ambient_dimension});
+    bool s = BasisVectorType::class_init(MaybeFixed<SieveTraits::get_nfixed>{ambient_dimension});
+    assert(s); // TODO: Clean up and throw exception instead.
     basis_vectors = new BasisVectorType[lattice_rank];
     for(uint_fast16_t i=0;i<lattice_rank;++i)
     {
@@ -108,6 +109,7 @@ class SieveLatticeBasis< SieveTraits, MT,
   ~SieveLatticeBasis()
   {
     delete[] basis_vectors;
+    BasisVectorType::class_uninit();
   }
 
 
