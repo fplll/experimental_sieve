@@ -9,6 +9,7 @@
 #include "fplll/nr/nr.h"
 #include "vector"
 #include "gmpxx.h"
+#include <iostream>
 
 bool test_plain_LP()
 {
@@ -109,6 +110,10 @@ bool test_plain_LP()
 //  Y2 = make_from_any_vector(vec, MaybeFixed<-1>(10));
 //  assert(Y1==Y2);
 //  assert(X1==Y1);
+
+  LPvar::class_uninit();
+  LPfix::class_uninit();
+  LPGMP::class_uninit();
 
   std::cout << X1 << X2 << X3 << std::endl;
   std::cout << Y1 << Y2 << Y3 << std::endl;

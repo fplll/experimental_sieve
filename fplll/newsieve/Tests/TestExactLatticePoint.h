@@ -8,6 +8,7 @@
 #include "fplll/nr/nr.h"
 #include "vector"
 #include "gmpxx.h"
+#include <iostream>
 
 bool test_exact_LP()
 {
@@ -19,9 +20,15 @@ bool test_exact_LP()
   typedef GaussSieve::ExactLatticePoint<mpz_class,10> LPGMP;
   static_assert(GaussSieve::IsALatticePoint<LPvar>::value,"");
   static_assert(GaussSieve::IsCooVector<LPvar>::value,"");
-  LPvar::class_init(MaybeFixed<-1>{10});
-  LPfix::class_init(MaybeFixed<10>{10});
-  LPGMP::class_init(MaybeFixed<10>{10});
+  bool success;
+  success=LPvar::class_init(MaybeFixed<-1>{10});
+  assert(success);
+  success=LPvar::class_init(MaybeFixed<-1>{10});
+  assert(success);
+  success=LPfix::class_init(MaybeFixed<10>{10});
+  assert(success);
+  success=LPGMP::class_init(MaybeFixed<10>{10});
+  assert(success);
   LPvar X1;
   LPvar X2(10);
   LPvar X3(MaybeFixed<-1>(10));
@@ -112,6 +119,14 @@ bool test_exact_LP()
   std::cout << X1 << X2 << X3 << std::endl;
   std::cout << Y1 << Y2 << Y3 << std::endl;
   std::cout << Z1 << Z2 << Z3 << std::endl << std::flush;
+  success=LPvar::class_uninit();
+  assert(!success);
+  success=LPvar::class_uninit();
+  assert(success);
+  success=LPfix::class_uninit();
+  assert(success);
+  success=LPGMP::class_uninit();
+  assert(success);
   return true;
 };
 

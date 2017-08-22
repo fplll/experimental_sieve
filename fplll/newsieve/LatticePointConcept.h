@@ -142,7 +142,16 @@ class GeneralLatticePoint
 // This one should be overloaded by every derived class.
 // It is used to initalized the static data members.
 
-    static void class_init(AuxDataType const &aux_data) = delete;
+// class_init may keep a counter of how may times it was called that is decremented by class_uninit.
+// So for every call of class_init, there needs to be a call of class_uninit.
+// If the counter is >0, calling class_init with different aux_data may fail.
+// The return value of class_init indicates success. The return value of class_uninit indicates
+// whether the counter is now at 0.
+// Note: If there is no static data, the implementation may just always return true and not use
+// a static counter at all.
+
+    static bool class_init(AuxDataType const &aux_data) = delete;
+    static bool class_uninit() = delete;
 
 // This one should be overloaded by every derived class. Used for diagnostic.
 

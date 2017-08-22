@@ -7,6 +7,7 @@
 #include "assert.h"
 #include <array>
 #include <vector>
+#include <iostream>
 
 namespace GaussSieve
 {
@@ -35,15 +36,18 @@ public:
   using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductReturnType = ET;
   using Container               = std::array<ET, nfixed>;
-  static void class_init(AuxDataType const aux_data)
+  static bool class_init(AuxDataType const aux_data)
   {
     static_assert(aux_data == dim);
 // dim = aux_data;
 #ifdef DEBUG_SIEVE_LP_INIT
     class_initialized = true;
 #endif
+    return true;
   };
   static constexpr MaybeFixed<nfixed> get_dim() { return dim; };
+
+  static bool class_uninit() { return true; }
 
 #ifdef DEBUG_SIEVE_LP_INIT
   explicit PlainLatticePoint()
@@ -85,13 +89,36 @@ public:
   using ScalarProductReturnType = ET;
   using Container               = std::vector<ET>;
   using GeneralLatticePoint<PlainLatticePoint<ET, -1>>::get_dim;
-  static void class_init(AuxDataType const aux_data)
+  static bool class_init(AuxDataType const aux_data)
   {
+    if( (user_counter>0) && (dim!=aux_data) )
+    {
+#ifdef DEBUG_SIEVE_LP_INIT
+      assert(class_initialized);
+      std::cerr << "Warning: Class initialization failed for " << class_name()
+                << std::endl << std::flush;
+      return false;
+#endif
+    }
     dim = aux_data;
 #ifdef DEBUG_SIEVE_LP_INIT
     class_initialized = true;
 #endif
+    ++user_counter;
+    return true;
   };
+
+  static bool class_uninit()
+  {
+    assert(user_counter>0);
+    --user_counter;
+#ifdef DEBUG_SIEVE_LP_INIT
+    assert(class_initialized);
+    class_initialized=(user_counter>0);
+#endif
+    return (user_counter==0);
+  }
+
   static MaybeFixed<-1> get_dim() { return dim; };
 
   explicit PlainLatticePoint() : data(static_cast<unsigned int>(get_dim()))
@@ -122,6 +149,7 @@ public:
 
 private:
   static MaybeFixed<-1> dim;
+  static unsigned int user_counter;
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
@@ -134,6 +162,9 @@ public:
 template <class ET, int nfixed> constexpr MaybeFixed<nfixed> PlainLatticePoint<ET, nfixed>::dim;
 // = MaybeFixed<nfixed>(nfixed<0?0:nfixed);
 template <class ET> MaybeFixed<-1> PlainLatticePoint<ET, -1>::dim = MaybeFixed<-1>(0);
+
+template <class ET> unsigned int PlainLatticePoint<ET,-1>::user_counter = 0;
+
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool PlainLatticePoint<ET, nfixed>::class_initialized = false;
 template <class ET> bool PlainLatticePoint<ET, -1>::class_initialized = false;

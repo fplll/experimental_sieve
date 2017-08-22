@@ -12,6 +12,7 @@
 #include "assert.h"
 #include <array>
 #include <vector>
+#include <iostream>
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
@@ -45,13 +46,43 @@ public:
   using Container =
       typename std::conditional<nfixed >= 0, std::array<ET, nfixed>,  // if nfixed >= 0
                                 std::vector<ET>>::type;               // if nfixed <0
-  static void class_init(AuxDataType const aux_data)
+  static bool class_init(AuxDataType const aux_data)
   {
+    if(user_counter>0)
+    {
+      if(dim!=aux_data)
+      {
+#ifdef DEBUG_SIEVE_LP_INIT
+        assert(class_initialized);
+        std::cerr << "Warning: Class initialization failed for " << class_name()
+                  << std::endl << std::flush;
+#endif
+        return false;
+      }
+    }
 #ifdef DEBUG_SIEVE_LP_INIT
     class_initialized = true;
 #endif
+    ++user_counter;
     dim = aux_data;
+    return true;
   };
+
+  static bool class_uninit()
+  {
+#ifdef DEBUG_SIEVE_LP_INIT
+    assert(class_initialized);
+#endif
+    assert(user_counter>0);
+    --user_counter;
+#ifdef DEBUG_SIEVE_LP_INIT
+    if(user_counter==0)
+    {
+      class_initialized=false;
+    }
+#endif
+    return(user_counter==0);
+  }
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -126,6 +157,7 @@ private:
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
+  static unsigned int user_counter;
   Container data;
   ET norm2;
 };
@@ -134,6 +166,9 @@ private:
 
 template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
+
+template <class ET, int nfixed>
+unsigned int ExactLatticePoint<ET,nfixed>::user_counter = 0;
 
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool ExactLatticePoint<ET, nfixed>::class_initialized = false;

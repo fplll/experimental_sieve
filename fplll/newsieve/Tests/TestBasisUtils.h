@@ -5,6 +5,7 @@
 #include "fplll.h"
 #include "../Typedefs.h"
 #include "gmpxx.h"
+#include <iostream>
 
 bool test_basis_utils()
 {

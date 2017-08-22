@@ -10,32 +10,32 @@
 //#include "SieveGauss_main.h"
 #include <iostream>
 
-////#include "Tests/TestTraitClasses.h"
-//#include "Tests/TestPlainLatticePoint.h"
-//#include "Tests/TestMaybeFixedInt.h"
-//#include "Tests/TestExactLatticePoint.h"
-//#include "Tests/TestMTPRNG.h"
+#include "Tests/TestTraitClasses.h"
+#include "Tests/TestPlainLatticePoint.h"
+#include "Tests/TestMaybeFixedInt.h"
+#include "Tests/TestExactLatticePoint.h"
+#include "Tests/TestMTPRNG.h"
 #include "Tests/TestBasisUtils.h"
 
 int main(int argc, char **argv)
 {
-//  if (test_trait_classes())
+  if (test_trait_classes())
   {
     std::cout << "Trait utility macros work as expected." << std::endl;
   }
-//  if (test_maybe_fixed_int())
+  if (test_maybe_fixed_int())
   {
     std::cout << "Tests for possibly-compile-time-fixed ints worked." << std::endl;
   }
-//  if (test_plain_LP())
+  if (test_plain_LP())
   {
     std::cout << "Plain Lattice Points work as expected." << std::endl;
   }
-//  if (test_exact_LP() )
+  if (test_exact_LP() )
   {
     std::cout << "Exact Lattice Points work as expected." << std::endl;
   }
-//  if (test_mtprng() )
+  if (test_mtprng() )
   {
     std::cout << "MTPRNG work as expected." << std::endl;
   }
