@@ -339,6 +339,8 @@ class GeneralLatticePoint
     }
 };
 
+// Non-member functions:
+
 #define FOR_LATTICE_POINT_LP \
 template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
 
@@ -467,14 +469,12 @@ LP sub(LP const &x1, LP const &x2)
   return NewLP;
 }
 
-
-
 // this function can be used to initialize an LP with container types that allow []-access.
 // Note that there is an explicit static_cast to LP's entry types.
 // In particular, this can convert mpz_t to mpz_class...
-// The function overwrites its first argument rather than to return the result.
-// The reason is that this simplifies syntax wrt type deduction and means we can actually
-// read off the dimension from result.
+//
+// Note: Return type does not take part in template argument deduction.
+// Usage: make_from_any_vector<TargetType>(source_container, dim).
 
 template<class LP, class SomeContainer, class DimType, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,

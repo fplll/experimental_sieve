@@ -16,6 +16,12 @@
 #include "Tests/TestExactLatticePoint.h"
 #include "Tests/TestMTPRNG.h"
 #include "Tests/TestBasisUtils.h"
+#include "Tests/TestShiSampler.h"
+
+// clang-reorder-guard
+
+//#include "ShiSampler_impl.h"
+//#include "Sampler_impl.h"
 
 int main(int argc, char **argv)
 {

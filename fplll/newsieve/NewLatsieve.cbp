@@ -44,6 +44,7 @@
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
 		<Unit filename="Tests/TestPlainLatticePoint.h" />
+		<Unit filename="Tests/TestShiSampler.h" />
 		<Unit filename="Tests/TestTraitClasses.h" />
 		<Unit filename="Typedefs.h" />
 		<Unit filename="classtests.cpp" />

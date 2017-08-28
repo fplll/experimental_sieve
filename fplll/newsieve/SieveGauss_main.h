@@ -1,3 +1,4 @@
+// Don't mess with include order:
 // clang-format off
 
 #define SIEVE_GAUSS_SINGLE_THREADED

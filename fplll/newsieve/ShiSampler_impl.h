@@ -16,6 +16,7 @@ TODO: Change internal representation of basis.
 #include "fplll/nr/nr_Z.inl"
 #include <random>
 #include <vector>
+#include <math.h>
 
 namespace GaussSieve
 {
@@ -23,47 +24,57 @@ namespace GaussSieve
 template <class SieveTraits, bool MT, class Engine, class Sseq>
 void ShiSampler<SieveTratis, MT, Engine, Sseq>::custom_init()
 {
-  typename SieveTraits::InputBasisType  current_basis = sieveptr->get_original_basis();
-  dim           = static_cast<DimensionType>(sieveptr->get_ambient_dimension());
-  lattice_rank  = sieveptr->get_lattice_rank();
-  fplll::Matrix<ET> u, u_inv, g;  // intentionally uninitialized.
+  assert(!initialized);
+  SieveLatticeBasis<SieveTraits,MT> const & current_basis = sieveptr->get_original_basis();
 
-  fplll::MatGSO<ET, fplll::FP_NR<double>> GSO(current_basis, u, u_inv,
-                                              fplll::MatGSOInterfaceFlags::GSO_INT_GRAM);
-  GSO.update_gso();  // todo: raise exception in case of error.
+  dim           = current_basis.ambient_dimension;
+  lattice_rank  = current_basis.lattice_rank;
+  mu_matrix     = current_basis.get_mu_matrix();
 
-  mu = GSO.get_mu_matrix();
-
+  // vectors of length lattice_rank
   s2pi.resize(lattice_rank);
   maxdeviations.resize(lattice_rank);
+  basis.resize(lattice_rank);
 
-  g = GSO.get_g_matrix();
+  auto const maxbistar2 = current_basis.get_maxbistar2();
 
-  fplll::FP_NR<double> maxbistar2 = GSO.get_max_bstar();
+//  g = GSO.get_g_matrix();
 
-  fplll::FP_NR<double> tmp;
-  fplll::FP_NR<double> tmp2;
-  for (unsigned int i = 0; i < lattice_rank; ++i)
+//  fplll::FP_NR<double> maxbistar2 = GSO.get_max_bstar();
+
+//  fplll::FP_NR<double> tmp;
+//  fplll::FP_NR<double> tmp2;
+  for (uint_fast16_t i = 0; i < lattice_rank; ++i)
   {
-    tmp.set_z(g(i, i));
-    tmp2.div(maxbistar2, tmp);  // s'_i^2 = max GS length^2 / lenght^2 of basis vector
-    s2pi[i] = tmp2.get_d() / GaussSieve::pi;
-    tmp2.sqrt(tmp2);
-    maxdeviations[i] = tmp2.get_d() * cutoff;
-  }
+    // s'_i^2 = max GS length^2 / lenght^2 of basis vector
+    double res = maxbistar2 / current_basis.get_g(i,i);
+    s2pi[i] = res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
+    maxdeviations[i] = sqrt(res) * cutoff;
 
-  auto it = helper_current_basis.cend();
-  for (unsigned int i = 0; i < lattice_rank; ++i)
-  {
-    it = helper_current_basis.cend();
-    helper_current_basis.emplace(it, current_basis[i]);
+    basis[i] = current_basis.get_basis_vector(i).make_copy();
+
+//    tmp.set_z(g(i, i));
+//    tmp2.div(maxbistar2, tmp);  // s'_i^2 = max GS length^2 / lenght^2 of basis vector
+//    s2pi[i] = tmp2.get_d() / GaussSieve::pi;
+//    tmp2.sqrt(tmp2);
+//    maxdeviations[i] = tmp2.get_d() * cutoff;
   }
+  using RetType = typename SieveTraits::GaussSampler_ReturnType;
+  bool s = RetType::class_init(MaybeFixed<SieveTraits::get_nfixed>{ambient_dimension});
+  assert(s); // TODO: Clean up and throw exception instead.
+  initialized = true;
+//  auto it = helper_current_basis.cend();
+//  for (unsigned int i = 0; i < lattice_rank; ++i)
+//  {
+//    it = helper_current_basis.cend();
+//    helper_current_basis.emplace(it, current_basis[i]);
+//  }
 }
 
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
-typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>
-ShiSampler<ET, MT, Engine, Sseq, nfixed>::sample(int thread)
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+typename SieveTraits::GaussSampler_ReturnType
+ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
 {
   assert(sieveptr != nullptr);
   //    MyLatticePoint<ET,nfixed> *vec = new MyLatticePoint<ET,nfixed>(dim);

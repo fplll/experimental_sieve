@@ -21,7 +21,7 @@
 #include <random>
 #include <type_traits>
 //#include <cfenv>
-#include "MyLatticePointClass.cpp"
+//#include "MyLatticePointClass.cpp"
 
 namespace GaussSieve
 {

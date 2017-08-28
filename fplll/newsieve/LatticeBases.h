@@ -54,6 +54,8 @@ class SieveLatticeBasis
   the cost of the whole algorithm anyway.
 */
 
+// TODO: Make GSO object local to constructor.
+
 template<class SieveTraits, bool MT>
 class SieveLatticeBasis< SieveTraits, MT,
                          IsZZMatClass<typename SieveTraits::InputBasisType>::value>
@@ -74,22 +76,26 @@ class SieveLatticeBasis< SieveTraits, MT,
   // This one is hard-coded to PlainLatticePoint
   using BasisVectorType= PlainLatticePoint<OutputET,SieveTraits::get_nfixed>;
 
+  using GSOType  = fplll::MatGSO<InputET, fplll::FP_NR<double>>;
+
   // Note: We copy the basis into originial_basis.
   // This is because the GSO object actually uses a reference and modifies original_basis.
-  SieveLatticeBasis(InputBasisType const &input_basis):
-  original_basis(input_basis),
-  ambient_dimension(input_basis.get_cols()),
-  lattice_rank(input_basis.get_rows()),
-  // u,u_inv intentionally uninitialized
-  GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
-  mu_matrix(lattice_rank,std::vector<double>(lattice_rank) ),
-  g_matrix (lattice_rank,std::vector<InputET_NOZNRFixed>(lattice_rank) ),
-  basis_vectors(nullptr)
+  explicit SieveLatticeBasis(InputBasisType const &input_basis):
+    original_basis(input_basis),
+    ambient_dimension(input_basis.get_cols()),
+    lattice_rank(input_basis.get_rows()),
+    // u,u_inv intentionally uninitialized
+//    GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
+    mu_matrix(lattice_rank,std::vector<double>(lattice_rank) ),
+    g_matrix (lattice_rank,std::vector<InputET_NOZNRFixed>(lattice_rank) ),
+    basis_vectors(nullptr)
   {
+    fplll::Matrix<InputET> u, u_inv; //, g;
+    GSOType GSO(original_basis, u, u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM);
     GSO.update_gso();  // todo: raise exception in case of error
     // We compute these at creation to simplify thread-safety issues.
-    compute_mu_matrix();
-    compute_g_matrix();
+    compute_mu_matrix(GSO);
+    compute_g_matrix(GSO);
 
     // extract and convert the actual lattice vectors.
 
@@ -98,13 +104,17 @@ class SieveLatticeBasis< SieveTraits, MT,
     basis_vectors = new BasisVectorType[lattice_rank];
     for(uint_fast16_t i=0;i<lattice_rank;++i)
     {
-      for(uint_fast16_t j=0;j<ambient_dimension;++j)
-      {
-        (basis_vectors[i])[j] = static_cast<OutputET>(input_basis[i][j].get_data());
-      }
+      basis_vectors[i] = make_from_znr_vector<BasisVectorType>(input_basis[i], ambient_dimension);
     }
-
+    maxbistar2=GSO.get_max_bstar().get_d();
   }
+
+
+  SieveLatticeBasis(SieveLatticeBasis const &old) = delete;
+  SieveLatticeBasis(SieveLatticeBasis &&old) = default;
+  SieveLatticeBasis & operator= (SieveLatticeBasis const &old) = delete;
+  SieveLatticeBasis & operator= (SieveLatticeBasis &&old) = default;
+
 
   ~SieveLatticeBasis()
   {
@@ -120,7 +130,7 @@ class SieveLatticeBasis< SieveTraits, MT,
   // IMPORTANT: get_mu_matrix()[i][j] is only meaningful for j>i!
 
   // helper function that precomputes, converts and stores the whole mu_matrix:
-  void compute_mu_matrix()
+  void compute_mu_matrix(GSOType &GSO) // Note: GSO is not passed as const-ref.
   {
     // use GSO's capabilities and convert to non-FP_NR - type
     fplll::Matrix<fplll::FP_NR<double>> ZNR_mu = GSO.get_mu_matrix();
@@ -134,7 +144,7 @@ class SieveLatticeBasis< SieveTraits, MT,
     return;
   }
 
-  void compute_g_matrix()
+  void compute_g_matrix(GSOType &GSO) // Note: GSO is not passed as const-ref.
   {
     fplll::Matrix<InputET> const gmatrix_GSO = GSO.get_g_matrix(); // class returned by GSO
     // convert fplll::Matrix<ET> to vector<vector<ET_NOZNRFixed>>
@@ -154,7 +164,7 @@ class SieveLatticeBasis< SieveTraits, MT,
 
   double get_maxbistar2() const
   {
-    return GSO.get_max_bstar().get_d();
+    return maxbistar2;
   }
 
   std::vector<std::vector<  InputET_NOZNRFixed   > > get_g_matrix() const
@@ -192,13 +202,14 @@ class SieveLatticeBasis< SieveTraits, MT,
   // Note that we are using unsigned int const types here, rather than
   // MaybeFixed<...>
   InputBasisType original_basis;
+  public:
   DimensionType const ambient_dimension;
   uint_fast16_t const lattice_rank;      // Technically, just number of vectors.
                                   // We don't verify linear independence ourselves.
                                   // (even though GSO computation does, probably)
-
-  fplll::Matrix<InputET> u, u_inv; //, g;
-  mutable fplll::MatGSO<InputET, fplll::FP_NR<double>> GSO;
+  private:
+//  fplll::Matrix<InputET> u, u_inv; //, g;
+//  fplll::MatGSO<InputET, fplll::FP_NR<double>> GSO;
   // precomputed on demand:
   std::vector<std::vector<double>> mu_matrix;
   std::vector<std::vector<InputET_NOZNRFixed>> g_matrix;
@@ -207,6 +218,7 @@ class SieveLatticeBasis< SieveTraits, MT,
   // before we (even default-) construct any PlainLatticePoint.
   // This includes constructing PlainLatticePoints from the initializer list of SieveLatticeBasis.
   BasisVectorType *basis_vectors;
+  double maxbistar2;
 };
 
 } // namespace
