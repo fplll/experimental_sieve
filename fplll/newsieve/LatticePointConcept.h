@@ -260,14 +260,7 @@ class GeneralLatticePoint
       {
         REALTHIS->operator[](i) = 0;
       }
-      if (IsNorm2Cheap<LatP>::value)
-      {
-        REALTHIS->sanitize(CREALTHIS->get_norm2() );
-      }
-      else
-      {
-        REALTHIS->sanitize();
-      }
+      REALTHIS->sanitize(0);
     }
 
     MEMBER_ONLY_EXISTS_IF_COO_WRITE
@@ -338,7 +331,14 @@ class GeneralLatticePoint
       {
         NewLP[i] = CREALTHIS->operator[](i);
       }
-      NewLP.sanitize();
+      if (IsNorm2Cheap<LatP>::value)
+      {
+        NewLP.sanitize(CREALTHIS->get_norm2() );
+      }
+      else
+      {
+        NewLP.sanitize();
+      }
       return NewLP;
     }
 
