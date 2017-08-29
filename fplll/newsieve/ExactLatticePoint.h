@@ -34,6 +34,7 @@ public:
   using AbsoluteCoos            = std::true_type;
   using CoordinateType          = ET;
   using CheapNorm2              = std::true_type;
+  using CheapNegate             = std::true_type;
 };
 
 template <class ET, int nfixed>
@@ -149,6 +150,7 @@ public:
   static std::string class_name() { return "Exact Lattice Point"; };
 
   void sanitize() { norm2 = compute_sc_product(*this, *this); }
+  void sanitize( ScalarProductReturnType const & new_norm2 ) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
 

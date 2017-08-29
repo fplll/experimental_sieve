@@ -25,6 +25,7 @@ public:
   using CoordinateAccess        = std::true_type;
   using AbsoluteCoos            = std::true_type;
   using CoordinateType          = ET;
+  using CheapNegate             = std::true_type;
 };
 
 template <class ET, int nfixed>

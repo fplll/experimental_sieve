@@ -47,6 +47,7 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::istream &operator>>(std::istream &is,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr)
 {
+  assert(false); // The line below looks wrong.
   return samplerptr->read_from_stream(is); //virtual dispatch
 }
 

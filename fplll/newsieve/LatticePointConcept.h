@@ -46,6 +46,7 @@ template<class LatticePoint> struct LatticePointTraits
   ScalarProductReturnType: Return type of scalar products. Mandatory!
 
   CoordinateType : return type of operator[] if available.
+
   CoordinateAccess : Set to true_type to indicate that the class exposes an operator[].
                      We may read LatticePoint[i] for 0<= i < get_vec_size().
                      These entries behave like coordinates.
@@ -61,6 +62,9 @@ template<class LatticePoint> struct LatticePointTraits
 
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
+
+  CheapNegate: Set to true_type to indicate that negation needs no normalize().
+
 */
 
 /**
@@ -91,7 +95,10 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, AbsoluteCoos, std::true_type, CoosAreAbsolute);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNorm2, std::true_type, IsNorm2Cheap);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNegate, std::true_type, IsNegateCheap);
+
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordinateType);
+
 MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
 
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
@@ -106,7 +113,7 @@ template<class Impl=LatP, typename std::enable_if<CoosAreAbsolute<Impl>::value,i
 #define IMPL_IS_LATP \
 static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type")
 
-// unsure if whether to use reinterpret_casts here...
+// unsure whether to use reinterpret_casts here...
 
 #define CREALTHIS static_cast<LatP const*>(this)
 #define REALTHIS  static_cast<LatP*>(this)
@@ -216,7 +223,7 @@ class GeneralLatticePoint
       DEBUG_TRACEGENERIC("Using generic writer for " << LatP::class_name() )
       auto const dim = CREALTHIS->get_vec_size();
       os << "[ "; // makes spaces symmetric
-      for (unsigned int i =0; i<dim; ++i)
+      for (uint_fast16_t i =0; i<dim; ++i)
         {
             os << CREALTHIS->operator[](i) << " ";
         }
@@ -249,11 +256,35 @@ class GeneralLatticePoint
       IMPL_IS_LATP;
       DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
       auto const dim = CREALTHIS->get_vec_size();
-      for (unsigned int i=0;i<dim;++i)
+      for (uint_fast16_t i=0;i<dim;++i)
       {
         REALTHIS->operator[](i) = 0;
       }
-      REALTHIS->sanitize();
+      if (IsNorm2Cheap<LatP>::value)
+      {
+        REALTHIS->sanitize(CREALTHIS->get_norm2() );
+      }
+      else
+      {
+        REALTHIS->sanitize();
+      }
+    }
+
+    MEMBER_ONLY_EXISTS_IF_COO_WRITE
+    void make_negative()
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
+      auto const dim = CREALTHIS->get_vec_size();
+      for (uint_fast16_t i=0;i<dim;++i)
+      {
+        REALTHIS->operator[](i) = - REALTHIS->operator[](i);
+      }
+      if( !IsNegateCheap<Impl>::value ) // constexpr if, really...
+      {
+        REALTHIS->sanitize();
+      }
+      return;
     }
 
 /**
@@ -274,7 +305,7 @@ class GeneralLatticePoint
       else
       {
         auto const dim = CREALTHIS->get_vec_size();
-        for (unsigned int i=0;i<dim;++i)
+        for (uint_fast16_t i=0;i<dim;++i)
         {
           if(CREALTHIS->operator[](i) != 0)
           {
@@ -318,7 +349,10 @@ class GeneralLatticePoint
     // sanitize is called from outside the class.
     // As such, the user can leave LatP in an invalid state and sanitize remedies that.
 
+    // The second version takes norm2 as an argument (to avoid recomputing it).
+
     void sanitize() {};
+    void sanitize(ScalarProductReturnType const &norm2) { sanitize(); };
 
 
 /**
@@ -364,7 +398,7 @@ bool operator==(LP1 const &x1, LP2 const &x2)
   assert(dim1 == dim2);
   #endif // DEBUG_SIEVE_LP_MATCHDIM
   auto const dim = x1.get_vec_size();
-  for(unsigned int i=0;i<dim;++i)
+  for(uint_fast16_t i=0;i<dim;++i)
   {
     if (x1[i] != x2[i])
     {
@@ -381,26 +415,84 @@ bool operator!=(LP1 const &x1, LP2 const &x2)
 }
 
 
-// dispatch to add function.
+// dispatch to add / addval function.
+// This is done as non-member functions to simplify cases where we add different types of points.
+
+
+// x1 += x2
+FOR_LATTICE_POINTS_LP1_LP2
+LP1& operator+=(LP1 &x1, LP2 const &x2) { return addval(x1, x2); }
+
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 const &x1, LP2 const &x2) { return add(x1,x2); }
 
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 && x1, LP2 const &x2)
+{
+LP1 tmp = std::move(x1);
+return addval(tmp,x2);
+}
+
+// We don't want to return LP2 here...
+// If this causes trouble, the caller should change the order of arguments.
 FOR_LATTICE_POINT_LP
-LP operator+(LP && x1, LP const &x2) { return add(std::move(x1),x2); }
+LP operator+(LP const &x1, LP && x2)
+{
+LP tmp = std::move(x2);
+return addval(tmp,x1);
+}
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 &&x1, LP2 && x2)
+{
+LP1 tmp = std::move(x1);
+return addval(tmp,std::move(x2));
+}
+
+// Note: We could define general add in terms of addval as well.
+// (i.e. define + as copy and += also for the non-move case)
+// Doing it as above might be slightly faster due to memory-access and copying additional data.
+
+// unary minus
 
 FOR_LATTICE_POINT_LP
-LP operator+(LP const &x1, LP && x2) { return add(std::move(x2),x1); }
+LP operator-(LP &&x1)
+{
+  LP tmp = std::move(x1);
+  x1.make_negative();
+  return x1;
+}
 
-// dispatch to sub function
+// dispatch to sub/subval function
+
+FOR_LATTICE_POINTS_LP1_LP2
+
+LP1& operator-=(LP1 &x1, LP2 const &x2){ return subval(x1,x2); }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
 
-FOR_LATTICE_POINT_LP
-LP operator-(LP && x1, LP const &x2) { return sub(std::move(x1),x2); }
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 && x1, LP2 const &x2)
+{
+  LP1 tmp = std::move(x1);
+  return subval(tmp,x2);
+}
 
 FOR_LATTICE_POINT_LP
-LP operator-(LP const &x1, LP &&x2) { return sub(x1,std::move(x2)); }
+LP operator-(LP const &x1, LP &&x2)
+{
+  LP tmp = std::move(x2);
+  tmp.make_negative();
+  return addval(tmp,x1);
+}
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 && x1, LP2 && x2)
+{
+  LP1 tmp = std::move(x1);
+  return subval(tmp,std::move(x2) );
+}
 
 // dispatch to possible member function
 
@@ -417,6 +509,32 @@ std::ostream& operator<<(std::ostream &os, LP const &LatP)
 }
 
 // implementations of generic functions for lattice points:
+
+// x1+=x2 for x1, x2 of the same type
+template<class LP, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::type = 0>
+LP& addval(LP &x1, LP const &x2)
+{
+  DEBUG_TRACEGENERIC( "generically adding" << x1.class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = x1.get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert( dim1 == dim2 );
+  auto const real_dim1 = x1.get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = x1.get_vec_size();
+//  auto const real_dim = x1.get_dim();
+//  LP NewLP(real_dim);
+  for(uint_fast16_t i = 0; i < dim; ++i )
+  {
+    x1[i] += x2[i];
+  }
+  x1.sanitize();
+  return x1;
+}
 
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
@@ -435,14 +553,13 @@ LP add(LP const &x1, LP const &x2)
   auto const dim = x1.get_vec_size();
   auto const real_dim = x1.get_dim();
   LP NewLP(real_dim);
-  for(unsigned int i = 0; i < dim; ++i )
+  for(uint_fast16_t i = 0; i < dim; ++i )
   {
     NewLP[i] = x1[i] +x2[i];
   }
   NewLP.sanitize();
   return NewLP;
 }
-
 
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
@@ -461,13 +578,39 @@ LP sub(LP const &x1, LP const &x2)
   auto const dim = x1.get_vec_size();
   auto const real_dim = x1.get_dim();
   LP NewLP(real_dim);
-  for(unsigned int i=0; i < dim ; ++i )
+  for(uint_fast16_t i=0; i < dim ; ++i )
   {
     NewLP[i] = x1[i] - x2[i];
   }
   NewLP.sanitize();
   return NewLP;
 }
+
+template<class LP, typename std::enable_if<
+         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
+         int>::type = 0>
+LP& subval(LP &x1, LP const &x2)
+{
+  DEBUG_TRACEGENERIC("generically subtracting" << x1.class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = x1.get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert(dim1==dim2);
+  auto const real_dim1 = x1.get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = x1.get_vec_size();
+
+  for(uint_fast16_t i=0; i < dim ; ++i )
+  {
+    x1[i] -= x2[i];
+  }
+  x1.sanitize();
+  return x1;
+}
+
+
 
 // this function can be used to initialize an LP with container types that allow []-access.
 // Note that there is an explicit static_cast to LP's entry types.

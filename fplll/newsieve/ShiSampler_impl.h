@@ -78,8 +78,9 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
 {
   assert(sieveptr != nullptr);
   //    MyLatticePoint<ET,nfixed> *vec = new MyLatticePoint<ET,nfixed>(dim);
-  MyLatticePoint<ET, nfixed> vec;
-  vec.fill_with_zero();
+  typename SieveTraits::PlainPoint vec;
+//  MyLatticePoint<ET, nfixed> vec;
+//  vec.fill_with_zero();
   // vec->NumVect<ET>::fill(0); //current vector built up so far. //Note: We treat vec as a NumVect
   // until the end, because we don't want to normalize intermediate results.
 
