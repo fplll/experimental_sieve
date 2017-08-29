@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <gmpxx.h>
 
 // clang-format off
 
@@ -273,10 +274,16 @@ class GeneralLatticePoint
       {
         REALTHIS->operator[](i) = - REALTHIS->operator[](i);
       }
+      if( IsNegateCheap<Impl>::value) // constexpr if
+      {
+        return;
+      }
+
       if( !IsNegateCheap<Impl>::value ) // constexpr if, really...
       {
         REALTHIS->sanitize();
       }
+
       return;
     }
 
@@ -327,7 +334,7 @@ class GeneralLatticePoint
       auto const real_dim=CREALTHIS->get_dim(); // means ambient dimension.
       auto const dim = CREALTHIS->get_vec_size(); // number of coordinates stored. May be rank.
       LatP NewLP(real_dim);
-      for (unsigned int i=0; i<dim; ++i)
+      for (uint_fast16_t i=0; i<dim; ++i)
       {
         NewLP[i] = CREALTHIS->operator[](i);
       }
@@ -365,12 +372,39 @@ class GeneralLatticePoint
 */
     ScalarProductReturnType get_norm2() const
     {
-      DEBUG_TRACEGENERIC("Generically computing norm2 for" << LatP::class_name() )
+      DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
 
       // This function should not be called if IsNorm2Cheap is set.
-      assert(IsNorm2Cheap<LatP>::value == false);
+      static_assert(IsNorm2Cheap<LatP>::value == false, "");
       return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
     }
+
+/**
+  multiplies by a scalar (which is of integral type or mpz_class
+*/
+    template<class Integer, class Impl=LatP,
+      typename std::enable_if<IsCooVector<Impl>::value && std::is_integral<Integer>::value,
+      int>::type = 0>
+    void scalar_multiply(Integer const multiplier)
+    {
+      IMPL_IS_LATP;
+      DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
+      auto const dim = CREALTHIS->get_vec_size();
+      for(uint_fast16_t i=0;i<dim;++i)
+      {
+        REALTHIS->operator[](i) *= multiplier;
+      }
+      if(IsNorm2Cheap<LatP>::value) // constexpr if
+      {
+        REALTHIS->sanitize(CREALTHIS->get_norm2() * multiplier * multiplier );
+      }
+      else
+      {
+        REALTHIS->sanitize();
+      }
+    }
+
+
 };
 
 // Non-member functions:
@@ -463,6 +497,29 @@ LP operator-(LP &&x1)
   return x1;
 }
 
+template<class LP, class Integer,
+  typename std::enable_if<IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
+  int>::type=0>
+LP operator*(LP const &x1, Integer const multiplier)
+{
+//  assert(false);
+  LP tmp = x1.make_copy();
+  tmp.scalar_multiply(multiplier);
+  return tmp;
+}
+
+template<class LP, class Integer,
+  typename std::enable_if<IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
+  int>::type=0>
+LP operator*(LP &&x1, Integer const multiplier)
+{
+  LP tmp = std::move(x1);
+  tmp.scalar_multiply(multiplier);
+  return tmp;
+}
+
 // dispatch to sub/subval function
 
 FOR_LATTICE_POINTS_LP1_LP2
@@ -507,6 +564,9 @@ std::ostream& operator<<(std::ostream &os, LP const &LatP)
 {
   return LatP.write_to_stream(os);
 }
+
+
+
 
 // implementations of generic functions for lattice points:
 
@@ -629,7 +689,7 @@ LP make_from_any_vector(SomeContainer const &container, DimType dim)
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
-  for(unsigned int i =0; i<dim; ++i)
+  for(uint_fast16_t i =0; i<dim; ++i)
   {
     result[i] = static_cast<ET>( container[i] );
   }
@@ -648,7 +708,7 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   using ET = typename GetCooType<LP>::type;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
-  for(unsigned int i =0; i<dim; ++i)
+  for(uint_fast16_t i =0; i<dim; ++i)
   {
     result[i] = static_cast<ET>( container[i].get_data() );
   }
@@ -676,9 +736,6 @@ typename GetCooType<LP>::type compute_sc_product(LP const &lp1, LP const &lp2)
   }
   return result;
 }
-
-
-
 
 
 /*
@@ -709,8 +766,9 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 */
 
+} // end namespace
 
-}
+
 
 // cleaning up internal macros.
 #undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
@@ -719,6 +777,8 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 #undef IMPL_IS_LATP
 #undef FOR_LATTICE_POINT_LP
 #undef FOR_LATTICE_POINTS_LP1_LP2
+#undef CREALTHIS
+#undef REALTHIS
 
 #endif
 

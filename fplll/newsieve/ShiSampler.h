@@ -20,6 +20,7 @@
 #include "fplll/nr/nr.h"
 #include <random>
 #include <vector>
+#include "LatticeBases.h"
 
 namespace GaussSieve
 {
@@ -35,7 +36,7 @@ class ShiSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
 {
 public:
   using DimensionType = typename SieveTraits::DimensionType;
-  using EntryType     = typename SieveTraits::ET;
+  using EntryType     = typename SieveTraits::EntryType;
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
 
   // Note: Sampler::sieveptr is only initialized during Sampler::init.
@@ -51,12 +52,13 @@ public:
     if(initialized)
     {
       RetType::class_uninit();
+      SieveTraits::PlainPoint::class_uninit();
     }
   };
   virtual inline RetType sample(int thread = 0) override;
 
 private:
-  inline virtual void custom_init() override;
+  inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis) override;
 //  fplll::ZZ_mat<typename ET::underlying_data_type> current_basis;
 //  std::vector<MyLatticePoint<ET, nfixed>> helper_current_basis;  // TODO: Use different type
   std::vector<std::vector<double>> mu_matrix; // copied from basis.

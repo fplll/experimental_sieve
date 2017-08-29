@@ -20,6 +20,7 @@
 #include <iostream>
 #include <random>
 #include <type_traits>
+#include "LatticeBases.h"
 //#include <cfenv>
 //#include "MyLatticePointClass.cpp"
 
@@ -78,7 +79,8 @@ public:
     }
 
   // We call init first, then custom_init (via init).
-  inline void init(Sieve<SieveTraits, MT> *const sieve);
+  inline void init(Sieve<SieveTraits, MT> *const sieve,
+    SieveLatticeBasis<SieveTraits,MT> const & input_basis );
   virtual ~Sampler() = 0;  // needs to be virtual
 
   /**
@@ -100,9 +102,9 @@ public:
 
 private:
   // called before any points are sampled. This function is called from init after sieveptr is set.
-  virtual void custom_init()
+  virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
   {
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("No custom initialization for sampled requested.")
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("No custom initialization for sampler requested.")
   };
   // dummy implementation of << operator.
   virtual std::ostream &dump_to_stream(std::ostream &os) { return os; };

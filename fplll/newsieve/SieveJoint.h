@@ -80,7 +80,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "Typedefs.h"
 
 namespace GaussSieve{
-template<class ET, bool MultiThreaded, int nfixed> class Sieve;
+template<class SieveTraits, bool MultiThreaded> class Sieve;
 }
 
 #endif //end of ONLY-ONCE part

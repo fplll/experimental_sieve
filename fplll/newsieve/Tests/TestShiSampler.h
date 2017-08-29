@@ -1,11 +1,13 @@
 #ifndef TEST_SHI_SAMPLER_H
 #define TEST_SHI_SAMPLER_H
 
-//#include "../ShiSampler.h"
 #include <iostream>
 #include "fplll.h"
 #include "../Typedefs.h"
 #include "gmpxx.h"
+#include "../ShiSampler.h"
+#include <random>
+#include "../LatticeBases.h"
 
 bool test_shi_sampler()
 {
@@ -24,6 +26,18 @@ bool test_shi_sampler()
   std::cout << B << std::endl << std::flush;
 
   using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
+  using Sampler = GaussSieve::ShiSampler<Traits,false,std::mt19937,std::seed_seq>;
+  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B); // convert to SieveLatticeBasis
+
+  std::seed_seq sseq {1,2,3};
+
+  Sampler sampler(sseq);
+  sampler.init(nullptr, sieve_basis);
+  for(int i=0; i<100 ; ++i)
+  {
+    std::cout << sampler.sample() << std::endl << std::flush;
+  }
+
 
   return true;
 }

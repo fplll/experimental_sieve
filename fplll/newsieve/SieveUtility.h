@@ -305,6 +305,23 @@ template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
   using GetET = ET;
 };
 
+/**
+  Conversion to double
+*/
+
+//template<class Source> double convert_to_double(Source const & source);
+
+template<class Source>
+double convert_to_double(Source const & source)
+{
+  static_assert(!std::is_same<Source,mpz_class>::value);
+  return static_cast<double>(source);
+}
+
+double convert_to_double(mpz_class const & source)
+{
+  return source.get_d();
+}
 
 
 

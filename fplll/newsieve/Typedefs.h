@@ -27,6 +27,7 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 // forward-declarations:
 template <class ET, int nfixed> class MyLatticePoint;
 template <class ET, int nfixed> class PlainLatticePoint;
+template <class ET, int nfixed> class ExactLatticePoint;
 
 class JustSomeExampleSieveTraitsThatDoNotWork
 {
@@ -58,7 +59,7 @@ class DefaultSieveTraits
 {
   public:
   using IsSieveTraitsClass = std::true_type;
-  using GaussSampler_ReturnType = MyLatticePoint<ET,nfixed>;
+  using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = MyLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;

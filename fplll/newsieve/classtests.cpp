@@ -20,8 +20,8 @@
 
 // clang-reorder-guard
 
-//#include "ShiSampler_impl.h"
-//#include "Sampler_impl.h"
+#include "ShiSampler_impl.h"
+#include "Sampler_impl.h"
 
 int main(int argc, char **argv)
 {
@@ -49,6 +49,11 @@ int main(int argc, char **argv)
   if (test_basis_utils() )
   {
     std::cout << "Basis utilities work as expected." << std::endl;
+  }
+
+  if (test_shi_sampler() )
+  {
+    std::cout << "Sampler works as expected." << std::endl;
   }
 
   return 0; // indicating success.
