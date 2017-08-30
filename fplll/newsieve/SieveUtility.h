@@ -173,7 +173,7 @@ public:
   static constexpr bool IsFixed = true;
   constexpr Dimension()         = default;
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  constexpr Dimension(unsigned int const new_dim) { assert(new_dim == nfixed); }
+    Dimension(unsigned int const new_dim) { assert(new_dim == nfixed); }
 #else
   constexpr Dimension(IgnoreArg<unsigned int const>){};
 #endif
