@@ -42,7 +42,7 @@ TODO: Documentation, enable sorted queue.
 //};
 
 //forward-declarations:
-template<class ET,bool MT, int nfixed> class Sieve; // TODO: Change To ST
+template<class SieveTraits, bool MT> class Sieve; // TODO: Change To ST
 
 template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
 
