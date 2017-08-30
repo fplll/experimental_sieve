@@ -31,17 +31,18 @@ void Sampler<SieveTraits, MT, Engine, Sseq>::init(Sieve<SieveTraits, MT> *const 
 {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing Sampler:")
   sieveptr = sieve;
-  //    std::cout << "Initializing RNGS engines" << std::endl << std::flush;
-  if(MT)
-  {
-  assert(false);
-//  engine.init(sieve->get_num_threads());
-  }
-  else
-  {
-  engine.init(1);
-  }
-  //    cout << "Done. Starting custom initialization of specific sampler" << endl << flush;
+#ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
+  assert(sieveptr!=nullptr);
+#else
+  assert(sieveptr==nullptr);
+#endif
+
+#ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
+    engine.init(1);
+#else
+    engine.init(sieve->get_num_threads());
+#endif
+
   custom_init(input_basis);
   //    cout << "Finished custom initialization" << endl << flush;
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Finished Initializing Sampler.")
@@ -51,7 +52,8 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::ostream &operator<<(std::ostream &os,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr)
 {
-  assert(false); return os;
+  std::cerr << "Not implemented yet. (Generic Sampler,streamout)" << std::endl << std::flush;
+  return os;
 //  return samplerptr->dump_to_stream(os); // virtual dispatch
 }
 
@@ -59,7 +61,8 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::istream &operator>>(std::istream &is,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr)
 {
-  assert(false); return is; // The line below looks wrong.
+  std::cerr << "Not implemented yet. (Generic Sampler,streamin)" << std::endl << std::flush;
+  return is; // The line below looks wrong.
 //  return samplerptr->read_from_stream(is); //virtual dispatch
 }
 

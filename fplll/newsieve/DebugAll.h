@@ -6,11 +6,14 @@
 #ifndef DEBUG_ALL_H
 #define DEBUG_ALL_H
 
+// #define DEBUG_SIEVE_LP_TRACEGENERIC
+#define DEBUG_SIEVE_SILENT_ALL
+
+
 // clang-format kills the indenting for #defines
 // clang-format off
 
 // enables all silent checks
-#define DEBUG_SIEVE_SILENT_ALL
 
 #ifdef DEBUG_SIEVE_SILENT_ALL
 
@@ -30,9 +33,21 @@
 
 #endif  // DEBUG_SIEVE_SILENT_ALL
 
+// enables modules which use a pointer to Sieve<...> to be used standalone.
+// Because this actually changes semantics by disabling some features,
+// Do NOT use this outside of testing, because it actually breaks things.
+
+#ifdef DEBUG_SIEVE_STANDALONE_MODULES_ALL
+
+  #define DEBUG_SIEVE_STANDALONE_SAMPLER
+
+  #define DEBUG_SIEVE_STANDALONE_QUEUE
+
+#endif
+
 
 // Outputs late-initializations of modules from GaussSieve
-#define DEBUG_SIEVE_INITIALIZATIONS
+//#define DEBUG_SIEVE_INITIALIZATIONS
 
 #ifdef DEBUG_SIEVE_INITIALIZATIONS
   #define DEBUG_SIEVE_TRACEINITIATLIZATIONS(STR) std::cout << STR << std::endl << std::flush;
@@ -44,7 +59,7 @@
 // verbosely trace calls of generic functions for LPs.
 // Disabled by default:
 
-// #define DEBUG_SIEVE_LP_TRACEGENERIC
+
 #ifdef DEBUG_SIEVE_LP_TRACEGENERIC
   #define DEBUG_TRACEGENERIC(STR) std::cout << STR << std::endl << std::flush;
 #else  // DEBUG_SIEVE_LP_TRACEGENERIC

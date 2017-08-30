@@ -22,12 +22,12 @@ inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const &basis);
   This Termination condition never terminates.
 */
 
-template <class ET, bool MT, int nfixed>
-class NeverTerminationCondition final : public TerminationCondition<ET, MT, nfixed>
+template <class SieveTraits, bool MT>
+class NeverTerminationCondition final : public TerminationCondition<SieveTraits, MT>
 {
 public:
-  virtual int check(Sieve<ET, MT, nfixed> *const sieve) override { return 0; };
-  virtual int check_vec(Sieve<ET, MT, nfixed> *const sieve, ET const &length2) override
+  virtual int check(Sieve<SieveTraits, MT> *const sieve) override { return 0; };
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, typename SieveTraits::EntryType const &length2) override
   {
     return 0;
   };
@@ -45,14 +45,15 @@ public:
   The length bound is set during construction and cannot be modified currently.
 */
 
-template <class ET, bool MT, int nfixed>
-class LengthTerminationCondition : public TerminationCondition<ET, MT, nfixed>
+template <class SieveTraits, bool MT>
+class LengthTerminationCondition : public TerminationCondition<SieveTraits, MT>
 {
 public:
-  explicit LengthTerminationCondition(ET const &init_target_length)
+  using EntryType = typename SieveTraits::EntryType;
+  explicit LengthTerminationCondition(EntryType const &init_target_length)
       : target_length(init_target_length){};
-  virtual inline int check(Sieve<ET, MT, nfixed> *const sieve) override;
-  virtual int check_vec(Sieve<ET, MT, nfixed> *const sieve, ET const &length2) override
+  virtual inline int check(Sieve<SieveTraits, MT> *const sieve) override;
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
   {
     return (length2 <= target_length) ? 1 : 0;
   };
@@ -83,7 +84,7 @@ public:
   };
 
 private:
-  ET target_length;
+  EntryType target_length;
 };
 
 /**
@@ -94,18 +95,19 @@ private:
   Consider refactoring templates...
 */
 
-template <class ET, bool MT, int nfixed>
+template <class SieveTraits, bool MT>
 class MinkowskiTerminationCondition
-    : public TerminationCondition<ET, MT, nfixed>  // Length Termination Condition
+    : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
 {
 public:
+  using EntryType = typename SieveTraits::EntryType;
   // target_length may be unitialised. We are guaranteed that init() is run before use.
   MinkowskiTerminationCondition() : target_length(){};
 
   // returns (sieve -> get_best_length2()<=target_length)?1:0;
-  virtual inline int check(Sieve<ET, MT, nfixed> *const sieve) override;
+  virtual inline int check(Sieve<SieveTraits, MT> *const sieve) override;
 
-  virtual int check_vec(Sieve<ET, MT, nfixed> *const sieve, ET const &length2) override
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
   {
     return (length2 <= target_length) ? 1 : 0;
   };
@@ -115,10 +117,10 @@ public:
     return TerminationConditionType::minkowski_condition;
   };  // run-time type information.
   virtual ~MinkowskiTerminationCondition(){};
-  inline virtual void init(Sieve<ET, MT, nfixed> *const sieve) override;
+  inline virtual void init(Sieve<SieveTraits, MT> *const sieve) override;
 
 private:
-  ET target_length;
+  EntryType target_length;
 };
 
 }  // namespace

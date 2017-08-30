@@ -14,6 +14,7 @@
 #include "assert.h"
 #include "Typedefs.h"
 //#include "EllipticSampler.h"
+#include "Sampler.h"
 
 namespace GaussSieve{
 
@@ -62,7 +63,7 @@ class GaussQueue<SieveTraits,false>
 public:
     using DataType = typename SieveTraits::GaussQueue_DataType;    //Type of Data internally stored
     using RetType=   typename SieveTraits::GaussQueue_ReturnType;    //Type of Data returned
-    static_assert(is_same<DataType,RetType>::value, "Currently, DataType and RetType must be identical.");
+    static_assert(std::is_same<DataType,RetType>::value, "Currently, DataType and RetType must be identical.");
     #ifndef USE_REGULAR_QUEUE
     // TODO: Make this one work (and actually a template argument)
     static_assert(false, "Only regular queue might work at the moment");
@@ -71,7 +72,7 @@ public:
     using QueueType =      std::queue<DataType*>;
     #endif
     GaussQueue()=delete;
-    explicit inline GaussQueue(Sieve<SieveTraits,false> *caller_sieve); //only constructor
+    explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve); //only constructor
     GaussQueue(GaussQueue const &old) = delete;
     GaussQueue(GaussQueue &&old) = delete;
     GaussQueue& operator= (GaussQueue const &old)=delete;

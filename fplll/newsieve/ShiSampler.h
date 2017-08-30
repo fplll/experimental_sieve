@@ -21,6 +21,7 @@
 #include <random>
 #include <vector>
 #include "LatticeBases.h"
+#include "DebugAll.h"
 
 namespace GaussSieve
 {

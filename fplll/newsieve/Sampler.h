@@ -13,7 +13,6 @@
 #ifndef SAMPLER_H
 #define SAMPLER_H
 
-// forward declarations
 #include "MTPRNG.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
@@ -22,7 +21,7 @@
 #include <type_traits>
 #include "LatticeBases.h"
 //#include <cfenv>
-//#include "MyLatticePointClass.cpp"
+#include "DebugAll.h"
 
 namespace GaussSieve
 {

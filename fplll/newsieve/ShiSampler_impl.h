@@ -18,6 +18,7 @@ TODO: Change internal representation of basis.
 #include <vector>
 #include <math.h>
 #include "LatticeBases.h"
+#include "DebugAll.h"
 
 namespace GaussSieve
 {
@@ -26,6 +27,11 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
 {
   assert(!initialized);
+#ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
+  assert(sieveptr!=nullptr);
+#else
+  assert(sieveptr==nullptr);
+#endif
 
   dim           = input_basis.ambient_dimension;
   lattice_rank  = input_basis.lattice_rank;
@@ -48,7 +54,6 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
     double res = maxbistar2 / convert_to_double(input_basis.get_g(i,i));
 
-    std::cout << "Setting i" << i << "as" << maxbistar2 / input_basis.get_g(i,i);
     s2pi[i] = res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
     maxdeviations[i] = sqrt(res) * cutoff;
 
@@ -74,8 +79,11 @@ typename SieveTraits::GaussSampler_ReturnType
 ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
 {
   assert(initialized);
-
-//  assert(sieveptr!=nullptr);
+#ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
+  assert(sieveptr==nullptr);
+#else
+  assert(sieveptr!=nullptr);
+#endif
 
   typename SieveTraits::PlainPoint vec;
   vec.fill_with_zero();
@@ -106,6 +114,6 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;
 }
-}
+} // end namespace
 
 #endif

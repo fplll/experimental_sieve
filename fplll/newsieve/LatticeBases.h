@@ -28,7 +28,7 @@ namespace GaussSieve
   We support extracting GSO information and converting to PlainLatticePoints.
 */
 
-template<class SieveTraits,bool MT, bool Enabled=true> class SieveLatticeBasis;
+template<class SieveTraits, bool MT, bool Enabled=true> class SieveLatticeBasis;
 
 
 // unusable default, until someone implements more general GSOs...

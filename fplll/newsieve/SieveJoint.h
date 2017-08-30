@@ -80,7 +80,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "Typedefs.h"
 
 namespace GaussSieve{
-template<class SieveTraits, bool MultiThreaded> class Sieve;
+template<class SieveTraits, bool MT> class Sieve;
 }
 
 #endif //end of ONLY-ONCE part
@@ -110,13 +110,13 @@ GO HERE.
 
 namespace GaussSieve{
 
-template<class ET, int nfixed> class Sieve<ET, GAUSS_SIEVE_IS_MULTI_THREADED,nfixed >
+template<class SieveTraits> class Sieve<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>
 {
 public:
     /*DATA TYPES*/
-    //using LPType           = ExactLatticePoint<ET,nfixed>;
-    using FastAccess_Point = GaussSieve::FastAccess_Point<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
-    using MainQueueType    = GaussQueue<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>; //FIXME
+
+    using FastAccess_Point = typename SieveTraits::FastAccess_Point;
+    using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>; //FIXME
     using MainListType     = GaussListNew<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
     using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
     //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;

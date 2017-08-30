@@ -5,25 +5,31 @@
 //#include "SieveGauss.cpp"
 #include "ShiSampler.h"
 #include "Sampler.h"
+#include "DebugAll.h"
 
 namespace GaussSieve
 {
 
 //constructor
 template<class SieveTraits>
-GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false,nfixed> *caller_sieve)
+GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false> * const caller_sieve)
 :
 main_queue(),
 gauss_sieve(caller_sieve),
 sampler(nullptr)
 {
-    assert(caller_sieve!=nullptr);
-    std::seed_seq seed{1,2,4}; //just some arbitrary numbers
+#ifdef DEBUG_SIEVE_STANDALONE_QUEUE
+  assert(caller_sieve==nullptr);
+#else
+  assert(caller_sieve!=nullptr);
+#endif
+
+  std::seed_seq seed{1,2,4}; //just some arbitrary numbers
     //sampler = new EllipticSampler<ET,false, std::mt19937_64, std::seed_seq> (seed);
 //    std::cout << "Initializing Sampler" << std::endl << std::flush;
-    sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
+  sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
 //    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
-    assert(sampler!=nullptr);
+  assert(sampler!=nullptr);
 }
 
 //template<class ET>
@@ -37,34 +43,39 @@ sampler(nullptr)
 //    assert(caller_sieve!=nullptr);
 //}
 
-
 template<class SieveTraits>
 auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
 {
-    if(main_queue.empty())
-    {
-        ++ (gauss_sieve->number_of_points_sampled);
-        ++ (gauss_sieve->number_of_points_constructed);
+  if(main_queue.empty()) // Queue is empty, sample a new element.
+  {
+#ifdef DEBUG_SIEVE_STANDALONE_QUEUE
+    assert(gauss_sieve==nullptr);
+#else
+    assert(gauss_sieve!=nullptr);
+    ++ (gauss_sieve->number_of_points_sampled);
+    ++ (gauss_sieve->number_of_points_constructed);
+#endif
 //        return gauss_sieve->sampler->sample();
-        assert(sampler!=nullptr);
-        static_assert(std::is_same<typename SieveTraits::GaussSampler_ReturnType, RetType>::value,
-        "Sampler must currently return the same type as the queue.");
-        typename SieveTraits::GaussSampler_ReturnType ret const = sampler->sample();
-        return ret;
+    assert(sampler!=nullptr);
+    static_assert(std::is_same<typename SieveTraits::GaussSampler_ReturnType, RetType>::value,
+      "Sampler must currently return the same type as the queue.");
+//    typename SieveTraits::GaussSampler_ReturnType const ret = sampler->sample();
+//    return ret;
 //        return sampler->sample();
-    }
-    else
-    {
-        #ifndef USE_REGULAR_QUEUE
-        DataType next_point = std::move( *(main_queue.top()));
-        delete main_queue.top();
-        #else
-        DataType next_point = std::move( *(main_queue.front()));
-        delete main_queue.front();
-        #endif // USE_REGULAR_QUEUE
-        main_queue.pop(); //This just removes the pointer.
-        return next_point;
-    }
+    return sampler->sample();
+  }
+  else // Queue is not empty, just return stored element.
+  {
+#ifndef USE_REGULAR_QUEUE
+    DataType next_point = std::move( *(main_queue.top()));
+    delete main_queue.top();
+#else
+    DataType next_point = std::move( *(main_queue.front()));
+    delete main_queue.front();
+#endif // USE_REGULAR_QUEUE
+    main_queue.pop(); //This just removes the pointer.
+    return next_point;
+  }
 }
 
 //template<class ET>
@@ -139,8 +150,8 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
 template<class SieveTraits>
 void GaussQueue<SieveTraits,false>::push(DataType && val)
 {
-    DataType * new_lp = new DataType (std::move(val) );
-    main_queue.push(new_lp);
+  DataType * new_lp = new DataType (std::move(val) );
+  main_queue.push(new_lp);
 }
 
 /*
@@ -213,5 +224,3 @@ template<class SieveTraits> GaussQueue<SieveTraits,false>::~GaussQueue()
 }
 
 #endif
-
-//clang-format on
