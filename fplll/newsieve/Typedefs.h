@@ -60,10 +60,10 @@ class DefaultSieveTraits
   public:
   using IsSieveTraitsClass = std::true_type;
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
-  using GaussList_StoredPoint   = MyLatticePoint<ET,nfixed>;
+  using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
-  using FastAccess_Point        = MyLatticePoint<ET,nfixed>;
+  using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
   using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
@@ -93,6 +93,7 @@ class GetSamplerTraits
 // lines are too long, clang-format destroys vertical alignment
 // clang-format off
 
+/*
 template <class ET, bool MT, int nfixed> using GaussSampler_ReturnType = MyLatticePoint<ET, nfixed>;
 
 template <class ET, bool MT, int nfixed> using GaussList_ReturnType    = MyLatticePoint<ET, nfixed>;
@@ -103,6 +104,7 @@ template <class ET, bool MT, int nfixed> using GaussQueue_DataType     = GaussQu
 
 // for a small number of lattice points that we need to access very often.
 template <class ET, bool MT, int nfixed> using FastAccess_Point        = MyLatticePoint<ET, nfixed>;
+*/
 
 // clang-format on
 };

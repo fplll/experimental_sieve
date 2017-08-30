@@ -62,6 +62,7 @@ class GaussQueue<SieveTraits,false>
 public:
     using DataType = typename SieveTraits::GaussQueue_DataType;    //Type of Data internally stored
     using RetType=   typename SieveTraits::GaussQueue_ReturnType;    //Type of Data returned
+    static_assert(is_same<DataType,RetType>::value, "Currently, DataType and RetType must be identical.");
     #ifndef USE_REGULAR_QUEUE
     // TODO: Make this one work (and actually a template argument)
     static_assert(false, "Only regular queue might work at the moment");
@@ -88,7 +89,7 @@ public:
 
     // allow pushing via pointer?
 
-    inline RetType true_pop(); //removes front element from queue *and returns it*.
+    inline auto true_pop() -> RetType; //removes front element from queue *and returns it*.
 
 private:
     QueueType main_queue;           //actual queue of lattice points to be processed.
