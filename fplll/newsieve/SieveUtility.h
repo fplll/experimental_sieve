@@ -196,7 +196,7 @@ public:
 // Z_NR - detection and modification...
 
 /**
-  Detects whether a class T is of the for Z_NR<ET> and allows to obtain ET.
+  Detects whether a class T is of the form Z_NR<ET> and allows to obtain ET.
 */
 
 template<class T> class IsZNRClass
@@ -224,7 +224,11 @@ public:
           If you want mpz_t, just use typename IsZNRClass<...>::GetUnderlyingType.
 
           Other types are unchanged.
+
+          Usage: using NewType = UnZNR<OldType>::type
 */
+
+
 
 template<class T> class UnZNR
 {

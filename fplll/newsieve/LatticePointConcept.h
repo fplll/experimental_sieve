@@ -58,13 +58,14 @@ template<class LatticePoint> struct LatticePointTraits
                      After calling sanitize(), the class will be in a valid state.
 
   AbsoluteCoos : Set to true_type to indicate that the class exposes an operator[] and that
-                 the entries are absolute coordinates.
+                 the entries are absolute coordinates (as opposed to e.g. coordiates wrt. some basis
+                 which is part of the class-wide data).
                  We assume that CoordinateAccess is set as well.
 
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
 
-  CheapNegate: Set to true_type to indicate that negation needs no normalize().
+  CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
 */
 
@@ -102,6 +103,12 @@ CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordina
 
 MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
 
+// Usage IsNegateCheap<PlainLatticePoint>::value
+// (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
+// also, IsNegateCheap<...> defaults to false
+// whereas LatticePointTraits<...>::... defaults to a compile-time error.
+
+
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
 template<class Impl=LatP, typename std::enable_if<HasCoos<Impl>::value,int>::type = 0>
 
@@ -123,8 +130,6 @@ template<class LatP>
 class GeneralLatticePoint
 {
     static_assert(!HasNoLPTraits<LatP>::value, "Trait class not specialized.");
-//    Does not work: We cannot access typedefs of our children directly (hence the traits class)
-//    static_assert(IsALatticePoint<LatP>::value,"Could not recognize lattice point class.");
     static_assert(HasScalarProductReturnType<LatP>::value,
                   "Lattice Point class does not typedef its scalar product type");
     public:
@@ -165,8 +170,6 @@ class GeneralLatticePoint
 
     static std::string class_name() {return "General Lattice Point.";};
 
-
-
 // comparison with < or > are by length (by default).
 // Note that == or != are intendend to mean actual equality comparisons,
 // so P1 <= P2 <= P1 does not imply P1==P2.
@@ -202,6 +205,7 @@ class GeneralLatticePoint
     // get_dim returns the (ambient) dimension the vector is supposed to represent.
     // By default, vec_size is the same as dim.
     // get_dim must be overloaded.
+
 
     MEMBER_ONLY_EXISTS_IF_COO_READ
     auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() )
@@ -281,7 +285,15 @@ class GeneralLatticePoint
 
       if( !IsNegateCheap<Impl>::value ) // constexpr if, really...
       {
-        REALTHIS->sanitize();
+        if(IsNorm2Cheap<Impl>::value)
+        {
+          REALTHIS->sanitize(CREALTHIS->get_norm2() );
+        }
+        else
+        {
+          REALTHIS->sanitize();
+        }
+
       }
 
       return;
@@ -380,7 +392,7 @@ class GeneralLatticePoint
     }
 
 /**
-  multiplies by a scalar (which is of integral type or mpz_class
+  multiplies by a scalar (which is of integral type or mpz_class)
 */
     template<class Integer, class Impl=LatP,
       typename std::enable_if<IsCooVector<Impl>::value && std::is_integral<Integer>::value,
@@ -416,7 +428,7 @@ template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::typ
 template<class LP1, class LP2, typename std::enable_if< \
          IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
 
-
+// TODO: Assert Traits!
 
 // default comparison is coordinate-wise.
 // Note: We allow comparing different types of lattice points.
@@ -452,6 +464,8 @@ bool operator!=(LP1 const &x1, LP2 const &x2)
 // dispatch to add / addval function.
 // This is done as non-member functions to simplify cases where we add different types of points.
 
+// addval(x1,x2) : x1+=x2;
+// add(x1,x2) : x1 + x2;
 
 // x1 += x2
 FOR_LATTICE_POINTS_LP1_LP2

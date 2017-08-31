@@ -79,23 +79,26 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
     */
 }
 
-/*
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 {
-    GaussSieve::GaussQueue_ReturnType<ET,false,nfixed> p;
+//    typename SieveTraits::GaussQueue_ReturnType p;
     int i=0;
 
     std::cout << "start 2-sieve " << std::endl;
 
     while (!check_if_done() )
     {
-        p = main_queue.true_pop();
+//        p = main_queue.true_pop();
 
         //convert here???
 
-        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
-        //Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
-        sieve_2_iteration(p_converted);
+//        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
+
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
+
+//        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
+assert(false);
+//        sieve_2_iteration(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
@@ -103,7 +106,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
         }
     }
 }
-*/
 
 
 
@@ -232,7 +234,7 @@ else if(count % 100 == 80)
 
 }
 
-//#include "SieveST2.cpp"
+#include "SieveST2.cpp"
 //#include "SieveST3.cpp"
 //#include "SieveSTk.cpp"
 

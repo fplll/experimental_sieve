@@ -26,7 +26,7 @@ namespace GaussSieve
 
 /**
   LatticeBasisType is the type used to represent lattice bases.
-  We support extracting GSO information and converting to PlainLatticePoints.
+  We support converting to PlainLatticePoints and extracting GSO information.
 */
 
 template<class SieveTraits, bool MT, bool Enabled=true> class SieveLatticeBasis;
@@ -204,8 +204,6 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
 
   private:
 
-  // Note that we are using unsigned int const types here, rather than
-  // MaybeFixed<...>
   InputBasisType original_basis;
   public:
   DimensionType const ambient_dimension;

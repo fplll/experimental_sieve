@@ -1,43 +1,63 @@
 // clang-format off
-using namespace std;
-using namespace fplll; //for now...
+//using namespace std;
+//using namespace fplll; //for now...
 /* DO NOT INCLUDE THIS FILE DIRECTLY
 */
 
-#include "Typedefs.h"
-#include "MyLatticePointClass.cpp"
+//#include "Typedefs.h"
+//#include "MyLatticePointClass.cpp"
 
 namespace GaussSieve{
 
 /*
  Assume ||p1|| > ||p2||
  */
-template<class ET,int nfixed>
-bool check2red (GaussSieve::FastAccess_Point<ET,false,nfixed> const &p1, GaussSieve::FastAccess_Point<ET,false,nfixed> const &p2, ET & scalar)
-{
 
+ /**
+  Checks whether we can perform a 2-reduction. Modifies scalar.
+ */
+template<SieveTraits>
+bool check2red (typename SieveTraits::FastAccess_Point const &p1,
+                typename SieveTraits::FastAccess_Point const &p2,
+                int & scalar)
+{
+  assert(!p2.is_zero());
+  using EntryType = typename SieveTraits::EntryType;
+  using std::abs;
+  using std::round;
+    /*
     ET sc_prod, abs_2scprod;
     sc_prod= compute_sc_product(p1, p2);
     abs_2scprod.mul_ui(sc_prod,2);
     abs_2scprod.abs(abs_2scprod);
+    */
+
+    EntryType const sc_prod = compute_sc_product(p1,p2);
+    EntryType const abs_2scprod = abs(sc_prod * 2);
 
     // check if |2 * <p1, p2>| <= |p2|^2. If yes, no reduction
     if (abs_2scprod <= p2.get_norm2())
         return false;
     //compute the multiple mult s.t. res = p1 \pm mult* p2;
     //mult = round ( <p1, p2> / ||p2||^2 )
-    FP_NR<double> mult, tmp;
-    mult.set_z(sc_prod); //conversions
-    tmp.set_z(p2.get_norm2());
 
-    mult.div(mult, tmp);
-    mult.rnd(mult);
+    double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
+    // TODO: Check over- / underflows.
+    scalar = mult;
+    return true;
 
-    scalar.set_f(mult); //convert back
+//    FP_NR<double> mult, tmp;
+//    mult.set_z(sc_prod); //conversions
+//    tmp.set_z(p2.get_norm2());
+
+//    mult.div(mult, tmp);
+//    mult.rnd(mult);
+//
+//    scalar.set_f(mult); //convert back
 
     //cout <<"check2red: scalar = " << scalar << endl;
 
-    return true;
+//    return true;
 
 }
 
