@@ -78,6 +78,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "PointListNew.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
+#include "LatticeBases.h"
 
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
@@ -117,8 +118,16 @@ public:
 
     using FastAccess_Point = typename SieveTraits::FastAccess_Point;
     using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>; //FIXME
-    using MainListType     = GaussListNew<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
-    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
+    using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+    using LatticeBasisType = SieveLatticeBasis<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+    using InputBasisType   = typename SieveTraits::InputBasisType;
+    using DimensionType    = typename SieveTraits::DimensionType;
+    using EntryType        = typename SieveTraits::EntryType;
+
+//    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
+
+
+
     //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;
     //using FilteredListType = std::vector<FilteredPoint<ET, float>>; //queue is also fine for our purposes; scalar products are not of type ET, two-templates; float for now; may be changed.
 
@@ -144,11 +153,13 @@ public:
 //    using FilteredListType2 = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2>, CompareFilteredPoint>;
 //    using FilteredListTypeP = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> *, CompareFilteredPoint>;
     //using FilteredListTest  =  std::map<char,int,classcomp>;
-    using TermCondType     = TerminationCondition<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed> *;
+
+    // Termination condition may be some class *derived from* this.
+    using TermCondType     = TerminationCondition<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
 
 public:
     /*FRIENDS */
-    friend GaussQueue<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>;
+    friend GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
     /*CONSTRUCTORS / DESTRUCTORS */
     Sieve() = delete;
     Sieve(Sieve const &old ) = delete;
@@ -157,9 +168,13 @@ public:
     Sieve & operator=(Sieve &&old) = delete; //neither movable nor copyable. (not movable due to mutexes)
 
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
-    explicit Sieve(LatticeBasisType B, unsigned int k=2, unsigned int num_threads=0, TermCondType const termcond = nullptr, unsigned int verbosity_=2, int seed_sampler = 0);
+    explicit Sieve( InputBasisType const & B, unsigned int const k=2,
+                    unsigned int const num_threads=0, TermCondType * const termcond = nullptr,
+                    unsigned int const verbosity_=2, int seed_sampler = 0);
     #else
-    explicit Sieve(LatticeBasisType B, unsigned int k=2, TermCondType const termcond = nullptr, unsigned int verbosity_=2, int seed_sampler = 0);
+    explicit Sieve( InputBasisType const & B, unsigned int const k=2,
+                    TermCondType * const termcond = nullptr, unsigned int const verbosity_=2,
+                    int seed_sampler = 0);
     #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //explicit Sieve(std::string const &infilename); //read from dump file.
     ~Sieve();
@@ -196,11 +211,11 @@ public:
 //getter / setter functions
 
     int get_verbosity() const                                   {return verbosity;};                //non-thread-safe
-    void set_verbosity(int new_verbosity)                       {verbosity=new_verbosity;return;};  //non-thread-safe
+    void set_verbosity(int const new_verbosity)                       {verbosity=new_verbosity;return;};  //non-thread-safe
     unsigned int get_lattice_rank() const                       {return lattice_rank;};             //non-thread-safe
-    Dimension<nfixed> get_ambient_dimension() const             {return ambient_dimension;};        //non-thread-safe
+    DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
-    void set_k(unsigned int new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
+    void set_k(unsigned int const new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
     bool is_multithreaded_wanted() const                        {return multi_threaded_wanted;};    //Note: No setter
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     void set_num_threads(unsigned int t);                                                            //non-thread safe, only call while suspended. In SieveMT.cpp
@@ -210,11 +225,12 @@ public:
     #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 
     bool update_shortest_vector_found(FastAccess_Point const & newvector);
-    LatticeBasisType const & get_original_basis()               {return original_basis;};
+    LatticeBasisType const & get_basis()                        {return lattice_basis;};
+    InputBasisType const & get_input_basis()                    {return original_basis;};
 //  LPType get_shortest_vector_found() const                    {return shortest_vector_found;}; //TODO: Thread-safety
     FastAccess_Point const & get_shortest_vector_found();
 //  ET get_best_length2() const                                 {return get_shortest_vector_found().norm2;};
-    ET get_best_length2();                                       //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
+    EntryType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
     bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
     unsigned long int get_number_of_collisions() const          {return number_of_collisions;};
     unsigned long int get_number_of_points_sampled() const      {return number_of_points_sampled;};
@@ -223,7 +239,8 @@ public:
     unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
     unsigned long long get_number_of_scprods_level1() const     {return number_of_total_scprods_level1;};
     //TODO:DO the same for all levels
-    void set_termination_condition(TermCondType termcond)       {term_cond = termcond;}; //TODO: If we default - initialize (and own in this case), may need to delete previous value.
+    [[deprecated]]
+    void set_termination_condition(TermCondType * const termcond)       {term_cond = termcond;}; //TODO: If we default - initialize (and own in this case), may need to delete previous value.
 private:
 
 //Use termination Condition to check whether we are done, based on statistics so far.
@@ -245,9 +262,10 @@ private:
 
 //information about lattice and algorithm we are using
 
-    LatticeBasisType original_basis;
+    InputBasisType original_basis;
+    LatticeBasisType lattice_basis;
     unsigned int lattice_rank;
-    Dimension<nfixed> ambient_dimension; //consider merging these into a latticespec struct.
+    DimensionType ambient_dimension; //consider merging these into a latticespec struct.
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     unsigned int num_threads_wanted;        //number of threads that we spawn
@@ -260,7 +278,7 @@ private:
 //            //TODO : Change term-cond to a user-provided function.
 //    TerminationConditions<ET> term_cond;
 private:
-    TermCondType term_cond;
+    TermCondType * term_cond;
     enum class SieveStatus
     {
         sieve_status_error  =  -1,      //indicates an error (add error codes as neccessary)
@@ -269,7 +287,10 @@ private:
         sieve_status_suspended=3,       //sieve is currently suspended. Useful for dumping / cleanup of internal data structures.
         sieve_status_finished=100       //sieve has finished
     } sieve_status; //thread safety?
-    FastAccess_Point *shortest_vector_found; //including its length //TODO: Thread-safety
+
+    // Note: This is a pointer for now due to initialization order issues.
+    // TODO: Create RAII class (this would actually solve several problems...)
+    FastAccess_Point * shortest_vector_found; //including its length //TODO: Thread-safety
 
 //statistics
 #if GAUSS_SIEVE_IS_MULTI_THREADED == false
@@ -303,9 +324,9 @@ private:
 //TODO: total time spent?
 };
 
-template class Sieve<fplll::Z_NR<long>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
-template class Sieve<fplll::Z_NR<double>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
-template class Sieve<fplll::Z_NR<mpz_t>,GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+//template class Sieve<fplll::Z_NR<long>,   GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+//template class Sieve<fplll::Z_NR<double>, GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
+//template class Sieve<fplll::Z_NR<mpz_t>,  GAUSS_SIEVE_IS_MULTI_THREADED,-1>;
 
 /*DUMPING / READING ROUTINES */
 

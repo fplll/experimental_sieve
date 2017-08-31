@@ -19,6 +19,7 @@
 #include <mutex>
 #include "DebugAll.h"
 #include "PlainLatticePoint.h"
+#include <iostream>
 
 namespace GaussSieve
 {
@@ -195,6 +196,11 @@ class SieveLatticeBasis< SieveTraits, MT,
   {
     assert(i<lattice_rank);
     return basis_vectors[i];
+  }
+
+  InputET_NOZNRFixed get_minkowski_bound() const
+  {
+    return 0;
   }
 
   private:

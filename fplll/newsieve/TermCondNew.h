@@ -57,8 +57,8 @@ template<class SieveTraits, bool MT> class TerminationCondition;
 template<class SieveTraits, bool MT> class NeverTerminationCondition;
 template<class SieveTraits, bool MT> class LengthTerminationCondition;
 template<class SieveTraits, bool MT> class MinkowskiTerminationCondition;
-template<class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond); //printing
-template<class SieveTraits, bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond); //reading (also used by constructor from istream)
+template<class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond); //printing
+template<class SieveTraits, bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond); //reading (also used by constructor from istream)
 
 enum class TerminationConditionType
 {

@@ -97,7 +97,7 @@ private:
 
 template <class SieveTraits, bool MT>
 class MinkowskiTerminationCondition
-    : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
+  final : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
 {
 public:
   using EntryType = typename SieveTraits::EntryType;

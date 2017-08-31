@@ -13,6 +13,9 @@
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr.h"
 #include "gmpxx.h"
+#include "ExactLatticePoint.h"
+#include "PlainLatticePoint.h"
+
 
 namespace GaussSieve
 {
@@ -61,6 +64,7 @@ class DefaultSieveTraits
   using IsSieveTraitsClass = std::true_type;
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
+  using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
   using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;

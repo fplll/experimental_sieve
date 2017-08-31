@@ -6,6 +6,7 @@
 namespace GaussSieve
 {
 
+/*
 inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const &basis)
 {
   assert(basis.get_rows() == basis.get_cols());  // Note : Alg might work even otherwise. This
@@ -51,6 +52,7 @@ inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const &basis)
   std::cout << "Mink. bound = " << Minkowski << std::endl;
   return Minkowski;
 }
+*/
 
 template <class SieveTraits, bool MT>
 inline int LengthTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTraits, MT> *const sieve)
@@ -67,7 +69,7 @@ inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTrai
 template <class SieveTraits, bool MT>
 inline void MinkowskiTerminationCondition<SieveTraits, MT>::init(Sieve<SieveTraits, MT> *const sieve)
 {
-  target_length = compute_mink_bound(sieve->get_original_basis());
+  target_length = sieve->get_basis().get_minkowski_bound();
 }
 
 }  // namespace

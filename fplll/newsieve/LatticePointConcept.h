@@ -523,7 +523,6 @@ LP operator*(LP &&x1, Integer const multiplier)
 // dispatch to sub/subval function
 
 FOR_LATTICE_POINTS_LP1_LP2
-
 LP1& operator-=(LP1 &x1, LP2 const &x2){ return subval(x1,x2); }
 
 FOR_LATTICE_POINTS_LP1_LP2

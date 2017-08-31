@@ -31,8 +31,8 @@
 //#include "LatticePointsNew.h"
 #include "Typedefs.h"
 #include <list>
-#include "MyLatticePointClass.cpp"
 #include "SieveUtility.h"
+#include "DebugAll.h"
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)
@@ -112,7 +112,7 @@ class GaussIteratorNew<SieveTraits,false>
     /*
     This is what dereferencing will give us (modulo cv - qualifiers)
     */
-    using DerefType  = typename GaussSieve::GaussList_ReturnType<ET,false,nfixed>; //without cv - spec.
+    using DerefType  = typename SieveTraits::GaussList_ReturnType; //without cv - spec.
 
     GaussIteratorNew () = delete; // ???
     GaussIteratorNew (GaussIteratorNew const & other) = default;

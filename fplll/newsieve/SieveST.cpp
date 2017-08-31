@@ -17,9 +17,10 @@ namespace GaussSieve{
 
 //class main_list;
 
-template<class ET,int nfixed> bool Sieve<ET,false,nfixed>::update_shortest_vector_found(FastAccess_Point const & newvector)
+template<class SieveTraits>
+bool Sieve<SieveTraits,false>::update_shortest_vector_found(FastAccess_Point const & newvector)
 {
-    if(newvector.norm2 < shortest_vector_found->norm2)
+    if(newvector < (*shortest_vector_found) )
     {
         delete shortest_vector_found;
         shortest_vector_found = new FastAccess_Point (newvector.make_copy());
@@ -28,17 +29,19 @@ template<class ET,int nfixed> bool Sieve<ET,false,nfixed>::update_shortest_vecto
     return false;
 }
 
-template<class ET,int nfixed> typename Sieve<ET,false,nfixed>::FastAccess_Point const & Sieve<ET,false,nfixed>::get_shortest_vector_found()
+template<class SieveTraits>
+typename Sieve<SieveTraits,false>::FastAccess_Point const & Sieve<SieveTraits,false>::get_shortest_vector_found()
 {
     return *shortest_vector_found;
 }
 
-template<class ET,int nfixed> ET Sieve<ET,false,nfixed>::get_best_length2()
+template<class SieveTraits>
+typename Sieve<SieveTraits,false>::EntryType Sieve<SieveTraits,false>::get_best_length2()
 {
-    return shortest_vector_found->norm2;
+    return shortest_vector_found->get_norm2();
 }
 
-template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
+template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 {
     if (verbosity >=2) std::cout << "the shortest vector in the input basis has norm2 = " << get_shortest_vector_found().get_norm2() << std::endl;
     //int MaxIteration = 8000;
@@ -60,7 +63,8 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
 
     switch (sieve_k)
     {
-        case 2: run_2_sieve(); break;
+      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
+//        case 2: run_2_sieve(); break;
         //case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
     }
@@ -75,8 +79,8 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
     */
 }
 
-
-template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
+/*
+template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 {
     GaussSieve::GaussQueue_ReturnType<ET,false,nfixed> p;
     int i=0;
@@ -99,6 +103,7 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
         }
     }
 }
+*/
 
 
 
@@ -227,7 +232,7 @@ else if(count % 100 == 80)
 
 }
 
-#include "SieveST2.cpp"
+//#include "SieveST2.cpp"
 //#include "SieveST3.cpp"
 //#include "SieveSTk.cpp"
 

@@ -19,6 +19,7 @@
 #include "Tests/TestBasisUtils.h"
 #include "Tests/TestShiSampler.h"
 #include "Tests/TestQueue.h"
+#include "Tests/TestList.h"
 
 // clang-reorder-guard
 #define ASSADGDGSDGKHSDLHEFOIEGFOIGFOSGFVOSGVFSAOPIGFASPOFGAPOFG
@@ -63,6 +64,12 @@ int main(int argc, char **argv)
   if (test_queue() )
   {
     std::cout << "Queue works as expected." << std::endl;
+  }
+
+  if (test_list() )
+    std::cout << "List works as expected." << std::endl;
+  {
+
   }
 
   return 0; // indicating success.

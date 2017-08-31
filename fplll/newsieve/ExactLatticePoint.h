@@ -13,6 +13,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include "PlainLatticePoint.h" // for conversions
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
@@ -139,6 +140,14 @@ public:
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
     assert(dim == get_dim());
 #endif
+  }
+
+// TODO: Debug output and validation.
+
+  explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
+  : data(std::move(plain_point.data))
+  {
+    sanitize();
   }
 
   ExactLatticePoint(ExactLatticePoint const &old) = delete;

@@ -15,6 +15,7 @@ namespace GaussSieve
 // most simple Lattice Point that just wraps around a vector / array of ET's.
 // dimension is static
 template <class ET, int nfixed> class PlainLatticePoint;
+template <class ET, int nfixed> class ExactLatticePoint; //for friend declaration
 
 template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, nfixed>>
 {
@@ -28,11 +29,13 @@ public:
   using CheapNegate             = std::true_type;
 };
 
+// for nfixed >=0 :
 template <class ET, int nfixed>
 class PlainLatticePoint : public GeneralLatticePoint<PlainLatticePoint<ET, nfixed>>
 {
   static_assert(nfixed >= 0);  // we have to specialize for nfixed==-1
 public:
+  friend ExactLatticePoint<ET,nfixed>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductReturnType = ET;
@@ -81,10 +84,12 @@ private:
   Container data;
 };
 
+// Specialization for nfixed==-1
 template <class ET>
 class PlainLatticePoint<ET, -1> : public GeneralLatticePoint<PlainLatticePoint<ET, -1>>
 {
 public:
+  friend ExactLatticePoint<ET,-1>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductReturnType = ET;
