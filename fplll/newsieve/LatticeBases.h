@@ -58,8 +58,7 @@ class SieveLatticeBasis
 // TODO: Make GSO object local to constructor.
 
 template<class SieveTraits, bool MT>
-class SieveLatticeBasis< SieveTraits, MT,
-                         IsZZMatClass<typename SieveTraits::InputBasisType>::value>
+class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORRECT
 {
   static_assert(IsZZMatClass<typename SieveTraits::InputBasisType>::value, ""); // should *never* happen.
   public:

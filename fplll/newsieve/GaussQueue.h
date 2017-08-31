@@ -84,7 +84,7 @@ public:
     bool empty() const  {return main_queue.empty();};
 
     //returns size of queue (used for diagnostics and statistics only)
-    auto size() const {return main_queue.size();};
+    long long size() const {return main_queue.size();}; //TODO: MAY BE MORE THAN LONGLONG
     void push(DataType const &val) = delete; //puts a copy of val in the queue : deleted
     inline void push(DataType && val);     //uses move semantics for that.
 

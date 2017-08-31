@@ -46,7 +46,7 @@ public:
   using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
   using ScalarProductReturnType = ET;
   using Container =
-      typename std::conditional<nfixed >= 0, std::array<ET, nfixed>,  // if nfixed >= 0
+    typename std::conditional<nfixed >= 0, std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                                 std::vector<ET>>::type;               // if nfixed <0
   static bool class_init(AuxDataType const aux_data)
   {
