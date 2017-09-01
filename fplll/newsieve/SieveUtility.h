@@ -184,7 +184,7 @@ public:
   using IsFixed_t  = std::true_type;
   constexpr MaybeFixed()         = default;
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  constexpr MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
+    MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
 #else
   constexpr Dimension(IgnoreArg<UIntClass const>){};
 #endif
@@ -297,7 +297,7 @@ template<class T> class IsZZMatClass
   public:
   using type = std::false_type;
   static bool constexpr value = false;
-  constexpr operator bool() {return value;}
+  operator bool() {return value;}
 };
 
 template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
@@ -305,7 +305,7 @@ template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
   public:
   using type = std::true_type;
   static bool constexpr value = true;
-  constexpr operator bool() {return true;}
+  operator bool() {return true;}
   using GetET = ET;
 };
 
@@ -318,7 +318,7 @@ template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
 template<class Source>
 double convert_to_double(Source const & source)
 {
-  static_assert(!std::is_same<Source,mpz_class>::value);
+  static_assert(!std::is_same<Source,mpz_class>::value, "Source is mpz_class");
   return static_cast<double>(source);
 }
 

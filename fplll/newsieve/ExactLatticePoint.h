@@ -89,14 +89,14 @@ public:
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
   {
-    static_assert(X == nfixed);
+    static_assert(X == nfixed, "");
     return MaybeFixed<nfixed>(nfixed);
   }
 
   FOR_VARIABLE_DIM
   static MaybeFixed<-1> get_dim()
   {
-    static_assert(nfixed == -1);
+    static_assert(nfixed == -1, "");
     return dim;
   }
 
@@ -133,7 +133,7 @@ public:
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : data(static_cast<unsigned int>(dim))
   {
-    static_assert(nfixed == -1);
+    static_assert(nfixed == -1, "");
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((ExactLatticePoint<ET, -1>::class_initialized));
 #endif

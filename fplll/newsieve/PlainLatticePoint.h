@@ -33,7 +33,7 @@ public:
 template <class ET, int nfixed>
 class PlainLatticePoint : public GeneralLatticePoint<PlainLatticePoint<ET, nfixed>>
 {
-  static_assert(nfixed >= 0);  // we have to specialize for nfixed==-1
+  static_assert(nfixed >= 0, "");  // we have to specialize for nfixed==-1
 public:
   friend ExactLatticePoint<ET,nfixed>;
   using LatticePointTag         = std::true_type;
@@ -42,7 +42,7 @@ public:
   using Container               = std::array<ET, nfixed>;
   static bool class_init(AuxDataType const aux_data)
   {
-    static_assert(aux_data == dim);
+    static_assert(aux_data == dim, "");
 // dim = aux_data;
 #ifdef DEBUG_SIEVE_LP_INIT
     class_initialized = true;
