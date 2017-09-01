@@ -225,7 +225,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
-    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
+    //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
     if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 

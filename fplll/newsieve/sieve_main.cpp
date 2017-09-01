@@ -83,6 +83,9 @@ int main(int argc, char **argv)
 {
   using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
     char *target_norm_string = NULL;
+    char* input_file_name = NULL;
+    bool flag_file = false;
+    
     int opt, dim = 10;
     Z_NR<mpz_t> target_norm;
     target_norm = 0;
@@ -95,13 +98,17 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    while ((opt = getopt(argc, argv, "d:t:k:")) != -1) {
+    while ((opt = getopt(argc, argv, "d:t:k:f:")) != -1) {
         switch (opt) {
             case 'd':
                 dim = atoi(optarg);
                 break;
             case 't':
                 target_norm_string = optarg;
+                break;
+            case 'f':
+                input_file_name = optarg;
+                flag_file = true;
                 break;
             case 'k':
                 k=atoi(optarg);
@@ -122,15 +129,22 @@ int main(int argc, char **argv)
 
     // ZZ_mat is an integer row-oriented matrix. See /nr/matrix.h
     ZZ_mat<mpz_t> B;
-
     B.resize(dim, dim);
-
-    //generates a lower-triangular matrix B; the argument determines (in a complicated way) the bit-size of entries
-    //B.gen_trg(1.1);
-
-    srand (1);
-    //generates GM lattice
-    B.gen_qary_prime(1, 10*dim);
+    
+    if (flag_file) {
+        ifstream input_file(input_file_name);
+        if (input_file.is_open()) {
+            cout << "reading B from file ..." << endl;
+            input_file >> B;
+            input_file.close();
+        }
+    }
+    else {
+        srand (1);
+        //generates GM lattice
+        B.gen_qary_prime(1, 10*dim);
+    }
+    
 
     //KleinSampler<ZT, F> is templated by two classes; returns NumVect<Z_NR<ZT> of dim = B.NumCols()
     //    KleinSampler<mpz_t, FP_NR<double>> *Sampler = new KleinSampler<mpz_t, FP_NR<double>>(B, 0, 234234);

@@ -211,7 +211,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
     double root_det =GSO.get_root_det(1, lattice_rank).get_d();
     double mink_bound_d = 0.074 * root_det * static_cast<double>(lattice_rank);
     mink_bound = static_cast<InputET_NOZNRFixed>(mink_bound_d);
-    //  std::cout << "mink_bound = " << mink_bound << std::endl;
+    std::cout << "mink_bound is det to:  " << mink_bound << std::endl;
 
   }
 
