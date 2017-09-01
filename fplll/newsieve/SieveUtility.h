@@ -178,17 +178,19 @@ public:
 
 template <int nfixed, class UIntClass> class MaybeFixed
 {
+static_assert(std::is_unsigned<UIntClass>::value,"MaybeFixed only works with unsigned types.");
+static_assert(nfixed>=0,"nfixed negative and / or wrong specialization used.");
 public:
-  using typee = UIntClass;
+  using type = UIntClass;
   static constexpr bool IsFixed = true;
   using IsFixed_t  = std::true_type;
   constexpr MaybeFixed()         = default;
-#ifdef DEBUG_SIEVE_LP_MATCHDIM
-    MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
-#else
-  constexpr Dimension(IgnoreArg<UIntClass const>){};
-#endif
-  //    Dimension(unsigned int){};
+//#ifdef DEBUG_SIEVE_LP_MATCHDIM
+//  constexpr  MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
+//#else
+  template<class Integer, typename std::enable_if<std::is_integral<Integer>::value,int>::type =0>
+  constexpr MaybeFixed(Integer const){};
+//#endif
   inline constexpr operator UIntClass() const { return nfixed; };
   static constexpr unsigned int value = nfixed;
 };

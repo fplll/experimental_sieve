@@ -82,13 +82,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
   bool loop = true;
 
   auto it_comparison_flip=main_list.cend(); //used to store the point where the list elements become larger than p.
-  auto it = main_list.cbegin();
+//  auto it = main_list.cbegin();
 
   while (loop) //while p keeps changing
   {
     loop = false;
 
-    for (it = main_list.cbegin(); it!=main_list.cend(); ++it)
+    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
     {
 
       if (p  < (*it) )
@@ -131,9 +131,10 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     main_list.insert_before(it_comparison_flip, p.make_copy() );
     ++current_list_size; // TODO: Manage by list and / or guard by DEBUGS.
 
-    it = it_comparison_flip;
+//    it = it_comparison_flip;
 
-    while( it!=main_list.cend() )
+//    while( it!=main_list.cend() )
+    for(auto it = it_comparison_flip; ; it!=main_list.cend() ) //++it done in body of loop
     {
 
       ++number_of_total_scprods_level1;
@@ -143,36 +144,34 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       {
 //        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
 //        v_new = perform2red(*it, p, scalar );
+
+// TODO: We can move the collision counting to the very beginning of the first loop.
+// and steal *it here for the new point.
+// This requires the sampler to never output 0.
+
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
 
         //cout << "new v of norm = " << v_new.get_norm2() << endl << flush;
 
-        if (v_new.is_zero() )
+        if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
           //cout << "collision on v_new " << endl;
           number_of_collisions++;
-          ++it;
-          continue;
+//          ++it;
+//          continue;
         }
-                /*
-                //TODO: Must convert to GaussQueue_DataType ??
-                main_queue.push(std::move(v_new));
-                 */
-        it = main_list.erase(it); // This increments the iterator in the sense that it point to the next element now.
+        main_queue.push(std::move(v_new));
 
-        // I do not understand this -- Gotti
-        if (it!=main_list.cend())
-          --current_list_size;
+        // This increments the iterator in the sense that its point to the next element now,
+        // effectively doubling as a ++it;
+        it = main_list.erase(it);
+        --current_list_size;
 
-            //++it;
       }
-
-      else
+      else // no reduction.
       {
         ++it;
       }
-
-
     }
 
 
@@ -184,8 +183,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
-
-
 
 /*
         OLD IMPLEMENTATION
@@ -302,4 +299,4 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 
 //clang-format on
 
-}
+} // End namespace

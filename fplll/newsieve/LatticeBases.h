@@ -107,7 +107,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
       basis_vectors[i] = make_from_znr_vector<BasisVectorType>(input_basis[i], ambient_dimension);
     }
     maxbistar2=GSO.get_max_bstar().get_d();
-      
+
     compute_minkowski_bound(GSO);
   }
 
@@ -212,9 +212,9 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
     double mink_bound_d = 0.074 * root_det * static_cast<double>(lattice_rank);
     mink_bound = static_cast<InputET_NOZNRFixed>(mink_bound_d);
     //  std::cout << "mink_bound = " << mink_bound << std::endl;
-      
+
   }
-    
+
   InputET_NOZNRFixed get_minkowski_bound() const
   {
     return mink_bound;
@@ -228,13 +228,14 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   uint_fast16_t const lattice_rank;      // Technically, just number of vectors.
                                   // We don't verify linear independence ourselves.
                                   // (even though GSO computation does, probably)
-  InputET_NOZNRFixed mink_bound;
   private:
 //  fplll::Matrix<InputET> u, u_inv; //, g;
 //  fplll::MatGSO<InputET, fplll::FP_NR<double>> GSO;
   // precomputed on demand:
   std::vector<std::vector<double>> mu_matrix;
   std::vector<std::vector<InputET_NOZNRFixed>> g_matrix;
+  InputET_NOZNRFixed mink_bound;
+
   // Note: We use a dynamically allocated array here rather than std::vector.
   // The reason is that PlainLatticePoint<...> might contain static data that needs to be set
   // before we (even default-) construct any PlainLatticePoint.
