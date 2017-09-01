@@ -163,6 +163,32 @@ public:
 
   ET get_norm2() const { return norm2; }
 
+
+  ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
+  {
+  ET res1 = 0;
+  ET res2 = 0;
+  ET res3 = 0;
+  ET res4 = 0;
+  uint_fast16_t dim = get_dim();
+  for(uint_fast16_t i=0; i < (dim/4) * 4;i+=4)
+  {
+    res1 += lp1[i+0] * lp2[i+0];
+    res2 += lp1[i+1] * lp2[i+1];
+    res3 += lp1[i+2] * lp2[i+2];
+    res4 += lp1[i+3] * lp2[i+3];
+  }
+  for(uint_fast8_t i= (dim/4) * 4; i < dim; ++i)
+  {
+    res1+= lp1[i] * lp2[i];
+  }
+  res1+=res2;
+  res1+=res3;
+  res1+=res4;
+  return res1;
+  }
+
+
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
 #ifdef DEBUG_SIEVE_LP_INIT
