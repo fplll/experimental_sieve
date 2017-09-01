@@ -76,7 +76,7 @@ latsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
 # newlatsieve bin
 newlatsieve_SOURCES=newsieve/sieve_main.cpp
 newlatsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
-newlatsieve_CXXFLAGS=-pthread $(AM_CXXFLAGS)
+newlatsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 
 #testsieve bin
 testsieve_SOURCES=newsieve/test_newsieve.cpp
