@@ -1,5 +1,3 @@
-// clang-format off
-
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
 
@@ -98,12 +96,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
         typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
 
 //        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
-assert(false);
-//        sieve_2_iteration(p);
+//        std::cout << p << std::endl << std::flush;
+        sieve_2_iteration(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl;
+            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
         }
     }
 }
@@ -241,4 +239,3 @@ else if(count % 100 == 80)
 
 #endif
 
-//clang-format on

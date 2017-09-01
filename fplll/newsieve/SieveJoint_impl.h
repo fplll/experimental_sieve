@@ -244,7 +244,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     main_queue.sampler->init(this, lattice_basis);
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
-
 };
 
 template<class SieveTraits>

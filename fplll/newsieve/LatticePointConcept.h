@@ -546,7 +546,8 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 const &x2)
 {
   LP1 tmp = std::move(x1);
-  return subval(tmp,x2);
+  subval(tmp,x2);
+  return tmp;
 }
 
 FOR_LATTICE_POINT_LP
@@ -554,14 +555,16 @@ LP operator-(LP const &x1, LP &&x2)
 {
   LP tmp = std::move(x2);
   tmp.make_negative();
-  return addval(tmp,x1);
+  addval(tmp,x1);
+  return tmp; //addval(tmp,x1);
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 && x2)
 {
   LP1 tmp = std::move(x1);
-  return subval(tmp,std::move(x2) );
+  subval(tmp,std::move(x2));
+  return tmp;
 }
 
 // dispatch to possible member function

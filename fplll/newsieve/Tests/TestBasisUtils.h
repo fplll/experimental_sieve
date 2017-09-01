@@ -67,6 +67,8 @@ bool test_basis_utils()
     std::cout << sieve_basis.get_basis_vector(i) << std::endl;
   }
 
+  std::cout << "Minkowski bound" << sieve_basis.get_minkowski_bound() << std::endl;
+
   return true;
 }
 
