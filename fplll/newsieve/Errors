@@ -1,0 +1,60 @@
+newsieve/SieveUtility.h: In constructor ‘GaussSieve::MaybeFixed<nfixed, UIntClass>::MaybeFixed(UIntClass)’:
+newsieve/SieveUtility.h:187:82: error: constexpr constructor does not have empty body
+   constexpr MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
+                                                                                  ^
+newsieve/SieveUtility.h: In function ‘double GaussSieve::convert_to_double(const Source&)’:
+newsieve/SieveUtility.h:317:55: error: expected ‘,’ before ‘)’ token
+   static_assert(!std::is_same<Source,mpz_class>::value);
+                                                       ^
+newsieve/SieveUtility.h:317:55: error: expected string-literal before ‘)’ token
+In file included from newsieve/ExactLatticePoint.h:16:0,
+                 from newsieve/Typedefs.h:16,
+                 from newsieve/GaussQueue.h:15,
+                 from newsieve/SieveJoint.h:72,
+                 from newsieve/SieveGauss.h:56,
+                 from newsieve/SieveGauss_main.h:11,
+                 from newsieve/sieve_main.cpp:18:
+newsieve/PlainLatticePoint.h: At global scope:
+newsieve/PlainLatticePoint.h:36:28: error: expected ‘,’ before ‘)’ token
+   static_assert(nfixed >= 0);  // we have to specialize for nfixed==-1
+                            ^
+newsieve/PlainLatticePoint.h:36:28: error: expected string-literal before ‘)’ token
+newsieve/PlainLatticePoint.h: In static member function ‘static bool GaussSieve::PlainLatticePoint<ET, nfixed>::class_init(GaussSieve::PlainLatticePoint<ET, nfixed>::AuxDataType)’:
+newsieve/PlainLatticePoint.h:45:34: error: expected ‘,’ before ‘)’ token
+     static_assert(aux_data == dim);
+                                  ^
+newsieve/PlainLatticePoint.h:45:34: error: expected string-literal before ‘)’ token
+In file included from newsieve/Typedefs.h:16:0,
+                 from newsieve/GaussQueue.h:15,
+                 from newsieve/SieveJoint.h:72,
+                 from newsieve/SieveGauss.h:56,
+                 from newsieve/SieveGauss_main.h:11,
+                 from newsieve/sieve_main.cpp:18:
+newsieve/ExactLatticePoint.h: In static member function ‘static constexpr GaussSieve::MaybeFixed<nfixed> GaussSieve::ExactLatticePoint<ET, nfixed>::get_dim()’:
+newsieve/ExactLatticePoint.h:92:30: error: expected ‘,’ before ‘)’ token
+     static_assert(X == nfixed);
+                              ^
+newsieve/ExactLatticePoint.h:92:30: error: expected string-literal before ‘)’ token
+newsieve/ExactLatticePoint.h: In static member function ‘static GaussSieve::MaybeFixed<-1> GaussSieve::ExactLatticePoint<ET, nfixed>::get_dim()’:
+newsieve/ExactLatticePoint.h:99:31: error: expected ‘,’ before ‘)’ token
+     static_assert(nfixed == -1);
+                               ^
+newsieve/ExactLatticePoint.h:99:31: error: expected string-literal before ‘)’ token
+newsieve/ExactLatticePoint.h: In constructor ‘GaussSieve::ExactLatticePoint<ET, nfixed>::ExactLatticePoint(GaussSieve::MaybeFixed<nfixed>)’:
+newsieve/ExactLatticePoint.h:136:31: error: expected ‘,’ before ‘)’ token
+     static_assert(nfixed == -1);
+                               ^
+newsieve/ExactLatticePoint.h:136:31: error: expected string-literal before ‘)’ token
+newsieve/sieve_main.cpp: In function ‘int main(int, char**)’:
+newsieve/sieve_main.cpp:182:48: warning: ‘void GaussSieve::Sieve<SieveTraits, false>::set_termination_condition(GaussSieve::Sieve<SieveTraits, false>::TermCondType*) [with SieveTraits = GaussSieve::DefaultSieveTraits<__gmp_expr<__mpz_struct [1], __mpz_struct [1]>, false, -1>; GaussSieve::Sieve<SieveTraits, false>::TermCondType = GaussSieve::TerminationCondition<GaussSieve::DefaultSieveTraits<__gmp_expr<__mpz_struct [1], __mpz_struct [1]>, false, -1>, false>]’ is deprecated [-Wdeprecated-declarations]
+  Test_2Sieve.set_termination_condition(termcond);
+                                                ^
+In file included from newsieve/SieveGauss.h:56:0,
+                 from newsieve/SieveGauss_main.h:11,
+                 from newsieve/sieve_main.cpp:18:
+newsieve/SieveJoint.h:243:10: note: declared here
+     void set_termination_condition(TermCondType * const termcond)       {term_cond = termcond;}; //TODO: If we defau
+          ^
+Makefile:1299: recipe for target 'newsieve/newlatsieve-sieve_main.o' failed
+make: *** [newsieve/newlatsieve-sieve_main.o] Error 1
+
