@@ -33,6 +33,7 @@
 #include <list>
 #include "SieveUtility.h"
 #include "DebugAll.h"
+#include <type_traits>
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)
@@ -74,9 +75,12 @@ public:
     //This becomes really tricky if overwrite is allowed in multithreaded case.
 
     //no automatic copying: You can use insert_before(point.make_copy() );
+    //The issue is that copying should be explicit.
     Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;
-    Iterator insert_before(Iterator pos, StoredPoint && val)
-    {return static_cast<Iterator> (actual_list.emplace(pos.it, std::move(val))); };
+
+    template<class LatticePoint, typename std::enable_if<IsALatticePoint<LatticePoint>::value,int>::type =0 >
+    Iterator insert_before(Iterator pos, LatticePoint && val)
+    {return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
 
     /*Iterator insert_before_give_ownership(Iterator pos, DetailType * const val) = delete;  //TODO
     Iterator insert_before(Iterator pos, DataType const & val) =  delete; //TODO

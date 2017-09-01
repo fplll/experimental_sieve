@@ -63,10 +63,11 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 
     switch (sieve_k)
     {
-      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
-//        case 2: run_2_sieve(); break;
+//      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
+        case 2: run_2_sieve(); break;
         //case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
+        default: assert(false);
     }
     sieve_status = SieveStatus::sieve_status_finished;
 

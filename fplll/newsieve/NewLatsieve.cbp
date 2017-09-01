@@ -41,6 +41,7 @@
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
+		<Unit filename="Tests/TestList.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
 		<Unit filename="Tests/TestPlainLatticePoint.h" />

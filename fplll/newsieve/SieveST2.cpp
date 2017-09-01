@@ -16,10 +16,12 @@ namespace GaussSieve{
  /**
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
-template<SieveTraits>
+template<class SieveTraits, class Integer, typename std::enable_if<
+  std::is_integral<Integer>::value
+  ,int>::type =0 >
 bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
-                int & scalar)
+                Integer & scalar)
 {
   assert(!p2.is_zero());
   using EntryType = typename SieveTraits::EntryType;
@@ -61,107 +63,114 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
 }
 
-template<class ET,int nfixed>
-GaussSieve::FastAccess_Point<ET,false,nfixed> perform2red (GaussSieve::FastAccess_Point<ET,false,nfixed> const &p1, GaussSieve::FastAccess_Point<ET,false,nfixed> const &p2, ET const scalar)
+// Note: scalar changed from EntryType to int.
+template<class LatticePoint, class Integer, typename std::enable_if<
+  (IsALatticePoint<LatticePoint>::value) && (std::is_integral<Integer>::value)
+  ,int>::type =0 >
+LatticePoint perform2red (LatticePoint const &p1, LatticePoint const &p2, Integer const scalar)
 {
-    GaussSieve::FastAccess_Point<ET,false,nfixed> res;
-    res = scalar_mult<ET,nfixed>(p2, scalar);
-    res = sub(p1, res);
-    return res;
+//  typename SieveTraits::FastAccess_Point res;
+//  res = scalar_mult<ET,nfixed>(p2, scalar);
+//  res = sub(p1, res);
+  return p1 - (p2*scalar);
 }
 
 
-template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (GaussSieve::FastAccess_Point<ET,false,nfixed> &p)
+template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
 {
-    if (p.get_norm2() == 0) return;
-    bool loop = true;
+  if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
+  bool loop = true;
 
+  auto it_comparison_flip=main_list.cend(); //used to store the point where the list elements become larger than p.
+  auto it = main_list.cbegin();
 
-    typename MainListType::Iterator it_comparison_flip=main_list.cend();
-    typename MainListType::Iterator it = main_list.cbegin();
+  while (loop) //while p keeps changing
+  {
+    loop = false;
 
+    for (it = main_list.cbegin(); it!=main_list.cend(); ++it)
+    {
 
-    while (loop) {
-        loop = false;
+      if (p  < (*it) )
+      {
+        it_comparison_flip = it;
+        break;
+      }
 
-
-        for (it = main_list.cbegin(); it!=main_list.cend(); ++it)
-        {
-
-            if (p.get_norm2() < (*it).get_norm2())
-            {
-                it_comparison_flip = it;
-                break;
-            }
-
-            ++number_of_total_scprods_level1;
-            ET scalar;
-            if ( check2red(p, *it, scalar) )
-            {
-                p = perform2red(p, *it, scalar);
-
-                loop = true;
-                break;
-            }
-
-        }
+      ++number_of_total_scprods_level1;
+      int scalar;
+      if ( check2red(p, *it, scalar) )
+      {
+        p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
+        loop = true;
+        break;
+      }
 
     }
 
-    if (p.get_norm2() == 0)
+  }
+
+//p no longer changes. it_comparison_flip is iterator to first (shortest) element in the list that is longer than p.
+//If no such element exists, it_comparison_flip refers to after-the-end.
+    if (p.is_zero() )
     {
         number_of_collisions++;
         return;
     }
 
-
+// Changed, conversion done in insert_before.
+/*
     GaussSieve::FastAccess_Point<ET,false,nfixed> p_copy = p.make_copy();
 
     //convert FastAccess_Point to GaussList_StoredPoint
     GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p_copy));
 
     main_list.insert_before(it_comparison_flip, std::move(p_converted));
-    ++current_list_size;
+*/
 
-    it =it_comparison_flip;
+    main_list.insert_before(it_comparison_flip, p.make_copy() );
+    ++current_list_size; // TODO: Manage by list and / or guard by DEBUGS.
+
+    it = it_comparison_flip;
 
     while( it!=main_list.cend() )
     {
 
-        ++number_of_total_scprods_level1;
+      ++number_of_total_scprods_level1;
 
-        ET scalar;
-        if ( check2red(*it, p, scalar) )
+      int scalar;
+      if ( check2red(*it, p, scalar) )
+      {
+//        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
+//        v_new = perform2red(*it, p, scalar );
+        typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
+
+        //cout << "new v of norm = " << v_new.get_norm2() << endl << flush;
+
+        if (v_new.is_zero() )
         {
-
-
-                GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
-                v_new = perform2red(*it, p, scalar );
-
-                //cout << "new v of norm = " << v_new.get_norm2() << endl << flush;
-
-                if (v_new.get_norm2() == 0)
-                {
-                    //cout << "collision on v_new " << endl;
-                    number_of_collisions++;
-                    ++it;
-                    continue;
-                }
+          //cout << "collision on v_new " << endl;
+          number_of_collisions++;
+          ++it;
+          continue;
+        }
                 /*
                 //TODO: Must convert to GaussQueue_DataType ??
                 main_queue.push(std::move(v_new));
                  */
-                it = main_list.erase(it);
-                if (it!=main_list.cend())
-                --current_list_size;
+        it = main_list.erase(it); // This increments the iterator in the sense that it point to the next element now.
+
+        // I do not understand this -- Gotti
+        if (it!=main_list.cend())
+          --current_list_size;
 
             //++it;
-        }
+      }
 
-        else
-        {
-            ++it;
-        }
+      else
+      {
+        ++it;
+      }
 
 
     }
@@ -171,7 +180,7 @@ template<class ET, int nfixed> void Sieve<ET,false,nfixed>::sieve_2_iteration (G
      {
          if(verbosity>=2)
          {
-             cout << "New shortest vector found. Norm2 = " << get_best_length2() << endl;
+             std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
          }
      }
 }
