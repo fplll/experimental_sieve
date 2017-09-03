@@ -123,6 +123,8 @@ public:
     using InputBasisType   = typename SieveTraits::InputBasisType;
     using DimensionType    = typename SieveTraits::DimensionType;
     using EntryType        = typename SieveTraits::EntryType;
+    
+    //using FilteredListType = FilteredPointList<SieveTraits>;
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
 

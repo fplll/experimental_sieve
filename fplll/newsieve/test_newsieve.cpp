@@ -39,7 +39,7 @@ template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
     //Sieve<Z_NR<ZT>, false> Test_Queue (B);
     //Test_Queue.run_2_sieve();
 
-    ZZ_mat<ZT> BTest;
+    /*ZZ_mat<ZT> BTest;
     BTest.resize(dim, dim);
     //BTest.gen_trg(1.1);
     srand (1);
@@ -64,19 +64,11 @@ template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
     Test_Queue.print_status(-1,ofs);
 
 
-    ofs << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
+    ofs << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;*/
 }
 
-template <class Z> void sample_gaussians(int number, double s, double center, double cutoff)
-{
-    std::mt19937_64 engine;
-    for (int i=0; i<number;++i)
-    {
-        cout << GaussSieve::sample_z_gaussian<Z, std::mt19937_64>(s,center,engine, cutoff) << endl;
-    }
-}
 
-template <class ET,int nfixed>
+/*template <class ET,int nfixed>
 void TestMyLatticePointClass()
 {
     Dimension<-1> dim (10);
@@ -153,73 +145,16 @@ void TestMyLatticePointClass()
     test_pointA.write_to_stream(cout);
     test_point_copy.write_to_stream(cout);
 
-
-
-
-}
+}*/
 
 //template <class ZT>
 void test_2sieve()
 {
-    const int dim = 40;
-    ZZ_mat<mpz_t> BTest;
-    BTest.resize(dim, dim);
-    //BTest.gen_trg(1.1);
-    srand (1);
-    BTest.gen_qary_prime(1, 10*dim);
-
-    if (dim >= 60)
-        bkz_reduction(BTest, 8, BKZ_DEFAULT, FT_DEFAULT, 0);
-    else
-        lll_reduction(BTest, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER);
-
-    Sieve<Z_NR<mpz_t>, false> Test_2Sieve(BTest);
-
-    bool constexpr multithreaded = false;
-    TerminationCondition<Z_NR<mpz_t>,multithreaded> * termcond = new MinkowskiTerminationCondition<Z_NR<mpz_t>, multithreaded>;
-    Test_2Sieve.set_termination_condition(termcond);
-    Test_2Sieve.run();
 }
 
 int main(int argc, char **argv)
 {
-//sample_gaussians<long>(50, 10.0, 0.3, 4.0);
-//sample_gaussians<long>(50, 0.0000001, 0.48, 4.0); //should still be fast.
 
-//    PlainLatticePoint<Z_NR<mpz_t>,-1> X;
-
-    //TestMyLatticePointClass<Z_NR<mpz_t>, -1>();
-
-
-    test_2sieve();
-
-
-//        //int dim[] = {52, 54, 56, 58, 60, 62, 64};
-//        int dim = 62;
-//        int length = 7;
-//
-//    	#ifdef USE_REGULAR_QUEUE
-//        std::ofstream ofs("test_sieve_PQ_dim" +to_string(dim) + ".txt");
-//		ofs << "WITH PRIORITY QUEUE" << endl;
-//	#else
-//		std::ofstream ofs("test_sieve_dim"+to_string(dim) + ".txt");
-//		ofs << "WITH STANDARD QUEUE" << endl;
-//	#endif
-//	for (int i=0; i<length; i++) {
-//
-//
-//		ofs << "start sieve on lattice of dim = " << dim[i] << endl;
-//        	test_run_sieve<mpz_t>(dim[i], ofs);
-//		ofs << "----------------------------------------" << endl;
-//	}
-
-//    for (int i=0; i<1; i++)
-//    {
-//        ofs << "start sieve on lattice of dim =  " << dim << endl;
-//        test_run_sieve<mpz_t>(dim, ofs);
-//        ofs << "----------------------------------------" << endl;
-//    }
-//   ofs.close();
   return 1;
 }
 

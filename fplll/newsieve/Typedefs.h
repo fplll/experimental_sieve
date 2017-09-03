@@ -15,6 +15,7 @@
 #include "gmpxx.h"
 #include "ExactLatticePoint.h"
 #include "PlainLatticePoint.h"
+#include "FilteredPoint.h"
 
 
 namespace GaussSieve
@@ -71,6 +72,8 @@ class DefaultSieveTraits
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
   using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
+  
+  using FlilteredPoint          = FilteredPoint<ET, nfixed, ET>;
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type

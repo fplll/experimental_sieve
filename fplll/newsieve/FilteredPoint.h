@@ -11,21 +11,26 @@
 #ifndef _FilteredPoint_h
 #define _FilteredPoint_h
 
-#include "sieve_common.h"
-#include "LatticePoint2.h"
+#include "DebugAll.h"
+#include "SieveUtility.h"
+#include "PlainLatticePoint.h"
 
+
+template <class ET, int nfixed> class PlainLatticePoint;
 
 template <class ET, int nfixed, class SC> class FilteredPoint;
 
 template <class ET, int nfixed, class SC>
 class FilteredPoint
 {
-    public:
+public:
+    
+    using StoredPoint = PlainLatticePoint<ET, nfixed>;
 
-    FilteredPoint()=default;
-    FilteredPoint(const FilteredPoint &Point) = default; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
+    FilteredPoint()=delete;
+    FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
     FilteredPoint(FilteredPoint &&Point) = default ;
-    FilteredPoint(ApproxLatticePoint<ET, nfixed> x, SC sc, bool sign)
+    FilteredPoint(StoredPoint x, SC sc, bool sign)
     {
         this->point = x;
         this->sc_prod = sc;
@@ -33,21 +38,21 @@ class FilteredPoint
     }
 
 
-    FilteredPoint& operator=(FilteredPoint const &that) =default;
+    FilteredPoint& operator=(FilteredPoint const &that) =delete;
     FilteredPoint& operator=(FilteredPoint && that) =default;
 
 
     ~FilteredPoint() {}
 
 
-    inline PlainLatticePoint<ET, nfixed>  getApproxVector() const {return this->point;}
+    inline StoredPoint get_point() const {return this->point;}
     inline SC get_sc_prod() const {return sc_prod;}
     inline bool get_sign() const {return minus;}
 
 
 private:
     //members
-    PlainLatticePoint<ET, nfixed> point;
+    StoredPoint point;
 
     // always positive
     SC sc_prod;
