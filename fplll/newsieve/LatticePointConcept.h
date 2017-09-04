@@ -149,8 +149,9 @@ class GeneralLatticePoint
     GeneralLatticePoint(GeneralLatticePoint &&other)=default;
     GeneralLatticePoint& operator=(GeneralLatticePoint const & other) = delete;
     GeneralLatticePoint& operator=(GeneralLatticePoint && other) = default;
+    protected:
     ~GeneralLatticePoint()=default;
-
+    public:
 
 // This one should be overloaded by every derived class.
 // It is used to initalized the static data members.
