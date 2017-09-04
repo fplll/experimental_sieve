@@ -107,28 +107,24 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 }
 
 
-
-/*
-template<class ET>
-void Sieve<ET,false>::run_3_sieve()
+template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
-    LatticePoint<ET> p;
     int i=0;
     while (!check_if_done() )
     {
-        p=main_queue.true_pop();
-        //XXXXsieve_3_iteration_New_Pointer(p); //DOES NOT WORK
-        //sieve_3_iteration_new(p);
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+
         //sieve_3_iteration(p);
-        sieve_3_iteration_test(p);
+        //sieve_3_iteration_test(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-            cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << endl;
+             std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() <<  std::endl;
         }
     }
 }
 
+/*
 template<class ET>
 void Sieve<ET,false>::run_k_sieve()
 {
@@ -147,9 +143,6 @@ void Sieve<ET,false>::run_k_sieve()
 }
 */
 
-//
-// 3- Sieve is in new file now -- Gotti
-//
 
 //currently unused diagnostic code.
 /*

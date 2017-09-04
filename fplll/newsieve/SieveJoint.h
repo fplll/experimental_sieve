@@ -124,7 +124,7 @@ public:
     using DimensionType    = typename SieveTraits::DimensionType;
     using EntryType        = typename SieveTraits::EntryType;
     
-    //using FilteredListType = FilteredPointList<SieveTraits>;
+    using FilteredListType = typename SieveTraits::FilteredListType;
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
 
@@ -190,7 +190,7 @@ public:
     void run();                 //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
 
     void run_2_sieve(); //actually runs the Gauss Sieve with k=2
-    //void run_3_sieve(); //actually runs the Gauss Sieve with k=3
+    void run_3_sieve(); //actually runs the Gauss Sieve with k=3
     //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true

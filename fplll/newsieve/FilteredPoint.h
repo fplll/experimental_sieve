@@ -20,6 +20,11 @@ template <class ET, int nfixed> class PlainLatticePoint;
 
 template <class ET, int nfixed, class SC> class FilteredPoint;
 
+// Template parameters are:
+//  ET: entry type
+//  nfixed: indicates whether the dimension is fixed or not
+//  SC: scalar-product type
+
 template <class ET, int nfixed, class SC>
 class FilteredPoint
 {
@@ -57,7 +62,7 @@ private:
     // always positive
     SC sc_prod;
 
-    //true is sc_prod is correct for point
+    //true if sc_prod is correct for point
     // false if for -point
     bool minus;
 
