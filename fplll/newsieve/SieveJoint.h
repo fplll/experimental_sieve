@@ -199,7 +199,7 @@ public:
 //    void sieve_k_thread(int const thread_id);
     #else
     void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
-    //void sieve_3_iteration (LatticePoint<ET> &p); //one run through the main_list (of 3-sieve)
+    void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
     //void sieve_3_iteration_new (LatticePoint<ET> &p); //new run through the main_list (of 3-sieve) usign map for filtered_list
     //void sieve_3_iteration_test (LatticePoint<ET> &p);
     //void sieve_k_iteration (LatticePoint<ET> &p);

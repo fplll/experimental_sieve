@@ -18,7 +18,7 @@
 
 template <class ET, int nfixed> class PlainLatticePoint;
 
-template <class ET, int nfixed, class SC> class FilteredPoint;
+template <class ET, int nfixed, class EntryType> class FilteredPoint;
 
 // Template parameters are:
 //  ET: entry type
@@ -59,11 +59,11 @@ private:
     //members
     StoredPoint point;
 
-    // always positive
     SC sc_prod;
 
-    //true if sc_prod is correct for point
+    // true if sc_prod is correct for point
     // false if for -point
+    // not used
     bool minus;
 
 

@@ -74,7 +74,7 @@ class DefaultSieveTraits
   using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
   
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
-  using FlilteredPointType      = FilteredPoint<ET, nfixed, ET>;
+  using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
   using FilteredListType        = std::vector<FlilteredPointType>;
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,

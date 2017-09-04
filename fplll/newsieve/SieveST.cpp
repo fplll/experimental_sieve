@@ -227,7 +227,7 @@ else if(count % 100 == 80)
 }
 
 #include "SieveST2.cpp"
-//#include "SieveST3.cpp"
+#include "SieveST3.cpp"
 //#include "SieveSTk.cpp"
 
 #endif
