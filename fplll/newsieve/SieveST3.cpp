@@ -2,14 +2,18 @@
 
 namespace GaussSieve{
     
-// TODO: write what the function does
+// The function checks if
+//    || p \pm x1 \pm x2 || < || p ||
+// The first arguments is assumed to have the largest norm
+// The last three arguments are modified. They return the correct signs
     
 template<class SieveTraits >
 bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
                  typename SieveTraits::FastAccess_Point const &x1,
                  typename SieveTraits::Filtered_Point const &x2,
                  typename SieveTraits::EntryType const &px1,
-                 typename SieveTraits::EntryType const &x1x2)
+                 typename SieveTraits::EntryType const &x1x2,
+                 int &sgn1, int &sgn2, int &sgn3)
 {
         //retrieve the signs of the 3 inner-products;
         //they should satisfy (<p, x1>*<p, x2>*<x1, x2>) < 0
@@ -22,7 +26,40 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
     
     using EntryType = typename SieveTraits::EntryType;
     
+    //check if the there is a reduction assumming all <,> are negative -> all sgns are '+'
+    //no reduction if ||x_1 ||^2 +||x_2 ||^2 >= 2* ( <p, x1> + <p, x2>+ <x1,x2>)
+    if ( x1.get_norm2() + x2.get_point().get_norm2 >=
+        2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
+        return false;
     
+    // all good sign-configurations: (p+x1+x2), (p+x1-x2), (p-x1+x2), (-p+x1+x2)
+    if (x2.get_sc_prod() <0 && px1<0 && x1x2<0)
+    {
+        sgn1 = 1;
+        sgn2 = 1;
+        sgn3 = 1;
+    }
+    
+    if (x2.get_sc_prod() <0 && px1>0 && x1x2>0)
+    {
+        sgn1 = 1;
+        sgn2 = -1;
+        sgn3 = 1;
+    }
+    
+    if (x2.get_sc_prod() >0 && px1<0 && x1x2>0)
+    {
+        sgn1 = 1;
+        sgn2 = 1;
+        sgn3 = -1;
+    }
+    
+    if (x2.get_sc_prod() >0 && px1>0 && x1x2<0)
+    {
+        sgn1 = -1;
+        sgn2 = 1;
+        sgn3 = 1;
+    }
 
     return true;
 }
@@ -91,7 +128,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, (*filtered_list_it).get_point());
                 
-                if ( check_3red ( p, *it, *filtered_list_it, *sc_prod_px1,  *sc_prod_x1x2) )
+                int sgn1, sgn2;
+                
+                if ( check_3red ( p, *it, *filtered_list_it, *sc_prod_px1,  *sc_prod_x1x2, sgn1, sgn2) )
                 {
                     
                 }
