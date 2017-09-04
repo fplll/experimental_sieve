@@ -31,8 +31,9 @@
 //#include "LatticePointsNew.h"
 #include "Typedefs.h"
 #include <list>
-#include "MyLatticePointClass.cpp"
 #include "SieveUtility.h"
+#include "DebugAll.h"
+#include <type_traits>
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)
@@ -46,18 +47,18 @@
 namespace GaussSieve{
 
 //forward declarations
-template <class ET, bool MT, int n_fixed> class GaussListNew; //holds approximations
-template <class ET, bool MT, int n_fixed> class GaussIteratorNew;
+template <class SieveTraits, bool MT> class GaussListNew;
+template <class SieveTraits, bool MT> class GaussIteratorNew;
 
 
-template <class ET,int nfixed>
-class GaussListNew<ET, false, nfixed>
+template <class SieveTraits>
+class GaussListNew<SieveTraits, false>
 {
 public:
-    friend GaussIteratorNew<ET,false,nfixed>;
-    using StoredPoint = GaussSieve::GaussList_StoredPoint<ET,false,nfixed>;
+    friend GaussIteratorNew<SieveTraits,false>;
+    using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
     using UnderlyingContainer = std::list<StoredPoint>;
-    using Iterator = GaussIteratorNew<ET,false,nfixed>;
+    using Iterator = GaussIteratorNew<SieveTraits,false>;
 
     explicit GaussListNew() = default;
     GaussListNew(GaussListNew const & old) = delete;
@@ -66,15 +67,20 @@ public:
     GaussListNew & operator= (GaussListNew &&other) = delete;
     ~GaussListNew() = default; //FIXME: CHECK!!!
 
-    Iterator cbegin()                                                   {return static_cast<Iterator>(actual_list.begin()) ;};
-    Iterator cend()                                                     {return static_cast<Iterator>(actual_list.end());};
+    Iterator cbegin() { return static_cast<Iterator>(actual_list.begin()); };
+    Iterator cend()   { return static_cast<Iterator>(actual_list.end()); };
 
     //These functions insert (possibly a copy of val) into the list.
     //TODO: include ownership transfer semantics to avoid some copying, possibly include refcounts in LatticePoints.
     //This becomes really tricky if overwrite is allowed in multithreaded case.
 
-    Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;    //no copying
-    Iterator insert_before(Iterator pos, StoredPoint && val)                {return static_cast<Iterator> (actual_list.emplace(pos.it, std::move(val)));};
+    //no automatic copying: You can use insert_before(point.make_copy() );
+    //The issue is that copying should be explicit.
+    Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;
+
+    template<class LatticePoint, typename std::enable_if<IsALatticePoint<LatticePoint>::value,int>::type =0 >
+    Iterator insert_before(Iterator pos, LatticePoint && val)
+    {return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
 
     /*Iterator insert_before_give_ownership(Iterator pos, DetailType * const val) = delete;  //TODO
     Iterator insert_before(Iterator pos, DataType const & val) =  delete; //TODO
@@ -83,11 +89,11 @@ public:
     //Iterator insert_before(Iterator pos, DetailType && val)           {return actual_list.insert(pos,std::move(val));};
 
 
-    Iterator erase(Iterator pos)                                        {return static_cast<Iterator> (actual_list.erase(pos.it));}; //only for single-threaded
+    Iterator erase(Iterator pos) {return static_cast<Iterator> (actual_list.erase(pos.it));}; //only for single-threaded
     //void unlink(Iterator pos)=delete;     //MT only                              //{actual_list.erase(pos);};
 
     //TODO: Use aux_data, sort by calling comparison function
-    void sort()                                                         {actual_list.sort();};  //only for single-threaded (for now). Uses exact length.
+    void sort() {actual_list.sort();};  //only for single-threaded (for now).
 
 private:
     UnderlyingContainer actual_list;
@@ -95,22 +101,22 @@ private:
 
 //behaves like a const_iterator to approximate points.
 
-template <class ET,int nfixed>
-class GaussIteratorNew<ET,false,nfixed>
+template <class SieveTraits>
+class GaussIteratorNew<SieveTraits,false>
 {
-    friend GaussListNew<ET,false,nfixed>;
+    friend GaussListNew<SieveTraits,false>;
     public:
 
     /*
     What this class wraps around:
     */
-    using UnderlyingIterator = typename GaussListNew<ET,false,nfixed>::UnderlyingContainer::iterator; //non-const
-//    using CUnderlyingIterator= typename GaussList<ET,false,-1>::UnderlyingContainer::const_iterator; //const-version
+    using UnderlyingIterator = typename GaussListNew<SieveTraits,false>::UnderlyingContainer::iterator; //non-const
+    using CUnderlyingIterator= typename GaussListNew<SieveTraits,false>::UnderlyingContainer::const_iterator; //const-version
 
     /*
     This is what dereferencing will give us (modulo cv - qualifiers)
     */
-    using DerefType  = typename GaussSieve::GaussList_ReturnType<ET,false,nfixed>; //without cv - spec.
+    using DerefType  = typename SieveTraits::GaussList_ReturnType; //without cv - spec.
 
     GaussIteratorNew () = delete; // ???
     GaussIteratorNew (GaussIteratorNew const & other) = default;

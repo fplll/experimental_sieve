@@ -20,39 +20,64 @@
 #include "fplll/nr/nr.h"
 #include <random>
 #include <vector>
+#include "LatticeBases.h"
+#include "DebugAll.h"
 
 namespace GaussSieve
 {
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed> class ShiSampler;
+// forward declaration
+template <class SieveTraits, bool MT> class Sieve;
 
-template <class ET, bool MT, class Engine, class Sseq, int nfixed>
-class ShiSampler final : public Sampler<ET, MT, Engine, Sseq, nfixed>
+
+template <class SieveTraits, bool MT, class Engine, class Sseq> class ShiSampler;
+
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+class ShiSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
 {
 public:
+  using DimensionType = typename SieveTraits::DimensionType;
+  using EntryType     = typename SieveTraits::EntryType;
+  using RetType       = typename SieveTraits::GaussSampler_ReturnType;
+
+  // Note: Sampler::sieveptr is only initialized during Sampler::init.
+  // Consequently, some member fields will only be set during custom_init.
   explicit ShiSampler(Sseq &seq, double const _cutoff = 2.0)
-      : Sampler<ET, MT, Engine, Sseq, nfixed>(seq), dim(nfixed < 0 ? 0 : nfixed), cutoff(_cutoff){};
+      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false)
+      {
+        DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.")
+      };
   virtual SamplerType sampler_type() const override { return SamplerType::shi_sampler; };
-  virtual ~ShiSampler();
-  virtual inline typename GaussSieve::GaussSampler_ReturnType<ET, MT, nfixed>
-  sample(int thread = 0) override;
+  virtual ~ShiSampler()
+  {
+    if(initialized)
+    {
+      RetType::class_uninit();
+      SieveTraits::PlainPoint::class_uninit();
+    }
+  };
+  virtual inline RetType sample(int thread = 0) override;
 
 private:
-  inline virtual void custom_init() override;
-  fplll::ZZ_mat<typename ET::underlying_data_type> current_basis;
-  std::vector<MyLatticePoint<ET, nfixed>> helper_current_basis;  // TODO: Use different type
-  fplll::Matrix<fplll::FP_NR<double>> mu;
-
+  inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis) override;
+//  fplll::ZZ_mat<typename ET::underlying_data_type> current_basis;
+//  std::vector<MyLatticePoint<ET, nfixed>> helper_current_basis;  // TODO: Use different type
+  std::vector<std::vector<double>> mu_matrix; // copied from basis.
+//  fplll::Matrix<fplll::FP_NR<double>> mu;
   // stores standard dev. for each dimension, already squared and divided by pi.
   std::vector<double> s2pi;
   std::vector<double> maxdeviations;  // stores s*cutoff for each dimension.
-  Dimension<nfixed> dim;
-  unsigned int lattice_rank;
+  DimensionType dim;
+  uint_fast16_t lattice_rank;
   double cutoff;
+  bool initialized;
 
 protected:
-  using Sampler<ET, MT, Engine, Sseq, nfixed>::sieveptr;
-  using Sampler<ET, MT, Engine, Sseq, nfixed>::engine;
+  // bring into scope from parent
+  using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
+  using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
+  std::vector<typename SieveTraits::PlainPoint> basis;
+
   // TODO: Store basis in a different way.
   //    vector<MyLatticePoint> basis;
 };

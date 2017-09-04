@@ -12,6 +12,8 @@
 #include "assert.h"
 #include <array>
 #include <vector>
+#include <iostream>
+#include "PlainLatticePoint.h" // for conversions
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
@@ -26,13 +28,14 @@ template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
 public:
-  using AuxDataType             = Dimension<nfixed>;
+  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductReturnType = ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
   using AbsoluteCoos            = std::true_type;
   using CoordinateType          = ET;
   using CheapNorm2              = std::true_type;
+  using CheapNegate             = std::true_type;
 };
 
 template <class ET, int nfixed>
@@ -43,27 +46,57 @@ public:
   using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
   using ScalarProductReturnType = ET;
   using Container =
-      typename std::conditional<nfixed >= 0, std::array<ET, nfixed>,  // if nfixed >= 0
+    typename std::conditional<nfixed >= 0, std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                                 std::vector<ET>>::type;               // if nfixed <0
-  static void class_init(AuxDataType const aux_data)
+  static bool class_init(AuxDataType const aux_data)
   {
+    if(user_counter>0)
+    {
+      if(dim!=aux_data)
+      {
+#ifdef DEBUG_SIEVE_LP_INIT
+        assert(class_initialized);
+        std::cerr << "Warning: Class initialization failed for " << class_name()
+                  << std::endl << std::flush;
+#endif
+        return false;
+      }
+    }
 #ifdef DEBUG_SIEVE_LP_INIT
     class_initialized = true;
 #endif
+    ++user_counter;
     dim = aux_data;
+    return true;
   };
 
-  FOR_FIXED_DIM
-  static constexpr Dimension<nfixed> get_dim()
+  static bool class_uninit()
   {
-    static_assert(X == nfixed);
-    return Dimension<nfixed>(nfixed);
+#ifdef DEBUG_SIEVE_LP_INIT
+    assert(class_initialized);
+#endif
+    assert(user_counter>0);
+    --user_counter;
+#ifdef DEBUG_SIEVE_LP_INIT
+    if(user_counter==0)
+    {
+      class_initialized=false;
+    }
+#endif
+    return(user_counter==0);
+  }
+
+  FOR_FIXED_DIM
+  static constexpr MaybeFixed<nfixed> get_dim()
+  {
+    static_assert(X == nfixed, "");
+    return MaybeFixed<nfixed>(nfixed);
   }
 
   FOR_VARIABLE_DIM
-  static Dimension<-1> get_dim()
+  static MaybeFixed<-1> get_dim()
   {
-    static_assert(nfixed == -1);
+    static_assert(nfixed == -1, "");
     return dim;
   }
 
@@ -90,7 +123,7 @@ public:
 #endif
 
   FOR_FIXED_DIM
-  explicit ExactLatticePoint(Dimension<nfixed>)
+  explicit ExactLatticePoint(MaybeFixed<nfixed>)
   {
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((ExactLatticePoint<ET, nfixed>::class_initialized));
@@ -98,15 +131,23 @@ public:
   };
 
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint(Dimension<nfixed> dim) : data(static_cast<unsigned int>(dim))
+  explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : data(static_cast<unsigned int>(dim))
   {
-    static_assert(nfixed == -1);
+    static_assert(nfixed == -1, "");
 #ifdef DEBUG_SIEVE_LP_INIT
     assert((ExactLatticePoint<ET, -1>::class_initialized));
 #endif
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
     assert(dim == get_dim());
 #endif
+  }
+
+// TODO: Debug output and validation.
+
+  explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
+  : data(std::move(plain_point.data))
+  {
+    sanitize();
   }
 
   ExactLatticePoint(ExactLatticePoint const &old) = delete;
@@ -118,14 +159,42 @@ public:
   static std::string class_name() { return "Exact Lattice Point"; };
 
   void sanitize() { norm2 = compute_sc_product(*this, *this); }
+  void sanitize( ScalarProductReturnType const & new_norm2 ) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
 
+
+  ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
+  {
+  ET res1 = 0;
+  ET res2 = 0;
+  ET res3 = 0;
+  ET res4 = 0;
+  uint_fast16_t dim = get_dim();
+  for(uint_fast16_t i=0; i < (dim/4) * 4;i+=4)
+  {
+    res1 += lp1[i+0] * lp2[i+0];
+    res2 += lp1[i+1] * lp2[i+1];
+    res3 += lp1[i+2] * lp2[i+2];
+    res4 += lp1[i+3] * lp2[i+3];
+  }
+  for(uint_fast8_t i= (dim/4) * 4; i < dim; ++i)
+  {
+    res1+= lp1[i] * lp2[i];
+  }
+  res1+=res2;
+  res1+=res3;
+  res1+=res4;
+  return res1;
+  }
+
+
 private:
-  static Dimension<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
+  static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
+  static unsigned int user_counter;
   Container data;
   ET norm2;
 };
@@ -133,7 +202,10 @@ private:
 // initialize static data:
 
 template <class ET, int nfixed>
-Dimension<nfixed> ExactLatticePoint<ET, nfixed>::dim = Dimension<nfixed>(nfixed < 0 ? 0 : nfixed);
+MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
+
+template <class ET, int nfixed>
+unsigned int ExactLatticePoint<ET,nfixed>::user_counter = 0;
 
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool ExactLatticePoint<ET, nfixed>::class_initialized = false;

@@ -4,6 +4,7 @@
 #include "../MTPRNG.h"
 #include <vector>
 #include <iostream>
+#include <random>
 
 bool test_mtprng()
 {

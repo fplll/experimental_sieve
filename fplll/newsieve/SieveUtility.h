@@ -10,6 +10,12 @@
 #include <istream>
 #include <string>
 #include <type_traits>
+#include "fplll/defs.h"
+#include "fplll/gso.h"
+#include "fplll/nr/matrix.h"
+#include "fplll/nr/nr.h"
+#include "gmpxx.h"
+#include "gmp.h"
 
 /**
 This macro is used to test the presence of a (public) member typedef in a class
@@ -154,33 +160,177 @@ public:
   constexpr IgnoreArg() = default;
 };
 
-template <int nfixed = -1> class Dimension;
+template <int nfixed = -1, class UIntClass = unsigned int> class MaybeFixed;
 
-template <> class Dimension<-1>
+template <class UIntClass> class MaybeFixed<-1,UIntClass>
 {
+static_assert(std::is_unsigned<UIntClass>::value,"MaybeFixed only works with unsigned types.");
 public:
   static constexpr bool IsFixed = false;
-  constexpr Dimension(unsigned int const new_dim) : dim(new_dim){};
-  Dimension() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
+  using IsFixed_t  = std::false_type;
+  using type = UIntClass;
+  constexpr MaybeFixed(UIntClass const new_val) : value(new_val){};
+  MaybeFixed() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
                           // that we want the same interface in both cases.
-  inline operator unsigned int() const { return dim; };
-  unsigned int dim;
+  inline operator UIntClass() const { return value; };
+  UIntClass value;
 };
 
-template <int nfixed> class Dimension
+template <int nfixed, class UIntClass> class MaybeFixed
+{
+static_assert(std::is_unsigned<UIntClass>::value,"MaybeFixed only works with unsigned types.");
+static_assert(nfixed>=0,"nfixed negative and / or wrong specialization used.");
+public:
+  using type = UIntClass;
+  static constexpr bool IsFixed = true;
+
+  using IsFixed_t  = std::true_type;
+  constexpr MaybeFixed()         = default;
+//#ifdef DEBUG_SIEVE_LP_MATCHDIM
+//  constexpr  MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
+//#else
+  template<class Integer, typename std::enable_if<std::is_integral<Integer>::value,int>::type =0>
+  constexpr MaybeFixed(Integer const){};
+//#endif
+  inline constexpr operator UIntClass() const { return nfixed; };
+  static constexpr unsigned int value = nfixed;
+};
+
+// Z_NR - detection and modification...
+
+/**
+  Detects whether a class T is of the form Z_NR<ET> and allows to obtain ET.
+*/
+
+template<class T> class IsZNRClass
 {
 public:
-  static constexpr bool IsFixed = true;
-  constexpr Dimension()         = default;
-#ifdef DEBUG_SIEVE_LP_MATCHDIM
-    Dimension(unsigned int const new_dim) { assert(new_dim == nfixed); }
-#else
-  constexpr Dimension(IgnoreArg<unsigned int const>){};
-#endif
-  //    Dimension(unsigned int){};
-  inline constexpr operator unsigned int() const { return nfixed; };
-  static constexpr unsigned int dim = nfixed;
+  using type = std::false_type;
+  static bool constexpr value = false;
+  constexpr operator bool() const { return false; };
 };
+
+template<class T> class IsZNRClass<fplll::Z_NR<T>>
+{
+public:
+  using type = std::true_type;
+  static bool constexpr value = true;
+  constexpr operator bool() const { return true; };
+  using GetUnderlyingType = T;
+};
+
+/**
+  Turns a Z_NR<long> into a long,
+          Z_NR<double> into a double and
+          Z_NR<mpz_t> into a mpz_class.
+          The latter conversion is to get an arithmetic type that supports +, *, etc.
+          If you want mpz_t, just use typename IsZNRClass<...>::GetUnderlyingType.
+
+          Other types are unchanged.
+
+          Usage: using NewType = UnZNR<OldType>::type
+*/
+
+
+
+template<class T> class UnZNR
+{
+  public: using type = T;
+};
+
+template<> class UnZNR<fplll::Z_NR<long>>
+{
+  public: using type = long;
+};
+
+template<> class UnZNR<fplll::Z_NR<double>>
+{
+  public: using type = double;
+};
+
+template<> class UnZNR<fplll::Z_NR<mpz_t>>
+{
+  public: using type = mpz_class;
+};
+
+/**
+  Turns T into Z_NR<T>
+  mpz_class is turned into Z_NR<mpz_t>
+*/
+
+template<class T> class AddZNR
+{
+  static_assert(std::is_same<T,long>::value || std::is_same<T,double>::value,
+                "Unsupported type for ZNR");
+  public: using type = fplll::Z_NR<T>;
+};
+
+template<> class AddZNR<mpz_t>
+{
+  public: using type = fplll::Z_NR<mpz_t>;
+};
+
+template<> class AddZNR<mpz_class>
+{
+  public: using type = fplll::Z_NR<mpz_t>;
+};
+
+/**
+  Turns mpz_class into mpz_t
+  Other classes are unchanged.
+*/
+
+template<class T> class FixZNR
+{
+  public: using type = T;
+};
+
+template<> class FixZNR<mpz_class>
+{
+  public: using type = mpz_t;
+};
+
+/**
+  Detects whether T is of the form T = ZZ_mat<ET>
+  and allows to recover ET.
+*/
+
+template<class T> class IsZZMatClass
+{
+  public:
+  using type = std::false_type;
+  static bool constexpr value = false;
+  operator bool() {return value;}
+};
+
+template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
+{
+  public:
+  using type = std::true_type;
+  static bool constexpr value = true;
+  operator bool() {return true;}
+  using GetET = ET;
+};
+
+/**
+  Conversion to double
+*/
+
+//template<class Source> double convert_to_double(Source const & source);
+
+template<class Source>
+double convert_to_double(Source const & source)
+{
+  static_assert(!std::is_same<Source,mpz_class>::value, "Source is mpz_class");
+  return static_cast<double>(source);
+}
+
+double convert_to_double(mpz_class const & source)
+{
+  return source.get_d();
+}
+
+
 
 /**
 string_consume(is, str, elim_ws, verbose) reads from stream is.

@@ -7,15 +7,15 @@
 
 bool test_maybe_fixed_int()
 {
-  using GaussSieve::Dimension;
-  Dimension<-1> n1; n1=2;
-  Dimension<-1> n12{2};
-  Dimension<-1> n13(2);
-  Dimension<-1> n2 = 3;
+  using GaussSieve::MaybeFixed;
+  MaybeFixed<-1> n1; n1=2;
+  MaybeFixed<-1> n12{2};
+  MaybeFixed<-1> n13(2);
+  MaybeFixed<-1> n2 = 3;
   n13 = n2;
-  Dimension<3> n3;
-  Dimension<4> n4;
-  Dimension<3> n33;
+  MaybeFixed<3> n3;
+  MaybeFixed<4> n4;
+  MaybeFixed<3> n33;
 
   assert(n1==n12);
   assert(! (n1!= n12));

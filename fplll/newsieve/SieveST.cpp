@@ -1,5 +1,3 @@
-// clang-format off
-
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
 
@@ -17,9 +15,10 @@ namespace GaussSieve{
 
 //class main_list;
 
-template<class ET,int nfixed> bool Sieve<ET,false,nfixed>::update_shortest_vector_found(FastAccess_Point const & newvector)
+template<class SieveTraits>
+bool Sieve<SieveTraits,false>::update_shortest_vector_found(FastAccess_Point const & newvector)
 {
-    if(newvector.norm2 < shortest_vector_found->norm2)
+    if(newvector < (*shortest_vector_found) )
     {
         delete shortest_vector_found;
         shortest_vector_found = new FastAccess_Point (newvector.make_copy());
@@ -28,17 +27,19 @@ template<class ET,int nfixed> bool Sieve<ET,false,nfixed>::update_shortest_vecto
     return false;
 }
 
-template<class ET,int nfixed> typename Sieve<ET,false,nfixed>::FastAccess_Point const & Sieve<ET,false,nfixed>::get_shortest_vector_found()
+template<class SieveTraits>
+typename Sieve<SieveTraits,false>::FastAccess_Point const & Sieve<SieveTraits,false>::get_shortest_vector_found()
 {
     return *shortest_vector_found;
 }
 
-template<class ET,int nfixed> ET Sieve<ET,false,nfixed>::get_best_length2()
+template<class SieveTraits>
+typename Sieve<SieveTraits,false>::EntryType Sieve<SieveTraits,false>::get_best_length2()
 {
-    return shortest_vector_found->norm2;
+    return shortest_vector_found->get_norm2();
 }
 
-template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
+template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 {
     if (verbosity >=2) std::cout << "the shortest vector in the input basis has norm2 = " << get_shortest_vector_found().get_norm2() << std::endl;
     //int MaxIteration = 8000;
@@ -60,9 +61,11 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
 
     switch (sieve_k)
     {
+//      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
         case 2: run_2_sieve(); break;
         //case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
+        default: assert(false);
     }
     sieve_status = SieveStatus::sieve_status_finished;
 
@@ -75,54 +78,53 @@ template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run()
     */
 }
 
-
-template<class ET,int nfixed> void Sieve<ET,false,nfixed>::run_2_sieve()
+template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 {
-    GaussSieve::GaussQueue_ReturnType<ET,false,nfixed> p;
+//    typename SieveTraits::GaussQueue_ReturnType p;
     int i=0;
 
     std::cout << "start 2-sieve " << std::endl;
 
     while (!check_if_done() )
     {
-        p = main_queue.true_pop();
+//        p = main_queue.true_pop();
 
         //convert here???
 
-        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
-        //Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
-        sieve_2_iteration(p_converted);
+//        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
+
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
+
+//        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
+//        std::cout << p << std::endl << std::flush;
+        sieve_2_iteration(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl;
+            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
         }
     }
 }
 
 
-
-/*
-template<class ET>
-void Sieve<ET,false>::run_3_sieve()
+template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
-    LatticePoint<ET> p;
     int i=0;
     while (!check_if_done() )
     {
-        p=main_queue.true_pop();
-        //XXXXsieve_3_iteration_New_Pointer(p); //DOES NOT WORK
-        //sieve_3_iteration_new(p);
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+
         //sieve_3_iteration(p);
-        sieve_3_iteration_test(p);
+        //sieve_3_iteration_test(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-            cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << endl;
+             std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() <<  std::endl;
         }
     }
 }
 
+/*
 template<class ET>
 void Sieve<ET,false>::run_k_sieve()
 {
@@ -141,9 +143,6 @@ void Sieve<ET,false>::run_k_sieve()
 }
 */
 
-//
-// 3- Sieve is in new file now -- Gotti
-//
 
 //currently unused diagnostic code.
 /*
@@ -228,9 +227,8 @@ else if(count % 100 == 80)
 }
 
 #include "SieveST2.cpp"
-//#include "SieveST3.cpp"
+#include "SieveST3.cpp"
 //#include "SieveSTk.cpp"
 
 #endif
 
-//clang-format on

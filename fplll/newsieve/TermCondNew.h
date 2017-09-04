@@ -53,12 +53,12 @@
 
 namespace GaussSieve{
 
-template<class ET, bool MT, int nfixed=-1> class TerminationCondition;
-template<class ET, bool MT, int nfixed=-1> class NeverTerminationCondition;
-template<class ET, bool MT, int nfixed=-1> class LengthTerminationCondition;
-template<class ET, bool MT, int nfixed=-1> class MinkowskiTerminationCondition;
-template<class ET, bool MT, int nfixed=-1> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond); //printing
-template<class ET, bool MT, int nfixed=-1> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond); //reading (also used by constructor from istream)
+template<class SieveTraits, bool MT> class TerminationCondition;
+template<class SieveTraits, bool MT> class NeverTerminationCondition;
+template<class SieveTraits, bool MT> class LengthTerminationCondition;
+template<class SieveTraits, bool MT> class MinkowskiTerminationCondition;
+template<class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond); //printing
+template<class SieveTraits, bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond); //reading (also used by constructor from istream)
 
 enum class TerminationConditionType
 {
@@ -68,16 +68,16 @@ enum class TerminationConditionType
     minkowski_condition =3
 };
 
-template<class ET, bool MT, int nfixed> class Sieve;
+template<class SieveTraits,bool MT> class Sieve;
 
-template<class ET,bool MT, int nfixed> class TerminationCondition
+template<class SieveTraits,bool MT> class TerminationCondition
 {
     public:
-    friend std::ostream & operator<< <ET,MT,nfixed>(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond);
-    friend std::istream & operator>> <ET,MT,nfixed>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond);
-    virtual void init(Sieve<ET,MT,nfixed> * const sieve) {};     //TODO: Fix const-correctness. Problem is with cbegin() from main_list, really...
-    virtual int check(Sieve<ET,MT,nfixed> * const sieve) = 0;
-    virtual int check_vec(Sieve<ET,MT,nfixed> * const sieve, ET const & length2) = 0;
+    friend std::ostream & operator<< <SieveTraits,MT>(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond);
+    friend std::istream & operator>> <SieveTraits,MT>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond);
+    virtual void init(Sieve<SieveTraits,MT> * const sieve) {};     //TODO: Fix const-correctness. Problem is with cbegin() from main_list, really...
+    virtual int check(Sieve<SieveTraits,MT> * const sieve) = 0;
+    virtual int check_vec(Sieve<SieveTraits,MT> * const sieve, typename SieveTraits::EntryType const & length2) = 0;
     virtual ~TerminationCondition()=0; //needs to be virtual
     virtual bool is_simple() const {return false;};
     virtual TerminationConditionType  termination_condition_type() const {return TerminationConditionType::user_defined;};    //run-time type information.
@@ -92,10 +92,10 @@ template<class ET,bool MT, int nfixed> class TerminationCondition
 
 };
 
-template <class ET,bool MT,int nfixed> TerminationCondition<ET,MT,nfixed>::~TerminationCondition() {} //actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
+template <class SieveTraits,bool MT> TerminationCondition<SieveTraits,MT>::~TerminationCondition() {} //actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
 
-template<class ET,bool MT,int nfixed> std::ostream & operator<<(std::ostream &os,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->dump_to_stream(os);};
-template<class ET,bool MT,int nfixed> std::istream & operator>>(std::istream &is,TerminationCondition<ET,MT,nfixed>* const term_cond){return term_cond->read_from_stream(is);};
+template<class SieveTraits,bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond){return term_cond->dump_to_stream(os);};
+template<class SieveTraits,bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond){return term_cond->read_from_stream(is);};
 
 }
 

@@ -33,17 +33,18 @@
 #endif
 
 namespace GaussSieve{
-template<class ET, bool MultiThreaded, int nfixed=-1>
+template<class SieveTraits, bool MT>
 class Sieve;
 
-template<class ET>
-using SieveGauss = Sieve<ET,SIEVE_GAUSS_DEFAULT_THREADED>;
+// unused, I think
+template<class SieveTraits>
+using SieveGauss = Sieve<SieveTraits,SIEVE_GAUSS_DEFAULT_THREADED>;
 
-template<class ET>
-using SieveST = Sieve<ET,false>;
+template<class SieveTraits>
+using SieveST = Sieve<SieveTraits,false>;
 
-template<class ET>
-using SieveMT = Sieve<ET,true>;
+template<class SieveTraits>
+using SieveMT = Sieve<SieveTraits,true>;
 }
 
 #ifdef  GAUSS_SIEVE_IS_MULTI_THREADED

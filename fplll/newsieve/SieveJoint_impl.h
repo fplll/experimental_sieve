@@ -51,8 +51,8 @@
 
 namespace GaussSieve{
 
-template<class ET,int nfixed>
-void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::string const &outfilename, bool overwrite)
+template<class SieveTraits>
+void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_file(std::string const &outfilename, bool overwrite)
 {
     assert(!check_whether_sieve_is_running());
     if(verbosity>=2)
@@ -80,8 +80,8 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_file(std::st
     }
 }
 
-template<class ET,int nfixed>
-void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_stream(std::ostream &of, int verb)
+template<class SieveTraits>
+void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std::ostream &of, int verb)
 {
     using std::endl;
     int howverb = verb==-1 ? verbosity : verb;
@@ -158,16 +158,21 @@ void Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::dump_status_to_stream(std::
 }
 
 
-template<class ET, int nfixed> //ET : underlying entries of the vectors. Should be a Z_NR<foo> - type.
+// constructor
+template<class SieveTraits>
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsigned int k, unsigned int num_threads, TermCondType const termcond, unsigned int verbosity_, int seed_sampler):
+Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
+    InputBasisType const & B, unsigned int k, unsigned int num_threads,
+    TermCondType * const termcond, unsigned int verbosity_, int seed_sampler):
 #else
-Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsigned int k, TermCondType const termcond, unsigned int verbosity_, int seed_sampler):
+Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
+    InputBasisType const & B, unsigned int k,
+    TermCondType * const termcond, unsigned int verbosity_, int seed_sampler):
 #endif
     main_list(),
     main_queue(this),
-//    filtered_list(),
     original_basis(B),
+    lattice_basis(B),
     lattice_rank(B.get_rows()),
     ambient_dimension(B.get_cols()), //Note : this means that rows of B form the basis.
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
@@ -188,20 +193,20 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     number_of_total_scprods_level3(0),
     number_of_exact_scprods(0),
     number_of_mispredictions(0)
-    #if GAUSS_SIEVE_IS_MULTI_THREADED==true
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
     ,garbage_bins(nullptr)
-    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+#endif // GAUSS_SIEVE_IS_MULTI_THREADED
 
 {
-    if (nfixed!=-1)
+    if (SieveTraits::get_nfixed!=-1)
     {
-        assert(B.get_cols() == nfixed );
+        assert(B.get_cols() == SieveTraits::get_nfixed );
     }
-    FastAccess_Point::class_init(ambient_dimension);
-    #if GAUSS_SIEVE_IS_MULTI_THREADED==true
+    FastAccess_Point::class_init((ambient_dimension));
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
     if(num_threads_wanted==0) //0 means we take a meaningful default, which is given by thread::hardware_concurrency
-    num_threads_wanted = std::max(std::thread::hardware_concurrency(),static_cast<unsigned int>(1)); //Note: hardware_concurrency might return 0 for "unknown".
-    #endif
+      num_threads_wanted = std::max(std::thread::hardware_concurrency(),static_cast<unsigned int>(1)); //Note: hardware_concurrency might return 0 for "unknown".
+#endif
     //unsigned int n = lattice_rank;
     //auto it = main_list.before_begin();
     //assert(main_list.empty()); We don't have a function to check that yet...
@@ -209,8 +214,9 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
-        FastAccess_Point tmppoint(original_basis[i]);
-        it = main_list.insert_before(it, std::move(tmppoint));
+//        FastAccess_Point tmppoint(original_basis[i]);
+        it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
+                                     lattice_basis.get_basis_vector(i).make_copy() ) );
         ++it;
 //        ExactLatticePoint<ET,nfixed> * new_basis_vector = new ExactLatticePoint<ET,nfixed> ( conv_matrixrow_to_lattice_point<ET,nfixed> (original_basis[i]));
 //        main_list.insert_before(it,  static_cast<CompressedPoint<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed> >(new_basis_vector) );
@@ -219,7 +225,7 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
-    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
+    //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
     if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
@@ -231,29 +237,28 @@ Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::Sieve(LatticeBasisType B, unsign
 
 //    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //TODO : enable sorting for multithreaded case.
-    #if GAUSS_SIEVE_IS_MULTI_THREADED==true
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
     garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
-    #endif
+#endif
     assert(main_queue.sampler!=nullptr);
-    main_queue.sampler->init(this);
+    main_queue.sampler->init(this, lattice_basis);
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
-
 };
 
-template<class ET,int nfixed>
-Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::~Sieve()
+template<class SieveTraits>
+Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::~Sieve()
 {
-    #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-    delete[] garbage_bins;
-    delete shortest_vector_found;
-    #endif
+#if GAUSS_SIEVE_IS_MULTI_THREADED==true
+  delete[] garbage_bins;
+#endif
+  delete shortest_vector_found;
 };
 
-template<class ET, int nfixed>
-bool Sieve<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed>::check_if_done()
+template<class SieveTraits>
+bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 {
-    return (term_cond->check(this) != 0)?true:false;
+  return (term_cond->check(this) != 0)?true:false;
 };
 
 }

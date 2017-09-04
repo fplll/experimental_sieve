@@ -11,28 +11,31 @@
 #ifndef _FilteredPoint_h
 #define _FilteredPoint_h
 
-#include "sieve_common.h"
-#include "LatticePoint2.h"
+#include "DebugAll.h"
+#include "SieveUtility.h"
+#include "PlainLatticePoint.h"
 
-// using namespace LatticeApproximations;
 
-/*  Never put "using namespace" declarations at file scope into header files.
-    The issue is that any file that #includes this, has the using namespace declaration in effect...
-    This is equivalent to not using namespaces at all. -- Gotti
-*/
+template <class ET, int nfixed> class PlainLatticePoint;
 
-template <class ET, class SC> class FilteredPoint;
+template <class ET, int nfixed, class EntryType> class FilteredPoint;
 
-//template <class ET, bool insideMTList=false, int n_fixed=-1>
-template <class ET, class SC>
+// Template parameters are:
+//  ET: entry type
+//  nfixed: indicates whether the dimension is fixed or not
+//  SC: scalar-product type
+
+template <class ET, int nfixed, class SC>
 class FilteredPoint
 {
-    public:
+public:
+    
+    using StoredPoint = PlainLatticePoint<ET, nfixed>;
 
-    FilteredPoint()=default;
-    FilteredPoint(const FilteredPoint &Point) = default; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
+    FilteredPoint()=delete;
+    FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
     FilteredPoint(FilteredPoint &&Point) = default ;
-    FilteredPoint(ApproxLatticePoint<ET> x, SC sc, bool sign)
+    FilteredPoint(StoredPoint x, SC sc, bool sign)
     {
         this->point = x;
         this->sc_prod = sc;
@@ -40,46 +43,27 @@ class FilteredPoint
     }
 
 
-    /*
-    FilteredPoint(ApproxLatticePoint<ET> x, LatticeApproximations::ApproxTypeNorm2 sc)
-    {
-        this->point = x;
-        this->sc_prod = sc;
-    }
-
-
-    FilteredPoint(ApproxLatticePoint<ET> x, float sc)
-    {
-        this->point = x;
-        this->sc_prod = sc;
-    }
-    */
-
-
-    //FilteredPoint(ApproxLatticePoint x, ApproxLatticePoint p)
-
-
-    FilteredPoint& operator=(FilteredPoint const &that) =default;
+    FilteredPoint& operator=(FilteredPoint const &that) =delete;
     FilteredPoint& operator=(FilteredPoint && that) =default;
 
 
     ~FilteredPoint() {}
 
 
-    inline ApproxLatticePoint<ET>  getApproxVector() const {return this->point;}
+    inline StoredPoint get_point() const {return this->point;}
     inline SC get_sc_prod() const {return sc_prod;}
     inline bool get_sign() const {return minus;}
 
 
 private:
     //members
-    ApproxLatticePoint<ET> point;
+    StoredPoint point;
 
-    // always positive
     SC sc_prod;
 
-    //true is sc_prod is correct for point
+    // true if sc_prod is correct for point
     // false if for -point
+    // not used
     bool minus;
 
 

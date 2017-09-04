@@ -95,7 +95,10 @@ template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
 {
 public:
   // constructs an uninitialized MTPRNG
-  explicit MTPRNG(Sseq &_seq) : seeder(_seq), engines(0), num_threads(0){};
+  explicit MTPRNG(Sseq &_seq) : seeder(_seq), engines(0), num_threads(0)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing (yet-uninitialized) MT RNG engines.")
+  };
 
   inline void reseed(Sseq &_seq);
 
@@ -138,9 +141,16 @@ private:
 template <class Engine, class Sseq> class MTPRNG<Engine, false, Sseq>
 {
 public:
-  explicit MTPRNG(Sseq &_seq) : engine() { reseed(_seq); };
+  explicit MTPRNG(Sseq &_seq) : engine()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ST RNG Engine.")
+    reseed(_seq);
+  };
   inline void reseed(Sseq &_seq);
-  void init(unsigned int const = 1) {}  // does nothing.
+  void init(unsigned int const = 1)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing Single-Threaded RNG Engines.")
+  }  // does nothing.
   Engine &rnd(IgnoreArg<unsigned int const>)
   {
     return engine;
@@ -166,7 +176,11 @@ template <class Engine, class Sseq> void MTPRNG<Engine, true, Sseq>::reseed(Sseq
 template <class Engine, class Sseq>
 inline void MTPRNG<Engine, true, Sseq>::init(unsigned int const _num_threads)
 {
-  if (_num_threads <= num_threads)  // no need to initalize.
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("(Re-)initializing Multithreaded RNG Engines")
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("setting number of threads as" << _num_threads)
+
+  // no need to initalize. We do not actually change num_threads until reseed is called.
+  if (_num_threads <= num_threads)
   {
     return;
   }

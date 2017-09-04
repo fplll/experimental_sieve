@@ -1,0 +1,347 @@
+In file included from sieve/TermCondNew.h:59:0,
+                 from sieve/SieveJoint.h:80,
+                 from sieve/SieveGauss.h:51,
+                 from sieve/sieve_main.cpp:13:
+sieve/Utility.h:9:30: error: ‘LatticePoint’ was not declared in this scope
+     bool check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2); //2-reduces p1 with the help of p2.
+                              ^~~~~~~~~~~~
+sieve/Utility.h:9:45: error: expected primary-expression before ‘>’ token
+     bool check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2); //2-reduces p1 with the help of p2.
+                                             ^
+sieve/Utility.h:9:48: error: ‘p1’ was not declared in this scope
+     bool check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2); //2-reduces p1 with the help of p2.
+                                                ^~
+sieve/Utility.h:9:52: error: expected primary-expression before ‘const’
+     bool check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2); //2-reduces p1 with the help of p2.
+                                                    ^~~~~
+sieve/Utility.h:9:78: error: expression list treated as compound expression in initializer [-fpermissive]
+     bool check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2); //2-reduces p1 with the help of p2.
+                                                                              ^
+sieve/Utility.h:12:31: error: ‘LatticePoint’ does not name a type
+     bool check2red_new (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET &scalar); //only checks whether 2reduction is possible
+                               ^~~~~~~~~~~~
+sieve/Utility.h:12:43: error: expected ‘,’ or ‘...’ before ‘<’ token
+     bool check2red_new (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET &scalar); //only checks whether 2reduction is possible
+                                           ^
+sieve/Utility.h:15:5: error: ‘LatticePoint’ does not name a type
+     LatticePoint<ET> perform2red (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET const & scalar); //replaces p1 by p1 - scalar * p2
+     ^~~~~~~~~~~~
+sieve/Utility.h:18:26: error: ‘LatticePoint’ does not name a type
+     bool check3red(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, float px1, float px2, float x1x2, int & sgn1, int & sgn2);
+                          ^~~~~~~~~~~~
+sieve/Utility.h:18:38: error: expected ‘,’ or ‘...’ before ‘<’ token
+     bool check3red(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, float px1, float px2, float x1x2, int & sgn1, int & sgn2);
+                                      ^
+sieve/Utility.h:21:32: error: ‘LatticePoint’ does not name a type
+     bool check3red_signs(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, int px1, int px2, int x1x2, int &sgn1, int &sgn2);
+                                ^~~~~~~~~~~~
+sieve/Utility.h:21:44: error: expected ‘,’ or ‘...’ before ‘<’ token
+     bool check3red_signs(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, int px1, int px2, int x1x2, int &sgn1, int &sgn2);
+                                            ^
+sieve/Utility.h:24:5: error: ‘LatticePoint’ does not name a type
+     LatticePoint<ET> perform3red (const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, const int & sgn1, const int &sgn2);
+     ^~~~~~~~~~~~
+In file included from sieve/Utility.h:27:0,
+                 from sieve/TermCondNew.h:59,
+                 from sieve/SieveJoint.h:80,
+                 from sieve/SieveGauss.h:51,
+                 from sieve/sieve_main.cpp:13:
+sieve/Utility.cpp:2:38: error: ‘LatticePoint’ was not declared in this scope
+ bool GaussSieve::check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2)
+                                      ^~~~~~~~~~~~
+sieve/Utility.cpp:2:53: error: expected primary-expression before ‘>’ token
+ bool GaussSieve::check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2)
+                                                     ^
+sieve/Utility.cpp:2:56: error: ‘p1’ was not declared in this scope
+ bool GaussSieve::check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2)
+                                                        ^~
+sieve/Utility.cpp:2:60: error: expected primary-expression before ‘const’
+ bool GaussSieve::check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2)
+                                                            ^~~~~
+sieve/Utility.cpp:2:86: error: expression list treated as compound expression in initializer [-fpermissive]
+ bool GaussSieve::check_perform_2red (LatticePoint<ET> &p1, const LatticePoint<ET> &p2)
+                                                                                      ^
+sieve/Utility.cpp:3:1: error: expected ‘;’ before ‘{’ token
+ {
+ ^
+sieve/Utility.cpp:36:39: error: ‘LatticePoint’ does not name a type
+ bool GaussSieve::check2red_new (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET &scalar)
+                                       ^~~~~~~~~~~~
+sieve/Utility.cpp:36:51: error: expected ‘,’ or ‘...’ before ‘<’ token
+ bool GaussSieve::check2red_new (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET &scalar)
+                                                   ^
+sieve/Utility.cpp: In function ‘bool GaussSieve::check2red_new(int)’:
+sieve/Utility.cpp:41:5: error: ‘scalar’ was not declared in this scope
+     scalar = 0;
+     ^~~~~~
+sieve/Utility.cpp:42:25: error: ‘p1’ was not declared in this scope
+     sc_product(sc_prod, p1, p2);
+                         ^~
+sieve/Utility.cpp:42:29: error: ‘p2’ was not declared in this scope
+     sc_product(sc_prod, p1, p2);
+                             ^~
+sieve/Utility.cpp: At global scope:
+sieve/Utility.cpp:64:1: error: ‘LatticePoint’ does not name a type
+ LatticePoint<ET> GaussSieve::perform2red (const LatticePoint<ET> &p1, const LatticePoint<ET> &p2, ET const & scalar)
+ ^~~~~~~~~~~~
+sieve/Utility.cpp:79:34: error: ‘LatticePoint’ does not name a type
+ bool GaussSieve::check3red(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, float px1, float px2, float x1x2, int &sgn1, int &sgn2)
+                                  ^~~~~~~~~~~~
+sieve/Utility.cpp:79:46: error: expected ‘,’ or ‘...’ before ‘<’ token
+ bool GaussSieve::check3red(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, float px1, float px2, float x1x2, int &sgn1, int &sgn2)
+                                              ^
+In file included from sieve/Utility.h:27:0,
+                 from sieve/TermCondNew.h:59,
+                 from sieve/SieveJoint.h:80,
+                 from sieve/SieveGauss.h:51,
+                 from sieve/sieve_main.cpp:13:
+sieve/Utility.cpp: In function ‘bool GaussSieve::check3red(int)’:
+sieve/Utility.cpp:90:9: error: ‘px1’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+         ^~~
+sieve/Utility.cpp:90:18: error: ‘px2’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+                  ^~~
+sieve/Utility.cpp:90:27: error: ‘x1x2’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+                           ^~~~
+sieve/Utility.cpp:92:9: error: ‘px1’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+         ^~~
+sieve/Utility.cpp:92:18: error: ‘px2’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+                  ^~~
+sieve/Utility.cpp:92:27: error: ‘x1x2’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+                           ^~~~
+sieve/Utility.cpp:94:9: error: ‘px2’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+         ^~~
+sieve/Utility.cpp:94:18: error: ‘px1’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+                  ^~~
+sieve/Utility.cpp:94:27: error: ‘x1x2’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+                           ^~~~
+sieve/Utility.cpp:96:9: error: ‘x1x2’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+         ^~~~
+sieve/Utility.cpp:96:19: error: ‘px1’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+                   ^~~
+sieve/Utility.cpp:96:28: error: ‘px2’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+                            ^~~
+sieve/Utility.cpp:99:5: error: ‘LatticePoint’ was not declared in this scope
+     LatticePoint<ET> res(p);
+     ^~~~~~~~~~~~
+sieve/Utility.cpp:99:20: error: expected primary-expression before ‘>’ token
+     LatticePoint<ET> res(p);
+                    ^
+sieve/Utility.cpp:99:26: error: ‘p’ was not declared in this scope
+     LatticePoint<ET> res(p);
+                          ^
+sieve/Utility.cpp:99:27: error: there are no arguments to ‘res’ that depend on a template parameter, so a declaration of ‘res’ must be available [-fpermissive]
+     LatticePoint<ET> res(p);
+                           ^
+sieve/Utility.cpp:99:27: note: (if you use ‘-fpermissive’, G++ will accept your code, but allowing the use of an undeclared name is deprecated)
+sieve/Utility.cpp:102:9: error: ‘px1’ was not declared in this scope
+     if (px1<0){
+         ^~~
+sieve/Utility.cpp:103:9: error: ‘res’ was not declared in this scope
+         res = res+x1;
+         ^~~
+sieve/Utility.cpp:103:19: error: ‘x1’ was not declared in this scope
+         res = res+x1;
+                   ^~
+sieve/Utility.cpp:104:9: error: ‘sgn1’ was not declared in this scope
+         sgn1=1;
+         ^~~~
+sieve/Utility.cpp:107:9: error: ‘res’ was not declared in this scope
+         res = res-x1;
+         ^~~
+sieve/Utility.cpp:107:19: error: ‘x1’ was not declared in this scope
+         res = res-x1;
+                   ^~
+sieve/Utility.cpp:108:9: error: ‘sgn1’ was not declared in this scope
+         sgn1=-1;
+         ^~~~
+sieve/Utility.cpp:110:8: error: ‘px2’ was not declared in this scope
+     if(px2<0){
+        ^~~
+sieve/Utility.cpp:111:9: error: ‘res’ was not declared in this scope
+         res = res+x2;
+         ^~~
+sieve/Utility.cpp:111:19: error: ‘x2’ was not declared in this scope
+         res = res+x2;
+                   ^~
+sieve/Utility.cpp:112:9: error: ‘sgn2’ was not declared in this scope
+         sgn2=1;
+         ^~~~
+sieve/Utility.cpp:115:9: error: ‘res’ was not declared in this scope
+         res = res-x2;
+         ^~~
+sieve/Utility.cpp:115:19: error: ‘x2’ was not declared in this scope
+         res = res-x2;
+                   ^~
+sieve/Utility.cpp:116:9: error: ‘sgn2’ was not declared in this scope
+         sgn2=-1;
+         ^~~~
+sieve/Utility.cpp:119:8: error: ‘res’ was not declared in this scope
+     if(res.norm2>=p.norm2)
+        ^~~
+sieve/Utility.cpp: At global scope:
+sieve/Utility.cpp:132:40: error: ‘LatticePoint’ does not name a type
+ bool GaussSieve::check3red_signs(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, int px1, int px2, int x1x2, int &sgn1, int &sgn2)
+                                        ^~~~~~~~~~~~
+sieve/Utility.cpp:132:52: error: expected ‘,’ or ‘...’ before ‘<’ token
+ bool GaussSieve::check3red_signs(const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, int px1, int px2, int x1x2, int &sgn1, int &sgn2)
+                                                    ^
+sieve/Utility.cpp: In function ‘bool GaussSieve::check3red_signs(int)’:
+sieve/Utility.cpp:143:9: error: ‘px1’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+         ^~~
+sieve/Utility.cpp:143:18: error: ‘px2’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+                  ^~~
+sieve/Utility.cpp:143:27: error: ‘x1x2’ was not declared in this scope
+     if (px1>0 && px2>0 && x1x2>0)
+                           ^~~~
+sieve/Utility.cpp:145:9: error: ‘px1’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+         ^~~
+sieve/Utility.cpp:145:18: error: ‘px2’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+                  ^~~
+sieve/Utility.cpp:145:27: error: ‘x1x2’ was not declared in this scope
+     if (px1>0 && px2<0 && x1x2<0)
+                           ^~~~
+sieve/Utility.cpp:147:9: error: ‘px2’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+         ^~~
+sieve/Utility.cpp:147:18: error: ‘px1’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+                  ^~~
+sieve/Utility.cpp:147:27: error: ‘x1x2’ was not declared in this scope
+     if (px2>0 && px1<0 && x1x2<0)
+                           ^~~~
+sieve/Utility.cpp:149:9: error: ‘x1x2’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+         ^~~~
+sieve/Utility.cpp:149:19: error: ‘px1’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+                   ^~~
+sieve/Utility.cpp:149:28: error: ‘px2’ was not declared in this scope
+     if (x1x2>0 && px1<0 && px2<0)
+                            ^~~
+sieve/Utility.cpp:152:5: error: ‘LatticePoint’ was not declared in this scope
+     LatticePoint<ET> res(p);
+     ^~~~~~~~~~~~
+sieve/Utility.cpp:152:20: error: expected primary-expression before ‘>’ token
+     LatticePoint<ET> res(p);
+                    ^
+sieve/Utility.cpp:152:26: error: ‘p’ was not declared in this scope
+     LatticePoint<ET> res(p);
+                          ^
+sieve/Utility.cpp:152:27: error: there are no arguments to ‘res’ that depend on a template parameter, so a declaration of ‘res’ must be available [-fpermissive]
+     LatticePoint<ET> res(p);
+                           ^
+sieve/Utility.cpp:155:9: error: ‘px1’ was not declared in this scope
+     if (px1<0){
+         ^~~
+sieve/Utility.cpp:156:9: error: ‘res’ was not declared in this scope
+         res = res+x1;
+         ^~~
+sieve/Utility.cpp:156:19: error: ‘x1’ was not declared in this scope
+         res = res+x1;
+                   ^~
+sieve/Utility.cpp:157:9: error: ‘sgn1’ was not declared in this scope
+         sgn1=1;
+         ^~~~
+sieve/Utility.cpp:160:9: error: ‘res’ was not declared in this scope
+         res = res-x1;
+         ^~~
+sieve/Utility.cpp:160:19: error: ‘x1’ was not declared in this scope
+         res = res-x1;
+                   ^~
+sieve/Utility.cpp:161:9: error: ‘sgn1’ was not declared in this scope
+         sgn1=-1;
+         ^~~~
+sieve/Utility.cpp:163:8: error: ‘px2’ was not declared in this scope
+     if(px2<0){
+        ^~~
+sieve/Utility.cpp:164:9: error: ‘res’ was not declared in this scope
+         res = res+x2;
+         ^~~
+sieve/Utility.cpp:164:19: error: ‘x2’ was not declared in this scope
+         res = res+x2;
+                   ^~
+sieve/Utility.cpp:165:9: error: ‘sgn2’ was not declared in this scope
+         sgn2=1;
+         ^~~~
+sieve/Utility.cpp:168:9: error: ‘res’ was not declared in this scope
+         res = res-x2;
+         ^~~
+sieve/Utility.cpp:168:19: error: ‘x2’ was not declared in this scope
+         res = res-x2;
+                   ^~
+sieve/Utility.cpp:169:9: error: ‘sgn2’ was not declared in this scope
+         sgn2=-1;
+         ^~~~
+sieve/Utility.cpp:172:8: error: ‘res’ was not declared in this scope
+     if(res.norm2>=p.norm2)
+        ^~~
+sieve/Utility.cpp: At global scope:
+sieve/Utility.cpp:187:1: error: ‘LatticePoint’ does not name a type
+ LatticePoint<ET> GaussSieve::perform3red (const LatticePoint<ET> &p, const LatticePoint<ET> &x1, const LatticePoint<ET> &x2, const int & sgn1, const int &sgn2)
+ ^~~~~~~~~~~~
+In file included from sieve/SieveST.cpp:209:0,
+                 from sieve/SieveGauss.h:53,
+                 from sieve/sieve_main.cpp:13:
+sieve/SieveST2.cpp: In member function ‘void Sieve<ET, false, nfixed>::sieve_2_iteration(CompressedPoint<ET, false, nfixed>&)’:
+sieve/SieveST2.cpp:29:24: error: ‘LatticeApproximations’ has not been declared
+         bool predict = LatticeApproximations::Compare_Sc_Prod(p_approx,*it,it->get_approx_norm2(),2* it->get_length_exponent()-1,n   );
+                        ^~~~~~~~~~~~~~~~~~~~~
+sieve/SieveST2.cpp:45:21: error: ‘perform2red’ is not a member of ‘GaussSieve’
+                 p = GaussSieve::perform2red(p, *(it.access_details()), scalar);
+                     ^~~~~~~~~~
+sieve/SieveST2.cpp:47:57: error: ‘ApproxLatticePoint’ does not name a type
+                 if (p.norm2!=0) p_approx = static_cast< ApproxLatticePoint<ET,false> >(p);
+                                                         ^~~~~~~~~~~~~~~~~~
+sieve/SieveST2.cpp:47:75: error: expected ‘>’ before ‘<’ token
+                 if (p.norm2!=0) p_approx = static_cast< ApproxLatticePoint<ET,false> >(p);
+                                                                           ^
+sieve/SieveST2.cpp:47:75: error: expected ‘(’ before ‘<’ token
+sieve/SieveST2.cpp:47:75: error: expected primary-expression before ‘<’ token
+sieve/SieveST2.cpp:47:78: error: expected primary-expression before ‘,’ token
+                 if (p.norm2!=0) p_approx = static_cast< ApproxLatticePoint<ET,false> >(p);
+                                                                              ^
+sieve/SieveST2.cpp:47:86: error: expected primary-expression before ‘>’ token
+                 if (p.norm2!=0) p_approx = static_cast< ApproxLatticePoint<ET,false> >(p);
+                                                                                      ^
+sieve/SieveST2.cpp:47:90: error: expected ‘)’ before ‘;’ token
+                 if (p.norm2!=0) p_approx = static_cast< ApproxLatticePoint<ET,false> >(p);
+                                                                                          ^
+sieve/SieveST2.cpp:83:24: error: ‘LatticeApproximations’ has not been declared
+         bool predict = LatticeApproximations::Compare_Sc_Prod(p_approx,*it,p_approx.get_approx_norm2(),2* p_approx.get_length_exponent()-1,n   );
+                        ^~~~~~~~~~~~~~~~~~~~~
+sieve/SieveST2.cpp:85:9: error: ‘LatticePoint’ was not declared in this scope
+         LatticePoint<ET> current_list_point = it.get_exact_point();
+         ^~~~~~~~~~~~
+sieve/SieveST2.cpp:85:24: error: expected primary-expression before ‘>’ token
+         LatticePoint<ET> current_list_point = it.get_exact_point();
+                        ^
+sieve/SieveST2.cpp:85:26: error: ‘current_list_point’ was not declared in this scope
+         LatticePoint<ET> current_list_point = it.get_exact_point();
+                          ^~~~~~~~~~~~~~~~~~
+sieve/SieveST2.cpp:90:19: error: expected primary-expression before ‘>’ token
+    LatticePoint<ET> reduced = GaussSieve::perform2red(p, current_list_point, scalar);
+                   ^
+sieve/SieveST2.cpp:90:21: error: ‘reduced’ was not declared in this scope
+    LatticePoint<ET> reduced = GaussSieve::perform2red(p, current_list_point, scalar);
+                     ^~~~~~~
+sieve/SieveST2.cpp:90:31: error: ‘perform2red’ is not a member of ‘GaussSieve’
+    LatticePoint<ET> reduced = GaussSieve::perform2red(p, current_list_point, scalar);
+                               ^~~~~~~~~~
+make[1]: *** [sieve/newlatsieve-sieve_main.o] Error 1
+make: *** [all] Error 2
