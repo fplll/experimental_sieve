@@ -63,7 +63,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
     {
 //      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
         case 2: run_2_sieve(); break;
-        //case 3: run_3_sieve(); break;
+        case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
         default: assert(false);
     }
@@ -110,11 +110,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
     int i=0;
+    
+    std::cout << "start 2-sieve " << std::endl;
     while (!check_if_done() )
     {
         typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
-        //sieve_3_iteration(p);
+        sieve_3_iteration(p);
         //sieve_3_iteration_test(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))

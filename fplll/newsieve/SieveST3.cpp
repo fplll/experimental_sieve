@@ -7,10 +7,10 @@ namespace GaussSieve{
 // The first arguments is assumed to have the largest norm
 // The last three arguments are modified. They return the correct signs
     
-template<class SieveTraits >
+template<class SieveTraits>
 bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
                  typename SieveTraits::FastAccess_Point const &x1,
-                 typename SieveTraits::Filtered_Point const &x2,
+                 typename SieveTraits::FlilteredPointType const &x2,
                  typename SieveTraits::EntryType const &px1,
                  typename SieveTraits::EntryType const &x1x2,
                  int &sgn1, int &sgn2, int &sgn3)
@@ -24,11 +24,9 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
              (x2.get_sc_prod() >0 && px1<0 && x1x2<0) )
             return false;
     
-    using EntryType = typename SieveTraits::EntryType;
-    
     //check if the there is a reduction assumming all <,> are negative -> all sgns are '+'
     //no reduction if ||x_1 ||^2 +||x_2 ||^2 >= 2* ( <p, x1> + <p, x2>+ <x1,x2>)
-    if ( x1.get_norm2() + x2.get_point().get_norm2 >=
+    if ( x1.get_norm2() + x2.get_point().get_norm2() >=
         2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
         return false;
     
@@ -117,28 +115,58 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         //
         //TODO: Change the computations below to smth. faster/better/cleverer/etc.
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
-        double sc_prod_px1_norm = convert_to_double( sc_prod_px1 ) / (convert_to_double ( p.get_norm2() * (*it.get_norm2())));
-        
+        //double sc_prod_px1_norm = convert_to_double( sc_prod_px1 ) / (convert_to_double ( p.get_norm2() * (*it).get_norm2()));
+        double sc_prod_px1_norm = convert_to_double( sc_prod_px1 ) / 
+                        ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
         if (std::abs(sc_prod_px1_norm) > px1)
         {
             //This is a fast iteration accodring to the Internet
-            for (auto filtered_list_it: filtered_list)
+            //ue 'auto &' to take a reference (copy-constructor is deleted)
+            for (auto & filtered_list_it: filtered_list)
             {
                 //check if || p \pm x1 \pm x2 || < || p ||
         
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, (*filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
                 
-                int sgn1, sgn2;
+                int sgn1, sgn2, sgn3;
                 
-                if ( check_3red ( p, *it, *filtered_list_it, *sc_prod_px1,  *sc_prod_x1x2, sgn1, sgn2) )
+                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1,  sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
-                    
+                    //TODO: CHECK!
+                    //TODO:  RETRIEVE ||p|| from the sc_prods
+                    //THE LINE BELOW FAILS: DEBUG!
+                    //p = p*sgn1 + (*it)*sgn2+(filtered_list_it).get_point();
+
+                    if (p.is_zero() )
+                    {
+                        number_of_collisions++;
+                    }
+                    else
+                    {
+                        main_queue.push(std::move(p));
+                    }
+                    return;
                 }
             }
+            
+            //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+            //filtered_list.insert(filtered_list.end(),new_filtered_point);
         }
         
-        
+        ++it;
     } //while-loop
+    
+    main_list.insert_before(it_comparison_flip,p.make_copy());
+    ++current_list_size;
+    //cout << "list_size = " <<current_list_size << endl;
+    if(update_shortest_vector_found(p))
+    {
+        if(verbosity>=2)
+        {
+            std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
+        }
+    }
+    
 }
 
 

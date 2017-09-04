@@ -13,10 +13,11 @@
 
 #include "DebugAll.h"
 #include "SieveUtility.h"
-#include "PlainLatticePoint.h"
+#include "ExactLatticePoint.h"
 
+namespace GaussSieve{
 
-template <class ET, int nfixed> class PlainLatticePoint;
+template <class ET, int nfixed> class ExactLatticePoint;
 
 template <class ET, int nfixed, class EntryType> class FilteredPoint;
 
@@ -30,16 +31,15 @@ class FilteredPoint
 {
 public:
     
-    using StoredPoint = PlainLatticePoint<ET, nfixed>;
+    using StoredPoint = ExactLatticePoint<ET,nfixed>;
 
     FilteredPoint()=delete;
     FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
     FilteredPoint(FilteredPoint &&Point) = default ;
-    FilteredPoint(StoredPoint x, SC sc, bool sign)
+    FilteredPoint(StoredPoint x, SC sc)
     {
         this->point = x;
         this->sc_prod = sc;
-        this->minus = sign;
     }
 
 
@@ -50,9 +50,10 @@ public:
     ~FilteredPoint() {}
 
 
-    inline StoredPoint get_point() const {return this->point;}
+    //TODO: DO WE NEED TO COPY?
+    inline StoredPoint get_point() const {return this->point.make_copy();}
     inline SC get_sc_prod() const {return sc_prod;}
-    inline bool get_sign() const {return minus;}
+    //inline bool get_sign() const {return minus;}
 
 
 private:
@@ -63,11 +64,13 @@ private:
 
     // true if sc_prod is correct for point
     // false if for -point
-    // not used
-    bool minus;
+    // not used now
+    //bool minus;
 
 
 
 };
+
+}
 
 #endif
