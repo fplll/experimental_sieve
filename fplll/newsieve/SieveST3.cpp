@@ -121,7 +121,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         if (std::abs(sc_prod_px1_norm) > px1)
         {
             //This is a fast iteration accodring to the Internet
-            //ue 'auto &' to take a reference (copy-constructor is deleted)
+            //use 'auto &' to take a reference (copy-constructor is deleted)
             for (auto & filtered_list_it: filtered_list)
             {
                 //check if || p \pm x1 \pm x2 || < || p ||
@@ -136,6 +136,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     //TODO:  RETRIEVE ||p|| from the sc_prods
                     //THE LINE BELOW FAILS: DEBUG!
                     //p = p*sgn1 + (*it)*sgn2+(filtered_list_it).get_point();
+                    //typename SieveTraits::FastAccess_Point p_new =p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point();
 
                     if (p.is_zero() )
                     {
