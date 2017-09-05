@@ -70,6 +70,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
 template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
 {
     if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
+    
 
     // ! targets are squared
     double px1  = .091; // TO ADJUST
@@ -182,7 +183,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         bool x1_reduced = false;
         bool two_reduction = false;
         
-        std::cout << "it = " << (*it).get_norm2() << std::endl;
         
         //
         //check for 2-reduction
@@ -192,7 +192,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             assert(scalar!=0); //should not be 0 in any case
             typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
             
-            std::cout << "2-reduction! " << std::endl;
             
             if (v_new.is_zero() )
             {
@@ -221,12 +220,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         double sc_prod_px1_norm = convert_to_double( sc_prod_px1 )* convert_to_double( sc_prod_px1 )  /
         ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
         
-        std::cout << "sc_prod_px1_norm = " << sc_prod_px1_norm << std::endl;
         if (std::abs(sc_prod_px1_norm) > px1)
         {
-            
-            std::cout << "sc_prod_px1_norm = " << sc_prod_px1_norm << std::endl;
-            std::cout << "filtered_list.size = " << filtered_list.size() << std::endl;
             for (auto & filtered_list_it: filtered_list)
             {
                 //check if || p \pm x1 \pm x2 || < || x1 ||
@@ -235,12 +230,10 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 
                 int sgn1, sgn2, sgn3;
                 
-                std::cout << (filtered_list_it).get_point().get_norm2() << std::endl;
                 
                 // ! check_3red assumes that the first argument has the largest norm
                 if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
-                    std::cout << "reduction! " << std::endl;
                     
                     //TODO: CHECK WITH THE SIGNS
                     
@@ -256,16 +249,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     
                     --current_list_size;
                     
-                    
                     x1_reduced = true;
+                    
+                    break; //for-loop over the filtered_list
                 }
             }
             
-            std::cout << "end of filter-loop " << std::endl;
             
             if (!x1_reduced)
             {
-                std::cout << "add to filter" << std::endl;
                 typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
                 filtered_list.push_back(std::move(new_filtered_point));
             }
@@ -276,7 +268,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
         if (!two_reduction && !x1_reduced)
         {
-            std::cout<<"increase it manually"<< std::endl;
             ++it;
         }
         
