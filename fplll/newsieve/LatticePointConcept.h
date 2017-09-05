@@ -478,8 +478,11 @@ LP1 operator+(LP1 const &x1, LP2 const &x2) { return add(x1,x2); }
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 && x1, LP2 const &x2)
 {
-LP1 tmp = std::move(x1);
-return addval(tmp,x2);
+auto tmp = std::move(x1);
+addval(tmp,x2);
+return tmp;
+//LP1 tmp = std::move(x1);
+//return addval(tmp,x2);
 }
 
 // We don't want to return LP2 here...
@@ -487,15 +490,19 @@ return addval(tmp,x2);
 FOR_LATTICE_POINT_LP
 LP operator+(LP const &x1, LP && x2)
 {
-LP tmp = std::move(x2);
-return addval(tmp,x1);
+auto tmp = std::move(x2);
+addval(tmp,x1);
+return tmp;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 &&x1, LP2 && x2)
 {
-LP1 tmp = std::move(x1);
-return addval(tmp,std::move(x2));
+auto tmp = std::move(x1);
+addval(tmp, std::move(x2));
+return tmp;
+//LP1 tmp = std::move(x1);
+//return addval(tmp,std::move(x2));
 }
 
 // Note: We could define general add in terms of addval as well.
@@ -508,8 +515,8 @@ FOR_LATTICE_POINT_LP
 LP operator-(LP &&x1)
 {
   LP tmp = std::move(x1);
-  x1.make_negative();
-  return x1;
+  tmp.make_negative();
+  return tmp;
 }
 
 template<class LP, class Integer,
