@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     auto start = std::chrono::high_resolution_clock::now();
 
 
-	Sieve<Traits, multithreaded> Test_3Sieve (B, k, nullptr, 0);
+	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
 	TerminationCondition<Traits,multithreaded> * termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
 	Test_3Sieve.set_termination_condition(termcond);
     

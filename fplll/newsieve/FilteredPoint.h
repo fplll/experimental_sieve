@@ -38,7 +38,8 @@ public:
     FilteredPoint(FilteredPoint &&Point) = default ;
     FilteredPoint(StoredPoint x, SC sc)
     {
-        this->point = x;
+        //Store a pointer to point to avoid copying
+        this->point = x.make_copy();
         this->sc_prod = sc;
     }
 

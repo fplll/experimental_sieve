@@ -111,7 +111,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
     int i=0;
     
-    std::cout << "start 2-sieve " << std::endl;
+    std::cout << "start 3-sieve " << std::endl;
     while (!check_if_done() )
     {
         typename SieveTraits::FastAccess_Point p = main_queue.true_pop();

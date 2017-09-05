@@ -1737,7 +1737,6 @@ void Sieve<ET,false>::sieve_3_iteration_new (LatticePoint<ET> &p)
 
     //now we are reducing *it
     while (it!=main_list.cend())
-
     {
         reduced_x1 = false;
         //cout << "2: consider a list element of approx norm = " << it->get_approx_norm2() << endl;

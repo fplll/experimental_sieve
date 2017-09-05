@@ -93,7 +93,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         //
         //check for 2-reduction
         //
-        if ( GaussSieve::check2red<SieveTraits>(*it, p, scalar) )
+        if ( GaussSieve::check2red<SieveTraits>(p, *it, scalar) )
         {
             assert(scalar!=0); //should not be 0 in any case
             p-= (*it) * scalar;
@@ -135,7 +135,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     //TODO: CHECK!
                     //TODO:  RETRIEVE ||p|| from the sc_prods
                     //THE LINE BELOW FAILS: DEBUG!
-                    p = p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point();
+                    p = p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
 //                    typename SieveTraits::FastAccess_Point p_new =p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point();
 
                     if (p.is_zero() )
@@ -150,8 +150,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 }
             }
 
-            //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
-            //filtered_list.insert(filtered_list.end(),new_filtered_point);
+            typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+            filtered_list.push_back(std::move(new_filtered_point));
         }
 
         ++it;
@@ -166,6 +166,41 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         {
             std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
         }
+    }
+    
+    
+    
+    
+    //now p is not the largest
+    //it_comparison_flip points to the next after p list-element
+    for(auto it = it_comparison_flip; it!=main_list.cend(); )
+    {
+        
+        //
+        //check for 2-reduction
+        //
+        if ( GaussSieve::check2red<SieveTraits>(*it, p, scalar) )
+        {
+            assert(scalar!=0); //should not be 0 in any case
+            typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
+            
+            if (v_new.is_zero() )
+            {
+                number_of_collisions++;
+            }
+            
+            main_queue.push(std::move(v_new));
+            
+            it = main_list.erase(it);
+            --current_list_size;
+        }
+        
+        //
+        // 3-rediction
+        //
+        
+        
+
     }
 
 }
