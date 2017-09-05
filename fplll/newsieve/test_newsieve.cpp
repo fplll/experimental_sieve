@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     
     /* preprocessing of basis */
     clock_t stime = clock();
-    if (b > 0)
+    if (b > 2)
         bkz_reduction(B, b, BKZ_DEFAULT, FT_DEFAULT, 0);
     else
         lll_reduction(B, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER);
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     clock_t etime = clock();
     double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
 
-    if (b > 0)
+    if (b > 2)
         cout << "# [info] BKZ took time " << secs << " s" << endl;
     else
         cout << "# [info] LLL took time " << secs << " s" << endl;
