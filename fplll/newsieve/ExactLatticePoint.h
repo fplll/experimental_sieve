@@ -154,8 +154,8 @@ public:
   ExactLatticePoint(ExactLatticePoint &&old)      = default;
   ExactLatticePoint &operator=(ExactLatticePoint const &other) = delete;
   ExactLatticePoint &operator=(ExactLatticePoint &&other) = default;
-  ET &operator[](unsigned int idx) { return data[idx]; };
-  ET const &operator[](unsigned int idx) const { return data[idx]; };
+  ET &operator[](uint_fast16_t idx) { return data[idx]; };
+  ET const &operator[](uint_fast16_t idx) const { return data[idx]; };
   static std::string class_name() { return "Exact Lattice Point"; };
 
   void sanitize() { norm2 = compute_sc_product(*this, *this); }

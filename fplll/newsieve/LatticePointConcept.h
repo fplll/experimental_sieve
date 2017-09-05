@@ -135,12 +135,12 @@ class GeneralLatticePoint
     public:
     friend LatP; // makes children able to access private (in addition to protected) members.
                  // since the constructor is private, this enforces correct usage.
+                 // (Note that it may prevent multi-level inheritance)
     using AuxDataType = typename GetAuxDataType<LatP>::type;
     using ScalarProductReturnType = typename GetScPType<LatP>::type;
     private:
     explicit constexpr GeneralLatticePoint()=default; //only callable from its friends
     public:
-
 
     // This is just to match the implementation of a typical instantiation.
     // Note the the deleted copy constructors and copy assignments prevents default copying
@@ -206,7 +206,6 @@ class GeneralLatticePoint
     // get_dim returns the (ambient) dimension the vector is supposed to represent.
     // By default, vec_size is the same as dim.
     // get_dim must be overloaded.
-
 
     MEMBER_ONLY_EXISTS_IF_COO_READ
     auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() )

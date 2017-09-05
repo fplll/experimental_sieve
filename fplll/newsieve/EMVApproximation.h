@@ -1,5 +1,5 @@
-#ifndef APPROX_LSB_VECTOR_H
-#define APPROX_LSB_VECTOR_H
+#ifndef EMV_APPROXIMATION_H
+#define EMV_APPROXIMATION_H
 
 #include "DebugAll.h"
 #include "Typedefs.h"
@@ -13,34 +13,80 @@ a (shared) exponenent and a vector of >= 16-bit mantissas.
 
 namespace GaussSieve{
 
-template<class DimensionType> class MantissaVectorApproximation;
+template<class DimensionType> class EMVApproximation;
 
 /**
   global constants:
 */
-class MantissaVectorApproximationTraits
+class EMVApproximationTraits
 {
   public:
+  // Note: This is only about the mantissas; there is an exponent in addition to those data.
   using ApproxEntryType = int_least16_t; // we *do* care about space.
   using ApproxNorm2Type = int_fast32_t;
 };
 
-template<class DimensionType>
-class MantissaVectorApproximation
+//template<class DimensionType>
+class EMVScalarProduct
 {
   public:
-  using ApproxEntryType = typename MantissaVectorApproximationTraits::ApproxEntryType;
-  using ApproxNorm2Type = typename MantissaVectorApproximationTraits::ApproxNorm2Type;
+  int exponent;
+  typename EMVApproximationTraits::ApproxNorm2Type mantissa;
+  inline double get_double() const;
+};
+
+inline bool operator< (EMVScalarProduct const & lhs, EMVScalarProduct const & rhs)
+{
+// We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
+
+// The following works, but might need improvement:
+
+  if(lhs.exponent > rhs.exponent)
+  {
+    return lhs.mantissa < (rhs.mantissa >> (lhs.exponent - rhs.exponent));
+  }
+  else
+  {
+    return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
+  }
+}
+
+
+
+template<class T>
+inline bool operator> (EMVScalarProduct const & lhs, T && rhs)
+{
+  return std::forward<T>(rhs) < lhs;
+}
+
+template<class T>
+inline bool operator> (T && lhs, EMVScalarProduct const & rhs)
+{
+  return rhs < std::forward<T>(lhs);
+}
+
+// because operator> (EMV, EMV) matches both templates, this is needed to elimante ambiguity.
+inline bool operator> (EMVScalarProduct const & lhs, EMVScalarProduct const rhs)
+{
+  return rhs < lhs;
+}
+
+template<class DimensionType>
+class EMVApproximation
+{
+  public:
+  using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
+  using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
   template<class LatticePoint> // TODO : enable_if to select Lattice Points only.
-  explicit MantissaVectorApproximation(LatticePoint const &exact_point);
-  explicit MantissaVectorApproximation(DimensionType const &dim); //
-  MantissaVectorApproximation() = delete;
-  MantissaVectorApproximation(MantissaVectorApproximation const &old) = delete;
-  MantissaVectorApproximation(MantissaVectorApproximation && old) = default;
-  MantissaVectorApproximation& operator=(MantissaVectorApproximation const &other) = delete;
-  MantissaVectorApproximation& operator=(MantissaVectorApproximation && other) = default;
-  ~MantissaVectorApproximation();
+  explicit EMVApproximation(LatticePoint const &exact_point);
+  explicit EMVApproximation(DimensionType const &dim); //
+  EMVApproximation() = delete;
+  EMVApproximation(EMVApproximation const &old) = delete;
+  EMVApproximation(EMVApproximation && old) = default;
+  EMVApproximation& operator=(EMVApproximation const &other) = delete;
+  EMVApproximation& operator=(EMVApproximation && other) = default;
+  ~EMVApproximation();
 
   private:
 
@@ -50,8 +96,9 @@ class MantissaVectorApproximation
 
 } // end namespace
 
-#endif
+#endif // APPROX_LSB_VECTOR_H
 
+#if 0
 
 #ifndef APPROXIMATE_LATTICE_POINT_H
 #define APPROXIMATE_LATTICE_POINT_H
@@ -140,3 +187,4 @@ inline                                 LatticeApproximationsNew::ApproximationNo
 //clang-format on
 
 #endif // APPROX_LATTICE_POINT_H
+#endif
