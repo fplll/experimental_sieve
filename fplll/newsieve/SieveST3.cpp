@@ -71,8 +71,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 {
     if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
 
-    double px1  = .31; // TO ADJUST
-    double x1x2 = .31;
+    // ! targets are squared
+    double px1  = .091; // TO ADJUST
+    double x1x2 = .091;
 
     int scalar; //for 2-reduction
 
@@ -115,8 +116,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         //
         //TODO: Change the computations below to smth. faster/better/cleverer/etc.
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
-        //double sc_prod_px1_norm = convert_to_double( sc_prod_px1 ) / (convert_to_double ( p.get_norm2() * (*it).get_norm2()));
-        double sc_prod_px1_norm = convert_to_double( sc_prod_px1 ) /
+        double sc_prod_px1_norm = convert_to_double( sc_prod_px1)*convert_to_double(sc_prod_px1 ) /
                         ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
         if (std::abs(sc_prod_px1_norm) > px1)
         {
@@ -129,7 +129,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
 
                 int sgn1, sgn2, sgn3;
-
+                
+                
+                // ! check_3red assumes that the first argument has the largest norm
                 if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1,  sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
                     //TODO: CHECK!
@@ -159,7 +161,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
     main_list.insert_before(it_comparison_flip,p.make_copy());
     ++current_list_size;
-    //cout << "list_size = " <<current_list_size << endl;
+    //std::cout << "list_size = " <<current_list_size << std::endl;
     if(update_shortest_vector_found(p))
     {
         if(verbosity>=2)
@@ -169,12 +171,18 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     }
     
     
-    
-    
     //now p is not the largest
     //it_comparison_flip points to the next after p list-element
-    for(auto it = it_comparison_flip; it!=main_list.cend(); )
+    it = it_comparison_flip;
+    //for(auto it = it_comparison_flip; it!=main_list.cend(); )
+    while (it !=main_list.cend())
     {
+        
+        //if true, do not put into the filtered_list
+        bool x1_reduced = false;
+        bool two_reduction = false;
+        
+        std::cout << "it = " << (*it).get_norm2() << std::endl;
         
         //
         //check for 2-reduction
@@ -183,6 +191,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         {
             assert(scalar!=0); //should not be 0 in any case
             typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
+            
+            std::cout << "2-reduction! " << std::endl;
             
             if (v_new.is_zero() )
             {
@@ -193,15 +203,91 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             
             it = main_list.erase(it);
             --current_list_size;
+            
+            
+            two_reduction = true;
+            
+            //it was increased by the erase; we may already reach the end, so the code below will segfalut
+            if (it == main_list.cend())
+                return;
+            
         }
         
         //
         // 3-rediction
         //
+        // Now x1 is the largest
+        EntryType sc_prod_px1 = compute_sc_product(p,*it);
+        double sc_prod_px1_norm = convert_to_double( sc_prod_px1 )* convert_to_double( sc_prod_px1 )  /
+        ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
         
+        std::cout << "sc_prod_px1_norm = " << sc_prod_px1_norm << std::endl;
+        if (std::abs(sc_prod_px1_norm) > px1)
+        {
+            
+            std::cout << "sc_prod_px1_norm = " << sc_prod_px1_norm << std::endl;
+            std::cout << "filtered_list.size = " << filtered_list.size() << std::endl;
+            for (auto & filtered_list_it: filtered_list)
+            {
+                //check if || p \pm x1 \pm x2 || < || x1 ||
+                
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                
+                int sgn1, sgn2, sgn3;
+                
+                std::cout << (filtered_list_it).get_point().get_norm2() << std::endl;
+                
+                // ! check_3red assumes that the first argument has the largest norm
+                if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
+                {
+                    std::cout << "reduction! " << std::endl;
+                    
+                    //TODO: CHECK WITH THE SIGNS
+                    
+                    typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    
+                    if (v_new.is_zero() )
+                    {
+                        number_of_collisions++;
+                    }
+                    
+                    main_queue.push(std::move(v_new));
+                    it = main_list.erase(it);
+                    
+                    --current_list_size;
+                    
+                    
+                    x1_reduced = true;
+                }
+            }
+            
+            std::cout << "end of filter-loop " << std::endl;
+            
+            if (!x1_reduced)
+            {
+                std::cout << "add to filter" << std::endl;
+                typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+                filtered_list.push_back(std::move(new_filtered_point));
+            }
+            
+            
+                
+        }
         
-
-    }
+        if (!two_reduction && !x1_reduced)
+        {
+            std::cout<<"increase it manually"<< std::endl;
+            ++it;
+        }
+        
+        /*
+        if (filtered_list.size()>0) {
+            std::cout << "filtered.size() = " << filtered_list.size() << std::endl;
+        }
+         */
+    } // 'lower' for-loop
+    
+    filtered_list.clear();
 
 }
 
