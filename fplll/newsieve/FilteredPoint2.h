@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef _FilteredPoint_h
-#define _FilteredPoint_h
+#ifndef _FilteredPoint2_h
+#define _FilteredPoint2_h
 
 #include "DebugAll.h"
 #include "SieveUtility.h"
@@ -19,7 +19,7 @@ namespace GaussSieve{
 
 template <class ET, int nfixed> class ExactLatticePoint;
 
-template <class ET, int nfixed, class EntryType> class FilteredPoint;
+template <class ET, int nfixed, class EntryType> class FilteredPointPointer;
 
 // Template parameters are:
 //  ET: entry type
@@ -27,39 +27,36 @@ template <class ET, int nfixed, class EntryType> class FilteredPoint;
 //  SC: scalar-product type
 
 template <class ET, int nfixed, class SC>
-class FilteredPoint
+class FilteredPointPointer
 {
 public:
     
     using StoredPoint = ExactLatticePoint<ET,nfixed>;
 
-    FilteredPoint()=delete;
-    FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
-    FilteredPoint(FilteredPoint &&Point) = default ;
-    FilteredPoint(StoredPoint x, SC sc)
+    FilteredPointPointer()=delete;
+    FilteredPointPointer(const FilteredPointPointer &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
+    FilteredPointPointer(FilteredPointPointer &&Point) = default ;
+    FilteredPointPointer(StoredPoint const* x, SC sc)
     {
-        //Store a pointer to point to avoid copying
-        this->point = x.make_copy();
+        this->point = x;
         this->sc_prod = sc;
     }
 
 
-    FilteredPoint& operator=(FilteredPoint const &that) =delete;
-    FilteredPoint& operator=(FilteredPoint && that) =default;
+    FilteredPointPointer& operator=(FilteredPointPointer const &that) =delete;
+    FilteredPointPointer& operator=(FilteredPointPointer && that) =default;
 
 
-    ~FilteredPoint() {}
+    ~FilteredPointPointer() {}
 
-
-    //TODO: DO WE NEED TO COPY?
-    inline StoredPoint get_point() const {return this->point.make_copy();}
+    inline StoredPoint const* get_point() const {return this->point;}
     inline SC get_sc_prod() const {return sc_prod;}
     //inline bool get_sign() const {return minus;}
 
 
 private:
     //members
-    StoredPoint point;
+    StoredPoint const* point;
 
     SC sc_prod;
 
@@ -72,7 +69,6 @@ private:
 
 };
 
-} //namespace
-
+}
 
 #endif

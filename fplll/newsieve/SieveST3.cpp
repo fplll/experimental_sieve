@@ -26,7 +26,9 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
 
     //check if the there is a reduction assumming all <,> are negative -> all sgns are '+'
     //no reduction if ||x_1 ||^2 +||x_2 ||^2 >= 2* ( <p, x1> + <p, x2>+ <x1,x2>)
-    if ( x1.get_norm2() + x2.get_point().get_norm2() >=
+    //if ( x1.get_norm2() + x2.get_point().get_norm2() >=
+    //    2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
+    if ( x1.get_norm2() + (*x2.get_point()).get_norm2() >=
         2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
         return false;
 
@@ -127,7 +129,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
                 //check if || p \pm x1 \pm x2 || < || p ||
 
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
 
                 int sgn1, sgn2, sgn3;
                 
@@ -137,10 +140,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 {
                     //TODO: CHECK!
                     //TODO:  RETRIEVE ||p|| from the sc_prods
-                    //THE LINE BELOW FAILS: DEBUG!
-                    p = p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
-//                    typename SieveTraits::FastAccess_Point p_new =p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point();
-
+                    //p = p*sgn1 + (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    p = p*sgn1 + (*it)*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     if (p.is_zero() )
                     {
                         number_of_collisions++;
@@ -153,7 +154,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 }
             }
 
-            typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+            //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+            //typename SieveTraits::GaussList_StoredPoint const * Pointer = &(*it);
+            typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
             filtered_list.push_back(std::move(new_filtered_point));
         }
 
@@ -226,8 +229,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
                 //check if || p \pm x1 \pm x2 || < || x1 ||
                 
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
-                
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
                 int sgn1, sgn2, sgn3;
                 
                 
@@ -237,7 +240,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     
                     //TODO: CHECK WITH THE SIGNS
                     
-                    typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     if (v_new.is_zero() )
                     {
@@ -258,7 +261,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             
             if (!x1_reduced)
             {
-                typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+                //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+                typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
                 filtered_list.push_back(std::move(new_filtered_point));
             }
             
