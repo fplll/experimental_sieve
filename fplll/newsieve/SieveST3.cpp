@@ -195,7 +195,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 
                 
                 // ! check_3red assumes that the first argument has the largest norm
-                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1,  sc_prod_x1x2, sgn1, sgn2, sgn3) )
+                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
                     //TODO: CHECK!
                     //TODO:  RETRIEVE ||p|| from the sc_prods
@@ -305,12 +305,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 int sgn1, sgn2, sgn3;
                 //std::cout << "sc_prod_x1x2 " << sc_prod_x1x2 <<  std::endl;
                 // ! check_3red assumes that the first argument has the largest norm
+                //BUG HERE: THE ORDER OF THE SCALAR PRODUCTS IS WRONG
+                
                 if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
                     std::cout << sgn1 << " "<< sgn2 << " " << sgn3 << " " << std::endl;
                     
                     //TODO: CHECK WITH THE SIGNS
-                    typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    typename SieveTraits::FastAccess_Point v_new =p*sgn2 + (filtered_list_it).get_point() * sgn3;
                     //typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     if (v_new.is_zero() )
