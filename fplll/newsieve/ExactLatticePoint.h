@@ -42,12 +42,15 @@ template <class ET, int nfixed>
 class ExactLatticePoint : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
 {
 public:
+  friend StaticInitializer<ExactLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
   using ScalarProductReturnType = ET;
   using Container =
     typename std::conditional<nfixed >= 0, std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                                 std::vector<ET>>::type;               // if nfixed <0
+
+/*
   static bool class_init(AuxDataType const aux_data)
   {
     if(user_counter>0)
@@ -85,6 +88,7 @@ public:
 #endif
     return(user_counter==0);
   }
+  */
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -194,10 +198,47 @@ private:
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif  // DEBUG_SIEVE_LP_INIT
-  static unsigned int user_counter;
+//  static unsigned int user_counter;
   Container data;
   ET norm2;
 };
+
+// Static Initializer:
+template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
+{
+  public:
+  StaticInitializer(MaybeFixed<nfixed> const new_dim)
+  {
+    if(user_counter>0)
+    {
+      assert((new_dim == ExactLatticePoint<ET,nfixed>::dim));
+      // TODO: Throw exception!
+    }
+    else
+    {
+      ExactLatticePoint<ET,nfixed>::dim = new_dim;
+    }
+    ++user_counter;
+#ifdef DEBUG_SIEVE_LP_INIT
+    ExactLatticePoint<ET,nfixed>::class_initialized = true;
+#endif
+  }
+
+  ~StaticInitializer()
+  {
+    assert(user_counter > 0);
+    --user_counter;
+#ifdef DEBUG_SIEVE_LP_INIT
+    ExactLatticePoint<ET,nfixed>::class_initialized = (user_counter > 0);
+#endif
+  }
+
+  static bool is_initialized(){ return user_counter > 0; }; // Does an object exist?
+
+  private:
+  static unsigned int user_counter; // counts number of StaticInitializer instances.
+};
+
 
 // initialize static data:
 
@@ -205,11 +246,13 @@ template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
 template <class ET, int nfixed>
-unsigned int ExactLatticePoint<ET,nfixed>::user_counter = 0;
+unsigned int StaticInitializer<ExactLatticePoint<ET,nfixed>>::user_counter = 0;
+
 
 #ifdef DEBUG_SIEVE_LP_INIT
 template <class ET, int nfixed> bool ExactLatticePoint<ET, nfixed>::class_initialized = false;
 #endif  // DEBUG_SIEVE_LP_INIT
+
 
 }  // end of namespace
 

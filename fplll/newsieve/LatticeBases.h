@@ -83,6 +83,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   explicit SieveLatticeBasis(InputBasisType const &input_basis):
     original_basis(input_basis),
     ambient_dimension(input_basis.get_cols()),
+    static_initializer(MaybeFixed<SieveTraits::get_nfixed>{ambient_dimension}),
     lattice_rank(input_basis.get_rows()),
     // u,u_inv intentionally uninitialized
 //    GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
@@ -99,8 +100,11 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
 
     // extract and convert the actual lattice vectors.
 
+/*
     bool s = BasisVectorType::class_init(MaybeFixed<SieveTraits::get_nfixed>{ambient_dimension});
     assert(s); // TODO: Clean up and throw exception instead.
+*/
+
     basis_vectors = new BasisVectorType[lattice_rank];
     for(uint_fast16_t i=0;i<lattice_rank;++i)
     {
@@ -121,7 +125,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   ~SieveLatticeBasis()
   {
     delete[] basis_vectors;
-    BasisVectorType::class_uninit();
+  //  BasisVectorType::class_uninit();
   }
 
 
@@ -225,6 +229,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   InputBasisType original_basis;
   public:
   DimensionType const ambient_dimension;
+  StaticInitializer<BasisVectorType> static_initializer;
   uint_fast16_t const lattice_rank;      // Technically, just number of vectors.
                                   // We don't verify linear independence ourselves.
                                   // (even though GSO computation does, probably)

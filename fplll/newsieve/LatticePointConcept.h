@@ -44,12 +44,13 @@ template<class LatticePoint> struct LatticePointTraits
   AuxDataType : type of class-wide data that is required to interpret a given point
                 (e.g. Dimension, custom memory allocator)
                 Default: IgnoreAnyArg
+                Needs to be initializable from an int.
   ScalarProductReturnType: Return type of scalar products. Mandatory!
 
   CoordinateType : return type of operator[] if available.
 
   CoordinateAccess : Set to true_type to indicate that the class exposes an operator[].
-                     We may read LatticePoint[i] for 0<= i < get_vec_size().
+                     We may read LatticePoint[i] for 0 <= i < get_vec_size().
                      These entries behave like coordinates.
 
   CoordinateVector : Set to true_type to indicate that we have the same guarantees as
@@ -164,8 +165,8 @@ class GeneralLatticePoint
 // Note: If there is no static data, the implementation may just always return true and not use
 // a static counter at all.
 
-    static bool class_init(AuxDataType const &aux_data) = delete;
-    static bool class_uninit() = delete;
+//    static bool class_init(AuxDataType const &aux_data) = delete;
+//    static bool class_uninit() = delete;
 
 // This one should be overloaded by every derived class. Used for diagnostic.
 
@@ -418,6 +419,38 @@ class GeneralLatticePoint
 
 
 };
+
+// Initializer for static data.
+// This is the default initializer, which does nothing.
+
+template<class LP>
+class StaticInitializer
+{
+  static_assert(IsALatticePoint<LP>::value,"Only meaningful for lattice points.");
+  public:
+  using AuxDataType = typename GetAuxDataType<LP>::type;
+  static_assert(std::is_same<AuxDataType,IgnoreAnyArg>::value,"Need to specialize StaticInitializer if AuxDataType is defined.");
+#ifndef DEBUG_SIEVE_LP_INIT
+  explicit constexpr StaticInitializer(){};
+  explicit constexpr StaticInitializer(AuxDataType const &) {};
+#else
+  static unsigned int init_count; // counts the number of objects of this type that exist, essentially.
+  static bool is_initialized(){ return init_count > 0; }; // Does an object exist?
+  explicit StaticInitializer(){++init_count;};
+  explicit StaticInitializer(AuxDataType const &){++init_count;};
+  ~StaticInitializer()
+  {
+    assert(init_count>0);
+    --init_count;
+  }
+#endif
+};
+
+#ifdef DEBUG_SIEVE_LP_INIT
+  template<class LP> unsigned int StaticInitializer<LP>::init_count = 0;
+#endif
+
+
 
 // Non-member functions:
 

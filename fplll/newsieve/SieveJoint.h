@@ -123,7 +123,7 @@ public:
     using InputBasisType   = typename SieveTraits::InputBasisType;
     using DimensionType    = typename SieveTraits::DimensionType;
     using EntryType        = typename SieveTraits::EntryType;
-    
+
     using FilteredListType = typename SieveTraits::FilteredListType;
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
@@ -322,6 +322,8 @@ private:
     std::mutex dump_mutex;
     std::mutex shortest_vector_mutex;
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+
+    StaticInitializer<FastAccess_Point> static_init_fast_access_point;
 
 //TODO: total time spent?
 };

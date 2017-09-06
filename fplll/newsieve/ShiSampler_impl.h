@@ -66,10 +66,27 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 //    maxdeviations[i] = tmp2.get_d() * cutoff;
   }
   using RetType = typename SieveTraits::GaussSampler_ReturnType;
+
+  if(static_init_plainpoint!=nullptr)
+  {
+    assert(false);
+//    delete static_init_plainpoint;
+  }
+  if(static_init_rettype!=nullptr)
+  {
+    assert(false);
+//    delete stat_init_rettype;
+  }
+
+  static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
+  static_init_plainpoint= new StaticInitializer<typename SieveTraits::PlainPoint>(MaybeFixed<SieveTraits::get_nfixed>{dim});
+
+/*
   bool s = RetType::class_init(MaybeFixed<SieveTraits::get_nfixed>{dim});
   assert(s); // TODO: Clean up and throw exception instead.
   s = SieveTraits::PlainPoint::class_init(MaybeFixed<SieveTraits::get_nfixed>{dim});
   assert(s);
+*/
   initialized = true;
 }
 
