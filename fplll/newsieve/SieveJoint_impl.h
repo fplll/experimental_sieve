@@ -192,17 +192,17 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_total_scprods_level2(0),
     number_of_total_scprods_level3(0),
     number_of_exact_scprods(0),
-    number_of_mispredictions(0)
+    number_of_mispredictions(0),
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-    ,garbage_bins(nullptr)
+    garbage_bins(nullptr),
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
-
+    static_init_fast_access_point(ambient_dimension)
 {
     if (SieveTraits::get_nfixed!=-1)
     {
         assert(B.get_cols() == SieveTraits::get_nfixed );
     }
-    FastAccess_Point::class_init((ambient_dimension));
+//    FastAccess_Point::class_init((ambient_dimension));
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     if(num_threads_wanted==0) //0 means we take a meaningful default, which is given by thread::hardware_concurrency
       num_threads_wanted = std::max(std::thread::hardware_concurrency(),static_cast<unsigned int>(1)); //Note: hardware_concurrency might return 0 for "unknown".

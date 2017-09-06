@@ -18,6 +18,7 @@
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultTermConds.h" />
 		<Unit filename="DefaultTermConds_impl.h" />
+		<Unit filename="EMVApproximation.h" />
 		<Unit filename="ExactLatticePoint.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
@@ -38,9 +39,11 @@
 		<Unit filename="SieveJoint_impl.h" />
 		<Unit filename="SieveST.cpp" />
 		<Unit filename="SieveST2.cpp" />
+		<Unit filename="SieveST3.cpp" />
 		<Unit filename="SieveUtility.h" />
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
+		<Unit filename="Tests/TestEMV.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestList.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />

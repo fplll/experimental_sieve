@@ -1,3 +1,5 @@
+#error This file is no longer used (and probably does not work anyway).
+
 // clang-format off
 
 #ifndef MY_LATTICE_POINT_CLASS_H

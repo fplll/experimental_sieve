@@ -20,15 +20,12 @@ bool test_exact_LP()
   typedef GaussSieve::ExactLatticePoint<mpz_class,10> LPGMP;
   static_assert(GaussSieve::IsALatticePoint<LPvar>::value,"");
   static_assert(GaussSieve::IsCooVector<LPvar>::value,"");
-  bool success;
-  success=LPvar::class_init(MaybeFixed<-1>{10});
-  assert(success);
-  success=LPvar::class_init(MaybeFixed<-1>{10});
-  assert(success);
-  success=LPfix::class_init(MaybeFixed<10>{10});
-  assert(success);
-  success=LPGMP::class_init(MaybeFixed<10>{10});
-  assert(success);
+
+  GaussSieve::StaticInitializer<LPvar> init1 (MaybeFixed<-1>{10});
+  GaussSieve::StaticInitializer<LPvar> init2 (MaybeFixed<-1>{10});
+  GaussSieve::StaticInitializer<LPfix> init3 (MaybeFixed<10>{10});
+  GaussSieve::StaticInitializer<LPGMP> init4 (MaybeFixed<10>{10});
+
   LPvar X1;
   LPvar X2(10);
   LPvar X3(MaybeFixed<-1>(10));
@@ -119,14 +116,7 @@ bool test_exact_LP()
   std::cout << X1 << X2 << X3 << std::endl;
   std::cout << Y1 << Y2 << Y3 << std::endl;
   std::cout << Z1 << Z2 << Z3 << std::endl << std::flush;
-  success=LPvar::class_uninit();
-  assert(!success);
-  success=LPvar::class_uninit();
-  assert(success);
-  success=LPfix::class_uninit();
-  assert(success);
-  success=LPGMP::class_uninit();
-  assert(success);
+
   return true;
 };
 

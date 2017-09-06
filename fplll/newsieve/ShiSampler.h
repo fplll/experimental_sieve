@@ -43,7 +43,8 @@ public:
   // Note: Sampler::sieveptr is only initialized during Sampler::init.
   // Consequently, some member fields will only be set during custom_init.
   explicit ShiSampler(Sseq &seq, double const _cutoff = 2.0)
-      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false)
+      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false),
+      static_init_rettype(nullptr), static_init_plainpoint(nullptr)
       {
         DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.")
       };
@@ -52,8 +53,10 @@ public:
   {
     if(initialized)
     {
-      RetType::class_uninit();
-      SieveTraits::PlainPoint::class_uninit();
+      delete static_init_plainpoint;
+      delete static_init_rettype;
+//      RetType::class_uninit();
+//      SieveTraits::PlainPoint::class_uninit();
     }
   };
   virtual inline RetType sample(int thread = 0) override;
@@ -77,6 +80,9 @@ protected:
   using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
   using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
   std::vector<typename SieveTraits::PlainPoint> basis;
+
+  StaticInitializer<RetType> *static_init_rettype;
+  StaticInitializer<typename SieveTraits::PlainPoint> *static_init_plainpoint;
 
   // TODO: Store basis in a different way.
   //    vector<MyLatticePoint> basis;

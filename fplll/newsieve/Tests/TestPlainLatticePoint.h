@@ -21,9 +21,11 @@ bool test_plain_LP()
   typedef GaussSieve::PlainLatticePoint<mpz_class,10> LPGMP;
   static_assert(GaussSieve::IsALatticePoint<LPvar>::value,"");
   static_assert(GaussSieve::IsCooVector<LPvar>::value,"");
-  LPvar::class_init(MaybeFixed<-1>{10});
-  LPfix::class_init(MaybeFixed<10>{10});
-  LPGMP::class_init(MaybeFixed<10>{10});
+
+  GaussSieve::StaticInitializer<LPvar> init1(MaybeFixed<-1>{10});
+  GaussSieve::StaticInitializer<LPfix> init2(MaybeFixed<10>{10});
+  GaussSieve::StaticInitializer<LPGMP> init3(MaybeFixed<10>{10});
+
   LPvar X1;
   LPvar X2(10);
   LPvar X3(MaybeFixed<-1>(10));
@@ -110,10 +112,6 @@ bool test_plain_LP()
 //  Y2 = make_from_any_vector(vec, MaybeFixed<-1>(10));
 //  assert(Y1==Y2);
 //  assert(X1==Y1);
-
-  LPvar::class_uninit();
-  LPfix::class_uninit();
-  LPGMP::class_uninit();
 
   std::cout << X1 << X2 << X3 << std::endl;
   std::cout << Y1 << Y2 << Y3 << std::endl;
