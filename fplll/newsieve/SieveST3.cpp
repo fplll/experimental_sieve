@@ -73,7 +73,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 {
     if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
     
-
+    
+    
     // ! targets are squared
     double px1  = .091; // TO ADJUST
     double x1x2 = .091;
@@ -93,7 +94,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             it_comparison_flip = it;
             break;
         }
-
+        
         //
         //check for 2-reduction
         //
@@ -112,7 +113,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             }
             return;
         }
-
+        
+        filtered_list_size = 0;
 
         //
         //compare <p, x1> with px1
@@ -158,6 +160,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             //typename SieveTraits::GaussList_StoredPoint const * Pointer = &(*it);
             typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
             filtered_list.push_back(std::move(new_filtered_point));
+            
         }
 
         ++it;
@@ -184,18 +187,18 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
         //if true, do not put into the filtered_list
         bool x1_reduced = false;
-        bool two_reduction = false;
         
         
         //
         //check for 2-reduction
         //
+
         if ( GaussSieve::check2red<SieveTraits>(*it, p, scalar) )
         {
             assert(scalar!=0); //should not be 0 in any case
             typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
             
-            
+          
             if (v_new.is_zero() )
             {
                 number_of_collisions++;
@@ -207,13 +210,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             --current_list_size;
             
             
-            two_reduction = true;
-            
             //it was increased by the erase; we may already reach the end, so the code below will segfalut
             if (it == main_list.cend())
                 return;
             
         }
+        
         
         //
         // 3-rediction
@@ -225,6 +227,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
         if (std::abs(sc_prod_px1_norm) > px1)
         {
+            
             for (auto & filtered_list_it: filtered_list)
             {
                 //check if || p \pm x1 \pm x2 || < || x1 ||
@@ -232,14 +235,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
                 int sgn1, sgn2, sgn3;
-                
-                
+                //std::cout << "sc_prod_x1x2 " << sc_prod_x1x2 <<  std::endl;
                 // ! check_3red assumes that the first argument has the largest norm
                 if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
                 {
+                    //std::cout << "reduction " << std::endl;
                     
                     //TODO: CHECK WITH THE SIGNS
-                    
+                    //typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + (filtered_list_it).get_point() * sgn3;
                     typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     if (v_new.is_zero() )
@@ -256,7 +259,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     
                     break; //for-loop over the filtered_list
                 }
-            }
+            } //if-cond
             
             
             if (!x1_reduced)
@@ -266,11 +269,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 filtered_list.push_back(std::move(new_filtered_point));
             }
             
-            
-                
         }
         
-        if (!two_reduction && !x1_reduced)
+        if (!x1_reduced)
         {
             ++it;
         }
@@ -280,8 +281,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             std::cout << "filtered.size() = " << filtered_list.size() << std::endl;
         }
          */
-    } // 'lower' for-loop
+    } // 'lower' while-loop
     
+    filtered_list_size =filtered_list.size();
     filtered_list.clear();
 
 }
