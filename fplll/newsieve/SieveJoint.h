@@ -238,6 +238,7 @@ public:
     unsigned long int get_number_of_points_sampled() const      {return number_of_points_sampled;};
     unsigned long long get_number_of_points_constructed() const {return number_of_points_constructed;};
     unsigned long int get_current_list_size() const             {return current_list_size;};
+    unsigned long int get_filtered_list_size() const            {return filtered_list_size;};
     unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
     unsigned long long get_number_of_scprods_level1() const     {return number_of_total_scprods_level1;};
     //TODO:DO the same for all levels
@@ -305,7 +306,8 @@ private:
     unsigned long long int number_of_total_scprods_level2; //for k=2,3 cases
     unsigned long long int number_of_total_scprods_level3; //for k=2,3,4 cases
     unsigned long long int number_of_exact_scprods;
-    unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so.
+    unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
+    unsigned long int filtered_list_size; //size of filtered_list
 #else //note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
     atomic_ulong number_of_collisions;
     atomic_ulong number_of_points_sampled;

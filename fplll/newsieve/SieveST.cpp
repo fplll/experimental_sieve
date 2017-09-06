@@ -121,7 +121,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
-             std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() <<  std::endl;
+             std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |FL|= " << filtered_list_size << " |sv|= " <<  get_best_length2() <<  std::endl;
         }
     }
 }
