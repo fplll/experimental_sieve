@@ -8,6 +8,8 @@
 #include "../SieveUtility.h"
 #include "../EMVApproximation.h"
 #include <limits>
+#include "../ExactLatticePoint.h"
+#include "gmpxx.h"
 
 bool test_emv()
 {
@@ -17,16 +19,16 @@ bool test_emv()
   mpz_class xm = 236;
   int xi2 = -65536;
 
-  using GaussSieve::EMVScalarProduct;
+  using GaussSieve::EMVScalar;
   std::cout << "Size of approximated Norm2s is" << std::numeric_limits<typename GaussSieve::EMVApproximationTraits::ApproxNorm2Type>::digits << " bits." << std::endl;
   std::cout << "Size of approximated entries is" << std::numeric_limits<typename GaussSieve::EMVApproximationTraits::ApproxEntryType>::digits << " bits." << std::endl;
 
-  EMVScalarProduct ad(xd);
-  EMVScalarProduct ai = static_cast<EMVScalarProduct> (xi);
-  EMVScalarProduct ai22(-1,16);
-  EMVScalarProduct ai2 = static_cast<EMVScalarProduct> (xi2);
-  EMVScalarProduct am = static_cast<EMVScalarProduct>(xm);
-  EMVScalarProduct al(xl);
+  EMVScalar ad(xd);
+  EMVScalar ai = static_cast<EMVScalar> (xi);
+  EMVScalar ai22(-1,16);
+  EMVScalar ai2 = static_cast<EMVScalar> (xi2);
+  EMVScalar am = static_cast<EMVScalar>(xm);
+  EMVScalar al(xl);
 
   std::cout << "Exact:" << xd << " approximated by " << ad << std::endl;
   std::cout << "Exact:" << xi << " approximated by " << ai << std::endl;
@@ -39,10 +41,10 @@ bool test_emv()
   mpz_class mpz3 =-1024;
   mpz_class mpz4 =-1025;
 
-  EMVScalarProduct app1(mpz1);
-  EMVScalarProduct app2(mpz2);
-  EMVScalarProduct app3(mpz3);
-  EMVScalarProduct app4(mpz4);
+  EMVScalar app1(mpz1);
+  EMVScalar app2(mpz2);
+  EMVScalar app3(mpz3);
+  EMVScalar app4(mpz4);
 
   assert(app1 < app2);
   assert(app2 > app1);
@@ -57,6 +59,54 @@ bool test_emv()
   assert(app1 > 1023.5);
   assert(app1 < 1025);
   assert(app1 < 1024.01);
+
+  double d1 = 32;
+  double d2 = -33;
+  double d3 = 0.24;
+  double d4 = 31.999;
+
+  long l1 = 32;
+  long l2 = -33;
+  long l3 = 0;
+
+  mpz_class m1 = 32;
+  mpz_class m2 = -33;
+  mpz_class m3 = 0;
+
+  #define PRINT_VAL_WITH_EXP(arg) std::cout << "Value = " << arg << " exponent =" << EMVScalar::get_exponent(arg) << std::endl;
+
+  PRINT_VAL_WITH_EXP(d1);
+  PRINT_VAL_WITH_EXP(d2);
+  PRINT_VAL_WITH_EXP(d3);
+  PRINT_VAL_WITH_EXP(d4);
+  PRINT_VAL_WITH_EXP(l1);
+  PRINT_VAL_WITH_EXP(l2);
+  PRINT_VAL_WITH_EXP(l3);
+  PRINT_VAL_WITH_EXP(m1);
+  PRINT_VAL_WITH_EXP(m2);
+  PRINT_VAL_WITH_EXP(m3);
+
+  int constexpr dim = 25;
+  int constexpr dimfixed=25;
+
+  using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
+  using GaussSieve::MaybeFixed;
+  using GaussSieve::EMVApproximation;
+  GaussSieve::StaticInitializer<LP> init1 (MaybeFixed<dimfixed>{dim});
+  GaussSieve::StaticInitializer<EMVApproximation<dimfixed>> init2 (MaybeFixed<dimfixed>{dim});
+
+  std::array<mpz_class,dim> arr;
+  for(int i=0;i<dim;++i)
+  {
+    arr[i] = 400 *i * i;
+  }
+
+  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<dimfixed>{dim});
+
+  EMVApproximation<dimfixed> emv(latp);
+
+  std::cout << emv;
+
 
   return true;
 }

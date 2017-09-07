@@ -339,6 +339,35 @@ double convert_to_double(mpz_class const & source)
   return source.get_d();
 }
 
+// ConvertMaybeMPZ<Integer>::convert_to_inttype(source)
+// is a static_cast<Integer>(source) that also works for mpz_class
+
+template<class Integer> struct ConvertMaybeMPZ
+{
+  static_assert(std::is_integral<Integer>::value, "Use only for integral classes.");
+  static_assert(std::numeric_limits<Integer>::digits <= std::numeric_limits<long>::digits,"Converter does not work properly for types larger than long.");
+  // and in fact, there is issues with signed / unsigned.
+
+  template<class Source>
+  static Integer convert_to_inttype(Source const & source)
+  {
+    static_assert(!std::is_same<typename std::decay<Source>::type,mpz_class>::value, "Source is mpz_class");
+    return static_cast<Integer>(source);
+  }
+
+  static Integer convert_to_inttype(mpz_class const & source)
+  {
+    if(std::numeric_limits<Integer>::is_signed)
+    {
+      return static_cast<Integer>(source.get_si() );
+    }
+    else
+    {
+      return static_cast<Integer>(source.get_ui() );
+    }
+
+  }
+};
 
 
 /**
