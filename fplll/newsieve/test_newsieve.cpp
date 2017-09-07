@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     int b = 2;
     int k = 3;
     Z_NR<mpz_t> target_norm;
+    mpz_class target_norm_conv;
     target_norm = 0;
     
     if (argc == 1)
@@ -82,6 +83,17 @@ int main(int argc, char **argv)
         B.gen_qary_prime(1, 10*dim);
     }
     
+    if (target_norm_string!=NULL)
+    {
+        target_norm.set_str(target_norm_string);
+        target_norm_conv = mpz_class(target_norm_string);
+    }
+    
+    if(target_norm > 0)
+    {
+        cout << "target norm set: " << target_norm << endl;
+    }
+    
     /* preprocessing of basis */
     clock_t stime = clock();
     if (b > 2)
@@ -100,11 +112,14 @@ int main(int argc, char **argv)
     bool constexpr multithreaded = false;
     using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
     
+    
+    
     auto start = std::chrono::high_resolution_clock::now();
-
+    
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
-	TerminationCondition<Traits,multithreaded> * termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+	//TerminationCondition<Traits,multithreaded> * termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+    TerminationCondition<Traits,multithreaded> * termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
 	Test_3Sieve.set_termination_condition(termcond);
     
     
