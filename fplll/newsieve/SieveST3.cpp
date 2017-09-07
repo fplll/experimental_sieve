@@ -3,69 +3,80 @@
 namespace GaussSieve{
 
 // The function checks if
-//    || p \pm x1 \pm x2 || < || p ||
+//    || x1 \pm x2 \pm x3 || < || x1 ||
 // The first arguments is assumed to have the largest norm
 // The last three arguments are modified. They return the correct signs
 
 template<class SieveTraits>
-bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
-                 typename SieveTraits::FastAccess_Point const &x1,
-                 typename SieveTraits::FlilteredPointType const &x2,
-                 typename SieveTraits::EntryType const &px1,
+bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
+                 typename SieveTraits::FastAccess_Point const &x2,
+                 typename SieveTraits::FlilteredPointType const &x3,
                  typename SieveTraits::EntryType const &x1x2,
-                 int &sgn1, int &sgn2, int &sgn3)
+                 typename SieveTraits::EntryType const &x3_X,
+                 bool p_is_max, int &sgn2, int &sgn3)
 {
         //retrieve the signs of the 3 inner-products;
         //they should satisfy (<p, x1>*<p, x2>*<x1, x2>) < 0
         //check for all 4 combinations that do not lead to a reduction
-        if ( (x2.get_sc_prod() >0 && px1>0 && x1x2>0) ||
-             (x2.get_sc_prod() <0 && px1<0 && x1x2>0) ||
-             (x2.get_sc_prod() <0 && px1>0 && x1x2<0) ||
-             (x2.get_sc_prod() >0 && px1<0 && x1x2<0) )
-            return false;
 
-    if (x2.get_sc_prod() <0 && px1<0 && x1x2<0 &&
-        x1.get_norm2() + x2.get_point().get_norm2() <
-        2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2) ) )
+    typename SieveTraits::EntryType x3x1;
+    typename SieveTraits::EntryType x3x2;
+    
+    if (p_is_max) {
+        x3x1 = x3_X;
+        x3x2 = x3.get_sc_prod();
+    }
+    else
     {
-        sgn1 = 1;
+        x3x1 = x3.get_sc_prod();
+        x3x2 = x3_X;
+    }
+    
+    if (x1x2 * x3x1 * x1x2 >0)
+        return false;
+
+    if (x3x1 <0 && x1x2<0 && x3x2<0 &&
+        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        2 * ( abs(x3x1) + abs(x1x2) + abs(x3x2) ) )
+    {
+        
         sgn2 = 1;
         sgn3 = 1;
-        std::cout << "sgns: case 1" << std::endl;
+        //std::cout << "sgns: case 1" << std::endl;
         return true;
     }
     
-    if (x2.get_sc_prod() <0 && px1>0 && x1x2>0 &&
-        x1.get_norm2() + x2.get_point().get_norm2() <
-        2 * ( - x2.get_sc_prod() + px1 + x1x2 ) )
+    if (x3x1 <0 && x1x2>0 && x3x2>0 &&
+        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        2 * ( x3x1 + x1x2 + x3x2 ) )
     {
-        sgn1 = 1;
+        
         sgn2 = -1;
         sgn3 = 1;
-        std::cout << "sgns: case 2" << std::endl;
+        //std::cout << "sgns: case 2" << std::endl;
         return true;
             
     }
     
-    if (x2.get_sc_prod() >0 && px1<0 && x1x2>0 &&
-        x1.get_norm2() + x2.get_point().get_norm2() <
-        2 * ( + x2.get_sc_prod() - px1 + x1x2 ) )
+    if (x3x1 >0 && x1x2<0 && x3x2>0 &&
+        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        2 * ( x3x1 - x1x2 + x3x2 ) )
     {
-        sgn1 = 1;
+        
         sgn2 = 1;
         sgn3 = -1;
-        std::cout << "sgns: case 3" << std::endl;
+        //std::cout << "sgns: case 3" << std::endl;
         return true;
     }
     
-    if (x2.get_sc_prod() >0 && px1>0 && x1x2<0 &&
-        x1.get_norm2() + x2.get_point().get_norm2() <
-        2 * ( + x2.get_sc_prod() + px1 - x1x2 ) )
+    if (x3x1 >0 && x1x2>0 && x3x2<0 &&
+        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        2 * (  x3x1 + x1x2 - x3x2 ) )
     {
-        sgn1 = 1;
+        
         sgn2 = -1;
         sgn3 = -1;
-        std::cout << "sgns: case 4" << std::endl;
+        //std::cout << "sgns: case 4" << std::endl;
         return true;
     }
     
@@ -73,52 +84,6 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &p,
     //check if the there is a reduction assumming all <,> are negative -> all sgns are '+'
     //no reduction if ||x_1 ||^2 +||x_2 ||^2 >= 2* ( <p, x1> + <p, x2>+ <x1,x2>)
     
-    
-    
-    /*
-    if ( x1.get_norm2() + x2.get_point().get_norm2() >=
-        2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
-    //if ( x1.get_norm2() + (*x2.get_point()).get_norm2() >=
-    //    2 * ( abs(x2.get_sc_prod()) + abs(px1) + abs(x1x2)  ) )
-    {
-        return false;
-    }
-
-    // all good sign-configurations: (p+x1+x2), (p+x1-x2), (p-x1+x2), (-p+x1+x2)
-    if (x2.get_sc_prod() <0 && px1<0 && x1x2<0)
-    {
-        sgn1 = 1;
-        sgn2 = 1;
-        sgn3 = 1;
-        std::cout << "sgns: case 1" << std::endl;
-    }
-
-    if (x2.get_sc_prod() <0 && px1>0 && x1x2>0)
-    {
-        sgn1 = 1;
-        sgn2 = -1;
-        sgn3 = 1;
-        std::cout << "sgns: case 2" << std::endl;
-    }
-
-    if (x2.get_sc_prod() >0 && px1<0 && x1x2>0)
-    {
-        sgn1 = 1;
-        sgn2 = 1;
-        sgn3 = -1;
-        std::cout << "sgns: case 3" << std::endl;
-    }
-
-    if (x2.get_sc_prod() >0 && px1>0 && x1x2<0)
-    {
-        sgn1 = -1;
-        sgn2 = 1;
-        sgn3 = 1;
-        std::cout << "sgns: case 4" << std::endl;
-    }
-
-    return true;
-    */
 }
 
     /*
@@ -188,20 +153,20 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
                 //check if || p \pm x1 \pm x2 || < || p ||
 
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
 
-                int sgn1, sgn2, sgn3;
+                int sgn2, sgn3;
                 
                 
                 // ! check_3red assumes that the first argument has the largest norm
-                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
+                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1, sc_prod_x1x2, true, sgn2, sgn3) )
                 {
                     //TODO: CHECK!
                     //TODO:  RETRIEVE ||p|| from the sc_prods
                     EntryType pnorm_old = p.get_norm2();
-                    p += (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
-                    //p = p*sgn1 + (*it)*sgn2 + *(filtered_list_it).get_point() * sgn3;
+                    //p += (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    p +=  (*it)*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     if (p.get_norm2() > pnorm_old)
                     {
@@ -224,9 +189,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 }
             }
 
-            typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+            //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
             //typename SieveTraits::GaussList_StoredPoint const * Pointer = &(*it);
-            //typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
+            typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
             filtered_list.push_back(std::move(new_filtered_point));
             
         }
@@ -300,32 +265,31 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
                 //check if || p \pm x1 \pm x2 || < || x1 ||
                 
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
-                int sgn1, sgn2, sgn3;
-                //std::cout << "sc_prod_x1x2 " << sc_prod_x1x2 <<  std::endl;
-                // ! check_3red assumes that the first argument has the largest norm
-                //BUG HERE: THE ORDER OF THE SCALAR PRODUCTS IS WRONG
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
+                int  sgn2, sgn3;
                 
-                if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, sgn1, sgn2, sgn3) )
+                // ! check_3red assumes that the first argument has the largest norm
+                if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, false, sgn2, sgn3) )
                 {
-                    std::cout << sgn1 << " "<< sgn2 << " " << sgn3 << " " << std::endl;
+                    //std::cout <<  sgn2 << " " << sgn3 << " " << std::endl;
                     
-                    //TODO: CHECK WITH THE SIGNS
-                    typename SieveTraits::FastAccess_Point v_new =p*sgn2 + (filtered_list_it).get_point() * sgn3;
-                    //typename SieveTraits::FastAccess_Point v_new =(*it)*sgn1 + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
+                    
+                    //typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + (filtered_list_it).get_point() * sgn3;
+                    typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     if (v_new.is_zero() )
                     {
                         number_of_collisions++;
                     }
                     
+                    
                     if (v_new.get_norm2() > (*it).get_norm2())
                     {
                         std::cout << "bug in computing v_new" << std::endl;
-                        std::cout <<"v_new: " << v_new.get_norm2() << " (*it): " << (*it).get_norm2() << std::endl;
-                        std::cout <<"filtered : " << ((filtered_list_it).get_point()).get_norm2()
-                                  << " p: " << p.get_norm2() << std::endl;
+                        //std::cout <<"v_new: " << v_new.get_norm2() << " (*it): " << (*it).get_norm2() << std::endl;
+                        //std::cout <<"filtered : " << ((filtered_list_it).get_point()).get_norm2()
+                        //          << " p: " << p.get_norm2() << std::endl;
                         assert(false);
                     }
                     
@@ -343,8 +307,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             
             if (!x1_reduced)
             {
-                typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
-                //typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
+                //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
+                typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
                 filtered_list.push_back(std::move(new_filtered_point));
             }
             
