@@ -45,7 +45,9 @@ template<class LatticePoint> struct LatticePointTraits
                 (e.g. Dimension, custom memory allocator)
                 Default: IgnoreAnyArg
                 Needs to be initializable from an int.
-  ScalarProductReturnType: Return type of scalar products. Mandatory!
+  ScalarProductReturnType: A type that can hold the result of a scalar product computation. Mandatory.
+                           Note that the result from a scalar product computation might actually differ.
+                           (due to delayed evaluation)
 
   CoordinateType : return type of operator[] if available.
 
@@ -88,6 +90,17 @@ template<class LatticePoint> struct LatticePointTraits
 //template<class Implementation> class ImplementationTraits;
 template<class Implementation> class GeneralLatticePoint;
 
+/**
+  Trait getters
+*/
+// Usage IsNegateCheap<PlainLatticePoint>::value
+// (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
+
+// The reason is that it is easier to read and that
+// IsNegateCheap<...> defaults to false, whereas
+// LatticePointTraits<...>::... defaults to a compile-time error.
+
+
 //CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductReturnType, DeclaresScalarProductReturnType);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductReturnType, HasScalarProductReturnType);
@@ -104,10 +117,6 @@ CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordina
 
 MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
 
-// Usage IsNegateCheap<PlainLatticePoint>::value
-// (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
-// also, IsNegateCheap<...> defaults to false
-// whereas LatticePointTraits<...>::... defaults to a compile-time error.
 
 
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
@@ -137,8 +146,10 @@ class GeneralLatticePoint
     friend LatP; // makes children able to access private (in addition to protected) members.
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
+
     using AuxDataType = typename GetAuxDataType<LatP>::type;
     using ScalarProductReturnType = typename GetScPType<LatP>::type;
+
     private:
     explicit constexpr GeneralLatticePoint()=default; //only callable from its friends
     public:
@@ -153,20 +164,6 @@ class GeneralLatticePoint
     protected:
     ~GeneralLatticePoint()=default;
     public:
-
-// This one should be overloaded by every derived class.
-// It is used to initalized the static data members.
-
-// class_init may keep a counter of how may times it was called that is decremented by class_uninit.
-// So for every call of class_init, there needs to be a call of class_uninit.
-// If the counter is >0, calling class_init with different aux_data may fail.
-// The return value of class_init indicates success. The return value of class_uninit indicates
-// whether the counter is now at 0.
-// Note: If there is no static data, the implementation may just always return true and not use
-// a static counter at all.
-
-//    static bool class_init(AuxDataType const &aux_data) = delete;
-//    static bool class_uninit() = delete;
 
 // This one should be overloaded by every derived class. Used for diagnostic.
 
