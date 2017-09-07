@@ -86,6 +86,10 @@ class EMVApproximation
   friend
   StaticInitializer<EMVApproximation<nfixed>>;
   public:
+
+  using AuxData = MaybeFixed<nfixed>; // No need for a traits class.
+  using ScalarProductType = EMVScalar;
+
   using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
   using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
@@ -94,8 +98,6 @@ class EMVApproximation
                       std::vector<ApproxEntryType> >                       // if nfixed <  0
                       ::type;
 
-  using AuxData = MaybeFixed<nfixed>; // No need for a traits class.
-  using ScalarProductType = EMVScalar;
 
   template<class LatticePoint> // TODO : enable_if to select Lattice Points only (having [])
   explicit EMVApproximation(LatticePoint const &exact_point);
@@ -209,6 +211,8 @@ unsigned int StaticInitializer<EMVApproximation<nfixed>>::user_counter = 0;
   EMVScalar Implementation
 */
 
+// static helper functions.
+
 template<class Integer, TEMPL_RESTRICT_IMPL((std::is_integral<Integer>::value))>
 signed int EMVScalar::get_exponent(Integer const source_int)
 {
@@ -258,8 +262,7 @@ mpz_class EMVScalar::divide_by_power_of_2(mpz_class const &source_mpz, unsigned 
 }
 
 
-
-// EMVScalar:
+// constructors of EMVScalar
 
 template<class Integer, typename std::enable_if<std::is_integral<Integer>::value, int>::type>
 EMVScalar::EMVScalar(Integer const source_integer)
@@ -321,6 +324,8 @@ EMVScalar::EMVScalar(mpz_class const & source_mpz)
   mantissa = std::trunc( std::ldexp(source_float, mantissa_digits) );
 }
 
+// comparison operators
+
 inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
 {
 // We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
@@ -335,8 +340,6 @@ inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
     return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
   }
 }
-
-// inefficient, but should work:
 
 template<class T,
 typename std::enable_if < !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
@@ -377,11 +380,20 @@ inline bool operator> (EMVScalar const & lhs, EMVScalar const rhs)
 }
 
 
+// output of EMVScalars
+
 inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated_number)
 {
   os << approximated_number.mantissa << "x2^" << approximated_number.exponent;
   return os;
 }
+
+
+/**
+  EMVApproximation
+*/
+
+// Constructor:
 
 template<int nfixed>
 template<class LatticePoint>
@@ -437,8 +449,32 @@ data()
             EMVScalar::divide_by_power_of_2(exact_point[i],exponent) );
     }
   }
-
 }
+
+// actual scalar product
+
+template<int nfixed>
+inline auto approximate_scalar_product(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
+-> EMVScalar
+{
+  static_assert(std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value,"");
+  using ProductType = typename EMVApproximationTraits::ApproxNorm2Type;
+
+  ProductType scp =0;
+  auto const dim = rhs.get_dim();
+  for(int i=0;i<dim;++i)
+  {
+    scp += lhs[i] * rhs[i];
+  }
+
+  EMVScalar result(lhs.exponent + rhs.exponent, scp);
+  return result;
+}
+
+
+
+
+// output
 
 template<int nfixed>
 inline std::ostream & operator<<(std::ostream &os, EMVApproximation<nfixed> const &approximated_vector)

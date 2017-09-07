@@ -370,6 +370,7 @@ template<class Integer> struct ConvertMaybeMPZ
 };
 
 
+
 /**
 string_consume(is, str, elim_ws, verbose) reads from stream is.
 If the next read on is is not the string str, it returns false,

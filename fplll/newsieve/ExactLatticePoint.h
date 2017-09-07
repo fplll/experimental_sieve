@@ -120,7 +120,7 @@ public:
   }
 #else
   FOR_FIXED_DIM
-  explicit ExactLatticePoint() = default;
+  explicit ExactLatticePoint() {}
 
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint() : data(static_cast<unsigned int>(get_dim())) {}
