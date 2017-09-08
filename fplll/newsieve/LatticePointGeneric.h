@@ -85,7 +85,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 //  LP NewLP(real_dim);
   for(uint_fast16_t i = 0; i < dim; ++i )
   {
-    REALTHIS->operator[](i) += x2[i];
+    REALTHIS->operator[](i) -= x2[i];
   }
   REALTHIS->sanitize();
   return *REALTHIS;
