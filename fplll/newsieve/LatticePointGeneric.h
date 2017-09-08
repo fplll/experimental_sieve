@@ -43,6 +43,55 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
   return CREALTHIS->get_norm2() >= rhs.get_norm2();
 }
 
+template<class LatP>
+template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
+{
+  DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert( dim1 == dim2 );
+  auto const real_dim1 = CREALTHIS->get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = CREALTHIS->get_vec_size();
+//  auto const real_dim = x1.get_dim();
+//  LP NewLP(real_dim);
+  for(uint_fast16_t i = 0; i < dim; ++i )
+  {
+    ( REALTHIS->operator[](i) ) += x2[i];
+  }
+  REALTHIS->sanitize();
+  return *REALTHIS;
+}
+
+template<class LatP>
+template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
+{
+  DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert( dim1 == dim2 );
+  auto const real_dim1 = CREALTHIS->get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = CREALTHIS->get_vec_size();
+//  auto const real_dim = x1.get_dim();
+//  LP NewLP(real_dim);
+  for(uint_fast16_t i = 0; i < dim; ++i )
+  {
+    REALTHIS->operator[](i) += x2[i];
+  }
+  REALTHIS->sanitize();
+  return *REALTHIS;
+}
+
+
 
 /*************************
 I/O

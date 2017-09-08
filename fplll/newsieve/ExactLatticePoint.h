@@ -209,15 +209,14 @@ template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
 
-
-
 // Static Initializer:
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
+  : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
 {
   public:
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
-    if(user_counter>0)
+    if(user_counter>1)
     {
       assert((new_dim == ExactLatticePoint<ET,nfixed>::dim));
       // TODO: Throw exception!
@@ -226,7 +225,6 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
     {
       ExactLatticePoint<ET,nfixed>::dim = new_dim;
     }
-    ++user_counter;
 #ifdef DEBUG_SIEVE_LP_INIT
     ExactLatticePoint<ET,nfixed>::class_initialized = true;
 #endif
@@ -234,10 +232,8 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 
   ~StaticInitializer()
   {
-    assert(user_counter > 0);
-    --user_counter;
 #ifdef DEBUG_SIEVE_LP_INIT
-    ExactLatticePoint<ET,nfixed>::class_initialized = (user_counter > 0);
+    ExactLatticePoint<ET,nfixed>::class_initialized = (user_counter > 1);
 #endif
   }
 

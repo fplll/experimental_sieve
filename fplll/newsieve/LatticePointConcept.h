@@ -193,6 +193,13 @@ class GeneralLatticePoint
     inline bool operator> ( LatP const &rhs ) const;
     inline bool operator<=( LatP const &rhs ) const;
     inline bool operator>=( LatP const &rhs ) const;
+// arithmetic:
+    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+    inline LatP& operator+=(LatP2 const &x2);
+
+    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+    inline LatP& operator-=(LatP2 const &x2);
+
 
     // binary operator+, binary operator-,
     // +=, -= defined out-of-class.
@@ -305,36 +312,6 @@ class DefaultStaticInitializer
 
 template<class T> class StaticInitializer;
 
-//////
-//////template<class LP, std::integral_constant<typename std::enable_if<IsALatticePoint<LP>::value>,bool::type> >
-//////class StaticInitializer
-//////{
-//////  static_assert(IsALatticePoint<LP>::value,"Only meaningful for lattice points.");
-//////  public:
-//////  using AuxDataType = typename GetAuxDataType<LP>::type;
-//////  static_assert(std::is_same<AuxDataType,IgnoreAnyArg>::value,"Need to specialize StaticInitializer if AuxDataType is defined.");
-//////#ifndef DEBUG_SIEVE_LP_INIT
-//////  explicit constexpr StaticInitializer(){};
-//////  explicit constexpr StaticInitializer(AuxDataType const &) {};
-//////#else
-//////  static unsigned int init_count; // counts the number of objects of this type that exist, essentially.
-//////  static bool is_initialized(){ return init_count > 0; }; // Does an object exist?
-//////  explicit StaticInitializer(){++init_count;};
-//////  explicit StaticInitializer(AuxDataType const &){++init_count;};
-//////  ~StaticInitializer()
-//////  {
-//////    assert(init_count>0);
-//////    --init_count;
-//////  }
-//////#endif
-//////};
-//////
-////////#ifdef DEBUG_SIEVE_LP_INIT
-//////  template<class LP> unsigned int StaticInitializer<LP>::init_count = 0;
-//////#endif
-
-
-
 // Non-member functions:
 
 #define FOR_LATTICE_POINT_LP \
@@ -384,8 +361,6 @@ bool operator!=(LP1 const &x1, LP2 const &x2)
 // add(x1,x2) : x1 + x2;
 
 // x1 += x2
-FOR_LATTICE_POINTS_LP1_LP2
-LP1& operator+=(LP1 &x1, LP2 const &x2) { return addval(x1, x2); }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 const &x1, LP2 const &x2) { return add(x1,x2); }
@@ -394,7 +369,7 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 && x1, LP2 const &x2)
 {
 auto tmp = std::move(x1);
-addval(tmp,x2);
+tmp+=x2;
 return tmp;
 //LP1 tmp = std::move(x1);
 //return addval(tmp,x2);
@@ -406,7 +381,7 @@ FOR_LATTICE_POINT_LP
 LP operator+(LP const &x1, LP && x2)
 {
 auto tmp = std::move(x2);
-addval(tmp,x1);
+tmp+=x1;
 return tmp;
 }
 
@@ -414,7 +389,7 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 &&x1, LP2 && x2)
 {
 auto tmp = std::move(x1);
-addval(tmp, std::move(x2));
+tmp+=std::move(x2);
 return tmp;
 //LP1 tmp = std::move(x1);
 //return addval(tmp,std::move(x2));
@@ -459,8 +434,6 @@ LP operator*(LP &&x1, Integer const multiplier)
 
 // dispatch to sub/subval function
 
-FOR_LATTICE_POINTS_LP1_LP2
-LP1& operator-=(LP1 &x1, LP2 const &x2){ return subval(x1,x2); }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
@@ -469,7 +442,7 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 const &x2)
 {
   LP1 tmp = std::move(x1);
-  subval(tmp,x2);
+  tmp-=x2;
   return tmp;
 }
 
@@ -478,7 +451,7 @@ LP operator-(LP const &x1, LP &&x2)
 {
   LP tmp = std::move(x2);
   tmp.make_negative();
-  addval(tmp,x1);
+  tmp+=x1;
   return tmp; //addval(tmp,x1);
 }
 
@@ -486,7 +459,7 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 && x2)
 {
   LP1 tmp = std::move(x1);
-  subval(tmp,std::move(x2));
+  tmp-=std::move(x2);
   return tmp;
 }
 
@@ -509,31 +482,6 @@ std::ostream& operator<<(std::ostream &os, LP const &LatP)
 
 // implementations of generic functions for lattice points:
 
-// x1+=x2 for x1, x2 of the same type
-template<class LP, typename std::enable_if<
-         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-         int>::type = 0>
-LP& addval(LP &x1, LP const &x2)
-{
-  DEBUG_TRACEGENERIC( "generically adding" << x1.class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = x1.get_vec_size();
-  auto const dim2 = x2.get_vec_size();
-  assert( dim1 == dim2 );
-  auto const real_dim1 = x1.get_dim();
-  auto const real_dim2 = x2.get_dim();
-  assert(real_dim1 == real_dim2);
-  #endif
-  auto const dim = x1.get_vec_size();
-//  auto const real_dim = x1.get_dim();
-//  LP NewLP(real_dim);
-  for(uint_fast16_t i = 0; i < dim; ++i )
-  {
-    x1[i] += x2[i];
-  }
-  x1.sanitize();
-  return x1;
-}
 
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
@@ -584,31 +532,6 @@ LP sub(LP const &x1, LP const &x2)
   NewLP.sanitize();
   return NewLP;
 }
-
-template<class LP, typename std::enable_if<
-         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-         int>::type = 0>
-LP& subval(LP &x1, LP const &x2)
-{
-  DEBUG_TRACEGENERIC("generically subtracting" << x1.class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = x1.get_vec_size();
-  auto const dim2 = x2.get_vec_size();
-  assert(dim1==dim2);
-  auto const real_dim1 = x1.get_dim();
-  auto const real_dim2 = x2.get_dim();
-  assert(real_dim1 == real_dim2);
-  #endif
-  auto const dim = x1.get_vec_size();
-
-  for(uint_fast16_t i=0; i < dim ; ++i )
-  {
-    x1[i] -= x2[i];
-  }
-  x1.sanitize();
-  return x1;
-}
-
 
 
 // this function can be used to initialize an LP with container types that allow []-access.
