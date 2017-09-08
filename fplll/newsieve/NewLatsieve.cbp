@@ -24,6 +24,7 @@
 		<Unit filename="GaussQueue_impl.h" />
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
+		<Unit filename="LatticePointGeneric.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="MyLatticePointClass.cpp" />
 		<Unit filename="MyLatticePointClass.h" />

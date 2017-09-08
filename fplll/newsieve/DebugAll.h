@@ -8,7 +8,7 @@
 
 
 // #define DEBUG_SIEVE_LP_TRACEGENERIC
-// #define DEBUG_SIEVE_SILENT_ALL
+ #define DEBUG_SIEVE_SILENT_ALL
 
 
 // clang-format kills the indenting for #defines

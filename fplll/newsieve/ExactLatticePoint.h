@@ -203,6 +203,14 @@ private:
   ET norm2;
 };
 
+// initialize static data:
+
+template <class ET, int nfixed>
+MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
+
+
+
+
 // Static Initializer:
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
 {
@@ -243,10 +251,9 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 // initialize static data:
 
 template <class ET, int nfixed>
-MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
-
-template <class ET, int nfixed>
 unsigned int StaticInitializer<ExactLatticePoint<ET,nfixed>>::user_counter = 0;
+
+
 
 
 #ifdef DEBUG_SIEVE_LP_INIT

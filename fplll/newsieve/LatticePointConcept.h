@@ -1,4 +1,3 @@
-
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H
 
@@ -27,7 +26,10 @@ namespace GaussSieve{
 // There has to be a specialization for each lattice point class.
 // The general template must never be instantiated.
 // Note that we can not put these traits into the lattice points classes directly, because that
-// would case circular references due to CRTP.
+// would cause circular references due to CRTP.
+
+// Cf. ExacLatticePoint.h for an example of how a concrete specialization is supposed to look like.
+
 template<class LatticePoint> struct LatticePointTraits
 {
   public:
@@ -44,7 +46,7 @@ template<class LatticePoint> struct LatticePointTraits
   AuxDataType : type of class-wide data that is required to interpret a given point
                 (e.g. Dimension, custom memory allocator)
                 Default: IgnoreAnyArg
-                Needs to be initializable from an int.
+                Needs to be initializable from an int (??? DimensionType)
   ScalarProductReturnType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
                            (due to delayed evaluation)
@@ -69,7 +71,6 @@ template<class LatticePoint> struct LatticePointTraits
                (typically, it's precomputed and stored with the point)
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
-
 */
 
 /**
@@ -122,11 +123,23 @@ MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
 template<class Impl=LatP, typename std::enable_if<HasCoos<Impl>::value,int>::type = 0>
 
+#define MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL \
+template<class Impl, typename std::enable_if<HasCoos<Impl>::value,int>::type>
+
+
 #define MEMBER_ONLY_EXISTS_IF_COO_WRITE \
 template<class Impl=LatP, typename std::enable_if<IsCooVector<Impl>::value,int>::type = 0>
 
+#define MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL \
+template<class Impl, typename std::enable_if<IsCooVector<Impl>::value,int>::type>
+
+
 #define MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE \
 template<class Impl=LatP, typename std::enable_if<CoosAreAbsolute<Impl>::value,int>::type = 0>
+
+#define MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL \
+template<class Impl, typename std::enable_if<CoosAreAbsolute<Impl>::value,int>::type>
+
 
 #define IMPL_IS_LATP \
 static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type")
@@ -156,7 +169,7 @@ class GeneralLatticePoint
 
     // This is just to match the implementation of a typical instantiation.
     // Note the the deleted copy constructors and copy assignments prevents default copying
-    // derived classes (since the base class must be copied as well).
+    // derived classes (since the (empty) base class must be copied as well).
     GeneralLatticePoint(GeneralLatticePoint const &other)=delete;
     GeneralLatticePoint(GeneralLatticePoint &&other)=default;
     GeneralLatticePoint& operator=(GeneralLatticePoint const & other) = delete;
@@ -176,29 +189,13 @@ class GeneralLatticePoint
 // These operations may be overloaded by the implementation.
 // We require < and > to be strict weak orderings.
 
-    bool operator< ( LatP const &x1 ) const
-    {
-      DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-      return CREALTHIS->get_norm2() < x1.get_norm2();
-    }
+    inline bool operator< ( LatP const &rhs ) const;
+    inline bool operator> ( LatP const &rhs ) const;
+    inline bool operator<=( LatP const &rhs ) const;
+    inline bool operator>=( LatP const &rhs ) const;
 
-    bool operator> ( LatP const &x1 ) const
-    {
-      DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-      return CREALTHIS->get_norm2() > x1.get_norm2();
-    }
-
-    bool operator<= ( LatP const &x1 ) const
-    {
-      DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-      return CREALTHIS->get_norm2() <= x1.get_norm2();
-    }
-
-    bool operator>= ( LatP const &x1 ) const
-    {
-      DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-      return CREALTHIS->get_norm2() >= x1.get_norm2();
-    }
+    // binary operator+, binary operator-,
+    // +=, -= defined out-of-class.
 
     // get_vec_size() returns the number of coordinates we get when using latp[i]
     // get_dim returns the (ambient) dimension the vector is supposed to represent.
@@ -206,13 +203,9 @@ class GeneralLatticePoint
     // get_dim must be overloaded.
 
     MEMBER_ONLY_EXISTS_IF_COO_READ
-    auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() )
-    {
-      DEBUG_TRACEGENERIC("Generically getting vec_size for" << LatP::class_name() )
-      return CREALTHIS->get_dim();
-    }
-
-    void get_dim() const = delete; // Note that we have void return type. I really want C++14 auto.
+    inline auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() );
+    void get_dim() const = delete; // Note that the overload shall NOT have void return type.
+                                   // It's just not possible to specific it here w/o C++14 auto.
 
 /**
   Used for output to stream. Note that operator<< calls this (or an overloaded version)
@@ -220,111 +213,28 @@ class GeneralLatticePoint
 */
 
     MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE // This may be too strict.
-    std::ostream& write_to_stream(std::ostream &os, bool include_norm2=true) const
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Using generic writer for " << LatP::class_name() )
-      auto const dim = CREALTHIS->get_vec_size();
-      os << "[ "; // makes spaces symmetric
-      for (uint_fast16_t i =0; i<dim; ++i)
-        {
-            os << CREALTHIS->operator[](i) << " ";
-        }
-        os <<"]";
-      if(include_norm2)
-      {
-        os <<", norm2= " << CREALTHIS->get_norm2();
-      }
-      // No endl here (this is the caller's job).
-      return os;
-    }
+    inline std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const;
 
     std::istream& read_from_stream(std::istream &is) = delete;
 
 /**
   Fills a lattice point with zeros.
-  Note that freshly constructed lattice points may contain uninitialized values.
+  Note that freshly constructed lattice points may contain uninitialized values unless this function is used.
+
   The latter depends subtly on the constructors used (empty vs. default constructor...)
-  and may differ depending on whether nfixed==-1.
-
-  Default version exists if Derived[i] is defined and writeable.
-  Note that we additionally assume that we may assign 0 as in Derived[i] = 0;
-
   May be overloaded by Derived class.
 */
 
-    MEMBER_ONLY_EXISTS_IF_COO_WRITE
-    void fill_with_zero()
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
-      auto const dim = CREALTHIS->get_vec_size();
-      for (uint_fast16_t i=0;i<dim;++i)
-      {
-        REALTHIS->operator[](i) = 0;
-      }
-      REALTHIS->sanitize(0);
-    }
+    MEMBER_ONLY_EXISTS_IF_COO_WRITE inline void fill_with_zero();
 
-    MEMBER_ONLY_EXISTS_IF_COO_WRITE
-    void make_negative()
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
-      auto const dim = CREALTHIS->get_vec_size();
-      for (uint_fast16_t i=0;i<dim;++i)
-      {
-        REALTHIS->operator[](i) = - REALTHIS->operator[](i);
-      }
-      if( IsNegateCheap<Impl>::value) // constexpr if
-      {
-        return;
-      }
-
-      if( !IsNegateCheap<Impl>::value ) // constexpr if, really...
-      {
-        if(IsNorm2Cheap<Impl>::value)
-        {
-          REALTHIS->sanitize(CREALTHIS->get_norm2() );
-        }
-        else
-        {
-          REALTHIS->sanitize();
-        }
-
-      }
-
-      return;
-    }
+    // Changes v to -v
+    MEMBER_ONLY_EXISTS_IF_COO_WRITE inline void make_negative();
 
 /**
   Tests whether a lattice point is all-zero.
-  Defaults to checking component-wise by doing != 0 - comparison.
   May be overloaded.
 */
-    MEMBER_ONLY_EXISTS_IF_COO_READ
-    bool is_zero() const
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
-      // constexpr if, really...
-      if (IsNorm2Cheap<LatP>::value)
-      {
-        return (CREALTHIS->get_norm2() == 0);
-      }
-      else
-      {
-        auto const dim = CREALTHIS->get_vec_size();
-        for (uint_fast16_t i=0;i<dim;++i)
-        {
-          if(CREALTHIS->operator[](i) != 0)
-          {
-            return false;
-          }
-        }
-      return true;
-      }
-    }
+    MEMBER_ONLY_EXISTS_IF_COO_READ inline bool is_zero() const;
 
 /**
   Makes an (explicit) copy of the current point.
@@ -336,33 +246,12 @@ class GeneralLatticePoint
   May be overloaded.
 */
 
-    MEMBER_ONLY_EXISTS_IF_COO_WRITE
-    LatP make_copy() const
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Using generic copy for " << LatP::class_name() )
-      auto const real_dim=CREALTHIS->get_dim(); // means ambient dimension.
-      auto const dim = CREALTHIS->get_vec_size(); // number of coordinates stored. May be rank.
-      LatP NewLP(real_dim);
-      for (uint_fast16_t i=0; i<dim; ++i)
-      {
-        NewLP[i] = CREALTHIS->operator[](i);
-      }
-      if (IsNorm2Cheap<LatP>::value)
-      {
-        NewLP.sanitize(CREALTHIS->get_norm2() );
-      }
-      else
-      {
-        NewLP.sanitize();
-      }
-      return NewLP;
-    }
+    MEMBER_ONLY_EXISTS_IF_COO_WRITE inline LatP make_copy() const;
 
     // brings the lattice point into a defined state. Defaults to "do nothing".
 
     // Note that this function must *not* be const, since it actually changes observable behaviour:
-    // For efficiency reasons, sanitize is not called upon member access to LatP[]; rather,
+    // For efficiency reasons, sanitize is not called upon write access to LatP[]; rather,
     // sanitize is called from outside the class.
     // As such, the user can leave LatP in an invalid state and sanitize remedies that.
 
@@ -377,65 +266,32 @@ class GeneralLatticePoint
      By default, we use the scalar product to compute it.
      Usually norm2 will be precomputed, so this function should be
      overridden by LatP.
-     Note that get_norm2() is const. If LatP decides to lazyly compute and store norm2 on demand,
-     make norm2 a mutable (and be really wary of thread-safety...)
 */
-    ScalarProductReturnType get_norm2() const
-    {
-      DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
-
-      // This function should not be called if IsNorm2Cheap is set.
-      static_assert(IsNorm2Cheap<LatP>::value == false, "");
-      return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
-    }
+    inline ScalarProductReturnType get_norm2() const;
 
 /**
-  multiplies by a scalar (which is of integral type or mpz_class)
+  multiplies by a scalar (which is of integral type), thereby changing the lattice point.
+  TODO: enable Integer == mpz_class
 */
-    template<class Integer, class Impl=LatP,
-      typename std::enable_if<IsCooVector<Impl>::value && std::is_integral<Integer>::value,
-      int>::type = 0>
-    void scalar_multiply(Integer const multiplier)
-    {
-      IMPL_IS_LATP;
-      DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
-      auto const dim = CREALTHIS->get_vec_size();
-      for(uint_fast16_t i=0;i<dim;++i)
-      {
-        REALTHIS->operator[](i) *= multiplier;
-      }
-      if(IsNorm2Cheap<LatP>::value) // constexpr if
-      {
-        REALTHIS->sanitize(CREALTHIS->get_norm2() * multiplier * multiplier );
-      }
-      else
-      {
-        REALTHIS->sanitize();
-      }
-    }
-
-
+    template<class Integer,
+      TEMPL_RESTRICT_DECL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
+    inline void scalar_multiply(Integer const multiplier);
 };
 
 // Initializer for static data.
 // This is the default initializer, which does nothing.
 
-template<class LP>
-class StaticInitializer
+template<class T>
+class DefaultStaticInitializer
 {
-  static_assert(IsALatticePoint<LP>::value,"Only meaningful for lattice points.");
   public:
-  using AuxDataType = typename GetAuxDataType<LP>::type;
-  static_assert(std::is_same<AuxDataType,IgnoreAnyArg>::value,"Need to specialize StaticInitializer if AuxDataType is defined.");
 #ifndef DEBUG_SIEVE_LP_INIT
-  explicit constexpr StaticInitializer(){};
-  explicit constexpr StaticInitializer(AuxDataType const &) {};
+  explicit constexpr DefaultStaticInitializer() = default;
 #else
   static unsigned int init_count; // counts the number of objects of this type that exist, essentially.
   static bool is_initialized(){ return init_count > 0; }; // Does an object exist?
-  explicit StaticInitializer(){++init_count;};
-  explicit StaticInitializer(AuxDataType const &){++init_count;};
-  ~StaticInitializer()
+  explicit DefaultStaticInitializer(){++init_count;};
+  ~DefaultStaticInitializer()
   {
     assert(init_count>0);
     --init_count;
@@ -444,8 +300,38 @@ class StaticInitializer
 };
 
 #ifdef DEBUG_SIEVE_LP_INIT
-  template<class LP> unsigned int StaticInitializer<LP>::init_count = 0;
+  template<class T> unsigned int DefaultStaticInitializer<T>::init_count = 0;
 #endif
+
+template<class T> class StaticInitializer;
+
+//////
+//////template<class LP, std::integral_constant<typename std::enable_if<IsALatticePoint<LP>::value>,bool::type> >
+//////class StaticInitializer
+//////{
+//////  static_assert(IsALatticePoint<LP>::value,"Only meaningful for lattice points.");
+//////  public:
+//////  using AuxDataType = typename GetAuxDataType<LP>::type;
+//////  static_assert(std::is_same<AuxDataType,IgnoreAnyArg>::value,"Need to specialize StaticInitializer if AuxDataType is defined.");
+//////#ifndef DEBUG_SIEVE_LP_INIT
+//////  explicit constexpr StaticInitializer(){};
+//////  explicit constexpr StaticInitializer(AuxDataType const &) {};
+//////#else
+//////  static unsigned int init_count; // counts the number of objects of this type that exist, essentially.
+//////  static bool is_initialized(){ return init_count > 0; }; // Does an object exist?
+//////  explicit StaticInitializer(){++init_count;};
+//////  explicit StaticInitializer(AuxDataType const &){++init_count;};
+//////  ~StaticInitializer()
+//////  {
+//////    assert(init_count>0);
+//////    --init_count;
+//////  }
+//////#endif
+//////};
+//////
+////////#ifdef DEBUG_SIEVE_LP_INIT
+//////  template<class LP> unsigned int StaticInitializer<LP>::init_count = 0;
+//////#endif
 
 
 
@@ -821,12 +707,18 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 } // end namespace
 
+#include "LatticePointGeneric.h"
 
 
 // cleaning up internal macros.
 #undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
 #undef MEMBER_ONLY_EXISTS_IF_COO_READ
 #undef MEMBER_ONLY_EXISTS_IF_COO_WRITE
+
+#undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
+#undef MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL
+#undef MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
+
 #undef IMPL_IS_LATP
 #undef FOR_LATTICE_POINT_LP
 #undef FOR_LATTICE_POINTS_LP1_LP2
