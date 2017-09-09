@@ -91,6 +91,91 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   return *REALTHIS;
 }
 
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 const &x1, LP2 const &x2)
+{
+  LP1 NewLP(x1.make_copy());
+  NewLP+=x2;
+  return NewLP;
+}
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 && x1, LP2 const &x2)
+{
+auto tmp = std::move(x1);
+tmp+=x2;
+return tmp;
+//LP1 tmp = std::move(x1);
+//return addval(tmp,x2);
+}
+
+// We don't want to return LP2 here...
+// If this causes trouble, the caller should change the order of arguments.
+FOR_LATTICE_POINT_LP
+LP operator+(LP const &x1, LP && x2)
+{
+auto tmp = std::move(x2);
+tmp+=x1;
+return tmp;
+}
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator+(LP1 &&x1, LP2 && x2)
+{
+auto tmp = std::move(x1);
+tmp+=std::move(x2);
+return tmp;
+//LP1 tmp = std::move(x1);
+//return addval(tmp,std::move(x2));
+}
+
+
+// unary minus
+
+template<class LatP>
+inline LatP GeneralLatticePoint<LatP>::operator-() &&
+{
+  LatP tmp = std::move(*REALTHIS);
+  tmp.make_negative();
+  return tmp;
+}
+
+
+
+template<class LatP>
+template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
+inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
+{
+  // This *might* actually not be an error. However, it is extremely likely.
+  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,"Different coordinate types. Probably an error.");
+
+  DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert(dim1 == dim2);
+  #endif // DEBUG_SIEVE_LP_MATCHDIM
+
+  if(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value) // constexpr if
+  {
+    if(CREALTHIS->get_norm2() != x2.get_norm2() )
+    {
+      return false;
+    }
+  }
+
+  auto const dim = CREALTHIS->get_vec_size();
+  for(uint_fast16_t i=0;i<dim;++i)
+  {
+    if (CREALTHIS->operator[](i) != x2[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 
 
 /*************************

@@ -186,8 +186,10 @@ class GeneralLatticePoint
 // Note that == or != are intendend to mean actual equality comparisons,
 // so P1 <= P2 <= P1 does not imply P1==P2.
 
-// These operations may be overloaded by the implementation.
+// These operations may *NOT* be overloaded by the implementation.
 // We require < and > to be strict weak orderings.
+
+// TODO: MAKE SURE THIS IS A STRICT WEAK ORDERING EVEN IF LatP HAS APPROXIMATIONS.
 
     inline bool operator< ( LatP const &rhs ) const;
     inline bool operator> ( LatP const &rhs ) const;
@@ -200,9 +202,17 @@ class GeneralLatticePoint
     template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
     inline LatP& operator-=(LatP2 const &x2);
 
+    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<typename std::decay<LatP2>::type >::value)>
+    inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-    // binary operator+, binary operator-,
-    // +=, -= defined out-of-class.
+    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
+    inline bool operator==(LatP2 const &x2) const;
+
+    inline LatP operator-() &&; //unary-
+    // operator+ is entirely defined in terms of +=
+    // operator- is entirely defined in terms of -=
+    // Definitions are out-of-class
+
 
     // get_vec_size() returns the number of coordinates we get when using latp[i]
     // get_dim returns the (ambient) dimension the vector is supposed to represent.
@@ -276,6 +286,9 @@ class GeneralLatticePoint
 */
     inline ScalarProductReturnType get_norm2() const;
 
+    // This function returns the exact norm, ignoring any approximations.
+    inline ScalarProductReturnType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
+
 /**
   multiplies by a scalar (which is of integral type), thereby changing the lattice point.
   TODO: enable Integer == mpz_class
@@ -327,87 +340,9 @@ template<class LP1, class LP2, typename std::enable_if< \
 // Note: We allow comparing different types of lattice points.
 // This may or not work.
 
-FOR_LATTICE_POINTS_LP1_LP2
-bool operator==(LP1 const &x1, LP2 const &x2)
-{
-  DEBUG_TRACEGENERIC("Generically comparing norm2 for" << LP1::class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = x1.get_vec_size();
-  auto const dim2 = x2.get_vec_size();
-  assert(dim1 == dim2);
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim = x1.get_vec_size();
-  for(uint_fast16_t i=0;i<dim;++i)
-  {
-    if (x1[i] != x2[i])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-FOR_LATTICE_POINTS_LP1_LP2
-bool operator!=(LP1 const &x1, LP2 const &x2)
-{
-  return !(x1==x2);
-}
 
 
-// dispatch to add / addval function.
-// This is done as non-member functions to simplify cases where we add different types of points.
 
-// addval(x1,x2) : x1+=x2;
-// add(x1,x2) : x1 + x2;
-
-// x1 += x2
-
-FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator+(LP1 const &x1, LP2 const &x2) { return add(x1,x2); }
-
-FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator+(LP1 && x1, LP2 const &x2)
-{
-auto tmp = std::move(x1);
-tmp+=x2;
-return tmp;
-//LP1 tmp = std::move(x1);
-//return addval(tmp,x2);
-}
-
-// We don't want to return LP2 here...
-// If this causes trouble, the caller should change the order of arguments.
-FOR_LATTICE_POINT_LP
-LP operator+(LP const &x1, LP && x2)
-{
-auto tmp = std::move(x2);
-tmp+=x1;
-return tmp;
-}
-
-FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator+(LP1 &&x1, LP2 && x2)
-{
-auto tmp = std::move(x1);
-tmp+=std::move(x2);
-return tmp;
-//LP1 tmp = std::move(x1);
-//return addval(tmp,std::move(x2));
-}
-
-// Note: We could define general add in terms of addval as well.
-// (i.e. define + as copy and += also for the non-move case)
-// Doing it as above might be slightly faster due to memory-access and copying additional data.
-
-// unary minus
-
-FOR_LATTICE_POINT_LP
-LP operator-(LP &&x1)
-{
-  LP tmp = std::move(x1);
-  tmp.make_negative();
-  return tmp;
-}
 
 template<class LP, class Integer,
   typename std::enable_if<IsALatticePoint<LP>::value &&
@@ -482,7 +417,7 @@ std::ostream& operator<<(std::ostream &os, LP const &LatP)
 
 // implementations of generic functions for lattice points:
 
-
+/*
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
          int>::type = 0>
@@ -507,6 +442,8 @@ LP add(LP const &x1, LP const &x2)
   NewLP.sanitize();
   return NewLP;
 }
+*/
+
 
 template<class LP, typename std::enable_if<
          IsALatticePoint<LP>::value && IsCooVector<LP>::value,
