@@ -118,8 +118,14 @@ int main(int argc, char **argv)
     
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
-	//TerminationCondition<Traits,multithreaded> * termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
-    TerminationCondition<Traits,multithreaded> * termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
+    
+    TerminationCondition<Traits,multithreaded> * termcond;
+
+    if (target_norm!=0)
+        termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
+    else
+        termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+        
 	Test_3Sieve.set_termination_condition(termcond);
     
     
