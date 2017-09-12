@@ -88,8 +88,9 @@ template<class LatticePoint> struct LatticePointTraits
 */
 
 
-//template<class Implementation> class ImplementationTraits;
 template<class Implementation> class GeneralLatticePoint;
+template<class T> class StaticInitializer;
+
 
 /**
   Trait getters
@@ -328,7 +329,6 @@ class DefaultStaticInitializer
   template<class T> unsigned int DefaultStaticInitializer<T>::init_count = 0;
 #endif
 
-template<class T> class StaticInitializer;
 
 // Non-member functions:
 

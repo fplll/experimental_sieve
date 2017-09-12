@@ -26,7 +26,7 @@ public:
   using HasApproximations       = std::true_type;
 //  using AuxDataType             = MaybeFixed<nfixed>;
 //  using ScalarProductReturnType = ET;
-  using CoordinateType          = typename GetCooType<ELP::type;
+  using CoordinateType          = typename GetCooType<ELP>::type;
   using HasDelayedScProd        = std::true_type;
 
   using AuxDataType             = typename GetAuxDataType<ELP>::type; // for now. This whole AuxDataType needs to be redesigned.
@@ -53,7 +53,7 @@ class ScalarProductWithApproximation
 
 
 template<class ELP, class Approximation>
-class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>;
+class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
   static_assert(std::is_same<typename GetAuxDataType<ELP>::type, typename Approximation::AuxDataType>::value,"AuxDataType must be the same");
@@ -67,7 +67,7 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   PointWithApproximation & operator= (PointWithApproximation const & other) = delete;
   PointWithApproximation & operator= (PointWithApproximation && other) = default;
   explicit PointWithApproximation(ELP && new_exact_point)
-    : exact_point(std::move(new_exact_point)), approx(exact_point);
+    : exact_point(std::move(new_exact_point)), approx(exact_point) {};
 
 //  template<class ELP2 = ELP, typename std::enable_if<HasCoos<ELP2>::value,int>::type = 0>
   ExactCoos &operator[](uint_fast16_t idx) { return exact_point[idx]; };
@@ -79,7 +79,7 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
 
   auto get_dim() -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
 
-  void sanitize() { exact_point.sanitize(); approx=static_cast<approximation>(exact_point); }
+  void sanitize() { exact_point.sanitize(); approx=static_cast<Approximation>(exact_point); }
 
 
   private:

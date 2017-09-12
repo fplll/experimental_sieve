@@ -20,6 +20,7 @@
   #define TEST_QUEUE
   #define TEST_LIST
   #define TEST_EMV
+  #define TEST_APPROXIMATIONS
 #endif
 
 // very verbose...
@@ -66,6 +67,10 @@
 
 #ifdef TEST_EMV
   #include "Tests/TestEMV.h"
+#endif
+
+#ifdef TEST_APPROXIMATIONS
+  #include "Tests/TestApproximations.h"
 #endif
 
 // clang-reorder-guard
@@ -144,6 +149,13 @@ int main(int argc, char **argv)
   if (test_emv() )
   {
     std::cout << "EMV Approximation works as expected." << std::endl;
+  }
+#endif
+
+#ifdef TEST_APPROXIMATIONS
+  if( test_approximations() )
+  {
+    std::cout << "Approximations combiner works as expected" << std::endl;
   }
 #endif
 
