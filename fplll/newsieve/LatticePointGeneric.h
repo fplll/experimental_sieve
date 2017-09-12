@@ -16,6 +16,40 @@ namespace GaussSieve{
 **********************/
 
 template<class LatP>
+template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
+inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
+{
+  // This *might* actually not be an error. However, it is extremely likely.
+  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,"Different coordinate types. Probably an error.");
+
+  DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_vec_size();
+  auto const dim2 = x2.get_vec_size();
+  assert(dim1 == dim2);
+  #endif // DEBUG_SIEVE_LP_MATCHDIM
+
+  if(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value) // constexpr if
+  {
+    if(CREALTHIS->get_norm2() != x2.get_norm2() )
+    {
+      return false;
+    }
+  }
+
+  auto const dim = CREALTHIS->get_vec_size();
+  for(uint_fast16_t i=0;i<dim;++i)
+  {
+    if (CREALTHIS->operator[](i) != x2[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
@@ -42,6 +76,11 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
   return CREALTHIS->get_norm2() >= rhs.get_norm2();
 }
+
+
+/******************************************
+  arithmetic operators modifying the point
+******************************************/
 
 template<class LatP>
 template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
@@ -90,6 +129,35 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   REALTHIS->sanitize();
   return *REALTHIS;
 }
+
+template<class LatP>
+template<class Integer,
+  TEMPL_RESTRICT_IMPL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
+inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
+{
+  DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
+  auto const dim = CREALTHIS->get_vec_size();
+  for(uint_fast16_t i=0;i<dim;++i)
+  {
+    REALTHIS->operator[](i) *= multiplier;
+  }
+  if(IsNorm2Cheap<LatP>::value) // constexpr if
+  {
+    REALTHIS->sanitize(CREALTHIS->get_norm2() * multiplier * multiplier );
+  }
+  else
+  {
+    REALTHIS->sanitize();
+  }
+  return *REALTHIS;
+}
+
+//inline LatP& operator*=(mpz_class const &multiplier);
+
+/****************************************
+  out-of-class definitions of +,-,* etc.
+******************************************/
+
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 const &x1, LP2 const &x2)
@@ -140,39 +208,27 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
   return tmp;
 }
 
-
-
-template<class LatP>
-template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
-inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
+template<class LP, class Integer,
+  typename std::enable_if<IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
+  int>::type=0>
+LP operator*(LP const &x1, Integer const multiplier)
 {
-  // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,"Different coordinate types. Probably an error.");
+//  assert(false);
+  LP tmp = x1.make_copy();
+  tmp*=multiplier;
+  return tmp;
+}
 
-  DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = CREALTHIS->get_vec_size();
-  auto const dim2 = x2.get_vec_size();
-  assert(dim1 == dim2);
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
-
-  if(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value) // constexpr if
-  {
-    if(CREALTHIS->get_norm2() != x2.get_norm2() )
-    {
-      return false;
-    }
-  }
-
-  auto const dim = CREALTHIS->get_vec_size();
-  for(uint_fast16_t i=0;i<dim;++i)
-  {
-    if (CREALTHIS->operator[](i) != x2[i])
-    {
-      return false;
-    }
-  }
-  return true;
+template<class LP, class Integer,
+  typename std::enable_if<IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
+  int>::type=0>
+LP operator*(LP &&x1, Integer const multiplier)
+{
+  LP tmp = std::move(x1);
+  tmp*=multiplier;
+  return tmp;
 }
 
 
@@ -321,28 +377,6 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
   }
   return NewLP;
 }
-
-template<class LatP>
-template<class Integer,
-  TEMPL_RESTRICT_IMPL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
-inline void GeneralLatticePoint<LatP>::scalar_multiply(Integer const multiplier)
-{
-  DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
-  auto const dim = CREALTHIS->get_vec_size();
-  for(uint_fast16_t i=0;i<dim;++i)
-  {
-    REALTHIS->operator[](i) *= multiplier;
-  }
-  if(IsNorm2Cheap<LatP>::value) // constexpr if
-  {
-    REALTHIS->sanitize(CREALTHIS->get_norm2() * multiplier * multiplier );
-  }
-  else
-  {
-    REALTHIS->sanitize();
-  }
-}
-
 
 
 

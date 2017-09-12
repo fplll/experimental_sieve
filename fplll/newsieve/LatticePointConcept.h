@@ -179,17 +179,17 @@ class GeneralLatticePoint
     public:
 
 // This one should be overloaded by every derived class. Used for diagnostic.
-
     static std::string class_name() {return "General Lattice Point.";};
 
 // comparison with < or > are by length (by default).
 // Note that == or != are intendend to mean actual equality comparisons,
 // so P1 <= P2 <= P1 does not imply P1==P2.
 
-// These operations may *NOT* be overloaded by the implementation.
 // We require < and > to be strict weak orderings.
+// MAKE SURE THIS IS A STRICT WEAK ORDERING EVEN IF LatP HAS APPROXIMATIONS.
 
-// TODO: MAKE SURE THIS IS A STRICT WEAK ORDERING EVEN IF LatP HAS APPROXIMATIONS.
+// You should not overload <, >, <=, >=, !=
+// You may overload +=, -=, *=, unary-, ==
 
     inline bool operator< ( LatP const &rhs ) const;
     inline bool operator> ( LatP const &rhs ) const;
@@ -208,17 +208,24 @@ class GeneralLatticePoint
     template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
     inline bool operator==(LatP2 const &x2) const;
 
+    template<class Integer,
+      TEMPL_RESTRICT_DECL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
+    inline LatP& operator*=(Integer const multiplier);
+    inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
+
     inline LatP operator-() &&; //unary-
     // operator+ is entirely defined in terms of +=
     // operator- is entirely defined in terms of -=
-    // Definitions are out-of-class
+    // operator* is entirely defined in terms of *=
+    // Definitions are out-of-class and not supposed to be overloaded.
 
 
     // get_vec_size() returns the number of coordinates we get when using latp[i]
     // get_dim returns the (ambient) dimension the vector is supposed to represent.
     // By default, vec_size is the same as dim.
-    // get_dim must be overloaded.
 
+    // get_dim must be overloaded.
+    // get_vec_size may be overloaded.
     MEMBER_ONLY_EXISTS_IF_COO_READ
     inline auto get_vec_size() const -> decltype( std::declval<Impl>().get_dim() );
     void get_dim() const = delete; // Note that the overload shall NOT have void return type.
@@ -244,7 +251,9 @@ class GeneralLatticePoint
 
     MEMBER_ONLY_EXISTS_IF_COO_WRITE inline void fill_with_zero();
 
-    // Changes v to -v
+/**
+  Changes vector from v to -v. May be overloaded.
+*/
     MEMBER_ONLY_EXISTS_IF_COO_WRITE inline void make_negative();
 
 /**
@@ -265,15 +274,16 @@ class GeneralLatticePoint
 
     MEMBER_ONLY_EXISTS_IF_COO_WRITE inline LatP make_copy() const;
 
-    // brings the lattice point into a defined state. Defaults to "do nothing".
+/**
+     brings the lattice point into a defined state. Defaults to "do nothing".
 
-    // Note that this function must *not* be const, since it actually changes observable behaviour:
-    // For efficiency reasons, sanitize is not called upon write access to LatP[]; rather,
-    // sanitize is called from outside the class.
-    // As such, the user can leave LatP in an invalid state and sanitize remedies that.
+     Note that this function must *not* be const, since it actually changes observable behaviour:
+     For efficiency reasons, sanitize is not called upon write access to LatP[]; rather,
+     sanitize is called from outside the class.
+     As such, the user can leave LatP in an invalid state and sanitize remedies that.
 
-    // The second version takes norm2 as an argument (to avoid recomputing it).
-
+     The second version takes norm2 as an argument (to avoid recomputing it).
+*/
     void sanitize() {};
     void sanitize(ScalarProductReturnType const &norm2) { sanitize(); };
 
@@ -284,19 +294,14 @@ class GeneralLatticePoint
      Usually norm2 will be precomputed, so this function should be
      overridden by LatP.
 */
+
     inline ScalarProductReturnType get_norm2() const;
 
-    // This function returns the exact norm, ignoring any approximations.
+/**   This function returns the exact norm, ignoring any approximations. */
     inline ScalarProductReturnType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
 
-/**
-  multiplies by a scalar (which is of integral type), thereby changing the lattice point.
-  TODO: enable Integer == mpz_class
-*/
-    template<class Integer,
-      TEMPL_RESTRICT_DECL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
-    inline void scalar_multiply(Integer const multiplier);
-};
+
+ };
 
 // Initializer for static data.
 // This is the default initializer, which does nothing.
@@ -341,31 +346,6 @@ template<class LP1, class LP2, typename std::enable_if< \
 // This may or not work.
 
 
-
-
-
-template<class LP, class Integer,
-  typename std::enable_if<IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
-  int>::type=0>
-LP operator*(LP const &x1, Integer const multiplier)
-{
-//  assert(false);
-  LP tmp = x1.make_copy();
-  tmp.scalar_multiply(multiplier);
-  return tmp;
-}
-
-template<class LP, class Integer,
-  typename std::enable_if<IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
-  int>::type=0>
-LP operator*(LP &&x1, Integer const multiplier)
-{
-  LP tmp = std::move(x1);
-  tmp.scalar_multiply(multiplier);
-  return tmp;
-}
 
 // dispatch to sub/subval function
 
