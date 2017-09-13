@@ -1,4 +1,4 @@
-
+#define filtered_list_size_max  1000
 
 namespace GaussSieve{
 
@@ -10,8 +10,6 @@ namespace GaussSieve{
 // p_is_max is true if x1 ==p, in which case x3_X stores <x3,x2>
 // otherwise x3_X stores <x3, x1>
 
-
-    int filtered_list_size_max = 1000;
 
 template<class SieveTraits>
 bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
@@ -101,8 +99,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     
     
     // ! targets are squared
-    double px1  = .102; // TO ADJUST
-    double x1x2 = .102;
+    double px1  = .1111; // TO ADJUST
+    double x1x2 = .1111;
 
     int scalar; //for 2-reduction
 
@@ -328,7 +326,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
          */
     } // 'lower' while-loop
     
-    filtered_list_size =filtered_list.size();
+    filtered_list_size = filtered_list.size();
     filtered_list.clear();
 
 }

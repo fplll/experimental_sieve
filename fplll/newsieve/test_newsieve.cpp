@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     bool flag_file = false;
 
     int opt, dim = 10;
-    int b = 0;
+    int b = 2;
     int k = 3;
     Z_NR<mpz_t> target_norm;
     mpz_class target_norm_conv;
