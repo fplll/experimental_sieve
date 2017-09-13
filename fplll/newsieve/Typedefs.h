@@ -17,6 +17,7 @@
 #include "PlainLatticePoint.h"
 #include "FilteredPoint.h"
 #include "FilteredPoint2.h"
+#include "SieveUtility.h"
 
 
 namespace GaussSieve
@@ -59,7 +60,11 @@ class JustSomeExampleSieveTraitsThatDoNotWork
 
 // Note: ET does *not* include Z_NR<...> here
 
-template< class ET, bool MT, int nfixed>
+template
+<
+  class ET, bool MT, int nfixed,
+  class InputBT = typename fplll::ZZ_mat< typename FixZNR<ET>::type>
+>
 class DefaultSieveTraits
 {
   public:
@@ -82,7 +87,8 @@ class DefaultSieveTraits
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type
 //  using InputBasisType = typename fplll::ZZ_mat< typename ZNREntryType::underlying_data_type>;
-  using InputBasisType          = fplll::ZZ_mat< mpz_t>;
+//  using InputBasisType          = fplll::ZZ_mat< mpz_t>;
+  using InputBasisType          = InputBT;
 
 
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
