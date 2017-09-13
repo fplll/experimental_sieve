@@ -9,7 +9,7 @@
 namespace GaussSieve{
 
 template<class ELP, class Approximation> class PointWithApproximation; //ELP = exact lattice point
-template<class ELP, class Approximation> class ScalarProductWithApproximation;
+//template<class ELP, class Approximation> class ScalarProductWithApproximation;
 template<class ELP, class Approximation> class DelayedScProduct;
 
 template<class ELP, class Approximation>
@@ -42,11 +42,7 @@ class ScalarProductWithApproximation
 // TODO:
 //  using ApproxType     = TODO;
 
-
-
   private:
-
-
 
 };
 

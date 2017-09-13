@@ -43,6 +43,7 @@
 		<Unit filename="SieveST3.cpp" />
 		<Unit filename="SieveUtility.h" />
 		<Unit filename="TermCondNew.h" />
+		<Unit filename="Tests/TestApproximations.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestEMV.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
