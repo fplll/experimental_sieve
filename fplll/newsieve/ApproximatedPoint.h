@@ -49,7 +49,7 @@ struct ScalarProductWithApproximation
 //  ScalarProductWithApproximation& operator=(ScalarProductWithApproximation const &) = default;
 //  ScalarProductWithApproximation& operator=(ScalarProductWithApproximation &&) = default;
 
-  operator ELP() const { return exact_point;}
+  operator ELP() const { return exact_sc_product;}
 
 
   ExactScProdType const  exact_sc_product;
@@ -79,7 +79,7 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   using ExactScProdType    = typename GetScPType<ELP>::type;
   using ApproxScProdType   = typename Approximation::ScalarProductType;
   using CombinedScProdType = ScalarProductWithApproximation<ELP,Approximation>;
-  using DelayedScProdType  = DelayedScProdType<ELP,Approximation>;
+  using DelayedScProdType  = DelayedScProduct<ELP,Approximation>;
 
 
 
@@ -164,8 +164,8 @@ template<class ELP, class Approximation>
 class DelayedScProduct
 {
   private:
-  using PWA = PointWithApproximation<ELP,Approximation>
-  using SWA = ScalarProductWithApproximation<ELP,Approximation>
+  using PWA = PointWithApproximation<ELP,Approximation>;
+  using SWA = ScalarProductWithApproximation<ELP,Approximation>;
   PWA const &lhs;
   PWA const &rhs;
   public:

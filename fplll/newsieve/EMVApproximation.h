@@ -33,7 +33,6 @@ class EMVApproximationTraits
   using ApproxNorm2Type = int_fast32_t;
 };
 
-//template<class DimensionType>
 class EMVScalar
 {
   public:
@@ -491,5 +490,9 @@ inline std::ostream & operator<<(std::ostream &os, EMVApproximation<nfixed> cons
 
 
 } // end namespace
+
+#undef FOR_FIXED_DIM
+#undef FOR_VARIABLE_DIM
+
 
 #endif
