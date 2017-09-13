@@ -110,8 +110,11 @@ int main(int argc, char **argv)
         cout << "# [info] LLL took time " << secs << " s" << endl;
 
     bool constexpr multithreaded = false;
+    
     using Traits = GaussSieve::DefaultSieveTraits<long, false, -1>;
     //using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
+    //using Traits = GaussSieve::DefaultSieveTraits<long, false, -1,ZZ_mat< mpz_t> >;
+
 
 
     auto start = std::chrono::high_resolution_clock::now();
