@@ -34,15 +34,26 @@ public:
 };
 
 template<class ELP, class Approximation>
-class ScalarProductWithApproximation
+struct ScalarProductWithApproximation
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
+  using ExactScProdType   = typename GetScPType<ELP>::type;
+  using ApproxScProdType  = typename Approximation::ScalarProductType;
 
-  public:
+  explicit ScalarProductWithApproximation(ExactScProdType const &exact, ApproxScProdType const &approx)
+    :exact_sc_product(exact), approx_sc_product(approx) {};
+
+//  ScalarProductWithApproximation(ScalarProductWithApproximation const &) = default;
+//  ScalarProductWithApproximation(ScalarProductWithApproximation &&) = default;
+//  ScalarProductWithApproximation& operator=(ScalarProductWithApproximation const &) = default;
+//  ScalarProductWithApproximation& operator=(ScalarProductWithApproximation &&) = default;
+
+
+  ExactScProdType  exact_sc_product;
+  ApproxScProdType approx_sc_product;
+
 // TODO:
 //  using ApproxType     = TODO;
-
-  private:
 
 };
 
@@ -56,7 +67,11 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   public:
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
-  using AuxDataType = typename GetAuxDataType<ELP>::type;
+//  using AuxDataType = typename GetAuxDataType<ELP>::type;
+//  using ScalarProductReturnType = typename GetScPType<ELP>::type;
+  using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::ScalarProductReturnType;
+  using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::AuxDataType;
+
 
   PointWithApproximation(PointWithApproximation const &old) = delete;
   PointWithApproximation(PointWithApproximation && old) = default;
@@ -65,13 +80,16 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   explicit PointWithApproximation(ELP && new_exact_point)
     : exact_point(std::move(new_exact_point)), approx(exact_point) {};
 
-//  template<class ELP2 = ELP, typename std::enable_if<HasCoos<ELP2>::value,int>::type = 0>
-  ExactCoos &operator[](uint_fast16_t idx) { return exact_point[idx]; };
+  static std::string class_name() { return ELP::class_name() + "with approximation"; }; // TODO:class_name for Approximation
 
-//  template<class ELP2 = ELP, typename std::enable_if<HasCoos<ELP2>::value,int>::type = 0>
+  // operators<,>,<=, >= : No overload for now. Defaults to exact comparison.
+
+  ExactCoos &operator[](uint_fast16_t idx) { return exact_point[idx]; };
   ExactCoos const &operator[](uint_fast16_t idx) const { return exact_point[idx]; };
 
-  static std::string class_name() { return ELP::class_name() + "with approximation"; }; // TODO:class_name for Approximation
+  template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value)>
+  PointWithApproximation& operator+=(LatP2 const &x2) { exact_point+=x2; recompute_approx(); return *this;};
+
 
   auto get_dim() -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
 

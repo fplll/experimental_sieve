@@ -69,7 +69,7 @@ inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTrai
 template <class SieveTraits, bool MT>
 inline void MinkowskiTerminationCondition<SieveTraits, MT>::init(Sieve<SieveTraits, MT> *const sieve)
 {
-  target_length = sieve->get_basis().get_minkowski_bound();
+  target_length = ConvertMaybeMPZ<EntryType>::convert_to_inttype(sieve->get_basis().get_minkowski_bound() );
 }
 
 }  // namespace

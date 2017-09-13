@@ -489,7 +489,7 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   LP result(dim);
   for(uint_fast16_t i =0; i<dim; ++i)
   {
-    result[i] = static_cast<ET>( container[i].get_data() );
+    result[i] = ConvertMaybeMPZ<ET>::convert_to_inttype( container[i].get_data() );
   }
   result.sanitize();
   return result;

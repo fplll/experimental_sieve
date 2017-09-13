@@ -22,24 +22,24 @@ using namespace GaussSieve;
 
 template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
 {
-    
+
 }
 
 
 int main(int argc, char **argv)
 {
-    
+
     char *target_norm_string = NULL;
     char* input_file_name = NULL;
     bool flag_file = false;
-    
+
     int opt, dim = 10;
     int b = 2;
     int k = 3;
     Z_NR<mpz_t> target_norm;
     mpz_class target_norm_conv;
     target_norm = 0;
-    
+
     if (argc == 1)
     {
         cout << "Please provide the dimension." << endl;
@@ -65,10 +65,10 @@ int main(int argc, char **argv)
             break;
         }
     }
-    
+
     ZZ_mat<mpz_t> B;
     B.resize(dim, dim);
-    
+
     if (flag_file) {
         ifstream input_file(input_file_name);
         if (input_file.is_open()) {
@@ -82,18 +82,18 @@ int main(int argc, char **argv)
         //generates GM lattice
         B.gen_qary_prime(1, 10*dim);
     }
-    
+
     if (target_norm_string!=NULL)
     {
         target_norm.set_str(target_norm_string);
         target_norm_conv = mpz_class(target_norm_string);
     }
-    
+
     if(target_norm > 0)
     {
         cout << "target norm set: " << target_norm << endl;
     }
-    
+
     /* preprocessing of basis */
     clock_t stime = clock();
     if (b > 2)
@@ -108,31 +108,31 @@ int main(int argc, char **argv)
         cout << "# [info] BKZ took time " << secs << " s" << endl;
     else
         cout << "# [info] LLL took time " << secs << " s" << endl;
-        
+
     bool constexpr multithreaded = false;
-    using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
-    
-    
-    
+    using Traits = GaussSieve::DefaultSieveTraits<long, false, -1>;
+
+
+
     auto start = std::chrono::high_resolution_clock::now();
-    
+
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
-    
+
     TerminationCondition<Traits,multithreaded> * termcond;
 
     if (target_norm!=0)
-        termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
+        termcond = new LengthTerminationCondition<Traits, multithreaded> (ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
     else
         termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
-        
+
 	Test_3Sieve.set_termination_condition(termcond);
-    
-    
+
+
     Test_3Sieve.run();
     cout << "sv is " << endl;
     Test_3Sieve.print_status();
-    
+
     auto finish = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
     cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;

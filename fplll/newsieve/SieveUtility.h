@@ -365,8 +365,20 @@ template<class Integer> struct ConvertMaybeMPZ
     {
       return static_cast<Integer>(source.get_ui() );
     }
-
   }
+
+  static Integer convert_to_inttype(mpz_t const & source)
+  {
+    if(std::numeric_limits<Integer>::is_signed)
+    {
+      return static_cast<Integer>(mpz_get_si(source) );
+    }
+    else
+    {
+      return static_cast<Integer>(mpz_get_ui(source) );
+    }
+  }
+
 };
 
 

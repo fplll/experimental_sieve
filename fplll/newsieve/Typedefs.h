@@ -73,7 +73,7 @@ class DefaultSieveTraits
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
   using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
-  
+
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
   //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
   using FlilteredPointType      = FilteredPointPointer<ET, nfixed, EntryType>;
@@ -81,7 +81,10 @@ class DefaultSieveTraits
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type
-  using InputBasisType = typename fplll::ZZ_mat< typename ZNREntryType::underlying_data_type>;
+//  using InputBasisType = typename fplll::ZZ_mat< typename ZNREntryType::underlying_data_type>;
+  using InputBasisType          = fplll::ZZ_mat< mpz_t>;
+
+
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
 };
