@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    while ((opt = getopt(argc, argv, "d:t:k:f:b:")) != -1) {
+    while ((opt = getopt(argc, argv, "d:t:k:b:f:")) != -1) {
         switch (opt) {
             case 'd':
                 dim = atoi(optarg);
@@ -60,8 +60,9 @@ int main(int argc, char **argv)
                 break;
             case 'k':
                 k=atoi(optarg);
+                break;
             case 'b':
-                b = atoi(optarg);
+                b=atoi(optarg);
             break;
         }
     }
@@ -94,8 +95,11 @@ int main(int argc, char **argv)
         cout << "target norm set: " << target_norm << endl;
     }
 
+    cout << "b = " << b << endl;
+    
     /* preprocessing of basis */
     clock_t stime = clock();
+    
     if (b > 2)
         bkz_reduction(B, b, BKZ_DEFAULT, FT_DEFAULT, 0);
     else
