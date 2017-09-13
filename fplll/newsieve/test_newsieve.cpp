@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
     bool constexpr multithreaded = false;
     using Traits = GaussSieve::DefaultSieveTraits<long, false, -1>;
-
+    //using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
 
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -122,7 +122,10 @@ int main(int argc, char **argv)
     TerminationCondition<Traits,multithreaded> * termcond;
 
     if (target_norm!=0)
+    {
         termcond = new LengthTerminationCondition<Traits, multithreaded> (ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
+        //termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
+    }
     else
         termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
 

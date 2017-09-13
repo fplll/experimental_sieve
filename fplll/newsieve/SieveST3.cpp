@@ -28,7 +28,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     typename SieveTraits::EntryType x3x1;
     typename SieveTraits::EntryType x3x2;
     
-    if (p_is_max) {
+    if (!p_is_max) {
         x3x1 = x3_X;
         x3x2 = x3.get_sc_prod();
     }
@@ -54,7 +54,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     
     if (x3x1 <0 && x1x2>0 && x3x2>0 &&
         x2.get_norm2() + (*x3.get_point()).get_norm2() <
-        2 * ( x3x1 + x1x2 + x3x2 ) )
+        2 * ( -x3x1 + x1x2 + x3x2 ) )
     {
         
         sgn2 = -1;
@@ -175,13 +175,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     p +=  (*it)*sgn2 + *(filtered_list_it).get_point() * sgn3;
                     
                     //FOR DEBUGGING
-                    /* 
+                    
                     EntryType pnorm_old = p.get_norm2();
                     if (p.get_norm2() > pnorm_old)
                     {
                         assert(false);
                     }
-                    */
+                    
                     
                     if (p.is_zero() )
                     {
@@ -287,14 +287,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                         number_of_collisions++;
                     }
                     
-                    //FOR DEBUGGINS
-                    /*
+                    //FOR DEBUG
+                    
                     if (v_new.get_norm2() > (*it).get_norm2())
                     {
                         std::cout << "bug in computing v_new" << std::endl;
                         assert(false);
                     }
-                    */
+                    
                     main_queue.push(std::move(v_new));
                     it = main_list.erase(it);
                     
