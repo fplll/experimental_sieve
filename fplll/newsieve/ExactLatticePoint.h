@@ -168,7 +168,7 @@ public:
   ET get_norm2() const { return norm2; }
 
 
-  ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
+  inline ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
   {
   ET res1 = 0;
   ET res2 = 0;
