@@ -301,8 +301,29 @@ class GeneralLatticePoint
 /**   This function returns the exact norm, ignoring any approximations. */
     inline ScalarProductReturnType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
 
+    // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
+    // However, out-of-class definition get messy with overloading.
+    MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
+    inline ScalarProductReturnType do_compute_sc_product(LatP const &x2) const;
+
+    inline ScalarProductReturnType do_compute_sc_product_exact(LatP const &x2) const
+    {
+      return CREALTHIS->do_compute_sc_product(x2);
+    }
+
 
  };
+
+ /**
+  Non-member functions
+  */
+
+template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+inline typename LP::ScalarProductReturnType compute_sc_product(LP const &lp1, LP const &lp2);
+
+template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+inline typename LP::ScalarProductReturnType compute_sc_product_exact(LP const &lp1, LP const &lp2);
+
 
 // Initializer for static data.
 // This is the default initializer, which does nothing.
@@ -495,26 +516,6 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   return result;
 }
 
-template<class LP, typename std::enable_if<
-         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-         int>::type = 0>
-typename GetCooType<LP>::type compute_sc_product(LP const &lp1, LP const &lp2)
-{
-  DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = lp1.get_dim();
-  auto const dim2 = lp2.get_dim();
-  assert(dim1 == dim2 );
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
-  using ET = typename GetCooType<LP>::type;
-  auto const dim = lp1.get_dim();
-  ET result = 0; // assumes that ET can be initialized from 0...
-  for(uint_fast16_t i=0; i<dim; ++i)
-  {
-    result += lp1[i]*lp2[i];
-  }
-  return result;
-}
 
 
 /*

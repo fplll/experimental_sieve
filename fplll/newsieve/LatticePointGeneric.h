@@ -53,28 +53,28 @@ template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-  return CREALTHIS->get_norm2() < rhs.get_norm2();
+  return CREALTHIS->get_norm2_exact() < rhs.get_norm2_exact();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-  return CREALTHIS->get_norm2() > rhs.get_norm2();
+  return CREALTHIS->get_norm2_exact() > rhs.get_norm2_exact();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2() <= rhs.get_norm2();
+  return CREALTHIS->get_norm2_exact() <= rhs.get_norm2_exact();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2() >= rhs.get_norm2();
+  return CREALTHIS->get_norm2_exact() >= rhs.get_norm2_exact();
 }
 
 
@@ -307,7 +307,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
   IMPL_IS_LATP;
   DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_vec_size();
-  for (uint_fast16_t i=0;i<dim;++i)
+  for (uint_fast16_t i=0; i<dim; ++i)
   {
     REALTHIS->operator[](i) = - REALTHIS->operator[](i);
   }
@@ -376,6 +376,43 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
     NewLP.sanitize();
   }
   return NewLP;
+}
+
+/*********************
+  Scalar product
+*********************/
+
+template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
+typename LP::ScalarProductReturnType compute_sc_product(LP const &lp1, LP const &lp2)
+{
+  return lp1.do_compute_sc_product(lp2);
+}
+
+
+template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
+typename LP::ScalarProductReturnType compute_sc_product_exact(LP const &lp1, LP const &lp2)
+{
+  return lp1.do_compute_sc_product_exact(lp2);
+}
+
+template<class LatP>
+MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
+inline typename GeneralLatticePoint<LatP>::ScalarProductReturnType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
+{
+  DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_dim();
+  auto const dim2 = x2.get_dim();
+  assert(dim1 == dim2 );
+  #endif // DEBUG_SIEVE_LP_MATCHDIM
+  using ET = typename GetCooType<LatP>::type;
+  auto const dim = CREALTHIS->get_dim();
+  ET result = 0; // assumes that ET can be initialized from 0...
+  for(uint_fast16_t i=0; i<dim; ++i)
+  {
+    result += (*CREALTHIS)[i] * x2[i];
+  }
+  return static_cast<typename LatP::ScalarProductReturnType>(result);
 }
 
 
