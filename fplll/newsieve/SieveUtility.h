@@ -341,6 +341,7 @@ double convert_to_double(mpz_class const & source)
 
 // ConvertMaybeMPZ<Integer>::convert_to_inttype(source)
 // is a static_cast<Integer>(source) that also works for mpz_class
+template<class Integer> struct ConvertMaybeMPZ;
 
 template<class Integer> struct ConvertMaybeMPZ
 {
@@ -378,7 +379,18 @@ template<class Integer> struct ConvertMaybeMPZ
       return static_cast<Integer>(mpz_get_ui(source) );
     }
   }
+};
 
+template<>
+struct ConvertMaybeMPZ<mpz_class>
+{
+  template<class Source>
+  static mpz_class convert_to_inttype(Source const & source)
+  {
+    return static_cast<mpz_class>(source);
+  }
+  static mpz_class convert_to_inttype(mpz_class const & source) {return source;}
+  static mpz_class convert_to_inttype(mpz_t const & source) {return static_cast<mpz_class>(source);}
 };
 
 
