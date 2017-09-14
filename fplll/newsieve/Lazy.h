@@ -28,8 +28,13 @@ template<class ELP, class Approximation> class Lazy_FromExactAndApprox
   public:
   using ExactScalarProductType = typename GetScPType<ELP>::type;
   using ApproxScalarProductType = typename Approximation::ScalarProductType;
+  using DataType = std::tuple<ExactScalarProductType const &, ApproxScalarProductType const &>;
 
-  std::tuple<ExactScalarProductType const &, ApproxScalarProductType const &> const data;
+  static ExactScalarProductType eval_exact( DataType const & data) { return std::get<0>(data); }
+
+  static ApproxScalarProductType eval_approx( DataType const &data) { return std::get<1>(data); }
+
+
 
 };
 
