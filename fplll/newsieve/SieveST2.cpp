@@ -95,7 +95,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         break;
       }
 
-      ++number_of_total_scprods_level1;
+      ++number_of_scprods_level1;
       int scalar;
       if ( check2red<SieveTraits>(p, *it, scalar) )
       {
@@ -136,7 +136,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     for(auto it = it_comparison_flip; it!=main_list.cend(); ) //++it done in body of loop
     {
 
-      ++number_of_total_scprods_level1;
+      ++number_of_scprods_level1;
 
       int scalar;
       if ( check2red<SieveTraits>(*it, p, scalar) )

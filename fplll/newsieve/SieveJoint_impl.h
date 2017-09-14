@@ -115,10 +115,15 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
     if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
     //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
+    
     if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
+    if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
+    if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
+    if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
+    
     if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
-    if(howverb>=1) of << "Current List Size=" << get_current_list_size() << endl;
-    if(howverb>=1) of << "Current Queue Size="<< get_current_queue_size()<< endl;
+    if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
+    if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
     if(howverb>=1) {
         of << "Best vector found so far=";
         shortest_vector_found->write_to_stream(of);
@@ -188,9 +193,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_points_sampled(0),
     number_of_points_constructed(0),
     current_list_size(0),
-    number_of_total_scprods_level1(0),
-    number_of_total_scprods_level2(0),
-    number_of_total_scprods_level3(0),
+    number_of_scprods_level1(0),
+    number_of_scprods_level2(0),
+    number_of_scprods_level3(0),
     number_of_exact_scprods(0),
     number_of_mispredictions(0),
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true

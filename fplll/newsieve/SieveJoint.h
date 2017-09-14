@@ -200,8 +200,6 @@ public:
     #else
     void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
     void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
-    //void sieve_3_iteration_new (LatticePoint<ET> &p); //new run through the main_list (of 3-sieve) usign map for filtered_list
-    //void sieve_3_iteration_test (LatticePoint<ET> &p);
     //void sieve_k_iteration (LatticePoint<ET> &p);
     #endif
 
@@ -240,8 +238,11 @@ public:
     unsigned long int get_current_list_size() const             {return current_list_size;};
     unsigned long int get_filtered_list_size() const            {return filtered_list_size;};
     unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
-    unsigned long long get_number_of_scprods_level1() const     {return number_of_total_scprods_level1;};
-    //TODO:DO the same for all levels
+    
+    //-----------------STATISTICS----------------
+    unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;};
+    unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;};
+    unsigned long long get_number_of_scprods_level3() const     {return number_of_scprods_level3;};
     [[deprecated]]
     void set_termination_condition(TermCondType * const termcond)       {term_cond = termcond;}; //TODO: If we default - initialize (and own in this case), may need to delete previous value.
 private:
@@ -301,13 +302,16 @@ private:
     unsigned long int number_of_points_sampled;
     unsigned long long int number_of_points_constructed; //sampling  + succesful pairs
     unsigned long int current_list_size;
-    unsigned long long int number_of_total_scprods;
-    unsigned long long int number_of_total_scprods_level1; //for k=2, case
-    unsigned long long int number_of_total_scprods_level2; //for k=2,3 cases
-    unsigned long long int number_of_total_scprods_level3; //for k=2,3,4 cases
+    
+    //-------------STATISTICS----------------
+    unsigned long long int number_of_scprods_level1; //for k=2, case
+    unsigned long long int number_of_scprods_level2; //for k=2,3 cases
+    unsigned long long int number_of_scprods_level3; //for k=2,3,4 cases
     unsigned long long int number_of_exact_scprods;
     unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
     unsigned long int filtered_list_size; //size of filtered_list
+    
+    
 #else //note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
     atomic_ulong number_of_collisions;
     atomic_ulong number_of_points_sampled;
