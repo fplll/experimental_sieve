@@ -6,7 +6,7 @@ namespace GaussSieve{
 //    || x1 \pm x2 \pm x3 || < || x1 ||
 // The first arguments is assumed to have the largest norm
 // The last two arguments are modified. They return the correct signs, i.e.
-// x1 := x1 + sgn1*x2 + x3*sng2
+// x_new = x1 + sgn1*x2 + x3*sng2
 // p_is_max is true if x1 ==p, in which case x3_X stores <x3,x2>
 // otherwise x3_X stores <x3, x1>
 
@@ -41,7 +41,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
         return false;
 
     if (x3x1 <0 && x1x2<0 && x3x2<0 &&
-        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        x2.get_norm2() + (x3.get_point()).get_norm2() <
         2 * ( abs(x3x1) + abs(x1x2) + abs(x3x2) ) )
     {
 
@@ -52,7 +52,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     }
 
     if (x3x1 <0 && x1x2>0 && x3x2>0 &&
-        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        x2.get_norm2() + (x3.get_point()).get_norm2() <
         2 * ( -x3x1 + x1x2 + x3x2 ) )
     {
 
@@ -64,7 +64,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     }
 
     if (x3x1 >0 && x1x2<0 && x3x2>0 &&
-        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        x2.get_norm2() + (x3.get_point()).get_norm2() <
         2 * ( x3x1 - x1x2 + x3x2 ) )
     {
 
@@ -75,7 +75,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     }
 
     if (x3x1 >0 && x1x2>0 && x3x2<0 &&
-        x2.get_norm2() + (*x3.get_point()).get_norm2() <
+        x2.get_norm2() + (x3.get_point()).get_norm2() <
         2 * (  x3x1 + x1x2 - x3x2 ) )
     {
 
@@ -154,25 +154,25 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         {
             //This is a fast iteration accodring to the Internet
             //use 'auto &' to take a reference (copy-constructor is deleted)
-            for (auto & filtered_list_it: filtered_list)
+            for (auto & filtered_list_point: filtered_list)
             {
 
 
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, filtered_list_point.get_point());
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_point.get_point()) );
 
                 int sgn2, sgn3;
 
                 //check if || p \pm x1 \pm x2 || < || p ||
                 // ! check_3red assumes that the first argument has the largest norm
-                if ( check_3red<SieveTraits> ( p, *it, filtered_list_it, sc_prod_px1, sc_prod_x1x2, true, sgn2, sgn3) )
+                if ( check_3red<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, true, sgn2, sgn3) )
                 {
 
                     //TODO:  RETRIEVE ||p|| from the sc_prods
 
 
-                    //p += (*it)*sgn2 + (filtered_list_it).get_point() * sgn3;
-                    p +=  (*it)*sgn2 + *(filtered_list_it).get_point() * sgn3;
+                    p += (*it)*sgn2 + (filtered_list_point).get_point() * sgn3;
+                    //p +=  (*it)*sgn2 + *(filtered_list_point).get_point() * sgn3;
 
                     //FOR DEBUGGING
 
@@ -266,21 +266,21 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         if (std::abs(sc_prod_px1_norm) > px1)
         {
 
-            for (auto & filtered_list_it: filtered_list)
+            for (auto & filtered_list_point: filtered_list)
             {
 
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_it).get_point());
-                EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_it).get_point());
+                EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_point).get_point());
+                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_point).get_point());
                 int  sgn2, sgn3;
 
                 // ! check_3red assumes that the first argument has the largest norm
-                if ( check_3red<SieveTraits> ( *it, p, filtered_list_it, sc_prod_px1, sc_prod_x1x2, false, sgn2, sgn3) )
+                if ( check_3red<SieveTraits> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, false, sgn2, sgn3) )
                 {
                     //std::cout <<  sgn2 << " " << sgn3 << " " << std::endl;
 
 
-                    //typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + (filtered_list_it).get_point() * sgn3;
-                    typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_it).get_point() * sgn3;
+                    typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + (filtered_list_point).get_point() * sgn3;
+                    //typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_point).get_point() * sgn3;
 
                     if (v_new.is_zero() )
                     {
