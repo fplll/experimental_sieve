@@ -49,7 +49,7 @@ public:
 
     ~FilteredPointPointer() {}
 
-    inline StoredPoint const* get_point() const {return this->point;}
+    inline StoredPoint const& get_point() const {return *point;}
     inline SC get_sc_prod() const {return sc_prod;}
     //inline bool get_sign() const {return minus;}
 
