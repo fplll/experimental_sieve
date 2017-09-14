@@ -27,7 +27,6 @@
 		<Unit filename="LatticePointGeneric.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="MyLatticePointClass.cpp" />
-		<Unit filename="MyLatticePointClass.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
 		<Unit filename="Sampler.h" />

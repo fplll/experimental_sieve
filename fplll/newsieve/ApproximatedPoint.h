@@ -6,12 +6,16 @@
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
 #include <iostream>
+#include <utility>
+#include <tuple>
+#include "Lazy.h"
 
 namespace GaussSieve{
 
 template<class ELP, class Approximation> class PointWithApproximation; //ELP = exact lattice point
-//template<class ELP, class Approximation> class ScalarProductWithApproximation;
-template<class ELP, class Approximation> class DelayedScProduct;
+
+
+// Alias : Scalar + approx is identified with a constant function.
 
 template<class ELP, class Approximation>
 class LatticePointTraits< PointWithApproximation <ELP, Approximation> >
@@ -28,11 +32,13 @@ public:
 //  using AuxDataType             = MaybeFixed<nfixed>;
 //  using ScalarProductReturnType = ET;
   using CoordinateType          = typename GetCooType<ELP>::type;
-  using HasDelayedScProd        = std::true_type;
+  using HasDelayedScalarProduct = std::true_type;
 
   using AuxDataType             = typename GetAuxDataType<ELP>::type; // for now. This whole AuxDataType needs to be redesigned.
   using ScalarProductReturnType = typename GetScPType<ELP>::type; // Requires thinking about the concept class.
 };
+
+/*
 
 template<class ELP, class Approximation>
 struct ScalarProductWithApproximation
@@ -60,6 +66,8 @@ struct ScalarProductWithApproximation
 
 };
 
+*/
+
 
 
 template<class ELP, class Approximation>
@@ -67,7 +75,7 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
   static_assert(std::is_same<typename GetAuxDataType<ELP>::type, typename Approximation::AuxDataType>::value,"AuxDataType must be the same");
-  friend DelayedScProduct<ELP,Approximation>;
+//  friend DelayedScProduct<ELP,Approximation>;
   public:
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
@@ -76,10 +84,10 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::ScalarProductReturnType;
   using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::AuxDataType;
 
-  using ExactScProdType    = typename GetScPType<ELP>::type;
-  using ApproxScProdType   = typename Approximation::ScalarProductType;
-  using CombinedScProdType = ScalarProductWithApproximation<ELP,Approximation>;
-  using DelayedScProdType  = DelayedScProduct<ELP,Approximation>;
+  using ExactScalarProductType    = typename GetScPType<ELP>::type;
+  using ApproxScalarProductType   = typename Approximation::ScalarProductType;
+  using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
+  using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;
 
 
 
@@ -125,8 +133,6 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
   auto get_vec_size() const -> decltype( std::declval<ELP>().get_vec_size() ) { return exact_point.get_vec_size(); }
 
-
-
   std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const
   {
     return os << exact_point << approx;
@@ -140,14 +146,14 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   PointWithApproximation make_copy() const { return PointWithApproximation(exact_point.make_copy()); }
 
   void sanitize() { exact_point.sanitize(); recompute_approx(); }
-  void sanitize(ExactScProdType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
+  void sanitize(ExactScalarProductType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
   void recompute_approx() { approx = static_cast<Approximation>(exact_point); }
 
-  CombinedScProdType get_norm2() const { return exact_point.get_norm2_exact(); }
-  ExactScProdType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
+  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
+  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
 
-  DelayedScProdType do_compute_sc_product(PointWithApproximation const &x2) { };
-  ExactScProdType   do_compute_sc_product_exact(PointWithApproximation const &x2)
+  DelayedScalarProductType do_compute_sc_product(PointWithApproximation const &x2) { };
+  ExactScalarProductType   do_compute_sc_product_exact(PointWithApproximation const &x2)
   {
     return exact_point.do_compute_sc_product_exact(x2);
   };
@@ -156,26 +162,9 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
 
   ELP exact_point;
   Approximation approx;
-
 };
 
 
-template<class ELP, class Approximation>
-class DelayedScProduct
-{
-  private:
-  using PWA = PointWithApproximation<ELP,Approximation>;
-  using SWA = ScalarProductWithApproximation<ELP,Approximation>;
-  PWA const &lhs;
-  PWA const &rhs;
-  public:
-
-  DelayedScProduct(PWA const &x1, PWA const &x2): lhs(x1), rhs(x2){}
-
-
-
-
-};
 
 
 

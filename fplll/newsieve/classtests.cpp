@@ -4,8 +4,9 @@
 #define DEBUG_SIEVE_INITIALIZATIONS
 #define DEBUG_SIEVE_STANDALONE_MODULES_ALL
 
-#define TEST_ALL
+//#define TEST_ALL
 #define TEST_EMV
+#define TEST_LAZY
 //#define TEST_PLAIN_LATTICE_POINT
 //#define TEST_EXACT_LATTICE_POINT
 
@@ -21,6 +22,7 @@
   #define TEST_LIST
   #define TEST_EMV
   #define TEST_APPROXIMATIONS
+  #define TEST_LAZY
 #endif
 
 // very verbose...
@@ -71,6 +73,10 @@
 
 #ifdef TEST_APPROXIMATIONS
   #include "Tests/TestApproximations.h"
+#endif
+
+#ifdef TEST_LAZY
+  #include "Tests/TestLazy.h"
 #endif
 
 // clang-reorder-guard
@@ -159,6 +165,12 @@ int main(int argc, char **argv)
   }
 #endif
 
+#ifdef TEST_LAZY
+  if (test_lazy() )
+  {
+    std::cout << "Lazy Evaluations work as expected" << std::endl;
+  }
+#endif
   return 0; // indicating success.
 
 }
