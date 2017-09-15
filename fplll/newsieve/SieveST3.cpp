@@ -133,7 +133,10 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
 
     // ! targets are squared
+    
+    //double px1_target = 0.1024;
     double px1_target  = .1111; // TO ADJUST
+    //double px1_target = 0.123;
 
     int scalar; //for 2-reduction
 
@@ -152,6 +155,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         }
 
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
+        ++number_of_scprods_level1;
         
         //
         //check for 2-reduction
@@ -192,7 +196,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
 
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, filtered_list_point.get_point());
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_point.get_point()) );
+                ++number_of_scprods_level2;
 
                 int sgn2, sgn3;
 
@@ -263,6 +267,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         bool x1_reduced = false;
 
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
+        ++number_of_scprods_level2;
         
         //
         //check for 2-reduction
@@ -301,6 +306,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
         if (x1_reduced) {
             sc_prod_px1 = compute_sc_product(p,*it);
+            ++number_of_scprods_level1;
             x1_reduced = false;
         }
         
@@ -314,7 +320,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
 
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_point).get_point());
-                //EntryType sc_prod_x1x2 = compute_sc_product(*it, *(filtered_list_point).get_point());
+                ++number_of_scprods_level2;
+                
                 int  sgn2, sgn3;
 
                 // ! check_3red assumes that the first argument has the largest norm
