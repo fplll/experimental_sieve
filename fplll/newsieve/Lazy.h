@@ -47,7 +47,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
   constexpr explicit SieveLazyEval(Args const &... args) : function_operands(args...) {};
 
   auto eval_exact() const // If we ever use C++14, just remove the following line!
-  //-> decltype( LazyFunction::eval_exact(std::declval<SieveLazyEval>().function_operands) )
+  -> decltype( LazyFunction::eval_exact(std::declval< std::tuple<Args const&...> const >() ) )
   {
     return LazyFunction::eval_exact(function_operands);
   }
@@ -68,6 +68,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 
   public:
   std::tuple<Args const &...> const function_operands;
+//  std::tuple<Args const &...> get_ops() const { return function_operands; }
 };
 
 

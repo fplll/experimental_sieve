@@ -29,7 +29,7 @@ bool test_lazy()
   std::cout << exact_point;
   Approx approx_point = static_cast<Approx>(exact_point);
 
-  Wrapper w(exact_point,approx_point);
+//  Wrapper w(exact_point,approx_point);
 
 
   return true;
