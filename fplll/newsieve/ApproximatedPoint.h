@@ -30,12 +30,12 @@ public:
   using CheapNegate             = typename IsNegateCheap<ELP>::value_t;
   using HasApproximations       = std::true_type;
 //  using AuxDataType             = MaybeFixed<nfixed>;
-//  using ScalarProductReturnType = ET;
+//  using ScalarProductStorageType = ET;
   using CoordinateType          = typename GetCooType<ELP>::type;
   using HasDelayedScalarProduct = std::true_type;
 
   using AuxDataType             = typename GetAuxDataType<ELP>::type; // for now. This whole AuxDataType needs to be redesigned.
-  using ScalarProductReturnType = typename GetScPType<ELP>::type; // Requires thinking about the concept class.
+  using ScalarProductStorageType = typename GetScPType<ELP>::type; // Requires thinking about the concept class.
 };
 
 /*
@@ -80,8 +80,8 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
 //  using AuxDataType = typename GetAuxDataType<ELP>::type;
-//  using ScalarProductReturnType = typename GetScPType<ELP>::type;
-  using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::ScalarProductReturnType;
+//  using ScalarProductStorageType = typename GetScPType<ELP>::type;
+  using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
   using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::AuxDataType;
 
   using ExactScalarProductType    = typename GetScPType<ELP>::type;

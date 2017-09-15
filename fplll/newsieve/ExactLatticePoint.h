@@ -29,7 +29,7 @@ template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, n
 {
 public:
   using AuxDataType             = MaybeFixed<nfixed>;
-  using ScalarProductReturnType = ET;
+  using ScalarProductStorageType= ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
   using AbsoluteCoos            = std::true_type;
@@ -45,7 +45,7 @@ public:
   friend StaticInitializer<ExactLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
-  using ScalarProductReturnType = ET;
+  using ScalarProductStorageType = ET;
   using Container =
     typename std::conditional<nfixed >= 0, std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                                 std::vector<ET>>::type;               // if nfixed <0
@@ -163,7 +163,7 @@ public:
   static std::string class_name() { return "Exact Lattice Point"; };
 
   void sanitize() { norm2 = compute_sc_product(*this, *this); }
-  void sanitize( ScalarProductReturnType const & new_norm2 ) { norm2 = new_norm2; }
+  void sanitize( ScalarProductStorageType const & new_norm2 ) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
 

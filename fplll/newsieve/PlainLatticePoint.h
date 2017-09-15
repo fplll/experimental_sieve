@@ -21,7 +21,7 @@ template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, n
 {
 public:
   using AuxDataType             = MaybeFixed<nfixed>;
-  using ScalarProductReturnType = ET;
+  using ScalarProductStorageType = ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
   using AbsoluteCoos            = std::true_type;
@@ -39,7 +39,7 @@ public:
   friend StaticInitializer<PlainLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
-  using ScalarProductReturnType = ET;
+  using ScalarProductStorageType = ET;
   using Container               = std::array<ET, nfixed>;
   static bool class_init(AuxDataType const aux_data)
   {
@@ -94,7 +94,7 @@ public:
   friend StaticInitializer<PlainLatticePoint<ET,-1>>;
   using LatticePointTag         = std::true_type;
   using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
-  using ScalarProductReturnType = ET;
+  using ScalarProductStorageType = ET;
   using Container               = std::vector<ET>;
   using GeneralLatticePoint<PlainLatticePoint<ET, -1>>::get_dim;
 

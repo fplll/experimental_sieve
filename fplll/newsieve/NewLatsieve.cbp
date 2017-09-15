@@ -25,8 +25,8 @@
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
+		<Unit filename="Lazy.h" />
 		<Unit filename="MTPRNG.h" />
-		<Unit filename="MyLatticePointClass.cpp" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
 		<Unit filename="Sampler.h" />
@@ -46,6 +46,7 @@
 		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestEMV.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
+		<Unit filename="Tests/TestLazy.h" />
 		<Unit filename="Tests/TestList.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
@@ -57,7 +58,6 @@
 		<Unit filename="classtests.cpp" />
 		<Unit filename="sieve_main.cpp" />
 		<Unit filename="test_newsieve.cpp" />
-		<Unit filename="test_newsieve.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

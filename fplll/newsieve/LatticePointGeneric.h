@@ -272,7 +272,7 @@ inline auto GeneralLatticePoint<LatP>::get_vec_size() const -> decltype( std::de
 }
 
 template<class LatP>
-inline typename GeneralLatticePoint<LatP>::ScalarProductReturnType GeneralLatticePoint<LatP>::get_norm2() const
+inline typename GetScPType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
 {
   DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
       // This function should not be called if IsNorm2Cheap is set,
@@ -383,21 +383,21 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
 *********************/
 
 template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
-typename LP::ScalarProductReturnType compute_sc_product(LP const &lp1, LP const &lp2)
+typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
 {
   return lp1.do_compute_sc_product(lp2);
 }
 
 
 template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
-typename LP::ScalarProductReturnType compute_sc_product_exact(LP const &lp1, LP const &lp2)
+typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
 {
   return lp1.do_compute_sc_product_exact(lp2);
 }
 
 template<class LatP>
 MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
-inline typename GeneralLatticePoint<LatP>::ScalarProductReturnType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
+inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
 {
   DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
@@ -412,7 +412,7 @@ inline typename GeneralLatticePoint<LatP>::ScalarProductReturnType GeneralLattic
   {
     result += (*CREALTHIS)[i] * x2[i];
   }
-  return static_cast<typename LatP::ScalarProductReturnType>(result);
+  return static_cast<typename LatP::ScalarProductStorageType>(result);
 }
 
 

@@ -47,7 +47,7 @@ template<class LatticePoint> struct LatticePointTraits
                 (e.g. Dimension, custom memory allocator)
                 Default: IgnoreAnyArg
                 Needs to be initializable from an int (??? DimensionType)
-  ScalarProductReturnType: A type that can hold the result of a scalar product computation. Mandatory.
+  ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
                            (due to delayed evaluation)
 
@@ -80,7 +80,7 @@ template<class LatticePoint> struct LatticePointTraits
   {
     public: // automatic for structs
     using AuxDataType = Whatever
-    using ScalarProductReturnType = long (say)
+    using ScalarProductStorageType = long (say)
     using CoordinateVector = std::true_type
     using CoordingateType = int
     ...
@@ -103,11 +103,11 @@ template<class T> class StaticInitializer;
 // LatticePointTraits<...>::... defaults to a compile-time error.
 
 
-//CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductReturnType, DeclaresScalarProductReturnType);
+//CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductStorageType, DeclaresScalarProductReturnType);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
-CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductReturnType, HasScalarProductReturnType);
+CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductStorageType, HasScalarProductReturnType);
 MAKE_TRAIT_GETTER(LatticePointTraits, AuxDataType, IgnoreAnyArg, GetAuxDataType);
-MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductReturnType, void, GetScPType);
+MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType, void, GetScPType);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, IsCooVector);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
@@ -162,7 +162,7 @@ class GeneralLatticePoint
                  // (Note that it may prevent multi-level inheritance)
 
     using AuxDataType = typename GetAuxDataType<LatP>::type;
-    using ScalarProductReturnType = typename GetScPType<LatP>::type;
+    using ScalarProductStorageType = typename GetScPType<LatP>::type;
 
     private:
     explicit constexpr GeneralLatticePoint()=default; //only callable from its friends
@@ -286,7 +286,7 @@ class GeneralLatticePoint
      The second version takes norm2 as an argument (to avoid recomputing it).
 */
     void sanitize() {};
-    void sanitize(ScalarProductReturnType const &norm2) { sanitize(); };
+    void sanitize(ScalarProductStorageType const &norm2) { sanitize(); };
 
 
 /**
@@ -296,17 +296,17 @@ class GeneralLatticePoint
      overridden by LatP.
 */
 
-    inline ScalarProductReturnType get_norm2() const;
+    inline ScalarProductStorageType get_norm2() const;
 
 /**   This function returns the exact norm, ignoring any approximations. */
-    inline ScalarProductReturnType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
+    inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definition get messy with overloading.
     MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
-    inline ScalarProductReturnType do_compute_sc_product(LatP const &x2) const;
+    inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    inline ScalarProductReturnType do_compute_sc_product_exact(LatP const &x2) const
+    inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
@@ -319,10 +319,10 @@ class GeneralLatticePoint
   */
 
 template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
-inline typename LP::ScalarProductReturnType compute_sc_product(LP const &lp1, LP const &lp2);
+inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2);
 
 template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
-inline typename LP::ScalarProductReturnType compute_sc_product_exact(LP const &lp1, LP const &lp2);
+inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2);
 
 
 // Initializer for static data.
