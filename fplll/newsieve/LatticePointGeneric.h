@@ -395,6 +395,12 @@ typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP
   return lp1.do_compute_sc_product_exact(lp2);
 }
 
+template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
+typename LP::ScalarProductStorageType compute_sc_product_full(LP const &lp1, LP const &lp2)
+{
+  return lp2.do_compute_sc_product_full(lp2);
+}
+
 template<class LatP>
 MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
 inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const

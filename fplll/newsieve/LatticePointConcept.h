@@ -124,7 +124,10 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNegate, std::true_type, IsNeg
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordinateType);
 
 MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
-MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType_Full, typename GetScalarProductStorageType<ClassToCheck>::type, GetScPType_Full);
+
+// ClassToCheck is the argument of the constructed Traits getter inside the macro def.
+MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType_Full,
+  typename GetScalarProductStorageType<ClassToCheck>::type, GetScalarProductStorageType_Full);
 
 
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
@@ -169,6 +172,7 @@ class GeneralLatticePoint
 
     using AuxDataType = typename GetAuxDataType<LatP>::type;
     using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
+    using ScalarProductStorageType_Full = typename GetScalarProductStorageType_Full<LatP>::type;
 
     private:
     explicit constexpr GeneralLatticePoint()=default; //only callable from its friends
@@ -306,6 +310,8 @@ class GeneralLatticePoint
 
 /**   This function returns the exact norm, ignoring any approximations. */
     inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
+    inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
+
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definition get messy with overloading.
@@ -316,6 +322,11 @@ class GeneralLatticePoint
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
+    inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
+    {
+      return CREALTHIS->do_compute_sc_product(x2);
+    }
+
 
 
  };
@@ -329,6 +340,9 @@ inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, L
 
 template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
 inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2);
+
+template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2);
 
 
 // Initializer for static data.
