@@ -35,7 +35,7 @@ public:
   using HasDelayedScalarProduct = std::true_type;
 
   using AuxDataType             = typename GetAuxDataType<ELP>::type; // for now. This whole AuxDataType needs to be redesigned.
-  using ScalarProductStorageType = typename GetScPType<ELP>::type; // Requires thinking about the concept class.
+  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type; // Requires thinking about the concept class.
 };
 
 /*
@@ -44,7 +44,7 @@ template<class ELP, class Approximation>
 struct ScalarProductWithApproximation
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
-  using ExactScProdType   = typename GetScPType<ELP>::type;
+  using ExactScProdType   = typename GetScalarProductStorageType<ELP>::type;
   using ApproxScProdType  = typename Approximation::ScalarProductType;
 
   explicit ScalarProductWithApproximation(ExactScProdType const &exact, ApproxScProdType const &approx)
@@ -80,11 +80,11 @@ class PointWithApproximation: public GeneralLatticePoint<PointWithApproximation<
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
 //  using AuxDataType = typename GetAuxDataType<ELP>::type;
-//  using ScalarProductStorageType = typename GetScPType<ELP>::type;
+//  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
   using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
   using typename GeneralLatticePoint<PointWithApproximation<ELP,Approximation>>::AuxDataType;
 
-  using ExactScalarProductType    = typename GetScPType<ELP>::type;
+  using ExactScalarProductType    = typename GetScalarProductStorageType<ELP>::type;
   using ApproxScalarProductType   = typename Approximation::ScalarProductType;
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
   using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;

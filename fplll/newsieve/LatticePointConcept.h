@@ -50,6 +50,10 @@ template<class LatticePoint> struct LatticePointTraits
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
                            (due to delayed evaluation)
+  ScalarProductStorageType_Full:  A type that can hold the result of a scalar product computation.
+                                  In case the Point has approximations, will contain an approximate
+                                  scalar product as well.
+                                  Default: Same as ScalarProductStorageType
 
   CoordinateType : return type of operator[] if available.
 
@@ -71,6 +75,8 @@ template<class LatticePoint> struct LatticePointTraits
                (typically, it's precomputed and stored with the point)
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
+
+  HasApproximations: Set to true_type to indicate that the point has approximations.
 */
 
 /**
@@ -107,7 +113,7 @@ template<class T> class StaticInitializer;
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductStorageType, HasScalarProductReturnType);
 MAKE_TRAIT_GETTER(LatticePointTraits, AuxDataType, IgnoreAnyArg, GetAuxDataType);
-MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType, void, GetScPType);
+MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType, void, GetScalarProductStorageType);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, IsCooVector);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
@@ -118,7 +124,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNegate, std::true_type, IsNeg
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordinateType);
 
 MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
-
+MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType_Full, typename GetScalarProductStorageType<ClassToCheck>::type, GetScPType_Full);
 
 
 #define MEMBER_ONLY_EXISTS_IF_COO_READ \
@@ -162,7 +168,7 @@ class GeneralLatticePoint
                  // (Note that it may prevent multi-level inheritance)
 
     using AuxDataType = typename GetAuxDataType<LatP>::type;
-    using ScalarProductStorageType = typename GetScPType<LatP>::type;
+    using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
 
     private:
     explicit constexpr GeneralLatticePoint()=default; //only callable from its friends

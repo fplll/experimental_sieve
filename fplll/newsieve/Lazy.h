@@ -26,7 +26,7 @@ template<class ELP, class Approximation> class Lazy_FromExactAndApprox;
 template<class ELP, class Approximation> class Lazy_FromExactAndApprox
 {
   public:
-  using ExactScalarProductType = typename GetScPType<ELP>::type;
+  using ExactScalarProductType = typename GetScalarProductStorageType<ELP>::type;
   using ApproxScalarProductType = typename Approximation::ScalarProductType;
   using DataType = std::tuple<ExactScalarProductType const &, ApproxScalarProductType const &>;
 
@@ -44,7 +44,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 {
 
   public:
-  using ExactScalarProductType = typename GetScPType<ELP>::type;
+  using ExactScalarProductType = typename GetScalarProductStorageType<ELP>::type;
   using ApproxScalarProductType = typename Approximation::ScalarProductType;
 
   constexpr explicit SieveLazyEval(Args const &... args) : function_operands(args...) {};

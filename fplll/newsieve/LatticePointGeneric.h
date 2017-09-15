@@ -272,7 +272,7 @@ inline auto GeneralLatticePoint<LatP>::get_vec_size() const -> decltype( std::de
 }
 
 template<class LatP>
-inline typename GetScPType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
+inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
 {
   DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
       // This function should not be called if IsNorm2Cheap is set,
