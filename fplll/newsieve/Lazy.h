@@ -33,9 +33,6 @@ template<class ELP, class Approximation> class Lazy_FromExactAndApprox
   static ExactScalarProductType eval_exact( DataType const & data) { return std::get<0>(data); }
 
   static ApproxScalarProductType eval_approx( DataType const &data) { return std::get<1>(data); }
-
-
-
 };
 
 
@@ -50,12 +47,12 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
   constexpr explicit SieveLazyEval(Args const &... args) : function_operands(args...) {};
 
   auto eval_exact() const // If we ever use C++14, just remove the following line!
-  -> decltype( LazyFunction::eval_exact(std::declval<SieveLazyEval>().function_operands) )
+  //-> decltype( LazyFunction::eval_exact(std::declval<SieveLazyEval>().function_operands) )
   {
     return LazyFunction::eval_exact(function_operands);
   }
   auto eval_approx() const
-  -> decltype( LazyFunction::eval_approx(std::declval<SieveLazyEval>().function_operands) )
+  //-> decltype( LazyFunction::eval_approx(std::declval<SieveLazyEval>().function_operands) )
   {
     return LazyFunction::eval_approx(function_operands);
   }
@@ -69,7 +66,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
     return eval_exact() < rhs.eval_exact();
   }
 
-  private:
+  public:
   std::tuple<Args const &...> const function_operands;
 };
 

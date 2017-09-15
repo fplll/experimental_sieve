@@ -89,6 +89,7 @@ class EMVApproximation
   using AuxData = MaybeFixed<nfixed>; // No need for a traits class.
   using ScalarProductType = EMVScalar;
 
+  private:
   using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
   using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
@@ -97,7 +98,7 @@ class EMVApproximation
                       std::vector<ApproxEntryType> >                       // if nfixed <  0
                       ::type;
 
-
+  public:
   template<class LatticePoint> // TODO : enable_if to select Lattice Points only (having [])
   explicit EMVApproximation(LatticePoint const &exact_point);
 

@@ -20,7 +20,7 @@ bool test_lazy()
   using Approx = EMVApproximation<dim>;
 
   using Combiner = LazyEval::Lazy_FromExactAndApprox<ELP,Approx>;
-  using Wrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner>;
+  using Wrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner,ELP,Approx>;
 
   StaticInitializer<ELP> init (dim);
 
