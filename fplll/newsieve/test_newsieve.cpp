@@ -2,6 +2,8 @@
 
 #define USE_REGULAR_QUEUE //comment out if you use priority-queue
 
+#define USE_LSH
+
 #include "fplll.h"
 #include <thread>
 #include <chrono>
@@ -126,6 +128,7 @@ int main(int argc, char **argv)
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
 
+    /*
     TerminationCondition<Traits,multithreaded> * termcond;
 
     if (target_norm!=0)
@@ -142,12 +145,12 @@ int main(int argc, char **argv)
     Test_3Sieve.run();
     cout << "sv is " << endl;
     Test_3Sieve.print_status();
-
+    
     auto finish = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
     cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
     delete termcond;
-
+    */
 }
 
 //clang-format on

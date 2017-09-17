@@ -1,11 +1,9 @@
 // clang-format off
-//using namespace std;
-//using namespace fplll; //for now...
-/* DO NOT INCLUDE THIS FILE DIRECTLY
-*/
+ 
 
-//#include "Typedefs.h"
-//#include "MyLatticePointClass.cpp"
+
+
+
 
 namespace GaussSieve{
 
@@ -182,6 +180,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
+
+    template<class SieveTraits> 
+    void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
+    {
+        //initialize_hash_tables<SieveTraits>();
+    }
 
 /*
         OLD IMPLEMENTATION

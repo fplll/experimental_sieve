@@ -198,6 +198,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_scprods_level3(0),
     number_of_exact_scprods(0),
     number_of_mispredictions(0),
+#ifdef USE_LSH
+    HashTables(),
+#endif
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     garbage_bins(nullptr),
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
@@ -216,17 +219,32 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     //auto it = main_list.before_begin();
     //assert(main_list.empty()); We don't have a function to check that yet...
     if (verbosity>=2) {std::cout <<"Initializing list with original basis..." << std::endl;}
+    
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
 //        FastAccess_Point tmppoint(original_basis[i]);
         it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
                                      lattice_basis.get_basis_vector(i).make_copy() ) );
+        
         ++it;
+        
 //        ExactLatticePoint<ET,nfixed> * new_basis_vector = new ExactLatticePoint<ET,nfixed> ( conv_matrixrow_to_lattice_point<ET,nfixed> (original_basis[i]));
 //        main_list.insert_before(it,  static_cast<CompressedPoint<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed> >(new_basis_vector) );
     }
+    
     current_list_size+=lattice_rank;
+ 
+ #ifdef USE_LSH   
+    if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}
+    HashTables.initialize_hash_tables(ambient_dimension);
+    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
+    {
+            HashTables.add_to_hash_tables(&(*it));
+    }
+    
+    if(verbosity>=2)    {HashTables.print();};
+#endif
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();

@@ -89,10 +89,12 @@ class DefaultSieveTraits
 //  using InputBasisType = typename fplll::ZZ_mat< typename ZNREntryType::underlying_data_type>;
 //  using InputBasisType          = fplll::ZZ_mat< mpz_t>;
   using InputBasisType          = InputBT;
-
-
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
+  
+  
+  //--------HYPERPLANE LSH SPECIFIC----------
+  
 };
 
 // unused:

@@ -80,6 +80,8 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "Typedefs.h"
 #include "LatticeBases.h"
 
+#include "HyperplaneLSH.h"
+
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
 }
@@ -125,6 +127,9 @@ public:
     using EntryType        = typename SieveTraits::EntryType;
 
     using FilteredListType = typename SieveTraits::FilteredListType;
+    
+    /* HYPERPLANE_LSH SPECIFIC */
+    using HashTablesType   = HashTablesClass<SieveTraits, EntryType>;
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
 
@@ -199,6 +204,7 @@ public:
 //    void sieve_k_thread(int const thread_id);
     #else
     void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+    void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
     void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
     //void sieve_k_iteration (LatticePoint<ET> &p);
     #endif
@@ -260,10 +266,10 @@ private:
     MainListType main_list;
     //MainListType3 main_list_test;
     MainQueueType main_queue;
-//    FilteredListType filtered_list;
-//    FilteredListType2 filtered_list2;
-//    FilteredListTypeP filtered_listp;
-
+    
+    #ifdef USE_LSH
+    HashTablesType HashTables;
+    #endif
 //information about lattice and algorithm we are using
 
     InputBasisType original_basis;
