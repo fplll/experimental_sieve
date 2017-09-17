@@ -97,7 +97,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 
 //        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
 //        std::cout << p << std::endl << std::flush;
-        sieve_2_iteration(p);
+        
+        //sieve_2_iteration(p);
+        hash_sieve_2_iteration(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {

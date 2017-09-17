@@ -63,6 +63,9 @@ namespace GaussSieve{
         HashTablesClass & operator=(HashTablesClass const & obj) = delete;
         HashTablesClass & operator=(HashTablesClass  && obj) = delete;
         
+        //Bucket* &operator[](int idx) { return HashTables[idx]; };
+        //Bucket const &operator[](int idx) const { return HashTables[idx]; };
+        
         ~HashTablesClass() = default;
         
     public:
@@ -71,6 +74,8 @@ namespace GaussSieve{
         void add_to_hash_tables (typename SieveTraits::GaussList_StoredPoint const* v);
         void delete_from_hash_tables (typename SieveTraits::GaussList_StoredPoint* v);
         int hash (typename SieveTraits::GaussList_StoredPoint const& v, int t);
+        
+        Bucket& candidates (int ind1, int ind2) {return HashTables[ind1][ind2];};
         
         unsigned short get_num_of_tables() const {return T;};
         

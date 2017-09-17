@@ -200,6 +200,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_mispredictions(0),
 #ifdef USE_LSH
     HashTables(),
+    NumOfHashTables(0),
 #endif
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     garbage_bins(nullptr),
@@ -242,7 +243,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     {
             HashTables.add_to_hash_tables(&(*it));
     }
-    
+    NumOfHashTables = HashTables.get_num_of_tables();
     if(verbosity>=2)    {HashTables.print();};
 #endif
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false

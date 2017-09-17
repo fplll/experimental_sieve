@@ -184,7 +184,38 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     template<class SieveTraits> 
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
-        //initialize_hash_tables<SieveTraits>();
+        if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
+        bool loop = true;
+        
+        
+        while(loop)
+        {
+            loop = false;
+            for (int t =0; t<NumOfHashTables; ++t)
+            {
+                int hash_value = HashTables.hash(p, t);
+                
+                if ( (HashTables.candidates(t,hash_value)).size()>0)
+                { 
+                    
+                    //typename HashTables::Bucket candidates = HashTables.candidates(t,hash_value);
+                    //TODO: THE LOOP LOOKS STUPID
+                    for (auto it = HashTables.candidates(t,hash_value).cbegin(); it!=HashTables.candidates(t,hash_value).cend(); ++it)
+                    {
+                                
+                        int scalar;
+                        if ( check2red<SieveTraits>(p, (*it).get_point(), scalar) )
+                        {
+                            assert(scalar!=0);
+                            p-= (*it).get_point() * scalar; //The efficiency can be improved here, but it does not matter, probably.
+                            loop = true;
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+        }
     }
 
 /*
