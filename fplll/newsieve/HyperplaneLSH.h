@@ -14,8 +14,8 @@
 
 
 #define T 12
-#define K 10
-#define MaxBucketSize 13
+#define K 11
+#define MaxBucketSize 20
 
 
 namespace GaussSieve{
@@ -134,7 +134,7 @@ namespace GaussSieve{
         for(int i=0; i<T; ++i)
         {
             int hash_value = hash(*v, i);
-            std::cout << "h(x) = " << hash_value << std::endl;
+            //std::cout << "h(x) = " << hash_value << std::endl;
             
             // TODO
             if(this->HashTables[i][hash_value].size() == MaxBucketSize){
@@ -147,7 +147,7 @@ namespace GaussSieve{
             this->HashTables[i][hash_value].emplace_back(v);
         }
         
-        std::cout <<"one element is hashed" << std::endl;
+        //std::cout <<"one element is hashed" << std::endl;
         
     }
     
@@ -155,19 +155,22 @@ namespace GaussSieve{
     template<class SieveTraits, class ET>
     void HashTablesClass<SieveTraits, ET>::remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v)
     {
-        /*
-        // Find w's position in the hash bucket
-        int vPos = 0;
-        while(b[vPos] != v && vPos < b.size()){
-            vPos++;
+        for(int t=0; t<T; ++t)
+        {
+            int hash_value = hash(*v, t);
+            std::cout << "remove_from_hash_table" << t << std::endl;
+            for (auto it = HashTables[t][hash_value].cbegin(); it !=HashTables[t][hash_value].cend(); ++it)
+            {
+                if (&(*it).get_point() == v)
+                {
+                    std::cout << "about to erase" <<std::endl;
+                    this->HashTables[t][hash_value].erase(it);
+                    break;
+                }
+            }
+            
         }
-        if(vPos >= b.size()){
-            perror("Vector not found in bucket...\n");
-            exit(-1);
-        }		
-        //TODO:CHECK
-        b.erase(vPos);
-         */
+        std::cout << "removed from all hash-tables" <<std::endl;
     }
     
     

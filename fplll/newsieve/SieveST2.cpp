@@ -226,7 +226,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     for (auto it = HashTables.candidates(t,hash_value).cbegin(); it!=HashTables.candidates(t,hash_value).cend(); ++it)
                     {
                         
-                        //std::cout << "looking through candidates..." <<std::endl;
+                        std::cout << "looking through candidates..." <<std::endl;
                         int scalar;
                         bool p_is_max;
                         if ( check2red<SieveTraits>(p, (*it).get_point(), scalar, p_is_max) )
@@ -244,6 +244,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                             else
                             {
                                 typename SieveTraits::FastAccess_Point v_new = (*it).get_point() - (p*scalar);
+                                std::cout << "reducing v" <<std::endl;
                                 if (v_new.is_zero() )
                                 {
                                     number_of_collisions++;
@@ -269,8 +270,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         }
         
         
-        auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
-        HashTables.add_to_hash_tables(&(*pointer_to_p));
+        //auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
+        //typename SieveTraits::GaussList_StoredPoint
+        HashTables.add_to_hash_tables(&p);
         ++current_list_size;
     }
 
