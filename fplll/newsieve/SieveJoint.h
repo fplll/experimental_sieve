@@ -127,7 +127,7 @@ public:
     using EntryType        = typename SieveTraits::EntryType;
 
     using FilteredListType = typename SieveTraits::FilteredListType;
-    
+
     /* HYPERPLANE_LSH SPECIFIC */
     using HashTablesType   = HashTablesClass<SieveTraits, EntryType>;
 
@@ -204,9 +204,9 @@ public:
 //    void sieve_k_thread(int const thread_id);
     #else
     void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
-    
+
     void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
-    
+
     void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
     //void sieve_k_iteration (LatticePoint<ET> &p);
     #endif
@@ -246,9 +246,9 @@ public:
     unsigned long int get_current_list_size() const             {return current_list_size;};
     unsigned long int get_filtered_list_size() const            {return filtered_list_size;};
     unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
-    
+
     //#ifdef USE_LSH
-    unsigned short get_num_of_hash_tables() const               {return HashTables.get_num_of_tables();};
+    unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
     //#endif
     //-----------------STATISTICS----------------
     unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;};
@@ -271,10 +271,10 @@ private:
     MainListType main_list;
     //MainListType3 main_list_test;
     MainQueueType main_queue;
-    
+
     //#ifdef USE_LSH
-    HashTablesType HashTables;
-    unsigned short NumOfHashTables;
+    HashTablesType hash_tables;
+    unsigned short number_of_hash_tables;
     //#endif
 //information about lattice and algorithm we are using
 
@@ -314,7 +314,7 @@ private:
     unsigned long int number_of_points_sampled;
     unsigned long long int number_of_points_constructed; //sampling  + succesful pairs
     unsigned long int current_list_size;
-    
+
     //-------------STATISTICS----------------
     unsigned long long int number_of_scprods_level1; //for k=2, case
     unsigned long long int number_of_scprods_level2; //for k=2,3 cases
@@ -322,8 +322,8 @@ private:
     unsigned long long int number_of_exact_scprods;
     unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
     unsigned long int filtered_list_size; //size of filtered_list
-    
-    
+
+
 #else //note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
     atomic_ulong number_of_collisions;
     atomic_ulong number_of_points_sampled;

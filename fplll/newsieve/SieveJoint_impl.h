@@ -115,12 +115,12 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
     if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
     //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
-    
+
     if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
     if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
     if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
     if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
-    
+
     if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
     if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
     if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
@@ -199,8 +199,8 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_exact_scprods(0),
     number_of_mispredictions(0),
 #ifdef USE_LSH
-    HashTables(),
-    NumOfHashTables(0),
+    hash_tables(),
+    number_of_hash_tables(0),
 #endif
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     garbage_bins(nullptr),
@@ -220,31 +220,31 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     //auto it = main_list.before_begin();
     //assert(main_list.empty()); We don't have a function to check that yet...
     if (verbosity>=2) {std::cout <<"Initializing list with original basis..." << std::endl;}
-    
+
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
 //        FastAccess_Point tmppoint(original_basis[i]);
         it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
                                      lattice_basis.get_basis_vector(i).make_copy() ) );
-        
+
         ++it;
-        
+
 //        ExactLatticePoint<ET,nfixed> * new_basis_vector = new ExactLatticePoint<ET,nfixed> ( conv_matrixrow_to_lattice_point<ET,nfixed> (original_basis[i]));
 //        main_list.insert_before(it,  static_cast<CompressedPoint<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed> >(new_basis_vector) );
     }
-    
+
     current_list_size+=lattice_rank;
- 
- #ifdef USE_LSH   
+
+ #ifdef USE_LSH
     if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}
-    HashTables.initialize_hash_tables(ambient_dimension);
+    hash_tables.initialize_hash_tables(ambient_dimension);
     for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
     {
-            HashTables.add_to_hash_tables(&(*it));
+            hash_tables.add_to_hash_tables(&(*it));
     }
-    NumOfHashTables = HashTables.get_num_of_tables();
-    if(verbosity>=2)    {HashTables.print_all_tables();};
+    number_of_hash_tables = hash_tables.get_num_of_tables();
+    if(verbosity>=2)    {hash_tables.print_all_tables();};
 #endif
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
     if(verbosity>=2)    {std::cout << "Sorting ...";}

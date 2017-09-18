@@ -91,10 +91,13 @@ class DefaultSieveTraits
   using InputBasisType          = InputBT;
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
-  
-  
+
+
   //--------HYPERPLANE LSH SPECIFIC----------
-  
+  static constexpr unsigned short number_of_hash_tables = 5;
+  static constexpr int number_of_hash_functions = 1;
+  static constexpr int max_bucket_size = 250;
+
 };
 
 // unused:
