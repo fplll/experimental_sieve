@@ -244,7 +244,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
             HashTables.add_to_hash_tables(&(*it));
     }
     NumOfHashTables = HashTables.get_num_of_tables();
-    if(verbosity>=2)    {HashTables.print();};
+    if(verbosity>=2)    {HashTables.print_all_tables();};
 #endif
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
     if(verbosity>=2)    {std::cout << "Sorting ...";}
