@@ -22,6 +22,7 @@
 		<Unit filename="ExactLatticePoint.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
+		<Unit filename="HyperplaneLSH.h" />
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
