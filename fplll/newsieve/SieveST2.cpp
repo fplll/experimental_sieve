@@ -46,19 +46,42 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
     scalar =  round (mult);
     return true;
 
-//    FP_NR<double> mult, tmp;
-//    mult.set_z(sc_prod); //conversions
-//    tmp.set_z(p2.get_norm2());
-
-//    mult.div(mult, tmp);
-//    mult.rnd(mult);
-//
-//    scalar.set_f(mult); //convert back
-
-    //cout <<"check2red: scalar = " << scalar << endl;
-
-//    return true;
-
+}
+    
+template<class SieveTraits, class Integer, typename std::enable_if<
+    std::is_integral<Integer>::value
+    ,int>::type =0 >
+    bool check2red (typename SieveTraits::FastAccess_Point const &p1,
+                    typename SieveTraits::FastAccess_Point const &p2,
+                    Integer & scalar, bool& p_is_max)
+{
+    using EntryType = typename SieveTraits::EntryType;
+    using std::abs;
+    using std::round;
+    
+    EntryType const sc_prod = compute_sc_product(p1,p2);
+    EntryType const abs_2scprod = abs(sc_prod * 2);
+    
+    
+    if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
+    {
+        p_is_max = true;
+        double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
+        scalar =  round (mult);
+        return true;
+    }
+    
+    
+    if (p1.get_norm2() < p2.get_norm2() && abs_2scprod > p1.get_norm2() )
+    {
+        p_is_max = false;
+        double const mult = convert_to_double( sc_prod ) / convert_to_double( p1.get_norm2() );
+        scalar =  round (mult);
+        return true;
+    }
+        
+    
+    return false;
 }
 
 // Note: scalar changed from EntryType to int.
@@ -202,20 +225,53 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     //TODO: THE LOOP LOOKS STUPID
                     for (auto it = HashTables.candidates(t,hash_value).cbegin(); it!=HashTables.candidates(t,hash_value).cend(); ++it)
                     {
-                                
+                        
+                        //std::cout << "looking through candidates..." <<std::endl;
                         int scalar;
-                        if ( check2red<SieveTraits>(p, (*it).get_point(), scalar) )
+                        bool p_is_max;
+                        if ( check2red<SieveTraits>(p, (*it).get_point(), scalar, p_is_max) )
                         {
                             assert(scalar!=0);
-                            p-= (*it).get_point() * scalar; //The efficiency can be improved here, but it does not matter, probably.
-                            loop = true;
-                            break;
+                            
+                            if (p_is_max)
+                            {
+                                p-= (*it).get_point() * scalar;
+                                std::cout << "reducing p" <<std::endl;
+                                //assert(false);
+                                loop = true;
+                                break;
+                            }
+                            else
+                            {
+                                typename SieveTraits::FastAccess_Point v_new = (*it).get_point() - (p*scalar);
+                                if (v_new.is_zero() )
+                                {
+                                    number_of_collisions++;
+                                }
+                                
+                                main_queue.push(std::move(v_new));
+                                HashTables.remove_from_hash_tables(&(*it).get_point());
+                                
+                                //main_list.erase((*it).get_point());
+                                //--current_list_size;
+                            }
+                            
                         }
                     }
-                    
                 }
-            }
+            }//iteration over hash-tables
         }
+        
+        if (p.is_zero() )
+        {
+            number_of_collisions++;
+            return;
+        }
+        
+        
+        auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
+        HashTables.add_to_hash_tables(&(*pointer_to_p));
+        ++current_list_size;
     }
 
 /*

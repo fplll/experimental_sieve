@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
 
-    /*
+    
     TerminationCondition<Traits,multithreaded> * termcond;
 
     if (target_norm!=0)
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
     cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
     delete termcond;
-    */
+    
 }
 
 //clang-format on

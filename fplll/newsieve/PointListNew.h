@@ -80,7 +80,7 @@ public:
 
     template<class LatticePoint, typename std::enable_if<IsALatticePoint<LatticePoint>::value,int>::type =0 >
     Iterator insert_before(Iterator pos, LatticePoint && val)
-    {return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
+    { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
 
     /*Iterator insert_before_give_ownership(Iterator pos, DetailType * const val) = delete;  //TODO
     Iterator insert_before(Iterator pos, DataType const & val) =  delete; //TODO

@@ -72,8 +72,8 @@ namespace GaussSieve{
         void initialize_hash_tables(typename SieveTraits::DimensionType N);
         
         void add_to_hash_tables (typename SieveTraits::GaussList_StoredPoint const* v);
-        void remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint* v);
-        void delete_from_hash_tables (typename SieveTraits::GaussList_StoredPoint* v);
+        void remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v);
+        
         int hash (typename SieveTraits::GaussList_StoredPoint const& v, int t);
         
         Bucket& candidates (int ind1, int ind2) {return HashTables[ind1][ind2];};
@@ -153,7 +153,7 @@ namespace GaussSieve{
     
     
     template<class SieveTraits, class ET>
-    void HashTablesClass<SieveTraits, ET>::remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint* v)
+    void HashTablesClass<SieveTraits, ET>::remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v)
     {
         /*
         // Find w's position in the hash bucket
