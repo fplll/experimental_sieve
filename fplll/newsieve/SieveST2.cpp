@@ -208,16 +208,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
         if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
-        bool loop = true;
+        bool loop = false;
         
         
         int t = 0;
         while (t < NumOfHashTables)
         {
-            
+            if (loop) break;
             int hash_value = HashTables.hash(p, t);
-                
-                
+            
             //std::cout << (HashTables.candidates(t,hash_value)).size() << std::endl;
             //typename HashTables::Bucket candidates = HashTables.candidates(t,hash_value);
             
@@ -233,23 +232,31 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     if (p_is_max)
                     {
                         p-= (*it).get_point() * scalar;
-                        //loop = true;
-                        t = 0; //go back to the first hash-table since p has been changed
+                        loop = true;
+                        //t = 0; //go back to the first hash-table since p has been changed
                         break;
                     }
                     else
                     {
                         typename SieveTraits::FastAccess_Point v_new = (*it).get_point() - (p*scalar);
-                        std::cout << "reducing v" <<std::endl;
+                        
+                        //std::cout << "reducing v" <<std::endl;
+                        
                         if (v_new.is_zero() )
                         {
                             number_of_collisions++;
                         }
-                                
+                    
                         main_queue.push(std::move(v_new));
+                        
+                        if (main_queue.size() > 4)
+                        {
+                            std::cout << "main_queue size is at least 5" << std::endl;
+                            assert(false);
+                        }
+                        
                         HashTables.remove_from_hash_tables(&(*it).get_point(), t);
                         
-                        std::cout << "main_queue.size = " << main_queue.size() << std::endl;
                         it = HashTables.candidates(t,hash_value).erase(it);
                         
                     }
@@ -264,8 +271,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             t++;
             
         }//iteration over hash-tables
-
-        //std::cout << "finished looking at candidates " << std::endl;
+        
         if (p.is_zero() )
         {
             number_of_collisions++;

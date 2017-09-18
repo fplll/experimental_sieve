@@ -135,18 +135,30 @@ namespace GaussSieve{
         for(int i=0; i<T; ++i)
         {
             int hash_value = hash(*v, i);
-            //std::cout << "h(x) = " << hash_value << std::endl;
             
-            // TODO
+            bool erased = false;
             if(this->HashTables[i][hash_value].size() == MaxBucketSize){
                 std::cout<< "a bucket is full " << std::endl;
-                this->print_all_tables();
-                assert(false);
+                
+                //find a vector longer than v and throw it away
+                
+                for (auto it = HashTables[i][hash_value].cbegin(); it !=HashTables[i][hash_value].cend(); ++it)
+                {
+                        if ((*it).get_point().get_norm2() > (*v).get_norm2() )
+                        {
+                            remove_from_hash_tables(&(*it).get_point(), T); //we do not have T-th hash-table
+                            erased = true;
+                            break;
+                        }
+                }
+                
+                //this->print_all_tables();
+                //assert(false);
             }
 	
             // Insert v into the bucket
-            
-            this->HashTables[i][hash_value].emplace_back(v);
+            if (erased)
+                this->HashTables[i][hash_value].emplace_back(v);
         }
         
         //std::cout <<"one element is hashed" << std::endl;
@@ -185,8 +197,6 @@ namespace GaussSieve{
         //TODO: DIMENSION IS NEEDED
         std::cout << "N = " << N << std::endl;
         
-        // Initialize hash tables as empty
-        
         for(int t = 0; t < T; t++){
             // Initialize random sparse hash vectors by choosing two non-zero entries
             for(int k = 0; k < K; k++){
@@ -202,7 +212,7 @@ namespace GaussSieve{
             for(int b = 0; b <  (1 << (K-1)); b++){
                 this->HashTables[t][b].reserve(MaxBucketSize);
             }
-             */
+            */
         }
     }
     
