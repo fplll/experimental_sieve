@@ -19,17 +19,20 @@ bool test_lazy()
   using ELP = ExactLatticePoint<long,dim>;
   using Approx = EMVApproximation<dim>;
 
-  using Combiner = LazyEval::Lazy_FromExactAndApprox<ELP,Approx>;
+  using Combiner = LazyEval::Lazy_VectorFromExactAndApprox<ELP,Approx>;
   using Wrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner,ELP,Approx>;
 
-  StaticInitializer<ELP> init (dim);
+  StaticInitializer<ELP> init_ELP (dim);
+  StaticInitializer<Approx> init_Approx (dim);
 
   long A[dim] = {12,113,262,151,141,723,-1,25,35,0};
   ELP exact_point = make_from_any_vector<ELP>(A,dim);
   std::cout << exact_point;
   Approx approx_point = static_cast<Approx>(exact_point);
+  auto both = std::tie(exact_point,approx_point);
+  std::cout << Combiner::eval_exact(both);
+  Wrapper w(exact_point,approx_point);
 
-//  Wrapper w(exact_point,approx_point);
 
 
   return true;
