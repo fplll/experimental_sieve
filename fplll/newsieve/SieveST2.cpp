@@ -208,59 +208,69 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
         if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
-        bool loop = true;
+        bool loop = false;
         
         
-        while(loop)
+        int t = 0;
+        while (t < NumOfHashTables)
         {
-            loop = false;
-            for (int t =0; t<NumOfHashTables; ++t)
+            if (loop) break;
+            int hash_value = HashTables.hash(p, t);
+            
+            //std::cout << (HashTables.candidates(t,hash_value)).size() << std::endl;
+            //typename HashTables::Bucket candidates = HashTables.candidates(t,hash_value);
+            
+            //TODO: THE LOOP LOOKS STUPID
+            for (auto it = HashTables.candidates(t,hash_value).cbegin(); it!=HashTables.candidates(t,hash_value).cend();)
             {
-                int hash_value = HashTables.hash(p, t);
-                
-                if ( (HashTables.candidates(t,hash_value)).size()>0)
-                { 
-                    
-                    //typename HashTables::Bucket candidates = HashTables.candidates(t,hash_value);
-                    //TODO: THE LOOP LOOKS STUPID
-                    for (auto it = HashTables.candidates(t,hash_value).cbegin(); it!=HashTables.candidates(t,hash_value).cend(); ++it)
+                //std::cout << "looking through a candidate..." <<std::endl;
+                int scalar;
+                bool p_is_max;
+                if ( check2red<SieveTraits>(p, (*it).get_point(), scalar, p_is_max) )
+                {
+                    assert(scalar!=0);
+                    if (p_is_max)
                     {
-                        
-                        //std::cout << "looking through candidates..." <<std::endl;
-                        int scalar;
-                        bool p_is_max;
-                        if ( check2red<SieveTraits>(p, (*it).get_point(), scalar, p_is_max) )
-                        {
-                            assert(scalar!=0);
-                            
-                            if (p_is_max)
-                            {
-                                p-= (*it).get_point() * scalar;
-                                std::cout << "reducing p" <<std::endl;
-                                //assert(false);
-                                loop = true;
-                                break;
-                            }
-                            else
-                            {
-                                typename SieveTraits::FastAccess_Point v_new = (*it).get_point() - (p*scalar);
-                                if (v_new.is_zero() )
-                                {
-                                    number_of_collisions++;
-                                }
-                                
-                                main_queue.push(std::move(v_new));
-                                HashTables.remove_from_hash_tables(&(*it).get_point());
-                                
-                                //main_list.erase((*it).get_point());
-                                //--current_list_size;
-                            }
-                            
-                        }
+                        p-= (*it).get_point() * scalar;
+                        loop = true;
+                        //t = 0; //go back to the first hash-table since p has been changed
+                        break;
                     }
+                    else
+                    {
+                        typename SieveTraits::FastAccess_Point v_new = (*it).get_point() - (p*scalar);
+                        
+                        //std::cout << "reducing v" <<std::endl;
+                        
+                        if (v_new.is_zero() )
+                        {
+                            number_of_collisions++;
+                        }
+                    
+                        main_queue.push(std::move(v_new));
+                        
+                        if (main_queue.size() > 4)
+                        {
+                            std::cout << "main_queue size is at least 5" << std::endl;
+                            assert(false);
+                        }
+                        
+                        HashTables.remove_from_hash_tables(&(*it).get_point(), t);
+                        
+                        it = HashTables.candidates(t,hash_value).erase(it);
+                        
+                    }
+                            //std::cout << (HashTables.candidates(t,hash_value)).size() << std::endl;
                 }
-            }//iteration over hash-tables
-        }
+                else
+                {
+                    ++it;
+                }
+            }//for-loop over a bucket
+            
+            t++;
+            
+        }//iteration over hash-tables
         
         if (p.is_zero() )
         {
@@ -269,9 +279,18 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         }
         
         
-        auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
-        HashTables.add_to_hash_tables(&(*pointer_to_p));
-        ++current_list_size;
+        //auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
+        //typename SieveTraits::GaussList_StoredPoint
+        HashTables.add_to_hash_tables(&p);
+
+        
+        if(update_shortest_vector_found(p))
+        {
+            if(verbosity>=2)
+            {
+                std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
+            }
+        }
     }
 
 /*
