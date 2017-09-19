@@ -196,7 +196,6 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
   {
     return eval_exact() < rhs.eval_exact();
   }
-
 };
 
 

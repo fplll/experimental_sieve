@@ -326,9 +326,6 @@ class GeneralLatticePoint
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
-
-
-
  };
 
  /**

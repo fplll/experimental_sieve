@@ -14,9 +14,6 @@ namespace GaussSieve{
 
 template<class ELP, class Approximation> class PointWithApproximation; //ELP = exact lattice point
 
-
-// Alias : Scalar + approx is identified with a constant function.
-
 template<class ELP, class Approximation>
 class LatticePointTraits< PointWithApproximation <ELP, Approximation> >
 {
@@ -39,7 +36,6 @@ public:
 };
 
 /*
-
 template<class ELP, class Approximation>
 struct ScalarProductWithApproximation
 {
