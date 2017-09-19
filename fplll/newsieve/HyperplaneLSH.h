@@ -41,7 +41,7 @@ namespace GaussSieve{
         }
 
         inline ListStoredPoint const& get_point() const {return *pointer_to_lattice_point;}
-
+        inline ListStoredPoint const* get_pointer() const {return pointer_to_lattice_point;}
 
     private:
         ListStoredPoint const* pointer_to_lattice_point;
@@ -69,6 +69,7 @@ namespace GaussSieve{
     public:
         void initialize_hash_tables(typename SieveTraits::DimensionType N);
         void print_all_tables();
+        void print_ith_table(unsigned short i);
 
         void add_to_hash_tables (typename SieveTraits::GaussList_StoredPoint const* v);
         void remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v, int table_index);
@@ -220,6 +221,7 @@ namespace GaussSieve{
     template<class SieveTraits, class ET>
     void HashTablesClass<SieveTraits, ET>::print_all_tables()
     {
+    /*
     long number = 0;
     for (int t= 0; t < SieveTraits::number_of_hash_tables;++t)
     {
@@ -229,23 +231,52 @@ namespace GaussSieve{
       }
     }
     std::cout << "Total number of elements in the hash tables:" << number << std::endl;
-/*
+    */
         for (int t = 0; t<SieveTraits::number_of_hash_tables; ++t)
         {
             std::cout <<"Hash-table #" << t+1 << std::endl;
             for (int k =0; k< (1 << (SieveTraits::number_of_hash_functions-1)); ++k )
             {
                 //std::cout << this->hash_tables[t][k].size() << std::endl;
-//                if (this->hash_tables[t][k].size() == SieveTraits::max_bucket_size )
+                if (this->hash_tables[t][k].size() >0 )
                 {
                     std::cout<< k <<"-th bucket has " << this->hash_tables[t][k].size() << " elements" << std::endl;
-                    //for (auto it=this->hash_tables[t][k].cbegin(); it!=this->hash_tables[t][k].cend(); ++it)
-                    //    std::cout<<(*it).get_point().get_norm2()<< " ";
+                    for (auto it=this->hash_tables[t][k].cbegin(); it!=this->hash_tables[t][k].cend(); ++it)
+                        std::cout<<(*it).get_point().get_norm2()<< " ";
+                    std::cout << std::endl;
                 }
 
             }
         }
-  */
+ 
+    }
+    
+    template<class SieveTraits, class ET>
+    void HashTablesClass<SieveTraits, ET>::print_ith_table(unsigned short i)
+    {
+    /*
+    long number = 0;
+    for (int t= 0; t < SieveTraits::number_of_hash_tables;++t)
+    {
+      for(int k = 0; k < (1<<SieveTraits::number_of_hash_functions-1);++k )
+      {
+        number+=hash_tables[t][k].size();
+      }
+    }
+    std::cout << "Total number of elements in the hash tables:" << number << std::endl;
+    */
+        for (int k =0; k< (1 << (SieveTraits::number_of_hash_functions-1)); ++k )
+        {
+            //std::cout << this->hash_tables[t][k].size() << std::endl;
+            if (this->hash_tables[i][k].size() >0 )
+            {
+                std::cout<< k <<"-th bucket has " << this->hash_tables[i][k].size() << " elements" << std::endl;
+                for (auto it=this->hash_tables[i][k].cbegin(); it!=this->hash_tables[i][k].cend(); ++it)
+                            std::cout<<(*it).get_point().get_norm2()<< " ";
+                std::cout << std::endl;
+            }
+
+        }
     }
 
 }
