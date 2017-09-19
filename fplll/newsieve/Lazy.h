@@ -10,7 +10,6 @@
 #include <tuple>
 
 
-
 namespace GaussSieve{
 namespace LazyEval{     // sub-namespace to inject free functions like abs
 
@@ -28,7 +27,6 @@ struct Lazy_GetTypes
   using typename Lazy_GetTypes<ELP,Approximation>::ApproxVectorType; \
   using typename Lazy_GetTypes<ELP,Approximation>::ExactScalarType;  \
   using typename Lazy_GetTypes<ELP,Approximation>::ApproxScalarType;
-
 
 
 template<class ELP, class Approximation, class LazyFunction, class... Args> class SieveLazyEval;

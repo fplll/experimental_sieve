@@ -202,7 +202,7 @@ public:
   constexpr MaybeFixed(Integer const){};
 //#endif
   inline constexpr operator UIntClass() const { return nfixed; };
-  static constexpr unsigned int value = nfixed;
+  static constexpr UIntClass value = nfixed;
 };
 
 // Z_NR - detection and modification...
@@ -289,12 +289,12 @@ template<> class AddZNR<mpz_class>
   Other classes are unchanged.
 */
 
-template<class T> class FixZNR
+template<class T> class FixMpz_classToMpz_t
 {
   public: using type = T;
 };
 
-template<> class FixZNR<mpz_class>
+template<> class FixMpz_classToMpz_t<mpz_class>
 {
   public: using type = mpz_t;
 };

@@ -63,7 +63,7 @@ class JustSomeExampleSieveTraitsThatDoNotWork
 template
 <
   class ET, bool MT, int nfixed,
-  class InputBT = typename fplll::ZZ_mat< typename FixZNR<ET>::type>
+  class InputBT = typename fplll::ZZ_mat< typename FixMpz_classToMpz_t<ET>::type>
 >
 class DefaultSieveTraits
 {
