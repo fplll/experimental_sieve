@@ -31,6 +31,12 @@ namespace GaussSieve{
 
         Bucket_Element& operator=(Bucket_Element const &that) =delete;
         Bucket_Element& operator=(Bucket_Element && that) =default;
+        
+        inline bool operator==(Bucket_Element const &another) const
+        {
+            if(another == this->pointer_to_lattice_point) return true;
+            return false;
+        }
 
 
         ~Bucket_Element() {}
@@ -72,7 +78,7 @@ namespace GaussSieve{
         void print_ith_table(unsigned short i);
 
         void add_to_hash_tables (typename SieveTraits::GaussList_StoredPoint const* v);
-        void remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v, int table_index);
+        void remove_from_hash_tables(int const &hash_value, typename SieveTraits::GaussList_StoredPoint const* address, int table_index);
 
         int hash (typename SieveTraits::GaussList_StoredPoint const& v, int t);
 
@@ -169,24 +175,28 @@ namespace GaussSieve{
 
 
     template<class SieveTraits, class ET>
-    void HashTablesClass<SieveTraits, ET>::remove_from_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v, int table_index)
+    void HashTablesClass<SieveTraits, ET>::remove_from_hash_tables(int const &hash_value, 
+            typename SieveTraits::GaussList_StoredPoint const* address, int table_index)
     {
+        
         for(int t=0; t<SieveTraits::number_of_hash_tables; ++t)
         {
             if (t == table_index)
                 continue;
-
-            int hash_value = hash(*v, t);
-            //std::cout << "remove_from_hash_table" << t << " hash_value  = " << hash_value << std::endl;
+           
+            std::cout << "remove_from_hash_table" << t << " hash_value  = " << hash_value << std::endl <<std::flush;
+            /*
             for (auto it = hash_tables[t][hash_value].cbegin(); it !=hash_tables[t][hash_value].cend(); ++it)
             {
-                if (&(*it).get_point() == v)
+                if (&(*it).get_point() == address)
                 {
-                    //std::cout << "about to erase" <<std::endl;
+                    std::cout << &(*it).get_point() <<std::endl<<std::flush;
                     this->hash_tables[t][hash_value].erase(it);
                     break;
                 }
             }
+             */
+             this->hash_tables[t][hash_value].remove(address);
 
         }
         //std::cout << "removed from all hash-tables" <<std::endl;

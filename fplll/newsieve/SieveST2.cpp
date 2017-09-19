@@ -215,12 +215,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          return; //TODO: Ensure sampler does not output 0 (currently, it happens).
         }
         
-        //std::cout << "p = " << p.get_norm2() << std::endl;
+        std::cout << "p = " << p.get_norm2() << std::endl;
 
 
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
             int hash_value = hash_tables.hash(p, t);
+            
+            //std::cout << "t = " << t << std::endl;
 
             //std::cout << hash_value << " " << (hash_tables.candidates(t,hash_value)).size() << std::endl << std::flush;
             //typename hash_tables::Bucket candidates = hash_tables.candidates(t,hash_value);
@@ -251,7 +253,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     }
                     else
                     {
-                        //std::cout << "reduce v" << std::endl << std::flush;
+                        std::cout << "reduce v" << std::endl << std::flush;
                         typename SieveTraits::FastAccess_Point v_new = it->get_point() - (p*scalar);
                         
                         /*
@@ -263,9 +265,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         }
                         */
                         //std::cout << "put into the queue v of size " << v_new.get_norm2() << std::endl << std::flush;
+                        //std::cout << &v_new << std::endl;
+                        //std::cout << it->get_pointer() <<std::endl;
+                        
 
 
                         main_queue.push(std::move(v_new));
+                        
 
 
 //                        std::cout << "Queue size is " << main_queue.size() << std::endl;
@@ -277,11 +283,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         }
                         */
                         
-                        //TOOD:THIS SHOULD NOT DELETE THE POINTERS FROM THE BUCKETS, BUT IT SEEMS TO DO SO
-                        //delete (it->get_pointer() );
-                        hash_tables.remove_from_hash_tables(&(it->get_point()), t);
+                        //BIG TODO:
+                        delete (it->get_pointer() );
+                        //std::cout << it->get_pointer() <<std::endl;
+                        hash_tables.remove_from_hash_tables(hash_value, &(it->get_point()), t);
+                        //std::cout << "finished erase " << std::endl;
+                        
 
                         it = hash_tables.candidates(t,hash_value).erase(it);
+                        //std::cout << "finished last erase " << std::endl;
                         
 
                     }
