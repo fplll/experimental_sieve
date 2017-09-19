@@ -19,8 +19,8 @@ bool test_lazy()
   using ELP = ExactLatticePoint<long,dim>;
   using Approx = EMVApproximation<dim>;
 
-  using Combiner = LazyEval::Lazy_VectorFromExactAndApprox<ELP,Approx>;
-  using VectorWrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner,ELP,Approx>;
+//  using Combiner = LazyEval::Lazy_VectorFromExactAndApprox<ELP,Approx>;
+//  using VectorWrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner,ELP,Approx>;
 
   StaticInitializer<ELP> init_ELP (dim);
   StaticInitializer<Approx> init_Approx (dim);
@@ -29,20 +29,21 @@ bool test_lazy()
   ELP exact_point = make_from_any_vector<ELP>(A,dim);
   std::cout << exact_point << std::endl;
   Approx approx_point = static_cast<Approx>(exact_point);
-  auto both = std::tie(exact_point,approx_point);
-  std::cout << Combiner::eval_exact(both) << std::endl;
-  VectorWrapper w(exact_point,approx_point);
 
-  using ScProdFun = LazyEval::Lazy_ScalarProduct<ELP,Approx,VectorWrapper,VectorWrapper>;
-  using ScProdWrapper = LazyEval::SieveLazyEval<ELP,Approx, ScProdFun, VectorWrapper, VectorWrapper>;
+  using LazyWrapperEV = LazyEval::LazyWrapExactVector<ELP,Approx>;
+  using LazyWrapperBV = LazyEval::LazyWrapExactAndApproxVector<ELP,Approx>;
+  LazyWrapperEV vector_wrapper(exact_point);
+  LazyWrapperBV vector_wrapper2(exact_point,approx_point);
 
-  std::cout << ScProdWrapper(w,w).eval_exact() << std::endl;
-//  std::cout << ScProdWrapper(w,w).eval_approx() << std::endl;
+  std::cout << vector_wrapper.eval_exact() << std::endl;
+  std::cout << vector_wrapper.eval_approx() << std::endl;
 
+  std::cout << vector_wrapper2.eval_exact() << std::endl;
+  std::cout << vector_wrapper2.eval_approx() << std::endl;
 
+  using VecIdentity = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperEV>;
 
-
-
+  std::cout << VecIdentity::eval_exact(std::tuple<typename LazyWrapperEV::TreeType>(vector_wrapper.args)) << std::endl;
 
   return true;
 }
