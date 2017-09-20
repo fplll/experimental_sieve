@@ -99,7 +99,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 //        std::cout << p << std::endl << std::flush;
         
 #ifdef USE_LSH
-        hash_sieve_2_iteration(p);
+        //hash_sieve_2_iteration(p);
 #else
         sieve_2_iteration(p);
 #endif

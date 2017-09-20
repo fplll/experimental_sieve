@@ -203,7 +203,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
-
+    /*
     template<class SieveTraits>
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
@@ -221,30 +221,24 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
             int hash_value = hash_tables.hash(p, t);
-            
-            //std::cout << "t = " << t << std::endl;
 
-            //std::cout << hash_value << " " << (hash_tables.candidates(t,hash_value)).size() << std::endl << std::flush;
-            //typename hash_tables::Bucket candidates = hash_tables.candidates(t,hash_value);
-
-            //TODO: THE LOOP LOOKS STUPID
             for (auto it = hash_tables.candidates(t,hash_value).cbegin(); it!=hash_tables.candidates(t,hash_value).cend();)
             {
                 
                 int scalar;
                 bool p_is_max;
-                //hash_tables.print_ith_table(t);
-                //std::cout << "it->get_point() = " << it->get_point().get_norm2() << std::endl << std::flush;
+                
+                
                 if ( check2red<SieveTraits>(p, it->get_point(), scalar, p_is_max) )
                 {
                     assert(scalar!=0);
-                    /*
+                    
                     if (scalar == 0)
                     {
                         std::cout << p.get_norm2() << " " << it->get_point().get_norm2() << std::endl<<std::flush;
                         assert(false);
                     }
-                    */
+                    
                     if (p_is_max)
                     {
                         //std::cout << "reduce p" << std::endl << std::flush;
@@ -256,32 +250,17 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         std::cout << "reduce v" << std::endl << std::flush;
                         typename SieveTraits::FastAccess_Point v_new = it->get_point() - (p*scalar);
                         
-                        /*
+                        
                         if (v_new.get_norm2() > (it->get_point()).get_norm2())
                         {
                             std::cout << "bug in v_new reduction : " << std::endl << std::flush;
                             std::cout << scalar << " " << p.get_norm2() << " " << it->get_point().get_norm2() << std::endl <<std::flush;
                             assert(false);
                         }
-                        */
-                        //std::cout << "put into the queue v of size " << v_new.get_norm2() << std::endl << std::flush;
-                        //std::cout << &v_new << std::endl;
-                        //std::cout << it->get_pointer() <<std::endl;
                         
-
-
+                        
                         main_queue.push(std::move(v_new));
-                        
 
-
-//                        std::cout << "Queue size is " << main_queue.size() << std::endl;
-                        /*
-                        if (main_queue.size() > 4)
-                        {
-                            std::cout << "main_queue size is at least 5" << std::endl;
-                            assert(false);
-                        }
-                        */
                         
                         //BIG TODO:
                         delete (it->get_pointer() );
@@ -295,14 +274,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         
 
                     }
-                            //std::cout << (hash_tables.candidates(t,hash_value)).size() << std::endl;
                 }
                 else
                 {
                     ++it;
                 }
             }//for-loop over a bucket
-            //std::cout << "finished looking at a bucket" << std::endl << std::flush;
+            
 
         }//iteration over hash-tables
 
@@ -313,13 +291,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         }
 
 
-        //auto pointer_to_p = main_list.insert_before(main_list.cend(), p.make_copy() );
-        typename SieveTraits::FastAccess_Point * p_copy = new typename SieveTraits::FastAccess_Point (p.make_copy());
-        //p_copy = p.make_copy();
-        
-        hash_tables.add_to_hash_tables(p_copy);
-
-
         if(update_shortest_vector_found(p))
         {
             if(verbosity>=2)
@@ -328,6 +299,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             }
         }
     }
+     */
 
 /*
         OLD IMPLEMENTATION
