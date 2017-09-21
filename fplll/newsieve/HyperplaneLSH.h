@@ -86,7 +86,7 @@ namespace GaussSieve{
     int hash (typename SieveTraits::GaussList_StoredPoint const& v);
     
     void add_to_hash_table (typename SieveTraits::GaussList_StoredPoint const* v);
-    Iterator iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v, int const &hash_value);
+    Iterator iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v);
     void stand_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v);
     
     void initialize_hash_table(typename SieveTraits::DimensionType N);
@@ -119,15 +119,15 @@ namespace GaussSieve{
   public:
       
     
-    Iterator remove_from_all_hash_tables(int const &hash_value, typename SieveTraits::GaussList_StoredPoint const* v, int table_index);
+    Iterator remove_from_all_hash_tables(typename SieveTraits::GaussList_StoredPoint const* v, int table_index);
     
-    void add_to_all_hash_tables (typename SieveTraits::GaussList_StoredPoint const& v);
+    void add_to_all_hash_tables(typename SieveTraits::GaussList_StoredPoint const& v);
       
     
     void initialize_hash_tables(typename SieveTraits::DimensionType N);
     void print_all_tables();
       
-    //HashTable& get_ith_hash_table (int i) {return *all_hash_tables[i];};
+    HashTableType* get_ith_hash_table(int i) {return &all_hash_tables[i];};
       
   private:
   
@@ -159,7 +159,7 @@ namespace GaussSieve{
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::add_to_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
-    int hash_value = hash(*v);
+    int hash_value = this->hash(*v);
     this->hash_table[hash_value].emplace_back(v);
     
   }
@@ -183,10 +183,12 @@ namespace GaussSieve{
   }
   
   template<class SieveTraits, class ET>
-  typename HashTable<SieveTraits, ET>::Iterator HashTable<SieveTraits, ET>::iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v, int const &hash_value)
+  typename HashTable<SieveTraits, ET>::Iterator HashTable<SieveTraits, ET>::iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
     
-    typename HashTable<SieveTraits, ET>::Iterator it = hash_table[hash_value].cbegin();
+    int hash_value = this->hash(*v);
+    typename HashTable<SieveTraits, ET>::Iterator it = hash_table[hash_value].begin();
+    
     while (it!=hash_table[hash_value].cend()) {
       if (&(*it).get_point() == v)
       {
@@ -207,11 +209,10 @@ namespace GaussSieve{
   
   //TODO
   template<class SieveTraits, class ET>
-  typename HashTableS<SieveTraits, ET>::Iterator HashTableS<SieveTraits, ET>::remove_from_all_hash_tables(int const &hash_value,
+  typename HashTableS<SieveTraits, ET>::Iterator HashTableS<SieveTraits, ET>::remove_from_all_hash_tables(
             typename SieveTraits::GaussList_StoredPoint const* v, int table_index)
   {
     
-    //TODO: Delete the point itself
     
     delete(v);
     
@@ -223,8 +224,9 @@ namespace GaussSieve{
       //TODO:
       if (t == table_index)
       {
-        it = iterator_remove_from_hash_table(v, hash_value);
+        it = all_hash_tables[t].iterator_remove_from_hash_table(v);
       }
+      
       all_hash_tables[t].stand_remove_from_hash_table(v);
         
     }

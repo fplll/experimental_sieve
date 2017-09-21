@@ -220,12 +220,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
           
-          //HashTableType* hash_table = hash_tables[t];
+          HashTableType* hash_table = hash_tables.get_ith_hash_table(t);
           
-          //int hash_value = hash_table.hash(p);
+          int hash_value = hash_table->hash(p);
           //TODO: just stream candidates
-          /*
-          for (auto it = hash_table.first_candidate(); it!=*hash_table.candidates(hash_value).cend();)
+          
+          for (auto it = hash_table->candidates(hash_value).cbegin(); it!=hash_table->candidates(hash_value).cend();)
           {
                 
                 int scalar;
@@ -267,7 +267,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         
                       
                         //std::cout << it->get_pointer() <<std::endl;
-                        it = hash_tables.remove_from_hash_tables(hash_value, &(it->get_point()), t);
+                        it = hash_tables.remove_from_all_hash_tables(&(it->get_point()), t);
                         //std::cout << "finished erase " << std::endl;
                       
                         
@@ -279,7 +279,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     ++it;
                 }
             }//for-loop over a bucket
-            */
+            
 
         }//iteration over hash-tables
 
