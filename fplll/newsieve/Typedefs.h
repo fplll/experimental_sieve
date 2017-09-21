@@ -97,6 +97,7 @@ class DefaultSieveTraits
   static constexpr unsigned short number_of_hash_tables = 12;
   static constexpr int number_of_hash_functions = 11;
   static constexpr int max_bucket_size = 250;
+  
 
 };
 

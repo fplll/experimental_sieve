@@ -130,6 +130,7 @@ public:
 
     /* HYPERPLANE_LSH SPECIFIC */
     using HashTablesType   = HashTableS<SieveTraits, EntryType>;
+    using HashTableType    = HashTable<SieveTraits, EntryType>;
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
 

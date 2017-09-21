@@ -142,14 +142,14 @@ int main(int argc, char **argv)
 	Test_3Sieve.set_termination_condition(termcond);
 
 
-    //Test_3Sieve.run();
-    cout << "sv is " << endl;
-    Test_3Sieve.print_status();
-    
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-    cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
-    delete termcond;
+  Test_3Sieve.run();
+  cout << "sv is " << endl;
+  Test_3Sieve.print_status();
+  
+  auto finish = std::chrono::high_resolution_clock::now();
+  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+  cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
+  delete termcond;
     
 }
 

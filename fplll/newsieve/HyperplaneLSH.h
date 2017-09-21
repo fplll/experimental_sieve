@@ -77,6 +77,8 @@ namespace GaussSieve{
 
     Bucket& candidates (int hash_val) {return hash_table[hash_val];};
     
+    Iterator first_candidate();
+    
     uint_fast16_t get_hash_fnct (int ind, int coord) {return hash_fnct[ind][coord];};
 
     constexpr unsigned short get_num_of_tables() const {return SieveTraits::number_of_hash_tables;};
@@ -99,7 +101,8 @@ namespace GaussSieve{
     
   template<class SieveTraits, class ET> struct HashTableS{
     
-    using Iterator = typename std::list<Bucket_Element<SieveTraits>>::iterator;
+    using Iterator  = typename std::list<Bucket_Element<SieveTraits>>::iterator;
+    using HashTable = HashTable<SieveTraits, ET>;
     
 
     HashTableS() = default;
@@ -108,6 +111,8 @@ namespace GaussSieve{
     
     HashTableS & operator=(HashTableS const & obj) = delete;
     HashTableS & operator=(HashTableS  && obj) = delete;
+    
+    //HashTable & operator[](int ind) {return *this[ind];};
     
     ~HashTableS() = default;
       
@@ -122,11 +127,11 @@ namespace GaussSieve{
     void initialize_hash_tables(typename SieveTraits::DimensionType N);
     void print_all_tables();
       
-    HashTable<SieveTraits, ET>& get_ith_hash_table (int i) {return *all_hash_tables[i];};
+    //HashTable& get_ith_hash_table (int i) {return *all_hash_tables[i];};
       
   private:
   
-      HashTable<SieveTraits, ET> all_hash_tables[SieveTraits::number_of_hash_tables];
+    HashTable all_hash_tables[SieveTraits::number_of_hash_tables];
 
       
   };
@@ -208,6 +213,7 @@ namespace GaussSieve{
     
     //TODO: Delete the point itself
     
+    delete(v);
     
     typename HashTableS<SieveTraits, ET>::Iterator it;
     

@@ -203,7 +203,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
-    /*
+  
     template<class SieveTraits>
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
@@ -214,16 +214,19 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           ++number_of_collisions;
          return; //TODO: Ensure sampler does not output 0 (currently, it happens).
         }
-        
         std::cout << "p = " << p.get_norm2() << std::endl;
 
 
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
-            int hash_value = hash_tables.hash(p, t);
-
-            for (auto it = hash_tables.candidates(t,hash_value).cbegin(); it!=hash_tables.candidates(t,hash_value).cend();)
-            {
+          
+          //HashTableType* hash_table = hash_tables[t];
+          
+          //int hash_value = hash_table.hash(p);
+          //TODO: just stream candidates
+          /*
+          for (auto it = hash_table.first_candidate(); it!=*hash_table.candidates(hash_value).cend();)
+          {
                 
                 int scalar;
                 bool p_is_max;
@@ -262,15 +265,11 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                         main_queue.push(std::move(v_new));
 
                         
-                        //BIG TODO:
-                        delete (it->get_pointer() );
+                      
                         //std::cout << it->get_pointer() <<std::endl;
-                        hash_tables.remove_from_hash_tables(hash_value, &(it->get_point()), t);
+                        it = hash_tables.remove_from_hash_tables(hash_value, &(it->get_point()), t);
                         //std::cout << "finished erase " << std::endl;
-                        
-
-                        it = hash_tables.candidates(t,hash_value).erase(it);
-                        //std::cout << "finished last erase " << std::endl;
+                      
                         
 
                     }
@@ -280,7 +279,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     ++it;
                 }
             }//for-loop over a bucket
-            
+            */
 
         }//iteration over hash-tables
 
@@ -289,7 +288,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             number_of_collisions++;
             return;
         }
-
+      
+      hash_tables.add_to_all_hash_tables(p);
 
         if(update_shortest_vector_found(p))
         {
@@ -299,7 +299,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             }
         }
     }
-     */
+     
 
 /*
         OLD IMPLEMENTATION
