@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <gmpxx.h>
+#include "GlobalStaticData.h"
 
 // clang-format off
 

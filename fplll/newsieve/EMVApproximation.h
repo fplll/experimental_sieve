@@ -8,6 +8,7 @@
 #include <limits>
 #include <cmath>
 #include <vector>
+#include "GlobalStaticData.h"
 
 /** This defines a lattice point approximation, where the approximation consists of
 a (shared) exponenent and a vector of >= 16-bit mantissas.
@@ -33,6 +34,7 @@ class EMVApproximationTraits
 class EMVScalar
 {
   public:
+  using HasDefaultStaticInitializer = std::true_type;
   using MantissaType = typename EMVApproximationTraits::ApproxNorm2Type;
   static_assert(std::numeric_limits<MantissaType>::is_specialized,"Wrong ApproxNorm2Type");
 
@@ -47,10 +49,8 @@ class EMVScalar
   // construct from integral or floating type
   template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
   explicit EMVScalar(Integer const source_arithmetic);
-
   template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
   explicit EMVScalar(FloatType source_float);
-
   explicit EMVScalar(mpz_class const &source_mpz);
 
 
@@ -70,8 +70,9 @@ class EMVScalar
   template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
-
 };
+
+
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>

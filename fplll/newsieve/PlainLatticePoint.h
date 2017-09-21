@@ -141,6 +141,10 @@ template<class ET, int nfixed> class StaticInitializer<PlainLatticePoint<ET,nfix
   using Parent = DefaultStaticInitializer<PlainLatticePoint<ET,nfixed>>; // to avoid commas in macro arguments
   static_assert(nfixed>=0,"nfixed == -1 is specialized.");
   public:
+
+  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
+
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS ( "Initializing PlainLatticePoint class with nfixed = " << nfixed << "Counter is" << Parent::user_count )
@@ -157,6 +161,10 @@ template<class ET> class StaticInitializer<PlainLatticePoint<ET,-1>>
 {
   using Parent = DefaultStaticInitializer<PlainLatticePoint<ET,-1>>;
   public:
+
+  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
+
   StaticInitializer(MaybeFixed<-1> const new_dim)
   {
     assert(Parent::user_count>0);
