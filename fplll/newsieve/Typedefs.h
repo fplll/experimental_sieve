@@ -63,7 +63,7 @@ class JustSomeExampleSieveTraitsThatDoNotWork
 template
 <
   class ET, bool MT, int nfixed,
-  class InputBT = typename fplll::ZZ_mat< typename FixZNR<ET>::type>
+  class InputBT = typename fplll::ZZ_mat< typename FixMpz_classToMpz_t<ET>::type>
 >
 class DefaultSieveTraits
 {
@@ -101,36 +101,6 @@ class DefaultSieveTraits
 
 };
 
-// unused:
-template<class SieveTraits>
-class GetSamplerTraits
-{
-  public:
-  static_assert(SieveTraits::IsSieveTraitsClass::value,
-  "GetSamplerTraits only works on SieveTraits.");
-  using IsSamplerTraitsClass = std::true_type;
-  using GaussSampler_ReturnType = typename SieveTraits::GaussSampler_ReturnType;
-  using DimensionType = typename SieveTraits::DimensionType;
-};
-
-
-// various typedef declarations that control the types used by our classes.
-
-// lines are too long, clang-format destroys vertical alignment
-// clang-format off
-
-/*
-template <class ET, bool MT, int nfixed> using GaussSampler_ReturnType = MyLatticePoint<ET, nfixed>;
-
-template <class ET, bool MT, int nfixed> using GaussList_ReturnType    = MyLatticePoint<ET, nfixed>;
-template <class ET, bool MT, int nfixed> using GaussList_StoredPoint   = MyLatticePoint<ET, nfixed>;
-
-template <class ET, bool MT, int nfixed> using GaussQueue_ReturnType   = GaussSampler_ReturnType<ET, MT, nfixed>;
-template <class ET, bool MT, int nfixed> using GaussQueue_DataType     = GaussQueue_ReturnType<ET, MT, nfixed>;
-
-// for a small number of lattice points that we need to access very often.
-template <class ET, bool MT, int nfixed> using FastAccess_Point        = MyLatticePoint<ET, nfixed>;
-*/
 
 // clang-format on
 };

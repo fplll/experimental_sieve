@@ -365,11 +365,7 @@ private:
 // some subobject changes format flags
 // output loses data (e.g. rounding of floats)
 
-//helper functions:
 
-/*
-Reads length(str) chars from stream is, expecting them to equal str. If what is read differs we output false. If verbose, we also display an error.
-*/
 }
 
 #define SIEVE_JOINT_H

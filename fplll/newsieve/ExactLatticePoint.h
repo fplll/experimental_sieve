@@ -28,7 +28,7 @@ template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
 public:
-  using AuxDataType             = MaybeFixed<nfixed>;
+//  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductStorageType= ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
@@ -44,51 +44,13 @@ class ExactLatticePoint : public GeneralLatticePoint<ExactLatticePoint<ET, nfixe
 public:
   friend StaticInitializer<ExactLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-  using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
+//  using AuxDataType             = typename GetAuxDataType<ExactLatticePoint>::type;
   using ScalarProductStorageType = ET;
-  using Container =
-    typename std::conditional<nfixed >= 0, std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                                std::vector<ET>>::type;               // if nfixed <0
-
-/*
-  static bool class_init(AuxDataType const aux_data)
-  {
-    if(user_counter>0)
-    {
-      if(dim!=aux_data)
-      {
-#ifdef DEBUG_SIEVE_LP_INIT
-        assert(class_initialized);
-        std::cerr << "Warning: Class initialization failed for " << class_name()
-                  << std::endl << std::flush;
-#endif
-        return false;
-      }
-    }
-#ifdef DEBUG_SIEVE_LP_INIT
-    class_initialized = true;
-#endif
-    ++user_counter;
-    dim = aux_data;
-    return true;
-  };
-
-  static bool class_uninit()
-  {
-#ifdef DEBUG_SIEVE_LP_INIT
-    assert(class_initialized);
-#endif
-    assert(user_counter>0);
-    --user_counter;
-#ifdef DEBUG_SIEVE_LP_INIT
-    if(user_counter==0)
-    {
-      class_initialized=false;
-    }
-#endif
-    return(user_counter==0);
-  }
-  */
+  using Container = typename std::conditional<nfixed >= 0,
+        std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
+        std::vector<ET>  >::type;               // if nfixed <0
+        // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
+        // The ?: expression is only needed to silence compiler errors/warnings.
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -104,43 +66,26 @@ public:
     return dim;
   }
 
-#ifdef DEBUG_SIEVE_LP_INIT
   FOR_FIXED_DIM
   explicit ExactLatticePoint()
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
-    assert((ExactLatticePoint<ET, nfixed>::class_initialized));
+    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
   }
 
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint() : data(static_cast<unsigned int>(get_dim()))
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
-    assert((ExactLatticePoint<ET, nfixed>::class_initialized));
+    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
   }
-#else
-  FOR_FIXED_DIM
-  explicit ExactLatticePoint() {}
-
-  FOR_VARIABLE_DIM
-  explicit ExactLatticePoint() : data(static_cast<unsigned int>(get_dim())) {}
-#endif
 
   FOR_FIXED_DIM
-  explicit ExactLatticePoint(MaybeFixed<nfixed>)
-  {
-#ifdef DEBUG_SIEVE_LP_INIT
-    assert((ExactLatticePoint<ET, nfixed>::class_initialized));
-#endif
-  };
+  explicit ExactLatticePoint(MaybeFixed<nfixed>) : ExactLatticePoint() {}
 
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : data(static_cast<unsigned int>(dim))
+  explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : ExactLatticePoint()
   {
-    static_assert(nfixed == -1, "");
-#ifdef DEBUG_SIEVE_LP_INIT
-    assert((ExactLatticePoint<ET, -1>::class_initialized));
-#endif
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
     assert(dim == get_dim());
 #endif
@@ -195,16 +140,11 @@ public:
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
-#ifdef DEBUG_SIEVE_LP_INIT
-  static bool class_initialized;
-#endif  // DEBUG_SIEVE_LP_INIT
-//  static unsigned int user_counter;
   Container data;
   ET norm2;
 };
 
 // initialize static data:
-
 template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
@@ -213,10 +153,12 @@ MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixe
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
   : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
 {
+  using Parent = DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>;
   public:
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
-    if(user_counter>1)
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
     {
       assert((new_dim == ExactLatticePoint<ET,nfixed>::dim));
       // TODO: Throw exception!
@@ -225,37 +167,13 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
     {
       ExactLatticePoint<ET,nfixed>::dim = new_dim;
     }
-#ifdef DEBUG_SIEVE_LP_INIT
-    ExactLatticePoint<ET,nfixed>::class_initialized = true;
-#endif
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed =" << nfixed << "REALDIM = " << new_dim << "Counter is" << Parent::user_count )
   }
-
   ~StaticInitializer()
   {
-#ifdef DEBUG_SIEVE_LP_INIT
-    ExactLatticePoint<ET,nfixed>::class_initialized = (user_counter > 1);
-#endif
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed =" << nfixed << "Counter is" << Parent::user_count )
   }
-
-  static bool is_initialized(){ return user_counter > 0; }; // Does an object exist?
-
-  private:
-  static unsigned int user_counter; // counts number of StaticInitializer instances.
 };
-
-
-// initialize static data:
-
-template <class ET, int nfixed>
-unsigned int StaticInitializer<ExactLatticePoint<ET,nfixed>>::user_counter = 0;
-
-
-
-
-#ifdef DEBUG_SIEVE_LP_INIT
-template <class ET, int nfixed> bool ExactLatticePoint<ET, nfixed>::class_initialized = false;
-#endif  // DEBUG_SIEVE_LP_INIT
-
 
 }  // end of namespace
 

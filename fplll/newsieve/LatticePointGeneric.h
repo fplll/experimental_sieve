@@ -170,11 +170,9 @@ LP1 operator+(LP1 const &x1, LP2 const &x2)
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 && x1, LP2 const &x2)
 {
-auto tmp = std::move(x1);
-tmp+=x2;
-return tmp;
-//LP1 tmp = std::move(x1);
-//return addval(tmp,x2);
+  auto tmp = std::move(x1);
+  tmp+=x2;
+  return tmp;
 }
 
 // We don't want to return LP2 here...
@@ -182,17 +180,17 @@ return tmp;
 FOR_LATTICE_POINT_LP
 LP operator+(LP const &x1, LP && x2)
 {
-auto tmp = std::move(x2);
-tmp+=x1;
-return tmp;
+  auto tmp = std::move(x2);
+  tmp+=x1;
+  return tmp;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 &&x1, LP2 && x2)
 {
-auto tmp = std::move(x1);
-tmp+=std::move(x2);
-return tmp;
+  auto tmp = std::move(x1);
+  tmp+=std::move(x2);
+  return tmp;
 //LP1 tmp = std::move(x1);
 //return addval(tmp,std::move(x2));
 }

@@ -79,7 +79,7 @@ bool test_trait_classes()
   using GaussSieve::IsZNRClass;
   using GaussSieve::UnZNR;
   using GaussSieve::AddZNR;
-  using GaussSieve::FixZNR;
+  using GaussSieve::FixMpz_classToMpz_t;
   using fplll::Z_NR;
 
   static_assert(!IsZNRClass<long>::value,"");
@@ -95,10 +95,10 @@ bool test_trait_classes()
   static_assert(std::is_same<AddZNR<mpz_t>::type, Z_NR<mpz_t> >::value,"");
   static_assert(std::is_same<AddZNR<mpz_class>::type, Z_NR<mpz_t> >::value,"");
 
-  static_assert(std::is_same<FixZNR<bool>::type,bool>::value,"" );
-  static_assert(std::is_same<FixZNR<long>::type,long>::value,"" );
-  static_assert(std::is_same<FixZNR<Z_NR<mpz_t>>::type,Z_NR<mpz_t>>::value,"" );
-  static_assert(std::is_same<FixZNR<mpz_class>::type,mpz_t>::value,"" );
+  static_assert(std::is_same<FixMpz_classToMpz_t<bool>::type,bool>::value,"" );
+  static_assert(std::is_same<FixMpz_classToMpz_t<long>::type,long>::value,"" );
+  static_assert(std::is_same<FixMpz_classToMpz_t<Z_NR<mpz_t>>::type,Z_NR<mpz_t>>::value,"" );
+  static_assert(std::is_same<FixMpz_classToMpz_t<mpz_class>::type,mpz_t>::value,"" );
 return true;
 }
 

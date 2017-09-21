@@ -17,6 +17,17 @@
 #include "gmpxx.h"
 #include "gmp.h"
 
+namespace GaussSieve{
+template<class T> class StaticInitializer;
+template<class T> class DefaultStaticInitializer;
+template <class T> class IgnoreArg;
+class IgnoreAnyArg;
+template<class T> class IsZNRClass;
+template<class Integer> struct ConvertMaybeMPZ;
+template<class T> class UnZNR;
+template<class Integer> struct ConvertMaybeMPZ;
+}
+
 /**
 This macro is used to test the presence of a (public) member typedef in a class
 Args:   TypeToCheck - typename whose presence to check
@@ -202,8 +213,35 @@ public:
   constexpr MaybeFixed(Integer const){};
 //#endif
   inline constexpr operator UIntClass() const { return nfixed; };
-  static constexpr unsigned int value = nfixed;
+  static constexpr UIntClass value = nfixed;
 };
+
+// Initializer for static data.
+// This is the default initializer, which does nothing.
+
+template<class T>
+class DefaultStaticInitializer
+{
+  public:
+#ifndef DEBUG_SIEVE_LP_INIT
+  static bool constexpr is_initialized() { return true; } // may be overloaded
+#else
+  static bool is_initialized(){ return user_count > 0; }; // Does an object exist?
+#endif
+  static unsigned int get_user_count() { return user_count; }
+  static unsigned int user_count; // counts the number of objects of this type that exist, essentially.
+  explicit DefaultStaticInitializer(){++user_count;};
+  ~DefaultStaticInitializer()
+  {
+//    assert(init_count>0);
+    --user_count;
+  }
+};
+template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
+
+
+
+
 
 // Z_NR - detection and modification...
 
@@ -289,12 +327,12 @@ template<> class AddZNR<mpz_class>
   Other classes are unchanged.
 */
 
-template<class T> class FixZNR
+template<class T> class FixMpz_classToMpz_t
 {
   public: using type = T;
 };
 
-template<> class FixZNR<mpz_class>
+template<> class FixMpz_classToMpz_t<mpz_class>
 {
   public: using type = mpz_t;
 };
