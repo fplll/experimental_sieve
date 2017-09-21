@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 	Test_3Sieve.set_termination_condition(termcond);
 
 
-    Test_3Sieve.run();
+    //Test_3Sieve.run();
     cout << "sv is " << endl;
     Test_3Sieve.print_status();
     
