@@ -36,12 +36,15 @@ namespace GaussSieve{
     Bucket_Element& operator=(Bucket_Element const &that) =delete;
     Bucket_Element& operator=(Bucket_Element && that) =default;
       
+    
     inline bool operator==(Bucket_Element const &another) const
     {
+        std::cout<< "being called on " <<&another << " and " << this->pointer_to_lattice_point <<std::endl;
+        assert(false);
         if(another == this->pointer_to_lattice_point) return true;
         return false;
     }
-
+    
     ~Bucket_Element() {}
 
     inline ListStoredPoint const& get_point() const {return *pointer_to_lattice_point;}
@@ -150,6 +153,7 @@ namespace GaussSieve{
               res++;
       }
 
+    
       // Merge buckets u and 2^number_of_hash_functions - u - 1
       if(res >= (1 << (SieveTraits::number_of_hash_functions-1)))
           res = 2 *  (1 << (SieveTraits::number_of_hash_functions-1)) - res - 1;
@@ -186,15 +190,21 @@ namespace GaussSieve{
   typename HashTable<SieveTraits, ET>::Iterator HashTable<SieveTraits, ET>::iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
     
+    //std::cout<<"inside the iterator remove" << std::endl;
     int hash_value = this->hash(*v);
+    //std::cout<<"hash_value "  << hash_value <<std::endl;
     typename HashTable<SieveTraits, ET>::Iterator it = hash_table[hash_value].begin();
     
-    while (it!=hash_table[hash_value].cend()) {
-      if (&(*it).get_point() == v)
+    while (it!=hash_table[hash_value].end())
+    {
+      //std::cout<<&((*it).get_point()) << " vs. " << v << std::endl;
+      if (&((*it).get_point()) == v)
       {
+        delete(v);   //delete v itself before erasing its last pointer. 
         it = hash_table[hash_value].erase(it); //it now points to the next element in the buchet
         break;
       }
+      ++it;
     }
     return it;
     
@@ -203,8 +213,24 @@ namespace GaussSieve{
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::stand_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
+    
+    //std::cout << "in stand remove" << std::endl;
     int hash_value = hash(*v);
-    this->hash_table[hash_value].remove(v); //supposed to be linear in |Bucket|
+    //std::cout<< hash_value << std::endl;
+    //std::cout << "v = " << v << " " << v->get_norm2() << std::endl;
+    
+    //TODO: .remove() DOES NOT WORK. CHECK THE CONTENT OF A BUCKET!
+    //this->hash_table[hash_value].remove(v); //supposed to be linear in |Bucket|
+    for (auto it = hash_table[hash_value].cbegin(); it!=hash_table[hash_value].cend(); ++it)
+    {
+        if(&((*it).get_point()) == v)
+        {
+            hash_table[hash_value].erase(it);
+            break;
+        }
+    }
+    //std::cout << "...removed" << std::endl;
+    
   }
   
   //TODO
@@ -214,22 +240,23 @@ namespace GaussSieve{
   {
     
     
-    delete(v);
+    for(int t=0; t<SieveTraits::number_of_hash_tables; ++t)
+    {
+      
+      if (t == table_index)
+      {
+        continue;
+      }
+      
+      //std::cout << "about to remove from table " << t <<  std::endl;  
+      all_hash_tables[t].stand_remove_from_hash_table(v);
+    }
     
     typename HashTableS<SieveTraits, ET>::Iterator it;
     
+    // v itself will be deleted in this function after we compute its hash value for the last time
+    it = all_hash_tables[table_index].iterator_remove_from_hash_table(v);
     
-    for(int t=0; t<SieveTraits::number_of_hash_tables; ++t)
-    {
-      //TODO:
-      if (t == table_index)
-      {
-        it = all_hash_tables[t].iterator_remove_from_hash_table(v);
-      }
-      
-      all_hash_tables[t].stand_remove_from_hash_table(v);
-        
-    }
     return it;
   }
   
@@ -294,7 +321,7 @@ namespace GaussSieve{
       {
         std::cout<< "H[" <<k <<"]:  ";
         for (auto it=this->hash_table[k].cbegin(); it!=this->hash_table[k].cend(); ++it)
-                          std::cout<<(*it).get_point().get_norm2()<< " ";
+            std::cout<<&((*it).get_point())<< " "<<(*it).get_point().get_norm2()<< " ";
         std::cout << std::endl;
         }
       }
