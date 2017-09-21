@@ -102,7 +102,7 @@ namespace GaussSieve{
   template<class SieveTraits, class ET> struct HashTableS{
     
     using Iterator  = typename std::list<Bucket_Element<SieveTraits>>::iterator;
-    using HashTable = HashTable<SieveTraits, ET>;
+    using HashTableType = HashTable<SieveTraits, ET>;
     
 
     HashTableS() = default;
@@ -131,7 +131,7 @@ namespace GaussSieve{
       
   private:
   
-    HashTable all_hash_tables[SieveTraits::number_of_hash_tables];
+    HashTableType all_hash_tables[SieveTraits::number_of_hash_tables];
 
       
   };
