@@ -95,7 +95,7 @@ template<class LatticePoint> struct LatticePointTraits
 
 
 template<class Implementation> class GeneralLatticePoint;
-template<class T> class StaticInitializer;
+
 
 
 /**
@@ -340,32 +340,6 @@ inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &
 
 template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
 inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2);
-
-
-// Initializer for static data.
-// This is the default initializer, which does nothing.
-
-template<class T>
-class DefaultStaticInitializer
-{
-  public:
-#ifndef DEBUG_SIEVE_LP_INIT
-  explicit constexpr DefaultStaticInitializer() = default;
-#else
-  static unsigned int init_count; // counts the number of objects of this type that exist, essentially.
-  static bool is_initialized(){ return init_count > 0; }; // Does an object exist?
-  explicit DefaultStaticInitializer(){++init_count;};
-  ~DefaultStaticInitializer()
-  {
-    assert(init_count>0);
-    --init_count;
-  }
-#endif
-};
-
-#ifdef DEBUG_SIEVE_LP_INIT
-  template<class T> unsigned int DefaultStaticInitializer<T>::init_count = 0;
-#endif
 
 
 // Non-member functions:

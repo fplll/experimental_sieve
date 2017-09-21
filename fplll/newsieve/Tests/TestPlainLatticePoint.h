@@ -25,6 +25,7 @@ bool test_plain_LP()
   GaussSieve::StaticInitializer<LPvar> init1(MaybeFixed<-1>{10});
   GaussSieve::StaticInitializer<LPfix> init2(MaybeFixed<10>{10});
   GaussSieve::StaticInitializer<LPGMP> init3(MaybeFixed<10>{10});
+  GaussSieve::StaticInitializer<LPGMP> init32(MaybeFixed<10>{10});
 
   LPvar X1;
   LPvar X2(10);
