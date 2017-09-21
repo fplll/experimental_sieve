@@ -20,20 +20,18 @@
     nfixed: Is the dimension fixed? -1 means dynamic.
 */
 
+#include "DefaultIncludes.h"
 
 #include <mutex>
 #include <atomic>
 #include <forward_list>
 #include <queue>
-#include "assert.h"
 #include <stack>
 //#include "sieve_common.h"
 //#include "LatticePointsNew.h"
 #include "Typedefs.h"
 #include <list>
 #include "SieveUtility.h"
-#include "DebugAll.h"
-#include <type_traits>
 
 //Class for (weakly?) sorted list of lattice points.
 //includes thread-safe variant(s). May need experiments which implementation is best. (mutex on whole structure on every write, lock-free,...)

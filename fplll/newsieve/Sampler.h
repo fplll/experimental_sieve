@@ -13,15 +13,13 @@
 #ifndef SAMPLER_H
 #define SAMPLER_H
 
+#include "DefaultIncludes.h"
 #include "MTPRNG.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-#include <iostream>
 #include <random>
-#include <type_traits>
 #include "LatticeBases.h"
 //#include <cfenv>
-#include "DebugAll.h"
 
 namespace GaussSieve
 {

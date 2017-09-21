@@ -1,12 +1,9 @@
 #ifndef APPROXIMATED_POINT_H
 #define APPROXIMATED_POINT_H
 
-#include "DebugAll.h"
-#include <type_traits>
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
-#include <iostream>
-#include <utility>
 #include <tuple>
 #include "Lazy.h"
 

@@ -2,6 +2,7 @@
 #define DEFAULT_TERM_CONDS_IMPL_H
 
 #include "DefaultTermConds.h"
+#include "DefaultIncludes.h"
 
 namespace GaussSieve
 {

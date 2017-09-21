@@ -8,6 +8,7 @@
 #ifndef GAUSS_SIEVE_LATTICE_BASES_H
 #define GAUSS_SIEVE_LATTICE_BASES_H
 
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "fplll/defs.h"
@@ -17,9 +18,7 @@
 #include "gmp.h"
 #include "gmpxx.h"
 #include <mutex>
-#include "DebugAll.h"
 #include "PlainLatticePoint.h"
-#include <iostream>
 
 namespace GaussSieve
 {

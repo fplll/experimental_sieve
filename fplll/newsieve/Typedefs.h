@@ -7,7 +7,7 @@
 #ifndef GAUSS_SIEVE_TYPEDEFS_H
 #define GAUSS_SIEVE_TYPEDEFS_H
 
-#include <type_traits>
+#include "DefaultIncludes.h"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
@@ -18,6 +18,7 @@
 #include "FilteredPoint.h"
 #include "FilteredPoint2.h"
 #include "SieveUtility.h"
+#include "GlobalStaticData.h"
 
 
 namespace GaussSieve
@@ -83,6 +84,7 @@ class DefaultSieveTraits
   //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
   using FlilteredPointType      = FilteredPointPointer<ET, nfixed, EntryType>;
   using FilteredListType        = std::vector<FlilteredPointType>;
+  using GlobalStaticDataInitializer = StaticDataInitializer<DimensionType>;
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type
@@ -97,7 +99,6 @@ class DefaultSieveTraits
   static constexpr unsigned short number_of_hash_tables = 12;
   static constexpr int number_of_hash_functions = 11;
   static constexpr int max_bucket_size = 250;
-
 };
 
 

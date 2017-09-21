@@ -12,12 +12,10 @@ Header-only
 #ifndef MTPRNG_H
 #define MTPRNG_H
 
-#include "DebugAll.h"
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-#include <iostream>
 #include <random>
-#include <type_traits>
 #include <vector>
 
 namespace GaussSieve

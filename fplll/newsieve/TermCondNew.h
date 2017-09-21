@@ -42,10 +42,10 @@
 //In particular, only ever compare >= or <= and never ==.
 
 
+#include "DefaultIncludes.h"
 
 //#include "SieveGauss.h"
 #include "SieveUtility.h"
-#include "iostream"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"

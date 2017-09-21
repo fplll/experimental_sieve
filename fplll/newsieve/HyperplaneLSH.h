@@ -5,8 +5,8 @@
 #ifndef HYPERPLANE_LSH_H
 #define HYPERPLANE_LSH_H
 
+#include "DefaultIncludes.h"
 
-#include "DebugAll.h"
 #include "Typedefs.h"
 #include <vector>
 #include "SieveUtility.h"
@@ -27,7 +27,7 @@ namespace GaussSieve{
     Bucket_Element()=default;
     Bucket_Element(const Bucket_Element & new_pointer_to_lattice_point) = delete;
     Bucket_Element(Bucket_Element && new_pointer_to_lattice_point) = default;
-    
+
     Bucket_Element (ListStoredPoint const * const v)
     {
       this->pointer_to_lattice_point = v;
@@ -35,7 +35,7 @@ namespace GaussSieve{
 
     Bucket_Element& operator=(Bucket_Element const &that) =delete;
     Bucket_Element& operator=(Bucket_Element && that) =default;
-      
+
     inline bool operator==(Bucket_Element const &another) const
     {
         if(another == this->pointer_to_lattice_point) return true;
@@ -71,22 +71,22 @@ namespace GaussSieve{
     ~HashTable() = default;
 
   public:
-      
+
     void print_ith_table();
-    
+
 
     Bucket& candidates (int hash_val) {return hash_table[hash_val];};
-    
+
     uint_fast16_t get_hash_fnct (int ind, int coord) {return hash_fnct[ind][coord];};
 
     constexpr unsigned short get_num_of_tables() const {return SieveTraits::number_of_hash_tables;};
-    
+
     int hash (typename SieveTraits::GaussList_StoredPoint const& v);
-    
+
     void add_to_hash_table (typename SieveTraits::GaussList_StoredPoint const* v);
     Iterator iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v, int const &hash_value);
     void stand_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v);
-    
+
     void initialize_hash_table(typename SieveTraits::DimensionType N);
 
   private:
@@ -96,39 +96,39 @@ namespace GaussSieve{
       //unsigned short num_of_tables;
 
   };
-    
+
   template<class SieveTraits, class ET> struct HashTableS{
-    
+
     using Iterator = typename std::list<Bucket_Element<SieveTraits>>::iterator;
-    
+
 
     HashTableS() = default;
     HashTableS(HashTableS const &obj) = delete;
     HashTableS(HashTableS &&obj) = delete;
-    
+
     HashTableS & operator=(HashTableS const & obj) = delete;
     HashTableS & operator=(HashTableS  && obj) = delete;
-    
+
     ~HashTableS() = default;
-      
+
   public:
-      
-    
+
+
     Iterator remove_from_all_hash_tables(int const &hash_value, typename SieveTraits::GaussList_StoredPoint const* v, int table_index);
-    
+
     void add_to_all_hash_tables (typename SieveTraits::GaussList_StoredPoint const& v);
-      
-    
+
+
     void initialize_hash_tables(typename SieveTraits::DimensionType N);
     void print_all_tables();
-      
+
     HashTable<SieveTraits, ET>& get_ith_hash_table (int i) {return *all_hash_tables[i];};
-      
+
   private:
-  
+
       HashTable<SieveTraits, ET> all_hash_tables[SieveTraits::number_of_hash_tables];
 
-      
+
   };
 
 
@@ -150,13 +150,13 @@ namespace GaussSieve{
           res = 2 *  (1 << (SieveTraits::number_of_hash_functions-1)) - res - 1;
     return res;
   }
-  
+
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::add_to_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
     int hash_value = hash(*v);
     this->hash_table[hash_value].emplace_back(v);
-    
+
   }
 
   template<class SieveTraits, class ET>
@@ -165,22 +165,22 @@ namespace GaussSieve{
 
     // the received (via a pointer) lattice point is copied into a new lattice-point
     // a pointer to the newly created lattice-pointed is stored in hash
-    
+
     //typename SieveTraits::GaussList_StoredPoint v_copy = v.make_copy();
     typename SieveTraits::GaussList_StoredPoint* v_copy  = new typename SieveTraits::GaussList_StoredPoint(v.make_copy());
-    
+
     for(int i=0; i<SieveTraits::number_of_hash_tables; ++i)
     {
-          
+
         this->all_hash_tables[i].add_to_hash_table(v_copy);
     }
 
   }
-  
+
   template<class SieveTraits, class ET>
   typename HashTable<SieveTraits, ET>::Iterator HashTable<SieveTraits, ET>::iterator_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v, int const &hash_value)
   {
-    
+
     typename HashTable<SieveTraits, ET>::Iterator it = hash_table[hash_value].cbegin();
     while (it!=hash_table[hash_value].cend()) {
       if (&(*it).get_point() == v)
@@ -190,28 +190,28 @@ namespace GaussSieve{
       }
     }
     return it;
-    
+
   }
-  
+
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::stand_remove_from_hash_table(typename SieveTraits::GaussList_StoredPoint const* v)
   {
     int hash_value = hash(*v);
     this->hash_table[hash_value].remove(v); //supposed to be linear in |Bucket|
   }
-  
+
   //TODO
   template<class SieveTraits, class ET>
   typename HashTableS<SieveTraits, ET>::Iterator HashTableS<SieveTraits, ET>::remove_from_all_hash_tables(int const &hash_value,
             typename SieveTraits::GaussList_StoredPoint const* v, int table_index)
   {
-    
+
     //TODO: Delete the point itself
-    
-    
+
+
     typename HashTableS<SieveTraits, ET>::Iterator it;
-    
-    
+
+
     for(int t=0; t<SieveTraits::number_of_hash_tables; ++t)
     {
       //TODO:
@@ -220,23 +220,23 @@ namespace GaussSieve{
         it = iterator_remove_from_hash_table(v, hash_value);
       }
       all_hash_tables[t].stand_remove_from_hash_table(v);
-        
+
     }
     return it;
   }
-  
+
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::initialize_hash_table(typename SieveTraits::DimensionType N)
   {
     for(int k = 0; k < SieveTraits::number_of_hash_functions; k++){
       this->hash_fnct[k][0] = (rand() % N);
       this->hash_fnct[k][1] = (rand() % N);
-      
+
       while (this->hash_fnct[k][0] == this->hash_fnct[k][1])
       {
         this->hash_fnct[k][1] = (rand() % N);
       }
-      
+
     }
   }
 
@@ -244,7 +244,7 @@ namespace GaussSieve{
   template<class SieveTraits, class ET>
   void HashTableS<SieveTraits, ET>::initialize_hash_tables(typename SieveTraits::DimensionType N)
   {
-      
+
     std::cout << "N = " << N << std::endl;
     for(int t = 0; t < SieveTraits::number_of_hash_tables; t++)
     {
@@ -274,12 +274,12 @@ namespace GaussSieve{
       }
 
   }
-    
+
     //TODO
   template<class SieveTraits, class ET>
   void HashTable<SieveTraits, ET>::print_ith_table()
   {
-    
+
     for (int k =0; k< (1 << (SieveTraits::number_of_hash_functions-1)); ++k )
     {
       if (this->hash_table[k].size() >0 )

@@ -6,14 +6,13 @@
 #ifndef EXACT_LATTICE_POINT_H
 #define EXACT_LATTICE_POINT_H
 
-#include "DebugAll.h"
+#include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
-#include "assert.h"
 #include <array>
 #include <vector>
-#include <iostream>
 #include "PlainLatticePoint.h" // for conversions
+#include "GlobalStaticData.h"
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
@@ -155,6 +154,10 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 {
   using Parent = DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>;
   public:
+
+  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
+
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
     assert(Parent::user_count > 0);

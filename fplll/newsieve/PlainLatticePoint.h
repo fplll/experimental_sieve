@@ -1,16 +1,13 @@
 #ifndef PLAIN_LATTICE_POINT_H
 #define PLAIN_LATTICE_POINT_H
 
-#include "DebugAll.h"
+#include "DefaultIncludes.h"
+
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
-#include "assert.h"
 #include <array>
 #include <vector>
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <utility>
+#include "GlobalStaticData.h"
 
 namespace GaussSieve
 {

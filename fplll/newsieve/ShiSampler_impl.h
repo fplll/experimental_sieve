@@ -7,6 +7,7 @@ TODO: Change internal representation of basis.
 #ifndef SHI_SAMPLER_IMPL_H
 #define SHI_SAMPLER_IMPL_H
 
+#include "DefaultIncludes.h"
 #include "Sampler.h"
 #include "ShiSampler.h"
 //#include "SieveGauss.h"
@@ -18,7 +19,6 @@ TODO: Change internal representation of basis.
 #include <vector>
 #include <math.h>
 #include "LatticeBases.h"
-#include "DebugAll.h"
 
 namespace GaussSieve
 {

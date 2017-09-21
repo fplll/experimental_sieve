@@ -11,6 +11,7 @@
 #ifndef SHI_SAMPLER_H  // equivalent to Shi's old sampler, using new framework.
 #define SHI_SAMPLER_H
 
+#include "DefaultIncludes.h"
 #include "Sampler.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
@@ -21,7 +22,7 @@
 #include <random>
 #include <vector>
 #include "LatticeBases.h"
-#include "DebugAll.h"
+
 
 namespace GaussSieve
 {

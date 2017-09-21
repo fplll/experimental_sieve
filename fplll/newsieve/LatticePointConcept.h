@@ -4,14 +4,10 @@
 // TODO: Remove the concept idea below, we replace it by CRTP (i.e. inheritance without virtual
 // functions, using templates)
 
-#include "DebugAll.h"
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
-#include "assert.h"
 #include <cmath>
 #include <cstdint>
-#include <iostream>
-#include <string>
-#include <utility>
 #include <gmpxx.h>
 
 // clang-format off

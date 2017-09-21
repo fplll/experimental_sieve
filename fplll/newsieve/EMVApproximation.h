@@ -1,15 +1,12 @@
 #ifndef EMV_APPROXIMATION_H
 #define EMV_APPROXIMATION_H
 
-#include "DebugAll.h"
-#include "Typedefs.h"
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include <cstdint>
-#include <type_traits>
 #include "gmpxx.h"
 #include <limits>
 #include <cmath>
-#include <iostream>
 #include <vector>
 
 /** This defines a lattice point approximation, where the approximation consists of

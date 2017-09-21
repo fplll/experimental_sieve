@@ -2,16 +2,14 @@
 #define GAUSS_QUEUE_H
 /* defines the classes used for the main Queues in the Gauss Sieve */
 
-#include "DebugAll.h"
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include <mutex>
 #include <atomic>
 #include <queue>
-#include <utility>
 #include <random>
 //#include "LatticePoint.h"
 //#include "LatticePointsNew.h"
-#include "assert.h"
 #include "Typedefs.h"
 //#include "EllipticSampler.h"
 #include "Sampler.h"

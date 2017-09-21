@@ -62,11 +62,9 @@ NEED TO GO HERE OR TO SieveGauss.h:
 
 /*INCLUDES */
 
-#include <iostream>
-#include <type_traits>
+#include "DefaultIncludes.h"
 #include <sys/stat.h>
 #include <fstream>
-#include <string>
 #include <exception>
 //#include "TermCond.h"
 #include "GaussQueue.h"

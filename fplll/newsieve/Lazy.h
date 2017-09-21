@@ -1,12 +1,9 @@
 #ifndef GAUSS_SIEVE_LAZY_H
 #define GAUSS_SIEVE_LAZY_H
 
-#include "DebugAll.h"
-#include <type_traits>
+#include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
-#include <iostream>
-#include <utility>
 #include <tuple>
 
 

@@ -6,13 +6,11 @@
 #ifndef SAMPLER_IMPL_H
 #define SAMPLER_IMPL_H
 
+#include "DefaultIncludes.h"
 #include "Typedefs.h"
-#include "DebugAll.h"
 #include "Sampler.h"
 //#include "SieveGauss.h"
-#include <iostream>
 #include <random>
-#include <type_traits>
 #include "LatticeBases.h"
 
 namespace GaussSieve

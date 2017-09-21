@@ -8,7 +8,7 @@
 #define DEFAULT_TERM_CONDS_H
 
 #include "TermCondNew.h"  //consider merging with that file
-#include <iostream>
+#include "DefaultIncludes.h"
 
 namespace GaussSieve
 {

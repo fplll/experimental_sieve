@@ -4,12 +4,8 @@
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
-#include "DebugAll.h"
-#include "assert.h"
-#include <iostream>
+#include "DefaultIncludes.h"
 #include <istream>
-#include <string>
-#include <type_traits>
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
@@ -219,6 +215,9 @@ public:
 // Initializer for static data.
 // This is the default initializer, which does nothing.
 
+// forward declaration:
+template<class T> class IsStaticDataInitializer;
+
 template<class T>
 class DefaultStaticInitializer
 {
@@ -231,6 +230,15 @@ class DefaultStaticInitializer
   static unsigned int get_user_count() { return user_count; }
   static unsigned int user_count; // counts the number of objects of this type that exist, essentially.
   explicit DefaultStaticInitializer(){++user_count;};
+  template<class X,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<X>::value)>
+  explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
+
+
+  template<class X,TEMPL_RESTRICT_DECL(std::is_integral<X>::value)>
+  [[deprecated]]explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
+  template<int nfixed, class IntType>
+  [[deprecated]]explicit DefaultStaticInitializer(MaybeFixed<nfixed,IntType> const &) : DefaultStaticInitializer(){}
+
   ~DefaultStaticInitializer()
   {
 //    assert(init_count>0);
