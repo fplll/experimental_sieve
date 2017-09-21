@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
     if (argc == 1)
     {
-        cout << "Please provide the dimension." << endl;
+        std::cout << "Please provide the dimension." << std::endl;
         return -1;
     }
 
@@ -73,9 +73,9 @@ int main(int argc, char **argv)
     B.resize(dim, dim);
 
     if (flag_file) {
-        ifstream input_file(input_file_name);
+        std::ifstream input_file(input_file_name);
         if (input_file.is_open()) {
-            cout << "reading B from file ..." << endl;
+            std::cout << "reading B from file ..." << std::endl;
             input_file >> B;
             input_file.close();
         }
@@ -94,14 +94,14 @@ int main(int argc, char **argv)
 
     if(target_norm > 0)
     {
-        cout << "target norm set: " << target_norm << endl;
+        std::cout << "target norm set: " << target_norm << std::endl;
     }
 
-    cout << "b = " << b << endl;
-    
+    std::cout << "b = " << b << std::endl;
+
     /* preprocessing of basis */
     clock_t stime = clock();
-    
+
     if (b > 2)
         bkz_reduction(B, b, BKZ_DEFAULT, FT_DEFAULT, 0);
     else
@@ -111,9 +111,9 @@ int main(int argc, char **argv)
     double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
 
     if (b > 2)
-        cout << "# [info] BKZ took time " << secs << " s" << endl;
+        std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
     else
-        cout << "# [info] LLL took time " << secs << " s" << endl;
+        std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
 
     bool constexpr multithreaded = false;
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 
 	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
 
-    
+
     TerminationCondition<Traits,multithreaded> * termcond;
 
     if (target_norm!=0)
@@ -143,14 +143,14 @@ int main(int argc, char **argv)
 
 
     //Test_3Sieve.run();
-    cout << "sv is " << endl;
+    std::cout << "sv is " << std::endl;
     Test_3Sieve.print_status();
-    
+
     auto finish = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-    cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
+    std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
     delete termcond;
-    
+
 }
 
 //clang-format on

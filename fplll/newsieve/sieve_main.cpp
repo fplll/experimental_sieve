@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     char *target_norm_string = NULL;
     char* input_file_name = NULL;
     bool flag_file = false;
-    
+
     int opt, dim = 10;
     Z_NR<mpz_t> target_norm;
     target_norm = 0;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
     if (argc == 1)
     {
-        cout << "Please provide the dimension." << endl;
+        std::cout << "Please provide the dimension." << std::endl;
         return -1;
     }
 
@@ -124,17 +124,17 @@ int main(int argc, char **argv)
     }
     if(target_norm > 0)
     {
-        cout << "target norm set: " << target_norm << endl;
+        std::cout << "target norm set: " << target_norm << std::endl;
     }
 
     // ZZ_mat is an integer row-oriented matrix. See /nr/matrix.h
     ZZ_mat<mpz_t> B;
     B.resize(dim, dim);
-    
+
     if (flag_file) {
-        ifstream input_file(input_file_name);
+        std::ifstream input_file(input_file_name);
         if (input_file.is_open()) {
-            cout << "reading B from file ..." << endl;
+            std::cout << "reading B from file ..." << std::endl;
             input_file >> B;
             input_file.close();
         }
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
         //generates GM lattice
         B.gen_qary_prime(1, 10*dim);
     }
-    
+
 
     //KleinSampler<ZT, F> is templated by two classes; returns NumVect<Z_NR<ZT> of dim = B.NumCols()
     //    KleinSampler<mpz_t, FP_NR<double>> *Sampler = new KleinSampler<mpz_t, FP_NR<double>>(B, 0, 234234);
@@ -163,9 +163,9 @@ int main(int argc, char **argv)
     double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
 
     if (bs > 0)
-        cout << "# [info] BKZ took time " << secs << " s" << endl;
+        std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
     else
-        cout << "# [info] LLL took time " << secs << " s" << endl;
+        std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
 
     //ApproxLatticePoint<Z_NR<mpz_t>,false,-1> X ( conv_matrixrow_to_lattice_point(B[0]) );
 
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
 
 
     #ifndef USE_REGULAR_QUEUE
-        cout << "Use Priority Queue" << endl;
+        std::cout << "Use Priority Queue" << std::endl;
     #else
-        cout << "Use Standard Queue" << endl;
+        std::cout << "Use Standard Queue" << std::endl;
     #endif
     //cout << "run sieve on B[0] = " << B[0] << endl;
     //cout << "B[1] = " << B[1] << endl;
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
   }
 
   Test_2Sieve.run();
-  cout << "sv is " << endl;
+  std::cout << "sv is " << std::endl;
 //  Test_2Sieve.get_shortest_vector_found().printLatticePoint();
   Test_2Sieve.print_status();
 
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 
     auto finish = std::chrono::high_resolution_clock::now();
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-    cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << endl;
+    std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
     delete termcond;
 
   return 1;
