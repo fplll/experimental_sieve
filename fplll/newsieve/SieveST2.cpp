@@ -203,7 +203,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
-  
+
+#ifdef USE_LSH
+
     template<class SieveTraits>
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
@@ -219,18 +221,18 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
-          
+
           HashTableType* hash_table = hash_tables.get_ith_hash_table(t);
-          
+
           int hash_value = hash_table->hash(p);
           //TODO: just stream candidates
-          
+
           for (auto it = hash_table->candidates(hash_value).cbegin(); it!=hash_table->candidates(hash_value).cend();)
           {
-                
+
                 int scalar;
                 bool p_is_max;
-                
+
                 if ( check2red<SieveTraits>(p, it->get_point(), scalar, p_is_max) )
                 {
                     assert(scalar!=0);
@@ -251,7 +253,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     {
                         //std::cout << "reduce v" << std::endl << std::flush;
                         typename SieveTraits::FastAccess_Point v_new = it->get_point() - (p*scalar);
-                        
+
                         /*
                         if (v_new.get_norm2() > (it->get_point()).get_norm2())
                         {
@@ -260,17 +262,17 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                             assert(false);
                         }
                         */
-                        
+
                         //std::cout<<"v_new = " << &v_new << std::endl;
                         main_queue.push(std::move(v_new));
                         //std::cout<<"v_new is in the queue" << &v_new << std::endl;
                         //std::cout << "about to erase " << &(it->get_point()) << std::endl;
-                      
-                        
+
+
                         it = hash_tables.remove_from_all_hash_tables(&(it->get_point()), t);
                         //std::cout << "finished erase " << std::endl;
-                      
-                        
+
+
 
                     }
                 }
@@ -279,7 +281,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     ++it;
                 }
             }//for-loop over a bucket
-            
+
 
         }//iteration over hash-tables
 
@@ -300,7 +302,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             }
         }
     }
-     
+
+#endif // USE_LSH
 
 /*
         OLD IMPLEMENTATION

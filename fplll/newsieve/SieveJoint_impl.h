@@ -174,16 +174,22 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     InputBasisType const & B, unsigned int k,
     TermCondType * const termcond, unsigned int verbosity_, int seed_sampler):
 #endif
+    ambient_dimension(B.get_cols()), //Note : this means that rows of B form the basis.
+    global_static_data(ambient_dimension),
+    static_init_fast_access_point(global_static_data),
     main_list(),
     main_queue(this),
     original_basis(B),
     lattice_basis(B),
     lattice_rank(B.get_rows()),
-    ambient_dimension(B.get_cols()), //Note : this means that rows of B form the basis.
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     num_threads_wanted(num_threads),
     #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+    #ifdef USE_LSH
+    hash_tables(),
+    number_of_hash_tables(0),
+    #endif
     sieve_k(k),
     verbosity(verbosity_),
     term_cond(termcond),
@@ -197,15 +203,11 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     number_of_scprods_level2(0),
     number_of_scprods_level3(0),
     number_of_exact_scprods(0),
-    number_of_mispredictions(0),
-#ifdef USE_LSH
-    hash_tables(),
-    number_of_hash_tables(0),
-#endif
+    number_of_mispredictions(0)
+
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-    garbage_bins(nullptr),
+    ,garbage_bins(nullptr)
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
-    static_init_fast_access_point(ambient_dimension)
 {
     if (SieveTraits::get_nfixed!=-1)
     {

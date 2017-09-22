@@ -63,6 +63,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 /*INCLUDES */
 
 #include "DefaultIncludes.h"
+#include "GlobalStaticData.h"
 #include <sys/stat.h>
 #include <fstream>
 #include <exception>
@@ -246,9 +247,9 @@ public:
     unsigned long int get_filtered_list_size() const            {return filtered_list_size;};
     unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
 
-    //#ifdef USE_LSH
+    #ifdef USE_LSH
     unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
-    //#endif
+    #endif
     //-----------------STATISTICS----------------
     unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;};
     unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;};
@@ -264,6 +265,11 @@ private:
 //Note: The member fields of Sieve denote the (global) "internal" status of the sieve during a run or execution.
 //It should be possible to dump the status to harddisk and resume from dump using that information.
 //It should also be possible to suspend the run of the sieve, change (certain) parameters (like k!) and resume.
+    DimensionType ambient_dimension; //consider merging these into a latticespec struct.
+
+    StaticDataInitializer<DimensionType> global_static_data;
+    StaticInitializer<FastAccess_Point> static_init_fast_access_point;
+
 
 //main data that is changing.
 
@@ -271,20 +277,20 @@ private:
     //MainListType3 main_list_test;
     MainQueueType main_queue;
 
-    //#ifdef USE_LSH
-    HashTablesType hash_tables;
-    unsigned short number_of_hash_tables;
-    //#endif
+
 //information about lattice and algorithm we are using
 
     InputBasisType original_basis;
     LatticeBasisType lattice_basis;
     unsigned int lattice_rank;
-    DimensionType ambient_dimension; //consider merging these into a latticespec struct.
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     unsigned int num_threads_wanted;        //number of threads that we spawn
     #endif // GAUSS_SIEVE_IS_MULTI_THREADED
+    #ifdef USE_LSH
+    HashTablesType hash_tables;
+    unsigned short number_of_hash_tables;
+    #endif
     unsigned int sieve_k; //parameter k of the sieve currently running.
     //SamplerType sampler; //TODO: Thread-safety. Move control to queue.
     int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
@@ -340,7 +346,6 @@ private:
     std::mutex shortest_vector_mutex;
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 
-    StaticInitializer<FastAccess_Point> static_init_fast_access_point;
 
 //TODO: total time spent?
 };

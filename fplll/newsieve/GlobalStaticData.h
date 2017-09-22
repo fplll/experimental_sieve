@@ -69,9 +69,9 @@ struct StaticDataInitializer
 {
   using StaticDataInitializerTag = std::true_type;
   DimensionType const dim;
-  unsigned int const dim_int;
+//  unsigned int const dim_int;
 
-  constexpr StaticDataInitializer(DimensionType const &new_dim) : dim(dim), dim_int(dim) {}
+  constexpr StaticDataInitializer(DimensionType const &new_dim) : dim(new_dim) {}
 };
 
 
