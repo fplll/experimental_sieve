@@ -126,10 +126,12 @@ public:
     using EntryType        = typename SieveTraits::EntryType;
 
     using FilteredListType = typename SieveTraits::FilteredListType;
+    using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
 
-    /* HYPERPLANE_LSH SPECIFIC */
+    #ifdef USE_LSH
     using HashTablesType   = HashTableS<SieveTraits, EntryType>;
     using HashTableType    = HashTable<SieveTraits, EntryType>;
+    #endif
 
 //    using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
 
@@ -267,8 +269,11 @@ private:
 //It should also be possible to suspend the run of the sieve, change (certain) parameters (like k!) and resume.
     DimensionType ambient_dimension; //consider merging these into a latticespec struct.
 
-    StaticDataInitializer<DimensionType> global_static_data;
+    GlobalStaticDataInitializer global_static_data;
     StaticInitializer<FastAccess_Point> static_init_fast_access_point;
+
+    InputBasisType original_basis;
+    LatticeBasisType lattice_basis;
 
 
 //main data that is changing.
@@ -280,8 +285,7 @@ private:
 
 //information about lattice and algorithm we are using
 
-    InputBasisType original_basis;
-    LatticeBasisType lattice_basis;
+
     unsigned int lattice_rank;
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true

@@ -84,7 +84,7 @@ template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std::ostream &of, int verb)
 {
     using std::endl;
-    int howverb = verb==-1 ? verbosity : verb;
+    int howverb = ( (verb==-1) ? verbosity : verb);
     if(howverb>=2) of << SIEVE_FILE_ID << endl;
     if(howverb>=2) of << SIEVE_VER_STR << endl;
     if(howverb>=2) of << "--Params--" << endl;
@@ -174,13 +174,16 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     InputBasisType const & B, unsigned int k,
     TermCondType * const termcond, unsigned int verbosity_, int seed_sampler):
 #endif
+/**
+  Initializer list:
+*/
     ambient_dimension(B.get_cols()), //Note : this means that rows of B form the basis.
     global_static_data(ambient_dimension),
     static_init_fast_access_point(global_static_data),
-    main_list(),
-    main_queue(this),
     original_basis(B),
-    lattice_basis(B),
+    lattice_basis(B,global_static_data),
+    main_list(global_static_data),
+    main_queue(this),
     lattice_rank(B.get_rows()),
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true

@@ -7,18 +7,7 @@
 #ifndef POINT_LIST_NEW_H
 #define POINT_LIST_NEW_H
 
-//ET : Entry type : type of entries of vectors we are dealing with. Usually an integral type like ET = Z_NR<long> or Z_NR<mpz_t>
 
-//forward declarations.
-
-/**
-    GaussListNew is the data type of our main list.
-    Template Parameters:
-    ET: Underlying data type (meaning the coordinates, not the vectors).
-    Currently ET is expected to be of Z_NR<foo> type.
-    MT: Multi-threaded version?
-    nfixed: Is the dimension fixed? -1 means dynamic.
-*/
 
 #include "DefaultIncludes.h"
 
@@ -27,8 +16,6 @@
 #include <forward_list>
 #include <queue>
 #include <stack>
-//#include "sieve_common.h"
-//#include "LatticePointsNew.h"
 #include "Typedefs.h"
 #include <list>
 #include "SieveUtility.h"
@@ -55,10 +42,14 @@ class GaussListNew<SieveTraits, false>
 public:
     friend GaussIteratorNew<SieveTraits,false>;
     using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
+    using ReturnType  = typename SieveTraits::GaussList_ReturnType;
+
     using UnderlyingContainer = std::list<StoredPoint>;
     using Iterator = GaussIteratorNew<SieveTraits,false>;
+    using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
 
-    explicit GaussListNew() = default;
+    explicit GaussListNew(GlobalStaticDataInitializer const &static_data)
+      : init_stored_point(static_data), init_return_type(static_data), actual_list() {}
     GaussListNew(GaussListNew const & old) = delete;
     GaussListNew(GaussListNew && old) = delete;
     GaussListNew & operator= (GaussListNew const &other) = delete;
@@ -76,7 +67,7 @@ public:
     //The issue is that copying should be explicit.
     Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;
 
-    template<class LatticePoint, typename std::enable_if<IsALatticePoint<LatticePoint>::value,int>::type =0 >
+    template<class LatticePoint, TEMPL_RESTRICT_DECL(IsALatticePoint<LatticePoint>::value)>
     Iterator insert_before(Iterator pos, LatticePoint && val)
     { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
 
@@ -94,6 +85,8 @@ public:
     void sort() {actual_list.sort();};  //only for single-threaded (for now).
 
 private:
+    StaticInitializer<StoredPoint> init_stored_point;
+    StaticInitializer<ReturnType>  init_return_type;
     UnderlyingContainer actual_list;
 };
 

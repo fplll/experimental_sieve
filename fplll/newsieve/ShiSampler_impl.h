@@ -10,7 +10,6 @@ TODO: Change internal representation of basis.
 #include "DefaultIncludes.h"
 #include "Sampler.h"
 #include "ShiSampler.h"
-//#include "SieveGauss.h"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
@@ -81,12 +80,6 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
   static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
   static_init_plainpoint= new StaticInitializer<typename SieveTraits::PlainPoint>(MaybeFixed<SieveTraits::get_nfixed>{dim});
 
-/*
-  bool s = RetType::class_init(MaybeFixed<SieveTraits::get_nfixed>{dim});
-  assert(s); // TODO: Clean up and throw exception instead.
-  s = SieveTraits::PlainPoint::class_init(MaybeFixed<SieveTraits::get_nfixed>{dim});
-  assert(s);
-*/
   initialized = true;
 }
 
