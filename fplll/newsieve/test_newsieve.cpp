@@ -142,7 +142,8 @@ int main(int argc, char **argv)
 	Test_3Sieve.set_termination_condition(termcond);
 
 
-    //Test_3Sieve.run();
+
+    Test_3Sieve.run();
     std::cout << "sv is " << std::endl;
     Test_3Sieve.print_status();
 
@@ -150,6 +151,7 @@ int main(int argc, char **argv)
     auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
     std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
     delete termcond;
+
 
 }
 

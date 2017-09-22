@@ -203,7 +203,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          }
      }
 }
-    /*
+  
     template<class SieveTraits>
     void Sieve<SieveTraits,false>::hash_sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
     {
@@ -214,31 +214,33 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           ++number_of_collisions;
          return; //TODO: Ensure sampler does not output 0 (currently, it happens).
         }
-        
-        std::cout << "p = " << p.get_norm2() << std::endl;
+        //std::cout << "p = " << p.get_norm2() << std::endl;
 
 
         for (int t=0 ; t < number_of_hash_tables; ++t)
         {
-            int hash_value = hash_tables.hash(p, t);
-
-            for (auto it = hash_tables.candidates(t,hash_value).cbegin(); it!=hash_tables.candidates(t,hash_value).cend();)
-            {
+          
+          HashTableType* hash_table = hash_tables.get_ith_hash_table(t);
+          
+          int hash_value = hash_table->hash(p);
+          //TODO: just stream candidates
+          
+          for (auto it = hash_table->candidates(hash_value).cbegin(); it!=hash_table->candidates(hash_value).cend();)
+          {
                 
                 int scalar;
                 bool p_is_max;
                 
-                
                 if ( check2red<SieveTraits>(p, it->get_point(), scalar, p_is_max) )
                 {
                     assert(scalar!=0);
-                    
+                    /*
                     if (scalar == 0)
                     {
                         std::cout << p.get_norm2() << " " << it->get_point().get_norm2() << std::endl<<std::flush;
                         assert(false);
                     }
-                    
+                    */
                     if (p_is_max)
                     {
                         //std::cout << "reduce p" << std::endl << std::flush;
@@ -247,30 +249,27 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
                     }
                     else
                     {
-                        std::cout << "reduce v" << std::endl << std::flush;
+                        //std::cout << "reduce v" << std::endl << std::flush;
                         typename SieveTraits::FastAccess_Point v_new = it->get_point() - (p*scalar);
                         
-                        
+                        /*
                         if (v_new.get_norm2() > (it->get_point()).get_norm2())
                         {
                             std::cout << "bug in v_new reduction : " << std::endl << std::flush;
                             std::cout << scalar << " " << p.get_norm2() << " " << it->get_point().get_norm2() << std::endl <<std::flush;
                             assert(false);
                         }
+                        */
                         
-                        
+                        //std::cout<<"v_new = " << &v_new << std::endl;
                         main_queue.push(std::move(v_new));
-
+                        //std::cout<<"v_new is in the queue" << &v_new << std::endl;
+                        //std::cout << "about to erase " << &(it->get_point()) << std::endl;
+                      
                         
-                        //BIG TODO:
-                        delete (it->get_pointer() );
-                        //std::cout << it->get_pointer() <<std::endl;
-                        hash_tables.remove_from_hash_tables(hash_value, &(it->get_point()), t);
+                        it = hash_tables.remove_from_all_hash_tables(&(it->get_point()), t);
                         //std::cout << "finished erase " << std::endl;
-                        
-
-                        it = hash_tables.candidates(t,hash_value).erase(it);
-                        //std::cout << "finished last erase " << std::endl;
+                      
                         
 
                     }
@@ -284,12 +283,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 
         }//iteration over hash-tables
 
+        /*
         if (p.is_zero() )
         {
             number_of_collisions++;
             return;
         }
-
+        */
+      hash_tables.add_to_all_hash_tables(p);
 
         if(update_shortest_vector_found(p))
         {
@@ -299,7 +300,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             }
         }
     }
-     */
+     
 
 /*
         OLD IMPLEMENTATION
