@@ -226,12 +226,20 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     //assert(main_list.empty()); We don't have a function to check that yet...
     if (verbosity>=2) {std::cout <<"Initializing list with original basis..." << std::endl;}
 
+
+
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
 //        FastAccess_Point tmppoint(original_basis[i]);
+
         it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
                                      lattice_basis.get_basis_vector(i).make_copy() ) );
+
+        /*
+        it = main_list.insert_before(it, static_cast<typename SieveTraits::HashedGaussList_Stored> (
+                                     lattice_basis.get_basis_vector(i).make_copy() ) );
+        */
 
         ++it;
 
@@ -241,7 +249,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 
     current_list_size+=lattice_rank;
 
- #ifdef USE_LSH
+#ifdef USE_LSH
     if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}
     hash_tables.initialize_hash_tables(ambient_dimension);
     for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)

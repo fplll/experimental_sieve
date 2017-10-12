@@ -14,10 +14,12 @@
 #include "DebugAll.h"
 #include "SieveUtility.h"
 #include "ExactLatticePoint.h"
+#include "HashedLatticePoint.h"
 
 namespace GaussSieve{
 
 template <class ET, int nfixed> class ExactLatticePoint;
+template <class ET, int nfixed> class HashedLatticePoint;
 
 template <class ET, int nfixed, class EntryType> class FilteredPointPointer;
 
@@ -29,9 +31,13 @@ template <class ET, int nfixed, class EntryType> class FilteredPointPointer;
 template <class ET, int nfixed, class SC>
 class FilteredPointPointer
 {
-public:
+  public:
     
+#ifndef USE_LSH
     using StoredPoint = ExactLatticePoint<ET,nfixed>;
+#else
+    using StoredPoint = HashedLatticePoint<ET,nfixed>;
+#endif
 
     FilteredPointPointer()=delete;
     FilteredPointPointer(const FilteredPointPointer &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}

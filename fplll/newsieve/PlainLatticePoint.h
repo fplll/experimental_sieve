@@ -16,6 +16,7 @@ namespace GaussSieve
 // dimension is static
 template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class ExactLatticePoint; //for friend declaration
+template <class ET, int nfixed> class HashedLatticePoint; //for friend declaration
 
 template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, nfixed>>
 {
@@ -88,7 +89,9 @@ class PlainLatticePoint<ET, -1> : public GeneralLatticePoint<PlainLatticePoint<E
 {
 public:
   friend ExactLatticePoint<ET,-1>;
+  friend HashedLatticePoint<ET, -1>;
   friend StaticInitializer<PlainLatticePoint<ET,-1>>;
+  
   using LatticePointTag         = std::true_type;
 //  using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductStorageType = ET;

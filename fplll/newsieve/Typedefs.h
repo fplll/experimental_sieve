@@ -19,6 +19,7 @@
 #include "FilteredPoint2.h"
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
+#include "HashedLatticePoint.h"
 
 
 namespace GaussSieve
@@ -35,6 +36,7 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 template <class ET, int nfixed> class MyLatticePoint;
 template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class ExactLatticePoint;
+template <class ET, int nfixed> class HashedLatticePoint;
 
 class JustSomeExampleSieveTraitsThatDoNotWork
 {
@@ -69,13 +71,31 @@ template
 class DefaultSieveTraits
 {
   public:
+  
+  //static constexpr int max_bucket_size = 250;
+  
   using IsSieveTraitsClass = std::true_type;
+  
+#ifndef USE_LSH
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
+  using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
+
+#else
+  using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
+  using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
+  using GaussList_ReturnType    = HashedLatticePoint<ET,nfixed>;
+  using FastAccess_Point        = HashedLatticePoint<ET,nfixed>;
+  
+  //--------HYPERPLANE LSH SPECIFIC----------
+  static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
+  static constexpr int number_of_hash_functions = 11;
+#endif
+
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
-  using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
+
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
   using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
@@ -94,11 +114,6 @@ class DefaultSieveTraits
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
 
-
-  //--------HYPERPLANE LSH SPECIFIC----------
-  static constexpr unsigned short number_of_hash_tables = 12;
-  static constexpr int number_of_hash_functions = 11;
-  static constexpr int max_bucket_size = 250;
 };
 
 
