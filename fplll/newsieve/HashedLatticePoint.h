@@ -51,8 +51,8 @@ public:
         std::vector<ET>  >::type;               // if nfixed <0
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
-        
-      
+
+
   //TODO: MAKE PROPERLY
   static constexpr unsigned short number_of_hash_tables = 102;
 
@@ -162,7 +162,7 @@ template<class ET, int nfixed> class StaticInitializer<HashedLatticePoint<ET,nfi
   using Parent = DefaultStaticInitializer<HashedLatticePoint<ET,nfixed>>;
   public:
 
-  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  template<class T,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<T>::value)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)

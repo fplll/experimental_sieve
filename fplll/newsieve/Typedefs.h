@@ -71,11 +71,11 @@ template
 class DefaultSieveTraits
 {
   public:
-  
+
   //static constexpr int max_bucket_size = 250;
-  
+
   using IsSieveTraitsClass = std::true_type;
-  
+
 #ifndef USE_LSH
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
@@ -87,7 +87,7 @@ class DefaultSieveTraits
   using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = HashedLatticePoint<ET,nfixed>;
   using FastAccess_Point        = HashedLatticePoint<ET,nfixed>;
-  
+
   //--------HYPERPLANE LSH SPECIFIC----------
   static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
   static constexpr int number_of_hash_functions = 11;
@@ -104,7 +104,7 @@ class DefaultSieveTraits
   //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
   using FlilteredPointType      = FilteredPointPointer<ET, nfixed, EntryType>;
   using FilteredListType        = std::vector<FlilteredPointType>;
-  using GlobalStaticDataInitializer = StaticDataInitializer<DimensionType>;
+  using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type
