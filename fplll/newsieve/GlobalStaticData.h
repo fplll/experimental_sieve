@@ -20,6 +20,7 @@ template<class DimensionType> struct StaticInitializerArg;
 
 
 // This is the default initializer, which does nothing apart from counting number of instances.
+// Note that typically, we inherit from this, which is the reason why it is templated by T.
 
 template<class T>
 class DefaultStaticInitializer
@@ -32,7 +33,7 @@ class DefaultStaticInitializer
 #endif
   static unsigned int get_user_count() { return user_count; }
   static unsigned int user_count; // counts the number of objects of this type that exist, essentially.
-  explicit DefaultStaticInitializer(){++user_count;};
+  explicit DefaultStaticInitializer(){ ++user_count; };
 
   template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
   explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
@@ -73,13 +74,8 @@ struct StaticInitializerArg
   using StaticInitializerArgTag = std::true_type;
   DimensionType const dim;
 //  unsigned int const dim_int;
-
   constexpr StaticInitializerArg(DimensionType const &new_dim) : dim(new_dim) {}
 };
-
-
-
-
 
 } // namespace
 

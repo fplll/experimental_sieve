@@ -24,6 +24,7 @@
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
 		<Unit filename="GlobalStaticData.h" />
+		<Unit filename="HashedLatticePoint.h" />
 		<Unit filename="HyperplaneLSH.h" />
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />

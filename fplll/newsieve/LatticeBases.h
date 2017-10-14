@@ -30,7 +30,6 @@ namespace GaussSieve
 
 template<class SieveTraits, bool MT, bool Enabled=true> class SieveLatticeBasis;
 
-
 // unusable default, until someone implements more general GSOs...
 template<class SieveTraits, bool MT, bool Enabled>
 class SieveLatticeBasis
@@ -211,8 +210,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
     double root_det =GSO.get_root_det(1, lattice_rank).get_d();
     double mink_bound_d = 0.076 * root_det * static_cast<double>(lattice_rank);
     mink_bound = static_cast<InputET_NOZNRFixed>(mink_bound_d);
-    std::cout << "mink_bound is det to:  " << mink_bound << std::endl;
-
+    std::cout << "mink_bound is set to: " << mink_bound << std::endl;
   }
 
   InputET_NOZNRFixed get_minkowski_bound() const
@@ -241,6 +239,8 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   // The reason is that PlainLatticePoint<...> might contain static data that needs to be set
   // before we (even default-) construct any PlainLatticePoint.
   // This includes constructing PlainLatticePoints from the initializer list of SieveLatticeBasis.
+
+  // TODO: This argument should no longer apply with RAII style initializers.
   BasisVectorType *basis_vectors;
   double maxbistar2;
 };
