@@ -111,6 +111,11 @@ private:
 protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
+  
+  #ifdef PROGRESSIVE
+  uint_fast16_t progressive_rank;
+  #endif
+  
 };
 
 // clang-format on

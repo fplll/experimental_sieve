@@ -41,6 +41,10 @@ void Sampler<SieveTraits, MT, Engine, Sseq>::init(Sieve<SieveTraits, MT> *const 
     engine.init(sieve->get_num_threads());
 #endif
 
+#ifdef PROGRESSIVE
+  uint_fast16_t progressive_rank = sieveptr->get_progressive_rank();
+#endif
+
   custom_init(input_basis);
   //    cout << "Finished custom initialization" << endl << flush;
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Finished Initializing Sampler.")

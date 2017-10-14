@@ -73,6 +73,7 @@ private:
   std::vector<double> maxdeviations;  // stores s*cutoff for each dimension.
   DimensionType dim;
   uint_fast16_t lattice_rank;
+  
   double cutoff;
   bool initialized;
 
@@ -81,6 +82,10 @@ protected:
   using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
   using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
   std::vector<typename SieveTraits::PlainPoint> basis;
+  
+  #ifdef PROGRESSIVE
+  uint_fast16_t progressive_rank;
+  #endif
 
   StaticInitializer<RetType> *static_init_rettype;
   StaticInitializer<typename SieveTraits::PlainPoint> *static_init_plainpoint;
