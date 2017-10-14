@@ -312,8 +312,12 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   // check if the current list is long enough and contains enough short vectors
   
   //TODO: precompute
-  unsigned int log_bound = this->get_progressive_rank()*round(list_size_k2 / 2);
+  double log_bound = this->get_progressive_rank()*(list_size_k2)+1;
   unsigned long int bound = pow(2, log_bound);
+  
+  //std::cout << "log_bound = " <<  log_bound <<  " prog_rank " << this->get_progressive_rank() << std::endl;
+  //std::cout << "bound = " <<  bound <<  " |L| = " << get_current_list_size() << std::endl;
+  
   if (this->get_current_list_size() > bound)
     return true;
   return false;

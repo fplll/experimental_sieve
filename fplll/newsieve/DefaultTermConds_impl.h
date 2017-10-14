@@ -69,6 +69,7 @@ inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTrai
       return (sieve->get_best_length2() <= target_length) ? 1 : 0;
     else
     {
+        //std::cout<< "about to check for enough vectors " << sieve->check_if_enough_short_vectors() <<std::endl;
         //check if the list contains enough short vectors <-must be adjusted to k
         if (sieve->check_if_enough_short_vectors() )
           sieve->increase_progressive_rank();
