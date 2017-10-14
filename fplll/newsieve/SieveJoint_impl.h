@@ -261,6 +261,10 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   //if(verbosity>=2)    {hash_tables.print_all_tables();};
 #endif
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
+
+#ifdef PROGRESSIVE
+  progressive_rank = lattice_rank / 2;
+#endif
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
     //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
@@ -297,6 +301,15 @@ template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 {
   return (term_cond->check(this) != 0)?true:false;
+};
+
+
+//for progressive sieving
+template<class SieveTraits>
+bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vectors()
+{
+  // check if the current list is long enough and contains enough short vectors
+  return true;
 };
 
 }

@@ -224,6 +224,10 @@ public:
     void set_verbosity(int const new_verbosity)                       {verbosity=new_verbosity;return;};  //non-thread-safe
     unsigned int get_lattice_rank() const                       {return lattice_rank;};             //non-thread-safe
     DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
+    #ifdef PROGRESSIVE
+    unsigned int get_progressive_rank() const                   {return progressive_rank;};
+    void increase_progressive_rank()                            { ++ progressive_rank;};
+    #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
     void set_k(unsigned int const new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
     bool is_multithreaded_wanted() const                        {return multi_threaded_wanted;};    //Note: No setter
@@ -252,6 +256,10 @@ public:
     #ifdef USE_LSH
     unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
     #endif
+    
+    
+    bool check_if_enough_short_vectors();
+    
     //-----------------STATISTICS----------------
     unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;};
     unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;};
@@ -287,6 +295,9 @@ private:
 
 
     unsigned int lattice_rank;
+    #ifdef PROGRESSIVE
+    unsigned int progressive_rank; 
+    #endif
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     unsigned int num_threads_wanted;        //number of threads that we spawn

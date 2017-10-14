@@ -2,7 +2,8 @@
 
 #define USE_REGULAR_QUEUE //comment out if you use priority-queue
 
-#define USE_LSH
+//#define USE_LSH
+#define PROGRESSIVE // progressive-sieve on
 
 #include "fplll.h"
 #include <thread>
