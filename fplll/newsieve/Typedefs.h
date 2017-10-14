@@ -30,6 +30,10 @@ long double constexpr pi_long = 3.1415926535897932384626433832795028841971693993
 double constexpr pi_double    = 3.14159265358979323846264338327950288419716939937510;
 long double constexpr pi      = 3.14159265358979323846264338327950288419716939937510L;
 
+double constexpr list_size_k2 = 0.2075187494;
+double constexpr list_size_k3 = 0.1887218757;
+double constexpr list_size_k4 = 0.1723692862; 
+
 
 
 // forward-declarations:
