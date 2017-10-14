@@ -91,7 +91,7 @@ public:
   friend ExactLatticePoint<ET,-1>;
   friend HashedLatticePoint<ET, -1>;
   friend StaticInitializer<PlainLatticePoint<ET,-1>>;
-  
+
   using LatticePointTag         = std::true_type;
 //  using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductStorageType = ET;
@@ -145,7 +145,7 @@ template<class ET, int nfixed> class StaticInitializer<PlainLatticePoint<ET,nfix
   static_assert(nfixed>=0,"nfixed == -1 is specialized.");
   public:
 
-  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  template<class T,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<T>::value)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
@@ -165,7 +165,7 @@ template<class ET> class StaticInitializer<PlainLatticePoint<ET,-1>>
   using Parent = DefaultStaticInitializer<PlainLatticePoint<ET,-1>>;
   public:
 
-  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  template<class T,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<T>::value)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
   StaticInitializer(MaybeFixed<-1> const new_dim)

@@ -155,7 +155,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   using Parent = DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>;
   public:
 
-  template<class T,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<T>::value)>
+  template<class T,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<T>::value)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)

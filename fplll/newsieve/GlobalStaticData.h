@@ -9,16 +9,18 @@
 
 namespace GaussSieve{
 
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS(StaticDataInitializerTag,IsStaticDataInitializer);
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS(StaticInitializerArgTag,IsArgForStaticInitializer);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS(HasDefaultStaticInitializer,IsStaticInitializerDefaulted);
 
-// Initializer for static data.
-// This is the default initializer, which does nothing.
+//
 
 template<class T> class StaticInitializer;
 template<class T> class DefaultStaticInitializer;
-template<class DimensionType> struct StaticDataInitializer;
+template<class DimensionType> struct StaticInitializerArg;
 
+
+// This is the default initializer, which does nothing apart from counting number of instances.
+// Note that typically, we inherit from this, which is the reason why it is templated by T.
 
 template<class T>
 class DefaultStaticInitializer
@@ -31,8 +33,9 @@ class DefaultStaticInitializer
 #endif
   static unsigned int get_user_count() { return user_count; }
   static unsigned int user_count; // counts the number of objects of this type that exist, essentially.
-  explicit DefaultStaticInitializer(){++user_count;};
-  template<class X,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<X>::value)>
+  explicit DefaultStaticInitializer(){ ++user_count; };
+
+  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
   explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
 
 
@@ -43,18 +46,19 @@ class DefaultStaticInitializer
 
   ~DefaultStaticInitializer()
   {
-//    assert(init_count>0);
     --user_count;
   }
 };
+// initialize static data this class:
 template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
 
+// StaticInitializer<T> for classes T that have the IsStaticInitializerDefaulted Trait
 template<class T>
 class StaticInitializer : public DefaultStaticInitializer<T>
 {
   static_assert(IsStaticInitializerDefaulted<T>::value,"Missing Static Initializer");
   explicit StaticInitializer() = default;
-  template<class X,TEMPL_RESTRICT_DECL(IsStaticDataInitializer<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
   explicit StaticInitializer(X const &) : StaticInitializer() {}
   template<class X,TEMPL_RESTRICT_DECL(std::is_integral<X>::value)>
   [[deprecated]] explicit StaticInitializer(X const &) : StaticInitializer() {}
@@ -65,18 +69,13 @@ class StaticInitializer : public DefaultStaticInitializer<T>
 
 
 template<class DimensionType>
-struct StaticDataInitializer
+struct StaticInitializerArg
 {
-  using StaticDataInitializerTag = std::true_type;
+  using StaticInitializerArgTag = std::true_type;
   DimensionType const dim;
 //  unsigned int const dim_int;
-
-  constexpr StaticDataInitializer(DimensionType const &new_dim) : dim(new_dim) {}
+  constexpr StaticInitializerArg(DimensionType const &new_dim) : dim(new_dim) {}
 };
-
-
-
-
 
 } // namespace
 
