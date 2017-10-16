@@ -183,7 +183,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     original_basis(B),
     lattice_basis(B,global_static_data),
     main_list(global_static_data),
-    main_queue(this),
+    main_queue(this,global_static_data),
     lattice_rank(B.get_rows()),
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
@@ -310,14 +310,14 @@ template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vectors()
 {
   // check if the current list is long enough and contains enough short vectors
-  
+
   //TODO: precompute
   double log_bound = this->get_progressive_rank()*(list_size_k2)+1;
   unsigned long int bound = pow(2, log_bound);
-  
+
   //std::cout << "log_bound = " <<  log_bound <<  " prog_rank " << this->get_progressive_rank() << std::endl;
   //std::cout << "bound = " <<  bound <<  " |L| = " << get_current_list_size() << std::endl;
-  
+
   if (this->get_current_list_size() > bound)
     return true;
   return false;

@@ -13,6 +13,7 @@
 #include "Typedefs.h"
 //#include "EllipticSampler.h"
 #include "Sampler.h"
+#include "GlobalStaticData.h"
 
 namespace GaussSieve{
 
@@ -61,6 +62,8 @@ class GaussQueue<SieveTraits,false>
 public:
     using DataType = typename SieveTraits::GaussQueue_DataType;    //Type of Data internally stored
     using RetType=   typename SieveTraits::GaussQueue_ReturnType;    //Type of Data returned
+    using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
+
     static_assert(std::is_same<DataType,RetType>::value, "Currently, DataType and RetType must be identical.");
 #ifndef USE_REGULAR_QUEUE
     // TODO: Make this one work (and actually a template argument)
@@ -70,7 +73,8 @@ public:
     using QueueType = std::queue<DataType*>;
 #endif
     GaussQueue()=delete;
-    explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve); //only constructor
+    explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
+      GlobalStaticDataInitializer const &static_data); //only constructor
     GaussQueue(GaussQueue const &old) = delete;
     GaussQueue(GaussQueue &&old) = delete;
     GaussQueue& operator= (GaussQueue const &old)=delete;
@@ -91,6 +95,8 @@ public:
     inline auto true_pop() -> RetType; //removes front element from queue *and returns it*.
 
 private:
+    StaticInitializer<DataType> const init_data_type;
+    StaticInitializer<RetType>  const init_ret_type;
     QueueType main_queue;           //actual queue of lattice points to be processed.
     Sieve<SieveTraits,false>* const gauss_sieve;   //pointer to caller object.
 public:

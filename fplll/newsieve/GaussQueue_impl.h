@@ -12,8 +12,11 @@ namespace GaussSieve
 
 //constructor
 template<class SieveTraits>
-GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false> * const caller_sieve)
+GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false> * const caller_sieve,
+  GlobalStaticDataInitializer const &static_data)
 :
+init_data_type(static_data),
+init_ret_type(static_data),
 main_queue(),
 gauss_sieve(caller_sieve),
 sampler(nullptr)
