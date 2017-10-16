@@ -223,7 +223,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   InputBasisType original_basis;
   public:
   DimensionType const ambient_dimension;
-  StaticInitializer<BasisVectorType> init_basis_vector_type;
+  StaticInitializer<BasisVectorType> const init_basis_vector_type;
   uint_fast16_t const lattice_rank;      // Technically, just number of vectors.
                                   // We don't verify linear independence ourselves.
                                   // (even though GSO computation does, probably)

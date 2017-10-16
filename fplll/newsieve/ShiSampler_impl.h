@@ -34,11 +34,11 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
   dim           = input_basis.ambient_dimension;
   lattice_rank  = input_basis.lattice_rank;
-  
+
   #ifdef PROGRESSIVE
   progressive_rank = sieveptr->get_progressive_rank();
   #endif
-  
+
   mu_matrix     = input_basis.get_mu_matrix();
 
   // vectors of length lattice_rank
@@ -91,7 +91,7 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
-ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
+ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 {
   assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -102,14 +102,14 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
 
   typename SieveTraits::PlainPoint vec;
   vec.fill_with_zero();
-  
+
 
   // shift, expressed in coordinates wrt the Gram-Schmidt basis.
   std::vector<double> shifts(lattice_rank, 0.0);
-  
- 
-  
-  
+
+
+
+
   // Note: This is a while - loop, because --j will cause trouble on unsigned j.
   // (With signed j, the correct for loop would be for(int j = lattice_rank-1 ; j>=0;--j) )
   {
@@ -118,7 +118,7 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
     #else
     uint_fast16_t j = lattice_rank;
     #endif
-    
+
     //std::cout << "j = " << j <<std::endl;
     while(j>0)
     {
@@ -134,9 +134,9 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int thread)
       }
     }
   }
-  
+
   //std::cout << "sampled vec = " << vec << std::endl;
-  
+
 
   typename SieveTraits::GaussSampler_ReturnType ret;
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);

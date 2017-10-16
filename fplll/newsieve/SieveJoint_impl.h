@@ -212,6 +212,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     ,garbage_bins(nullptr)
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 {
+
+// BIG TODO: Move these into their respective classes!
+
     if (SieveTraits::get_nfixed!=-1)
     {
         assert(B.get_cols() == SieveTraits::get_nfixed );

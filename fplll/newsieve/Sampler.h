@@ -91,7 +91,7 @@ public:
   */
   virtual SamplerType sampler_type() const { return SamplerType::user_defined; };
 
-  virtual GaussSampler_ReturnType sample(int thread = 0) = 0;  // thread is the index of the calling
+  virtual GaussSampler_ReturnType sample(int const thread = 0) = 0;  // thread is the index of the calling
                                                                // thread (we need to keep separate
                                                                // PRNGs for each thread)
 
@@ -111,11 +111,11 @@ private:
 protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
-  
+
   #ifdef PROGRESSIVE
   uint_fast16_t progressive_rank;
   #endif
-  
+
 };
 
 // clang-format on

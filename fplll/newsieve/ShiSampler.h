@@ -60,7 +60,7 @@ public:
 //      SieveTraits::PlainPoint::class_uninit();
     }
   };
-  virtual inline RetType sample(int thread = 0) override;
+  virtual inline RetType sample(int const thread = 0) override;
 
 private:
   inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis) override;
@@ -73,7 +73,7 @@ private:
   std::vector<double> maxdeviations;  // stores s*cutoff for each dimension.
   DimensionType dim;
   uint_fast16_t lattice_rank;
-  
+
   double cutoff;
   bool initialized;
 
@@ -82,7 +82,7 @@ protected:
   using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
   using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
   std::vector<typename SieveTraits::PlainPoint> basis;
-  
+
   #ifdef PROGRESSIVE
   uint_fast16_t progressive_rank;
   #endif
