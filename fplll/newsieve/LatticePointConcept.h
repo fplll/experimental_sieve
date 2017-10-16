@@ -167,12 +167,14 @@ class GeneralLatticePoint
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
 
-    using AuxDataType = typename GetAuxDataType<LatP>::type;
+//    using AuxDataType = typename GetAuxDataType<LatP>::type;
+
     using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
     using ScalarProductStorageType_Full = typename GetScalarProductStorageType_Full<LatP>::type;
 
     private:
-    explicit constexpr GeneralLatticePoint()=default; //only callable from its friends
+    // Empty base class, only callable from its friends (i.e. from LatP)
+    explicit constexpr GeneralLatticePoint()=default;
     public:
 
     // This is just to match the implementation of a typical instantiation.
@@ -210,7 +212,7 @@ class GeneralLatticePoint
     template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
     inline LatP& operator-=(LatP2 const &x2);
 
-    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<typename std::decay<LatP2>::type >::value)>
+    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<typename std::decay<LatP2>::type>::value)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
     template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
@@ -311,7 +313,7 @@ class GeneralLatticePoint
 
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
-    // However, out-of-class definition get messy with overloading.
+    // However, out-of-class definitions get messy with overloading.
     MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 

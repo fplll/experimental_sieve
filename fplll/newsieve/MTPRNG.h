@@ -42,9 +42,10 @@ template <class Engine, bool MT, class Sseq> class MTPRNG;
 
  We only support double for the floating point numbers. For sieving algorithms, there is no really
  good reason for now to support different precisions, as sampling does not dominate anyway.
+ Furthermore, the algorithm is not very sensitive to the quality of the samples.
 
  Note: if one ever wants to have higher precision, one also needs to adjust the PRNGs to actually
- output high precision.
+ output high precision. (std::... only supports double)
 
  engine is supposed to be a random number engine (as defined by the STL).
 

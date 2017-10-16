@@ -62,13 +62,13 @@ public:
     using DataType = typename SieveTraits::GaussQueue_DataType;    //Type of Data internally stored
     using RetType=   typename SieveTraits::GaussQueue_ReturnType;    //Type of Data returned
     static_assert(std::is_same<DataType,RetType>::value, "Currently, DataType and RetType must be identical.");
-    #ifndef USE_REGULAR_QUEUE
+#ifndef USE_REGULAR_QUEUE
     // TODO: Make this one work (and actually a template argument)
     static_assert(false, "Only regular queue might work at the moment");
-    using QueueType =      std::priority_queue< DataType* , std::vector<DataType* >, IsLongerVector_ExactPtr<ET,false,nfixed> >;
-    #else
-    using QueueType =      std::queue<DataType*>;
-    #endif
+    using QueueType = DOES NOT WORK : std::priority_queue< DataType* , std::vector<DataType* >, IsLongerVector_ExactPtr<ET,false,nfixed> >;
+#else
+    using QueueType = std::queue<DataType*>;
+#endif
     GaussQueue()=delete;
     explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve); //only constructor
     GaussQueue(GaussQueue const &old) = delete;
@@ -93,7 +93,6 @@ public:
 private:
     QueueType main_queue;           //actual queue of lattice points to be processed.
     Sieve<SieveTraits,false>* const gauss_sieve;   //pointer to caller object.
-    //SamplerType *sampler; //controlled by the GaussSieve currently. TODO: Change that
 public:
     Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> * sampler; //or a type derived from it.
 };

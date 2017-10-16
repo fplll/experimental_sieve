@@ -85,8 +85,8 @@ public:
     void sort() {actual_list.sort();};  //only for single-threaded (for now).
 
 private:
-    StaticInitializer<StoredPoint> init_stored_point;
-    StaticInitializer<ReturnType>  init_return_type;
+    StaticInitializer<StoredPoint> const init_stored_point;
+    StaticInitializer<ReturnType>  const init_return_type;
     UnderlyingContainer actual_list;
 };
 
