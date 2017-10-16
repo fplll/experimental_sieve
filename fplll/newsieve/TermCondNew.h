@@ -60,6 +60,8 @@ template<class SieveTraits, bool MT> class MinkowskiTerminationCondition;
 template<class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond); //printing
 template<class SieveTraits, bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond); //reading (also used by constructor from istream)
 
+// types of Termination Condition recognized. Note that we may have user-provided Termination
+// conditions.
 enum class TerminationConditionType
 {
     user_defined = 0,
