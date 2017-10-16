@@ -92,7 +92,7 @@ public:
 
 private:
     QueueType main_queue;           //actual queue of lattice points to be processed.
-    Sieve<SieveTraits,false>* gauss_sieve;   //pointer to caller object.
+    Sieve<SieveTraits,false>* const gauss_sieve;   //pointer to caller object.
     //SamplerType *sampler; //controlled by the GaussSieve currently. TODO: Change that
 public:
     Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> * sampler; //or a type derived from it.
