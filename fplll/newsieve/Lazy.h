@@ -159,7 +159,6 @@ template<class ELP, class Approximation> class LazyWrapExactScalar
   Wraps around a pair of Exact/Approx Scalar.
 */
 
-
 template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 {
   public:
@@ -179,13 +178,17 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
   TreeType const args;
 };
 
+/**
+  Wraps around an exact vector
+*/
+
 template<class ELP, class Approximation> class LazyWrapExactVector
 {
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
   using TreeType = ExactVectorType const &;
   using ExactEvalType = ExactVectorType const &;
-  using ApproxEvalType = ApproxVectorType;
+  using ApproxEvalType = ApproxVectorType; // No reference here!
 
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
 
@@ -198,6 +201,10 @@ template<class ELP, class Approximation> class LazyWrapExactVector
   TreeType const args;
 };
 
+/**
+  Wraps around a exact/approximate pair for a vector.
+*/
+
 template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 {
   public:
@@ -209,11 +216,37 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
   constexpr LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
   :args(std::tie(exact_vector,approx_vector)) {}
-  constexpr ExactVectorType const & eval_exact() { return std::get<0>(args); }
-  constexpr ApproxVectorType const & eval_approx() { return std::get<1>(args); }
+  CXX14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
+  CXX14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
   TreeType const args;
 };
+
+/**
+  Layz_F functions.
+  These classes provide a unified interface to call various functions F on
+  expression trees.
+  The interface is as follows:
+  Lazy_F<ELP,Approximation,Arg1,Arg2,...> has 2+nargs template arguments of class type, where Argi
+  is the type of the ith argument (either SieveLazyEval or LazyWrap*)
+
+  The class is static (i.e. cannot be instantiated)
+  It provides the following public typedefs / static constants:
+  static constexpr int nargs : number of arguments.
+  static constexpr ScalarOrVector scalar_or_vector : Result of evaluation
+  typename ExactEvalType : Result Type of Exact Evaluation
+  typename ApproxEvalType: Result Type of Approximate Evaluation
+  static functions eval_exact and eval_approx
+    These take a single argument of Type std::tuple<arg_tree1,arg_tree2,...>
+    where arg_treei is Argi::TreeType
+    The functions perform the actual evaluation of F by unpacking the tuple,
+    evaluating the subtrees and then actually performing F.
+*/
+
+/**
+  Identity function. F(x) = x. Can be used to promote a
+  LazyWrap* to a SieveLazyEval<ELP,Approxiomation,Lazy_Identity<...>,...>
+  */
 
 template<class ELP, class Approximation, class Arg> class Lazy_Identity
 {
@@ -224,17 +257,23 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
   static constexpr ScalarOrVector scalar_or_vector = Arg::scalar_or_vector;
   using ExactEvalType = typename Arg::ExactEvalType;
   using ApproxEvalType= typename Arg::ApproxEvalType;
-
+  Lazy_Identity(...) = delete;
   // C++14 decltype(auto) would really be helpful here...
-  inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
+  CXX14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_exact();
   }
-  inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
+  CXX14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_approx();
   }
 };
+
+/**
+  Scalar Product function. Delegates to
+    compute_sc_product_exact resp. compute_sc_product_approx
+  of its arguments.
+*/
 
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
 {
@@ -266,9 +305,5 @@ template<class ELP, class Approximation, class LHS, class RHS> class Lazy_Scalar
 };
 
 }} //end namespaces
-
-
-
-
 
 #endif
