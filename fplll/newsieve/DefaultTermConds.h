@@ -14,6 +14,7 @@ namespace GaussSieve
 {
 
 // computes a meaningful Minkowski bound for the length of the shortest vector
+// Removed, because it is provided by LatticeBases now.
 // inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const &basis);
 
 // default Termination Conditions here:
@@ -84,7 +85,7 @@ public:
   };
 
 private:
-  EntryType target_length;
+  EntryType target_length; // TODO: Make const (requires change to read_from_stream)
 };
 
 /**

@@ -10,8 +10,9 @@
 #include <vector>
 #include "GlobalStaticData.h"
 
-/** This defines a lattice point approximation, where the approximation consists of
-a (shared) exponenent and a vector of >= 16-bit mantissas.
+/**
+  This defines a lattice point approximation, where the approximation consists of
+  a (shared) exponenent and a vector of >= 16-bit mantissas.
 */
 
 namespace GaussSieve{
@@ -43,7 +44,7 @@ class EMVScalar
   inline double get_double() const { return std::ldexp(mantissa,exponent); };
 
   // default constructor
-  explicit EMVScalar(int const new_exponent, MantissaType const new_mantissa):
+  constexpr explicit EMVScalar(int const new_exponent, MantissaType const new_mantissa):
     exponent(new_exponent), mantissa(new_mantissa) {};
 
   // construct from integral or floating type
@@ -53,6 +54,8 @@ class EMVScalar
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
+
+  // helper functions: included as static functions tied to the class:
 
   // get_exponent(source) Returns an exponent, such that source = 2^exponent * x,
   // where 1/2 - eps <= |x| < 1.
@@ -66,7 +69,7 @@ class EMVScalar
 
   // divides by 2^exp. In the integer and mpz_class version, we assume that exp is positive
   template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
-  static Integer divide_by_power_of_2(Integer const source_int, unsigned int exponent);
+  constexpr static Integer divide_by_power_of_2(Integer const source_int, unsigned int exponent);
   template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
@@ -84,7 +87,7 @@ class EMVApproximation
   StaticInitializer<EMVApproximation<nfixed>>;
   public:
 
-  using AuxData = MaybeFixed<nfixed>; // No need for a traits class.
+//  using AuxData = MaybeFixed<nfixed>; // No need for a traits class.
   using ScalarProductType = EMVScalar;
 
   private:
@@ -132,6 +135,8 @@ class EMVApproximation
   static unsigned int max_bits; // maximum number of bits inside each entry.
                                 // This depends on the bitlenght of both ApproxEntryType
                                 // and ApproxNorm2Type, as well as on dim.
+
+// TODO: Remove (DefaultStaticInit's job)
 #ifdef DEBUG_SIEVE_LP_INIT
   static bool class_initialized;
 #endif // DEBUG_SIEVE_LP_INIT
@@ -241,7 +246,7 @@ signed int EMVScalar::get_exponent(mpz_class const &source_mpz)
 }
 
 template<class Integer, TEMPL_RESTRICT_IMPL((std::is_integral<Integer>::value))>
-Integer EMVScalar::divide_by_power_of_2(Integer const source_int, unsigned int exponent)
+constexpr Integer EMVScalar::divide_by_power_of_2(Integer const source_int, unsigned int exponent)
 {
   return source_int / (1<<exponent); // Note: We don't right-shift source_int, because it might be
                                      // negative
@@ -340,7 +345,7 @@ inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
 }
 
 template<class T,
-typename std::enable_if < !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
 >
 inline bool operator< (EMVScalar const & lhs, T && rhs)
 {
@@ -348,7 +353,7 @@ inline bool operator< (EMVScalar const & lhs, T && rhs)
 }
 
 template<class T,
-typename std::enable_if < !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
 >
 inline bool operator< (T && lhs, EMVScalar const & rhs)
 {
@@ -357,7 +362,7 @@ inline bool operator< (T && lhs, EMVScalar const & rhs)
 
 
 template<class T,
-typename std::enable_if < !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
 >
 inline bool operator> (EMVScalar const & lhs, T && rhs)
 {
@@ -365,7 +370,7 @@ inline bool operator> (EMVScalar const & lhs, T && rhs)
 }
 
 template<class T,
-typename std::enable_if < !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
 >
 inline bool operator> (T && lhs, EMVScalar const & rhs)
 {
