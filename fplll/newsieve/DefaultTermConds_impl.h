@@ -64,20 +64,21 @@ inline int LengthTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTraits,
 template <class SieveTraits, bool MT>
 inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTraits, MT> *const sieve)
 {
+  
+  if (sieve->get_best_length2() <= target_length)
+    return true;
+  
   #ifdef PROGRESSIVE
     if (sieve->get_progressive_rank() == sieve->get_lattice_rank())
       return (sieve->get_best_length2() <= target_length) ? 1 : 0;
     else
     {
-        //std::cout<< "about to check for enough vectors " << sieve->check_if_enough_short_vectors() <<std::endl;
         //check if the list contains enough short vectors <-must be adjusted to k
         if (sieve->check_if_enough_short_vectors() )
           sieve->increase_progressive_rank();
           
         return false;
     }
-  #else
-  return (sieve->get_best_length2() <= target_length) ? 1 : 0;
   #endif
 }
 
