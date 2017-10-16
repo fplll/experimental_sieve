@@ -13,6 +13,7 @@
 #include "gmpxx.h"
 #include "gmp.h"
 
+
 namespace GaussSieve{
 template <class T> class IgnoreArg;
 class IgnoreAnyArg;

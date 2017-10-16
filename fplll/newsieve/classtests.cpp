@@ -171,6 +171,8 @@ int main(int argc, char **argv)
     std::cout << "Lazy Evaluations work as expected" << std::endl;
   }
 #endif
+
+  std::cout << __cpp_constexpr;
   return 0; // indicating success.
 
 }

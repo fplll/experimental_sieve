@@ -7,5 +7,6 @@
 #include <string>
 #include <iostream>
 #include "assert.h"
+#include "Compat.h"
 
 #endif
