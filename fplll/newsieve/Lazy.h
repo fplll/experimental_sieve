@@ -172,8 +172,8 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
   constexpr LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
   : args(std::tie(exact_scalar,approx_scalar)  ) {}
   // These constexprs might require C++14
-  inline CXX14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
-  inline CXX14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
+  inline CPP14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
+  inline CPP14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
 
   TreeType const args;
 };
@@ -216,8 +216,8 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
   constexpr LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
   :args(std::tie(exact_vector,approx_vector)) {}
-  CXX14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
-  CXX14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
+  CPP14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
+  CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
   TreeType const args;
 };
@@ -259,11 +259,11 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
   using ApproxEvalType= typename Arg::ApproxEvalType;
   Lazy_Identity(...) = delete;
   // C++14 decltype(auto) would really be helpful here...
-  CXX14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_exact();
   }
-  CXX14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_approx();
   }
