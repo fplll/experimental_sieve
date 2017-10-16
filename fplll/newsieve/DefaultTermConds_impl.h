@@ -67,19 +67,19 @@ inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTrai
   
   if (sieve->get_best_length2() <= target_length)
     return true;
-  
-  #ifdef PROGRESSIVE
-    if (sieve->get_progressive_rank() == sieve->get_lattice_rank())
-      return (sieve->get_best_length2() <= target_length) ? 1 : 0;
-    else
+  else
+  {
+#ifdef PROGRESSIVE
+    
+    //check if the list contains enough short vectors <-must be adjusted to k
+    if (sieve->check_if_enough_short_vectors() )
     {
-        //check if the list contains enough short vectors <-must be adjusted to k
-        if (sieve->check_if_enough_short_vectors() )
-          sieve->increase_progressive_rank();
-          
-        return false;
+      sieve->increase_progressive_rank();
     }
-  #endif
+    
+#endif
+    return false;
+  }
 }
 
 template <class SieveTraits, bool MT>
