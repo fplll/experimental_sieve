@@ -135,8 +135,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     // ! targets are squared
     
     //double px1_target = 0.1024;
-    double px1_target  = .1111; // TO ADJUST
-    //double px1_target = 0.123;
+    //double px1_target  = .1111; // TO ADJUST
+    double px1_target = 0.123;
 
     int scalar; //for 2-reduction
 
@@ -214,13 +214,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     //FOR DEBUGGING
 
-                    
+                    /*
                     if (p.get_norm2() > pnorm_old)
                     {
                         std::cout << "bug in computing p " << std::endl;
                         assert(false);
                     }
-
+                    */
 
                     if (p.is_zero() )
                     {

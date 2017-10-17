@@ -325,6 +325,16 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
     return true;
   return false;
 };
+  
+#ifdef PROGRESSIVE
+template<class SieveTraits>
+void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::increase_progressive_rank()
+{
+  ++(this->progressive_rank);
+  if (this->get_progressive_rank() == this->get_lattice_rank())
+    std::cout << "From now on we are full-rank" << std::endl;
+};
+#endif
 
 }
 
