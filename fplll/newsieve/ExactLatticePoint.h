@@ -34,6 +34,11 @@ public:
   using CoordinateType          = ET;
   using CheapNorm2              = std::true_type;
   using CheapNegate             = std::true_type;
+
+  using InternalRepIsAbsolute   = std::true_type;
+  using InternalRepByCoos       = std::true_type;
+  using InternalRepVector       = std::true_type;
+  using InternalRep_RW          = std::true_type;
 };
 
 template <class ET, int nfixed>

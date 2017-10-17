@@ -27,6 +27,11 @@ public:
   using AbsoluteCoos            = std::true_type;
   using CoordinateType          = ET;
   using CheapNegate             = std::true_type;
+
+  using InternalRepIsAbsolute   = std::true_type;
+  using InternalRepByCoos       = std::true_type;
+  using InternalRepVector       = std::true_type;
+  using InternalRep_RW          = std::true_type;
 };
 
 // for nfixed >=0 :

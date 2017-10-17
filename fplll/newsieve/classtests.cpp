@@ -174,4 +174,4 @@ int main(int argc, char **argv)
   return 0; // indicating success.
 }
 
-#include "ApproximatedPoint.h"
+//#include "ApproximatedPoint.h"

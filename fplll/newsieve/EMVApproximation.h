@@ -408,7 +408,7 @@ data()
   auto const dimension = get_dim();
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
   assert(dimension == exact_point.get_dim() );
-  assert(dimension == exact_point.get_vec_size() );
+  assert(dimension == exact_point.get_internal_rep_size() );
 #endif
 #ifdef DEBUG_SIEVE_LP_INIT
   assert(class_initialized);
@@ -492,11 +492,9 @@ inline std::ostream & operator<<(std::ostream &os, EMVApproximation<nfixed> cons
   return os;
 }
 
-
 } // end namespace
 
 #undef FOR_FIXED_DIM
 #undef FOR_VARIABLE_DIM
-
 
 #endif

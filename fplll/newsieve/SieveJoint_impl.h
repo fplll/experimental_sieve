@@ -126,7 +126,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
     if(howverb>=1) {
         of << "Best vector found so far=";
-        shortest_vector_found->write_to_stream(of);
+        shortest_vector_found->write_lp_to_stream(of,true);
         of << endl;
     }
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
@@ -325,7 +325,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
     return true;
   return false;
 };
-  
+
 #ifdef PROGRESSIVE
 template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::increase_progressive_rank()

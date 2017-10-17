@@ -16,20 +16,23 @@ namespace GaussSieve{
 **********************/
 
 template<class LatP>
-template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && HasCoos<LatP>::value && HasCoos<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
+  IsALatticePoint<LatP2>::value && HasInternalRep<Impl>::value && HasInternalRep<LatP2>::value)>
 inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
+  IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,"Different coordinate types. Probably an error.");
+  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,
+  "Different coordinate types. Probably an error.");
 
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = CREALTHIS->get_vec_size();
-  auto const dim2 = x2.get_vec_size();
+  auto const dim1 = CREALTHIS->get_internal_rep_size();
+  auto const dim2 = x2.get_internal_rep_size();
   assert(dim1 == dim2);
   #endif // DEBUG_SIEVE_LP_MATCHDIM
 
-  if(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value) // constexpr if
+  CPP17CONSTEXPRIF(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value)
   {
     if(CREALTHIS->get_norm2() != x2.get_norm2() )
     {
@@ -37,10 +40,10 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
     }
   }
 
-  auto const dim = CREALTHIS->get_vec_size();
+  auto const dim = CREALTHIS->get_internal_rep_size();
   for(uint_fast16_t i=0;i<dim;++i)
   {
-    if (CREALTHIS->operator[](i) != x2[i])
+    if (CREALTHIS->get_internal_rep(i) != x2.get_internal_rep(i))
     {
       return false;
     }
@@ -83,67 +86,72 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 ******************************************/
 
 template<class LatP>
-template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
+  IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
 inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
+  IMPL_IS_LATP;
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = CREALTHIS->get_vec_size();
-  auto const dim2 = x2.get_vec_size();
+  auto const dim1 = CREALTHIS->get_internal_rep_size();
+  auto const dim2 = x2.get_internal_rep_size();
   assert( dim1 == dim2 );
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
   #endif
-  auto const dim = CREALTHIS->get_vec_size();
+  auto const dim = CREALTHIS->get_internal_rep_size();
 //  auto const real_dim = x1.get_dim();
 //  LP NewLP(real_dim);
   for(uint_fast16_t i = 0; i < dim; ++i )
   {
-    ( REALTHIS->operator[](i) ) += x2[i];
+    ( REALTHIS->get_internal_rep(i) ) += x2.get_internal_rep(i);
   }
   REALTHIS->sanitize();
   return *REALTHIS;
 }
 
 template<class LatP>
-template<class LatP2, TEMPL_RESTRICT_IMPL(IsALatticePoint<LatP2>::value && IsCooVector<LatP>::value && HasCoos<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
+  IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
 inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 {
+  IMPL_IS_LATP;
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  auto const dim1 = CREALTHIS->get_vec_size();
-  auto const dim2 = x2.get_vec_size();
+  auto const dim1 = CREALTHIS->get_internal_rep_size();
+  auto const dim2 = x2.get_internal_rep_size();
   assert( dim1 == dim2 );
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
   #endif
-  auto const dim = CREALTHIS->get_vec_size();
+  auto const dim = CREALTHIS->get_internal_rep_size();
 //  auto const real_dim = x1.get_dim();
 //  LP NewLP(real_dim);
   for(uint_fast16_t i = 0; i < dim; ++i )
   {
-    REALTHIS->operator[](i) -= x2[i];
+    REALTHIS->get_internal_rep(i) -= x2.get_internal_rep(i);
   }
   REALTHIS->sanitize();
   return *REALTHIS;
 }
 
 template<class LatP>
-template<class Integer,
-  TEMPL_RESTRICT_IMPL(IsCooVector<LatP>::value && std::is_integral<Integer>::value)>
+template<class Integer, class Impl, TEMPL_RESTRICT_IMPL(
+  IsRepLinear_RW<Impl>::value && std::is_integral<Integer>::value)>
 inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
 {
+  IMPL_IS_LATP;
   DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
-  auto const dim = CREALTHIS->get_vec_size();
+  auto const dim = CREALTHIS->get_internal_rep_size();
   for(uint_fast16_t i=0;i<dim;++i)
   {
-    REALTHIS->operator[](i) *= multiplier;
+    REALTHIS->get_internal_rep(i) *= multiplier;
   }
-  if(IsNorm2Cheap<LatP>::value) // constexpr if
+  CPP17CONSTEXPRIF(IsNorm2Cheap<LatP>::value)
   {
-    REALTHIS->sanitize(CREALTHIS->get_norm2() * multiplier * multiplier );
+    REALTHIS->sanitize(CREALTHIS->get_norm2_exact() * multiplier * multiplier );
   }
   else
   {
@@ -158,6 +166,15 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
   out-of-class definitions of +,-,* etc.
 ******************************************/
 
+// This is actually tricky:
+// Be aware that LP1 && LP && below are universal references, NOT rvalue references!
+
+// The whole code relies on the fact that IsALatticePoint<LP> will only work
+// for LP a lattice point, but not a lvalue reference type to it.
+// (Note that the FOR_LATTICE_POINT* macros use IsALatticePoint)
+// Consequently, the unversal references behave (almost) like rvalue references.
+
+// binary +
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 const &x1, LP2 const &x2)
@@ -195,6 +212,38 @@ LP1 operator+(LP1 &&x1, LP2 && x2)
 //return addval(tmp,std::move(x2));
 }
 
+// binary minus
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 && x1, LP2 const &x2)
+{
+  LP1 tmp = std::move(x1);
+  tmp-=x2;
+  return tmp;
+}
+
+FOR_LATTICE_POINT_LP
+LP operator-(LP const &x1, LP &&x2)
+{
+  static_assert(IsNorm2Cheap<LP>::value,"Improve this code");
+  LP tmp = std::move(x2);
+  tmp.make_negative();
+  tmp+=x1;
+  return tmp;
+}
+
+FOR_LATTICE_POINTS_LP1_LP2
+LP1 operator-(LP1 && x1, LP2 && x2)
+{
+  LP1 tmp = std::move(x1);
+  tmp-=std::move(x2);
+  return tmp;
+}
+
+
 
 // unary minus
 
@@ -206,11 +255,11 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
   return tmp;
 }
 
-template<class LP, class Integer,
-  typename std::enable_if<IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
-  int>::type=0>
-LP operator*(LP const &x1, Integer const multiplier)
+// Note Integer is passed by value, even for mpz_classes. Not optimal...
+template<class LP, class Integer, TEMPL_RESTRICT_DECL(
+  IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value) )>
+inline LP operator*(LP const &x1, Integer const multiplier)
 {
 //  assert(false);
   LP tmp = x1.make_copy();
@@ -218,11 +267,10 @@ LP operator*(LP const &x1, Integer const multiplier)
   return tmp;
 }
 
-template<class LP, class Integer,
-  typename std::enable_if<IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value),
-  int>::type=0>
-LP operator*(LP &&x1, Integer const multiplier)
+template<class LP, class Integer, TEMPL_RESTRICT_DECL(
+  IsALatticePoint<LP>::value &&
+  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value) )>
+inline LP operator*(LP &&x1, Integer const multiplier)
 {
   LP tmp = std::move(x1);
   tmp*=multiplier;
@@ -230,25 +278,21 @@ LP operator*(LP &&x1, Integer const multiplier)
 }
 
 
-
-
 /*************************
 I/O
 *************************/
 
 template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL // This may be too strict.
-inline std::ostream& GeneralLatticePoint<LatP>::write_to_stream(std::ostream &os, bool const include_norm2) const
+inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream &os, bool const include_norm2) const
 {
-  IMPL_IS_LATP;
-  DEBUG_TRACEGENERIC("Using generic writer for " << LatP::class_name() )
-  auto const dim = CREALTHIS->get_vec_size();
+  DEBUG_TRACEGENERIC("Using generic writer (absolute) for " << LatP::class_name() )
+  auto const dim = CREALTHIS->get_dim();
   os << "[ "; // makes spaces symmetric
   for (uint_fast16_t i =0; i<dim; ++i)
   {
-    os << CREALTHIS->operator[](i) << " ";
+    os << CREALTHIS->get_absolute_coo(i) << " ";
   }
-    os <<"]";
+  os << "]";
   if(include_norm2)
   {
     os <<", norm2= " << CREALTHIS->get_norm2();
@@ -257,17 +301,51 @@ inline std::ostream& GeneralLatticePoint<LatP>::write_to_stream(std::ostream &os
   return os;
 }
 
+template<class LatP>
+template<class Impl, TEMPL_RESTRICT_IMPL(HasInternalRep<Impl>::value)>
+inline std::ostream& GeneralLatticePoint<LatP>::write_lp_rep_to_stream(std::ostream &os) const
+{
+  IMPL_IS_LATP;
+  DEBUG_TRACEGENERIC("Using generic writer (internal rep) for " << LatP::class_name() )
+  auto const dim = CREALTHIS->get_internal_rep_size();
+  os << "[ ";
+  for (uint_fast16_t i=0; i<dim; ++i)
+  {
+    os << CREALTHIS->get_internal_rep(i) << " ";
+  }
+  os << "]";
+  return os;
+}
+
+
+FOR_LATTICE_POINT_LP
+std::istream& operator>>(std::istream &is, LP &LatP)
+{
+  return LatP.read_from_stream(is);
+}
+
+FOR_LATTICE_POINT_LP
+std::ostream& operator<<(std::ostream &os, LP const &LatP)
+{
+  return LatP.write_lp_to_stream(os);
+}
+
+
 /********************************
 Getter functions
 ********************************/
 
 template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL
-inline auto GeneralLatticePoint<LatP>::get_vec_size() const -> decltype( std::declval<Impl>().get_dim() )
+template<class Impl, TEMPL_RESTRICT_IMPL(HasInternalRep<Impl>::value)>
+inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() )
 {
+  IMPL_IS_LATP;
   DEBUG_TRACEGENERIC("Generically getting vec_size for" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
+
+
+
 
 template<class LatP>
 inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
@@ -280,55 +358,8 @@ inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP
 }
 
 
-/********
-
-******/
-
 template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
-inline void GeneralLatticePoint<LatP>::fill_with_zero()
-{
-  IMPL_IS_LATP;
-  DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
-  auto const dim = CREALTHIS->get_vec_size();
-  for (uint_fast16_t i=0;i<dim;++i)
-  {
-    REALTHIS->operator[](i) = 0;
-  }
-  REALTHIS->sanitize(0);
-}
-
-template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
-inline void GeneralLatticePoint<LatP>::make_negative()
-{
-  IMPL_IS_LATP;
-  DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
-  auto const dim = CREALTHIS->get_vec_size();
-  for (uint_fast16_t i=0; i<dim; ++i)
-  {
-    REALTHIS->operator[](i) = - REALTHIS->operator[](i);
-  }
-  if( IsNegateCheap<Impl>::value) // constexpr if
-  {
-    return;
-  }
-  else
-  {
-    if(IsNorm2Cheap<Impl>::value)
-    {
-      REALTHIS->sanitize(CREALTHIS->get_norm2() );
-    }
-    else
-    {
-    REALTHIS->sanitize();
-    }
-  }
-  return;
-}
-
-template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL
+template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear<Impl>::value)>
 inline bool GeneralLatticePoint<LatP>::is_zero() const
 {
   IMPL_IS_LATP;
@@ -340,10 +371,10 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
   }
   else
   {
-    auto const dim = CREALTHIS->get_vec_size();
+    auto const dim = CREALTHIS->get_internal_rep_size();
     for (uint_fast16_t i=0;i<dim;++i)
     {
-      if(CREALTHIS->operator[](i) != 0)
+      if(CREALTHIS->get_internal_rep(i) != 0)
       {
         return false;
       }
@@ -352,22 +383,71 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
   }
 }
 
+/**************************
+  Initialization functions
+***************************/
+
 template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
+template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
+inline void GeneralLatticePoint<LatP>::fill_with_zero()
+{
+  IMPL_IS_LATP;
+  DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
+  auto const dim = CREALTHIS->get_internal_rep_size();
+  for (uint_fast16_t i=0;i<dim;++i)
+  {
+    REALTHIS->get_internal_rep(i) = 0;
+  }
+  REALTHIS->sanitize(0);
+}
+
+template<class LatP>
+template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
+inline void GeneralLatticePoint<LatP>::make_negative()
+{
+  IMPL_IS_LATP;
+  DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
+  auto const dim = CREALTHIS->get_internal_rep_size();
+  for (uint_fast16_t i=0; i<dim; ++i)
+  {
+    REALTHIS->get_internal_rep(i) = - CREALTHIS->get_internal_rep(i);
+  }
+  CPP17CONSTEXPRIF( IsNegateCheap<Impl>::value) // constexpr if
+  {
+    return;
+  }
+  else
+  {
+    if(IsNorm2Cheap<Impl>::value)
+    {
+      REALTHIS->sanitize(CREALTHIS->get_norm2_full() );
+    }
+    else
+    {
+    REALTHIS->sanitize();
+    }
+  }
+  return;
+}
+
+
+
+template<class LatP>
+template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
 inline LatP GeneralLatticePoint<LatP>::make_copy() const
 {
   IMPL_IS_LATP;
   DEBUG_TRACEGENERIC("Using generic copy for " << LatP::class_name() )
   auto const real_dim=CREALTHIS->get_dim(); // means ambient dimension.
-  auto const dim = CREALTHIS->get_vec_size(); // number of coordinates stored. May be rank.
+  auto const dim = CREALTHIS->get_internal_rep_size(); // number of coordinates stored. May be rank.
   LatP NewLP(real_dim);
   for (uint_fast16_t i=0; i<dim; ++i)
   {
-    NewLP[i] = CREALTHIS->operator[](i);
+    NewLP.get_internal_rep(i) = CREALTHIS->get_internal_rep(i);
   }
   if (IsNorm2Cheap<LatP>::value)
   {
-    NewLP.sanitize(CREALTHIS->get_norm2() );
+    NewLP.sanitize(CREALTHIS->get_norm2_full() );
   }
   else
   {
@@ -380,27 +460,9 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
   Scalar product
 *********************/
 
-template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
-typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
-{
-  return lp1.do_compute_sc_product(lp2);
-}
 
-
-template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
-typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
-{
-  return lp1.do_compute_sc_product_exact(lp2);
-}
-
-template<class LP, TEMPL_RESTRICT_IMPL(IsALatticePoint<LP>::value)>
-typename LP::ScalarProductStorageType compute_sc_product_full(LP const &lp1, LP const &lp2)
-{
-  return lp2.do_compute_sc_product_full(lp2);
-}
 
 template<class LatP>
-MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
 inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
 {
   DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
@@ -409,12 +471,12 @@ inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatti
   auto const dim2 = x2.get_dim();
   assert(dim1 == dim2 );
   #endif // DEBUG_SIEVE_LP_MATCHDIM
-  using ET = typename GetCooType<LatP>::type;
+  using ET = typename GetAbsoluteCooType<LatP>::type;
   auto const dim = CREALTHIS->get_dim();
   ET result = 0; // assumes that ET can be initialized from 0...
   for(uint_fast16_t i=0; i<dim; ++i)
   {
-    result += (*CREALTHIS)[i] * x2[i];
+    result += CREALTHIS->get_absolute_coo(i) * x2.get_absolute_coo(i);
   }
   return static_cast<typename LatP::ScalarProductStorageType>(result);
 }

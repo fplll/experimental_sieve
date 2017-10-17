@@ -10,9 +10,9 @@
 #endif
 
 #if __if_constexpr
-  #define CXX17CONSTEXPR constexpr
+  #define CPP17CONSTEXPRIF if constexpr
 #else
-  #define CXX17CONSTEXPR
+  #define CPP17CONSTEXPRIF if
 #endif
 
 #endif

@@ -138,7 +138,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   }
 
   auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
-  auto get_vec_size() const -> decltype( std::declval<ELP>().get_vec_size() ) { return exact_point.get_vec_size(); }
+  auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
 
   std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const
   {
