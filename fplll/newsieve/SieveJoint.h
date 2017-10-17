@@ -226,7 +226,7 @@ public:
     DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
     #ifdef PROGRESSIVE
     unsigned int get_progressive_rank() const                   {return progressive_rank;};
-    void increase_progressive_rank()                            { ++ progressive_rank;};
+    void increase_progressive_rank();                            
     #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
     void set_k(unsigned int const new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
