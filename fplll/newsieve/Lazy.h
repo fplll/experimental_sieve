@@ -42,11 +42,12 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 // ELP is an exact lattic point class.
 // Approximation is an approximation class.
 // This #define just serves to bring the appropriate typedefs into scope.
+// Last semicolon intentionally missing.
 #define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
   using ExactVectorType = ELP; \
   using ExactScalarType = typename GetScalarProductStorageType<ELP>::type; \
   using ApproxVectorType = Approximation; \
-  using ApproxScalarType = typename Approximation::ScalarProductType;
+  using ApproxScalarType = typename Approximation::ScalarProductType
 
 // to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
 enum struct ScalarOrVector{ scalar_type, vector_type };
@@ -95,7 +96,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 {
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple< typename Args::TreeType const...  >;
   using ExactEvalType = typename LazyFunction::ExactEvalType;
   using ApproxEvalType =typename LazyFunction::ApproxEvalType;
@@ -140,7 +141,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 template<class ELP, class Approximation> class LazyWrapExactScalar
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactScalarType const &;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType; // no reference here! We create a new object
@@ -162,7 +163,7 @@ template<class ELP, class Approximation> class LazyWrapExactScalar
 template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactScalarType const &,ApproxScalarType const &>;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType const &;
@@ -185,7 +186,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 template<class ELP, class Approximation> class LazyWrapExactVector
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactVectorType const &;
   using ExactEvalType = ExactVectorType const &;
   using ApproxEvalType = ApproxVectorType; // No reference here!
@@ -208,7 +209,7 @@ template<class ELP, class Approximation> class LazyWrapExactVector
 template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactVectorType const &, ApproxVectorType const &>;
   using ExactEvalType  = ExactVectorType const &;
   using ApproxEvalType = ApproxScalarType const &;
@@ -251,7 +252,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 template<class ELP, class Approximation, class Arg> class Lazy_Identity
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTree = typename Arg::TreeType;
   static constexpr int nargs = 1;
   static constexpr ScalarOrVector scalar_or_vector = Arg::scalar_or_vector;
@@ -278,7 +279,7 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTreeLeft = typename LHS::TreeType;
   using ArgTreeRight= typename RHS::TreeType;
   static constexpr int nargs = 2;

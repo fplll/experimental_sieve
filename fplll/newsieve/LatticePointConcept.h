@@ -40,10 +40,6 @@ template<class LatticePoint> struct LatticePointTraits
   (everything that needs to be set to true_type defaults to false, unless specified otherwise)
   These traits are used to selectively enable some meaningful default operations on lattice points.
 
-  AuxDataType : type of class-wide data that is required to interpret a given point
-                (e.g. Dimension, custom memory allocator)
-                Default: IgnoreAnyArg
-                Needs to be initializable from an int (??? DimensionType)
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
                            (due to delayed evaluation)
@@ -82,7 +78,6 @@ template<class LatticePoint> struct LatticePointTraits
   struct / class LatticePointTraits<MyCoolLatticePointClass>
   {
     public: // automatic for structs
-    using AuxDataType = Whatever
     using ScalarProductStorageType = long (say)
     using CoordinateVector = std::true_type
     using CoordingateType = int
@@ -109,7 +104,6 @@ template<class Implementation> class GeneralLatticePoint;
 //CREATE_MEMBER_TYPEDEF_CHECK_CLASS(ScalarProductStorageType, DeclaresScalarProductReturnType);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
 CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductStorageType, HasScalarProductReturnType);
-MAKE_TRAIT_GETTER(LatticePointTraits, AuxDataType, IgnoreAnyArg, GetAuxDataType);
 MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType, void, GetScalarProductStorageType);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, IsCooVector);
@@ -167,7 +161,6 @@ class GeneralLatticePoint
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
 
-//    using AuxDataType = typename GetAuxDataType<LatP>::type;
 
     using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
     using ScalarProductStorageType_Full = typename GetScalarProductStorageType_Full<LatP>::type;
@@ -521,7 +514,6 @@ bool GeneralLatticePoint<Implementation>::operator> (Implementation const & othe
 template<class LP>
 std::istream & operator>> (std::istream & is, typename std::enable_if<IsALatticePoint<LP>::value, LP>::type &lp)
 {
-    static_assert(std::is_same< typename LP::AuxDataType, IgnoreAnyArg>::value == true, "This Lattice Point class requires auxiliary data for input");
     lp.read_from_stream(is, IgnoreAnyArg{});
     return is;
 }
@@ -529,7 +521,6 @@ std::istream & operator>> (std::istream & is, typename std::enable_if<IsALattice
 template<class LP>
 std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALatticePoint<LP>::value,LP>::type &lp )
 {
-    static_assert(std::is_same< typename LP::AuxDataType, IgnoreAnyArg>::value == true, "This Lattice Point class requires auxiliary data for output");
     lp.write_to_stream(os,IgnoreAnyArg{});
     return os;
 }
