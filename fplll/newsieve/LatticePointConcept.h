@@ -16,10 +16,19 @@
 namespace GaussSieve{
 
 /**
-  TODO: Write explanation, we use CRTP now.
+  The class defines an interface for the various classes of lattice points that we are using.
+  Notably, we define a class template GeneralLatticePoint<Actual class> from which all
+  lattice point classes inherit.
+  To avoid overhead, we use CRTP rather than dynamic polymorphism, i.e.
+  GeneralLatticePoint is templated by its child classes.
+
+  Note that we have a lot of "default" implementations, which are defined depending on various
+  lattice traits. Mosto of the actual code of these implementations is found in
+  LatticePointGeneric.h
 */
 
-// This class template stores the typedefs that the individual lattice point classes have
+
+// This class template stores the trait typedefs that the individual lattice point classes have
 // There has to be a specialization for each lattice point class.
 // The general template must never be instantiated.
 // Note that we can not put these traits into the lattice points classes directly, because that
@@ -31,6 +40,7 @@ template<class LatticePoint> struct LatticePointTraits
 {
   public:
   using Invalid=std::true_type;
+  LatticePointTraits(...) = delete;
   // void Invalid
   // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
 };
