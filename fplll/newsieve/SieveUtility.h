@@ -146,14 +146,22 @@ TypeToCheck exists and is equal to TypeShouldBe
     using type = decltype(foo<TraitClass<ClassToCheck>>(0));                                       \
   }
 
+
 /**
   This is to improve readability of declarations.
   Usage:
   template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
 */
 
-#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<condition,int>::type = 0
-#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<condition,int>::type
+#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
+#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
+
+// same as above, but accepts a type rather than a value. This allows for easier syntax.
+// Limitation: If the argument contains a comma in its arguments (e.g. template<A,B>), it does not
+// work
+
+#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::MyConjunction<__VA_ARGS__>::value),int>::type = 0
+#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::MyConjunction<__VA_ARGS__>::value),int>::type
 
 namespace GaussSieve
 {

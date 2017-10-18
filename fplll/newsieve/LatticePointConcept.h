@@ -282,35 +282,40 @@ class GeneralLatticePoint
 // Otherwise, the SFINAE magic behind it won't work. Of course, we never use these templates with
 // Impl!=LatP and we may even static_assert(Impl==LatP) inside the implementation.
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
     inline LatP& operator+=(LatP2 const &x2);
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && !(IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value))>
+
+    // Fun fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma as a macro argument separator
+    // so it has 3 arguments, the third one being garbage like " IsRepLinear<LatP2> > > "
+    // However, due to way TEMPL_RESTRICT_DECL2 is defined, this actually still works!
+
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , IsRepLinear<LatP2> > )>
     LatP& operator+=(LatP2 const &x2) = delete;
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
     inline LatP& operator-=(LatP2 const &x2);
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && !(IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value))>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, IsRepLinear<LatP2> >)>
     LatP& operator-=(LatP2 const &x2) = delete;
 
-    template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<typename std::decay<LatP2>::type>::value)>
+    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && HasInternalRep<Impl>::value && HasInternalRep<LatP2>::value)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
     inline bool operator==(LatP2 const &x2) const;
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && !(HasInternalRep<Impl>::value && HasInternalRep<LatP2>::value))>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, MyNAND<HasInternalRep<Impl>, HasInternalRep<LatP2> >)>
     bool operator==(LatP2 const &x2) = delete;
 
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsRepLinear_RW<Impl>::value && std::is_integral<Integer>::value)>
+    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
     inline LatP& operator*=(Integer const multiplier);
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      std::is_integral<Integer>::value && !IsRepLinear_RW<Impl>::value)>
+    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      std::is_integral<Integer>, MyNegation<IsRepLinear_RW<Impl> >)>
     LatP& operator*=(Integer const multiplier) = delete;
     inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
 
@@ -326,27 +331,27 @@ class GeneralLatticePoint
 
     // get_dim must be overloaded.
     // get_internal_rep_size may be overloaded.
-    template<class Impl=LatP,TEMPL_RESTRICT_DECL(HasInternalRep<Impl>::value)>
+    template<class Impl=LatP,TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
     inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() );
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL(HasRepByCoos<Impl>::value)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>)>
     inline CooType const & get_internal_rep(Arg &&arg) const
     {
       return CREALTHIS->operator[](std::forward<Arg>(arg));
     }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL(HasRepByCoos<Impl>::value && IsRepLinear_RW<Impl>::value)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
     inline CooType & get_internal_rep(Arg &&arg)
     {
       return REALTHIS->operator[](std::forward<Arg>(arg));
     }
 
     // decltype(auto) from C++14 would be a godsend...
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL(HasAbsoluteRep<Impl>::value)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasAbsoluteRep<Impl>)>
     inline auto get_absolute_coo(Arg &&arg) const
     -> typename std::remove_reference< decltype (std::declval<Impl>().get_internal_rep(std::forward<Arg>(arg)) )>::type
     {
       return CREALTHIS->get_internal_rep(std::forward<Arg>(arg));
     }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL(!HasAbsoluteRep<Impl>::value)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasAbsoluteRep<Impl> >)>
     int get_absolute_coo(Arg &&arg) const = delete; // needs to be overloaded
 
     void get_dim() const = delete; // Note that the overload shall NOT have void return type.
@@ -360,7 +365,7 @@ class GeneralLatticePoint
 //    MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE // This may be too strict.
     inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true) const;
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(HasInternalRep<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
     inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const;
 
     std::istream& read_from_stream(std::istream &is) = delete;
@@ -372,25 +377,25 @@ class GeneralLatticePoint
   The latter depends subtly on the constructors used (empty vs. default constructor...)
   May be overloaded by Derived class.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
     inline void fill_with_zero();
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl>>)>
     inline void fill_with_zero() = delete;
 /**
   Changes vector from v to -v. May be overloaded.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
     inline void make_negative();
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl>>)>
     inline void make_negative() = delete;
 
 /**
   Tests whether a lattice point is all-zero.
   May be overloaded.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(IsRepLinear<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear<Impl>)>
     inline bool is_zero() const;
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!IsRepLinear<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear<Impl>>)>
     inline bool is_zero() const = delete;
 
 /**
@@ -403,9 +408,9 @@ class GeneralLatticePoint
   May be overloaded.
 */
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
     inline LatP make_copy() const;
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!IsRepLinear_RW<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl> >)>
     LatP make_copy() const = delete;
 
 /**
@@ -441,12 +446,12 @@ class GeneralLatticePoint
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!HasApproximations<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasApproximations<Impl> >)>
     inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL(!HasApproximations<Impl>::value)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasApproximations<Impl> >)>
     inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
     {
       return CREALTHIS->do_compute_sc_product(x2);
@@ -457,15 +462,15 @@ class GeneralLatticePoint
   Non-member functions
   */
 
-template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product(lp2); }
 
-template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product_exact(lp2); }
 
-template<class LP, TEMPL_RESTRICT_DECL(IsALatticePoint<LP>::value)>
+template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product_full(lp2); }
 
@@ -485,8 +490,8 @@ template<class LP1, class LP2, typename std::enable_if< \
 // Note: Return type does not take part in template argument deduction.
 // Usage: make_from_any_vector<TargetType>(source_container, dim).
 
-template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL(
-         IsALatticePoint<LP>::value && IsRepLinear_RW<LP>::value)>
+template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
+         IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
@@ -504,9 +509,8 @@ LP make_from_any_vector(SomeContainer const &container, DimType dim)
 
 // Same as above, but un-Z_NR's the container.
 
-template<class LP, class SomeZNRContainer, class DimType, typename std::enable_if<
-         IsALatticePoint<LP>::value && IsCooVector<LP>::value,
-         int>::type=0>
+template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
+         IsALatticePoint<LP>, IsRepLinear_RW<LP> )>
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
@@ -555,13 +559,6 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 
 // cleaning up internal macros.
-#undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
-#undef MEMBER_ONLY_EXISTS_IF_COO_READ
-#undef MEMBER_ONLY_EXISTS_IF_COO_WRITE
-
-#undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
-#undef MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL
-#undef MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
 
 #undef IMPL_IS_LATP
 #undef FOR_LATTICE_POINT_LP

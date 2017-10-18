@@ -16,8 +16,8 @@ namespace GaussSieve{
 **********************/
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
-  IsALatticePoint<LatP2>::value && HasInternalRep<Impl>::value && HasInternalRep<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
+  IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
 inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
@@ -86,8 +86,8 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 ******************************************/
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
-  IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
+  IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
@@ -112,8 +112,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 }
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
-  IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
+  IsALatticePoint<LatP2>,IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
@@ -138,8 +138,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 }
 
 template<class LatP>
-template<class Integer, class Impl, TEMPL_RESTRICT_IMPL(
-  IsRepLinear_RW<Impl>::value && std::is_integral<Integer>::value)>
+template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(
+  IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
 inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
 {
   IMPL_IS_LATP;
@@ -215,7 +215,12 @@ LP1 operator+(LP1 &&x1, LP2 && x2)
 // binary minus
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
+LP1 operator-(LP1 const &x1, LP2 const &x2)
+{
+  LP1 NewLP(x1.make_copy());
+  NewLP-=x2;
+  return NewLP;
+}
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 const &x2)
@@ -256,9 +261,9 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
 }
 
 // Note Integer is passed by value, even for mpz_classes. Not optimal...
-template<class LP, class Integer, TEMPL_RESTRICT_DECL(
-  IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value) )>
+template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<LP>,
+  MyDisjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
 //  assert(false);
@@ -267,9 +272,9 @@ inline LP operator*(LP const &x1, Integer const multiplier)
   return tmp;
 }
 
-template<class LP, class Integer, TEMPL_RESTRICT_DECL(
-  IsALatticePoint<LP>::value &&
-  (std::is_integral<Integer>::value || std::is_same<Integer,mpz_class>::value) )>
+template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<LP>,
+  MyDisjunction< std::is_integral<Integer>, std::is_same<Integer,mpz_class> >)>
 inline LP operator*(LP &&x1, Integer const multiplier)
 {
   LP tmp = std::move(x1);
@@ -302,7 +307,7 @@ inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream 
 }
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(HasInternalRep<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(HasInternalRep<Impl>)>
 inline std::ostream& GeneralLatticePoint<LatP>::write_lp_rep_to_stream(std::ostream &os) const
 {
   IMPL_IS_LATP;
@@ -336,7 +341,7 @@ Getter functions
 ********************************/
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(HasInternalRep<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(HasInternalRep<Impl>)>
 inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() )
 {
   IMPL_IS_LATP;
@@ -359,7 +364,7 @@ inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP
 
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear<Impl>)>
 inline bool GeneralLatticePoint<LatP>::is_zero() const
 {
   IMPL_IS_LATP;
@@ -388,7 +393,7 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
 ***************************/
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
 inline void GeneralLatticePoint<LatP>::fill_with_zero()
 {
   IMPL_IS_LATP;
@@ -402,7 +407,7 @@ inline void GeneralLatticePoint<LatP>::fill_with_zero()
 }
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
 inline void GeneralLatticePoint<LatP>::make_negative()
 {
   IMPL_IS_LATP;
@@ -433,7 +438,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
 
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL(IsRepLinear_RW<Impl>::value)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
 inline LatP GeneralLatticePoint<LatP>::make_copy() const
 {
   IMPL_IS_LATP;

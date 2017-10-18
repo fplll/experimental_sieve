@@ -47,7 +47,7 @@ final : public DefaultStaticInitializer<ScalarWithApproximation<ELP,Approximatio
   StaticInitializer<ExactScalarType> const init_exact_scalar;
   StaticInitializer<ApproxScalarType> const init_approx_scalar;
 
-  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
   explicit StaticInitializer(X const &init_arg) :
     init_exact_scalar(init_arg), init_approx_scalar(init_arg){}
 };
@@ -112,10 +112,10 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   ExactCoos &operator[](uint_fast16_t idx) { return exact_point[idx]; }
   ExactCoos const &operator[](uint_fast16_t idx) const { return exact_point[idx]; }
 
-  template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value)>
+  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   VectorWithApproximation& operator+=(LatP2 const &x2) { exact_point+=x2; recompute_approx(); return *this; }
 
-  template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value)>
+  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   VectorWithApproximation& operator-=(LatP2 const &x2) { exact_point-=x2; recompute_approx(); return *this; }
 
   template<class Integer>
@@ -123,7 +123,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
 
   VectorWithApproximation operator-()&& { return static_cast<VectorWithApproximation>(-std::move(exact_point)); }
 
-  template<class LatP2, TEMPL_RESTRICT_DECL(IsALatticePoint<LatP2>::value)>
+  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   bool operator==(LatP2 const &x2) const { return exact_point== x2;};
   bool operator==(VectorWithApproximation const &x2) const
   {
