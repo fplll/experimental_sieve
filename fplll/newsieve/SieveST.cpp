@@ -84,11 +84,21 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
     int i=0;
 
     std::cout << "start 2-sieve " << std::endl;
+  
+    //set target list-size for progressive sieving
+#ifdef PROGRESSIVE
+  set_target_list_size(list_size_k2);
+#endif
 
     while (!check_if_done() )
     {
-//        p = main_queue.true_pop();
 
+#ifdef PROGRESSIVE
+      if (check_if_enough_short_vectors() )
+      {
+        increase_progressive_rank();
+      }
+#endif
         //convert here???
 
 //        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
@@ -117,8 +127,19 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
     int i=0;
     
     std::cout << "start 3-sieve " << std::endl;
+  
+#ifdef PROGRESSIVE
+  set_target_list_size(list_size_k3);
+#endif
+  
     while (!check_if_done() )
     {
+#ifdef PROGRESSIVE
+      if (check_if_enough_short_vectors() )
+      {
+        increase_progressive_rank();
+      }
+#endif
         typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
         sieve_3_iteration(p);
