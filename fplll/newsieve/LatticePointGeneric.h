@@ -215,7 +215,12 @@ LP1 operator+(LP1 &&x1, LP2 && x2)
 // binary minus
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator-(LP1 const &x1, LP2 const &x2){ return sub(x1,x2); }
+LP1 operator-(LP1 const &x1, LP2 const &x2)
+{
+  LP1 NewLP(x1.make_copy());
+  NewLP-=x2;
+  return NewLP;
+}
 
 FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 && x1, LP2 const &x2)

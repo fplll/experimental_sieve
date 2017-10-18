@@ -48,9 +48,9 @@ class EMVScalar
     exponent(new_exponent), mantissa(new_mantissa) {};
 
   // construct from integral or floating type
-  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
+  template<class Integer, TEMPL_RESTRICT_DECL(std::is_integral<Integer>::value)>
   explicit EMVScalar(Integer const source_arithmetic);
-  template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
+  template<class FloatType, TEMPL_RESTRICT_DECL(std::is_floating_point<FloatType>::value)>
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
@@ -61,9 +61,9 @@ class EMVScalar
   // where 1/2 - eps <= |x| < 1.
   // (eps > 0 is a small error term that only occurs due to numerical issues in the current
   // for Integral source.)
-  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
+  template<class Integer, TEMPL_RESTRICT_DECL(std::is_integral<Integer>::value)>
   static signed int get_exponent(Integer const source_int);
-  template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
+  template<class FloatType, TEMPL_RESTRICT_DECL(std::is_floating_point<FloatType>::value)>
   static signed int get_exponent(FloatType const source_float);
   static signed int get_exponent(mpz_class const &source_mpz);
 
@@ -267,7 +267,7 @@ mpz_class EMVScalar::divide_by_power_of_2(mpz_class const &source_mpz, unsigned 
 
 // constructors of EMVScalar
 
-template<class Integer, typename std::enable_if<std::is_integral<Integer>::value, int>::type>
+template<class Integer, TEMPL_RESTRICT_IMPL(std::is_integral<Integer>::value)>
 EMVScalar::EMVScalar(Integer const source_integer)
 {
   static_assert(std::numeric_limits<Integer>::radix == 2,"Should never happen");
@@ -296,7 +296,7 @@ EMVScalar::EMVScalar(Integer const source_integer)
   }
 }
 
-template<class FloatType, typename std::enable_if<std::is_floating_point<FloatType>::value, int>::type>
+template<class FloatType, TEMPL_RESTRICT_IMPL(std::is_floating_point<FloatType>::value)>
 EMVScalar::EMVScalar(FloatType source_float)
 {
   // This is probably slow...
