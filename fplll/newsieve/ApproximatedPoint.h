@@ -69,7 +69,7 @@ static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
   using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
-  using ScalarProductStorageType_Full  = void //TODO!
+  using ScalarProductStorageType_Full  = void; //TODO!
   using CoordinateType          = typename GetCooType<ELP>::type;
   using AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
   using RepCooType              = typename GetRepCooType<ELP>::type;
@@ -84,19 +84,22 @@ public:
 
   using HasApproximations       = std::true_type;
   using HasDelayedScalarProduct = std::true_type;
-
 };
 
-
-  CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
-               (typically, it's precomputed and stored with the point)
-
-  CheapNegate: Set to true_type to indicate that negation needs no sanitize().
-
-  HasApproximations: Set to true_type to indicate that the point has approximations.
-
-
-
+// clang-format off
+template<class ELP, class Approximation>
+using DelayedScalarProduct = LazyEval::SieveLazyEval
+<
+  ELP,Approximation,
+  LazyEval::Lazy_ScalarProduct // encapsulated function
+  <
+    ELP,Approximation,
+    LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
+    LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
+  >,
+  LazyWrapExactAndApproxVector<ELP,Approximation>
+>
+// clang-format on
 
 template<class ELP, class Approximation>
 class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
