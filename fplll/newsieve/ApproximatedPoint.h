@@ -88,16 +88,12 @@ public:
 
 // clang-format off
 template<class ELP, class Approximation>
-using DelayedScalarProduct = LazyEval::SieveLazyEval
-<
-  ELP,Approximation,
-  LazyEval::Lazy_ScalarProduct // encapsulated function
-  <
-    ELP,Approximation,
-    LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
-    LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
-  >
->
+using DelayedScalarProduct = LazyEval::SieveLazyEval<
+    LazyEval::Lazy_ScalarProduct // encapsulated function
+  < ELP,Approximation,
+    LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
+    LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
+  > >
 // clang-format on
 
 template<class ELP, class Approximation>
