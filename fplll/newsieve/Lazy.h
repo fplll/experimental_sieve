@@ -42,11 +42,12 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 // ELP is an exact lattic point class.
 // Approximation is an approximation class.
 // This #define just serves to bring the appropriate typedefs into scope.
+// Last semicolon intentionally missing.
 #define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
   using ExactVectorType = ELP; \
   using ExactScalarType = typename GetScalarProductStorageType<ELP>::type; \
   using ApproxVectorType = Approximation; \
-  using ApproxScalarType = typename Approximation::ScalarProductType;
+  using ApproxScalarType = typename Approximation::ScalarProductType
 
 // to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
 enum struct ScalarOrVector{ scalar_type, vector_type };
@@ -95,7 +96,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 {
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple< typename Args::TreeType const...  >;
   using ExactEvalType = typename LazyFunction::ExactEvalType;
   using ApproxEvalType =typename LazyFunction::ApproxEvalType;
@@ -140,7 +141,7 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
 template<class ELP, class Approximation> class LazyWrapExactScalar
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactScalarType const &;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType; // no reference here! We create a new object
@@ -162,7 +163,7 @@ template<class ELP, class Approximation> class LazyWrapExactScalar
 template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactScalarType const &,ApproxScalarType const &>;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType const &;
@@ -172,8 +173,8 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
   constexpr LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
   : args(std::tie(exact_scalar,approx_scalar)  ) {}
   // These constexprs might require C++14
-  inline CXX14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
-  inline CXX14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
+  inline CPP14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
+  inline CPP14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
 
   TreeType const args;
 };
@@ -185,7 +186,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 template<class ELP, class Approximation> class LazyWrapExactVector
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactVectorType const &;
   using ExactEvalType = ExactVectorType const &;
   using ApproxEvalType = ApproxVectorType; // No reference here!
@@ -208,7 +209,7 @@ template<class ELP, class Approximation> class LazyWrapExactVector
 template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactVectorType const &, ApproxVectorType const &>;
   using ExactEvalType  = ExactVectorType const &;
   using ApproxEvalType = ApproxScalarType const &;
@@ -216,8 +217,8 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
   constexpr LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
   :args(std::tie(exact_vector,approx_vector)) {}
-  CXX14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
-  CXX14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
+  CPP14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
+  CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
   TreeType const args;
 };
@@ -251,7 +252,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 template<class ELP, class Approximation, class Arg> class Lazy_Identity
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTree = typename Arg::TreeType;
   static constexpr int nargs = 1;
   static constexpr ScalarOrVector scalar_or_vector = Arg::scalar_or_vector;
@@ -259,11 +260,11 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
   using ApproxEvalType= typename Arg::ApproxEvalType;
   Lazy_Identity(...) = delete;
   // C++14 decltype(auto) would really be helpful here...
-  CXX14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_exact();
   }
-  CXX14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
   {
     return Arg(std::get<0>(arg)).eval_approx();
   }
@@ -278,7 +279,7 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTreeLeft = typename LHS::TreeType;
   using ArgTreeRight= typename RHS::TreeType;
   static constexpr int nargs = 2;

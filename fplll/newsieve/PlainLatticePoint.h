@@ -21,13 +21,17 @@ template <class ET, int nfixed> class HashedLatticePoint; //for friend declarati
 template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, nfixed>>
 {
 public:
-//  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductStorageType = ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
   using AbsoluteCoos            = std::true_type;
   using CoordinateType          = ET;
   using CheapNegate             = std::true_type;
+
+  using InternalRepIsAbsolute   = std::true_type;
+  using InternalRepByCoos       = std::true_type;
+  using InternalRepVector       = std::true_type;
+  using InternalRep_RW          = std::true_type;
 };
 
 // for nfixed >=0 :
@@ -39,7 +43,6 @@ public:
   friend ExactLatticePoint<ET,nfixed>;
   friend StaticInitializer<PlainLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-//  using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductStorageType = ET;
   using Container               = std::array<ET, nfixed>;
   static constexpr MaybeFixed<nfixed> get_dim() { return dim; };
@@ -93,7 +96,6 @@ public:
   friend StaticInitializer<PlainLatticePoint<ET,-1>>;
 
   using LatticePointTag         = std::true_type;
-//  using AuxDataType             = typename GetAuxDataType<PlainLatticePoint>::type;
   using ScalarProductStorageType = ET;
   using Container               = std::vector<ET>;
   using GeneralLatticePoint<PlainLatticePoint<ET, -1>>::get_dim;

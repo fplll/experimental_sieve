@@ -28,7 +28,6 @@ template <class ET, int nfixed> class HashedLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<HashedLatticePoint<ET, nfixed>>
 {
 public:
-//  using AuxDataType             = MaybeFixed<nfixed>;
   using ScalarProductStorageType= ET;
   using CoordinateVector        = std::true_type;
   using CoordinateAccess        = std::true_type;
@@ -44,7 +43,6 @@ class HashedLatticePoint : public GeneralLatticePoint<HashedLatticePoint<ET, nfi
 public:
   friend StaticInitializer<HashedLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-//  using AuxDataType             = typename GetAuxDataType<HashedLatticePoint>::type;
   using ScalarProductStorageType = ET;
   using Container = typename std::conditional<nfixed >= 0,
         std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0

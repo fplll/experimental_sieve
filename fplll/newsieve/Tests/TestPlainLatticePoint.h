@@ -74,9 +74,9 @@ bool test_plain_LP()
   assert(X2+ X1 == X3);
   assert( compute_sc_product(X1,X3) == 9*45 );
   assert( X1.get_dim() == 10);
-  assert( X1.get_vec_size() == 10);
+  assert( X1.get_internal_rep_size() == 10);
   assert( Y1.get_dim() == 10);
-  assert( Y1.get_vec_size() == 10);
+  assert( Y1.get_internal_rep_size() == 10);
   assert(X1.is_zero() == false);
   X1 = X1 - X1;
   assert(X1.is_zero() == true);

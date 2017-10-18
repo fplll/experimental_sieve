@@ -6,40 +6,61 @@
 #include "LatticePointConcept.h"
 #include <tuple>
 #include "Lazy.h"
+#include "GlobalStaticData.h"
 
 namespace GaussSieve{
 
 template<class ELP, class Approximation> class VectorWithApproximation; //ELP = exact lattice point
 template<class ELP, class Approximation> class ScalarWithApproximation;
 
+
+/**
+  This class stores a scalar with an approximation to that scalar.
+*/
+
 template<class ELP, class Approximation>
 struct ScalarWithApproximation
 {
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation)
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 
-  explicit ScalarWithApproximation(ExactScalarType const &exact, ApproxScalarType const &approx)
+  constexpr explicit ScalarWithApproximation(ExactScalarType const &exact, ApproxScalarType const &approx)
     :exact_sc_product(exact), approx_sc_product(approx) {};
-  explicit ScalarWithApproximation(ExactScProdt)
+  constexpr explicit ScalarWithApproximation(ExactScalarType const &exact)
     :exact_sc_product(exact), approx_sc_product(static_cast<ApproxScalarType>(exact)){};
 
-
-//  ScalarWithApproximation(ScalarWithApproximation const &) = default;
-//  ScalarWithApproximation(ScalarWithApproximation &&) = default;
-//  ScalarWithApproximation& operator=(ScalarWithApproximation const &) = default;
-//  ScalarWithApproximation& operator=(ScalarWithApproximation &&) = default;
-
-  operator ExactVectorType() const { return exact_sc_product;}
-  explicit operator ApproxVectorType() const { return approx_sc_product; }
+  constexpr operator ExactVectorType() const { return exact_sc_product;}
+  constexpr explicit operator ApproxVectorType() const { return approx_sc_product; }
 
   ExactScalarType const  exact_sc_product;
   ApproxScalarType const approx_sc_product;
-
-// TODO:
-//  using ApproxType     = TODO;
-
 };
 
+/**
+  Initializes Static Data for the combination (by forwarding to the individual components)
+*/
+template<class ELP, class Approximation>
+class StaticInitializer<ScalarWithApproximation<ELP,Approximation>>
+final : public DefaultStaticInitializer<ScalarWithApproximation<ELP,Approximation>>
+{
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  StaticInitializer<ExactScalarType> const init_exact_scalar;
+  StaticInitializer<ApproxScalarType> const init_approx_scalar;
+
+  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
+  explicit StaticInitializer(X const &init_arg) :
+    init_exact_scalar(init_arg), init_approx_scalar(init_arg){}
+};
+
+/**
+  VectorWithApproximation<ELP,Approximation> is a lattice point class that is
+  made from combining ELP with the approximation.
+*/
+
+/**
+  The lattice point traits for VectorWithApproximation<ELP,Approximation> are deduced from
+  the traits of ELP.
+*/
 
 template<class ELP, class Approximation>
 class LatticePointTraits< VectorWithApproximation <ELP, Approximation> >
@@ -53,13 +74,9 @@ public:
   using CheapNorm2              = typename IsNorm2Cheap<ELP>::value_t;
   using CheapNegate             = typename IsNegateCheap<ELP>::value_t;
   using HasApproximations       = std::true_type;
-//  using AuxDataType             = MaybeFixed<nfixed>;
-//  using ScalarProductStorageType = ET;
   using CoordinateType          = typename GetCooType<ELP>::type;
   using HasDelayedScalarProduct = std::true_type;
-
-  using AuxDataType             = typename GetAuxDataType<ELP>::type; // for now. This whole AuxDataType needs to be redesigned.
-  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type; // Requires thinking about the concept class.
+  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
 };
 
 
@@ -67,15 +84,12 @@ template<class ELP, class Approximation>
 class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
-  static_assert(std::is_same<typename GetAuxDataType<ELP>::type, typename Approximation::AuxDataType>::value,"AuxDataType must be the same");
 //  friend DelayedScProduct<ELP,Approximation>;
   public:
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
-//  using AuxDataType = typename GetAuxDataType<ELP>::type;
 //  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
   using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
-  using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::AuxDataType;
 
   using ExactScalarProductType    = typename GetScalarProductStorageType<ELP>::type;
   using ApproxScalarProductType   = typename Approximation::ScalarProductType;
@@ -124,7 +138,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   }
 
   auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
-  auto get_vec_size() const -> decltype( std::declval<ELP>().get_vec_size() ) { return exact_point.get_vec_size(); }
+  auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
 
   std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const
   {
