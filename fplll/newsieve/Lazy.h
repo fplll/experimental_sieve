@@ -53,7 +53,7 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 enum struct ScalarOrVector{ scalar_type, vector_type };
 
 // forward declarations:
-template<class ELP, class Approximation, class LazyFunction, class... Args> class SieveLazyEval;
+template<class ELP, class Approximation, class LazyFunction> class SieveLazyEval;
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct;
 template<class ELP, class Approximation, class Arg> class Lazy_Identity;
 
@@ -92,19 +92,30 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity;
   Note that leaves are of different types, but expose nearly the same syntax.
 */
 
-template<class ELP, class Approximation, class LazyFunction, class... Args> class SieveLazyEval
+template<class ELP, class Approximation, class LazyFunction> class SieveLazyEval
 {
-  static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
+  static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
+//  static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = std::tuple< typename Args::TreeType const...  >;
+//  using TreeType = std::tuple< typename Args::TreeType const...  >;
+  using TreeType      = typename LazyFunction::TreeType;
   using ExactEvalType = typename LazyFunction::ExactEvalType;
   using ApproxEvalType =typename LazyFunction::ApproxEvalType;
+  using IsLazyNode = std::true_type;
   static constexpr ScalarOrVector scalar_or_vector = LazyFunction::scalar_or_vector;
 
   TreeType const args;
 
   constexpr explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args) {};
+  SieveLazyEval() = delete;
+  constexpr explicit SieveLazyEval(SieveLazyEval const &other) = default;
+  constexpr explicit SieveLazyEval(SieveLazyEval && other) = default;
+  constexpr SieveLazyEval& operator=(SieveLazyEval const &other) = default;
+  constexpr SieveLazyEval& operator=(SieveLazyEval &&other) = default;
+  // TODO:
+//  template<class... Args>  constexpr explicit SieveLazyEval(Args const &... args)
+//    : SieveLazyEval(std::tuple) {}
 
   inline ExactEvalType eval_exact() const { return LazyFunction::eval_exact(args); }
   inline ApproxEvalType eval_approx() const { return LazyFunction::eval_approx(args); }
@@ -118,8 +129,8 @@ template<class ELP, class Approximation, class LazyFunction, class... Args> clas
     return eval_exact() < rhs;
   }
 
-  template<class LazyFunctionRHS , class... ArgsRHS>
-  inline bool operator< ( SieveLazyEval<ELP,Approximation,LazyFunctionRHS,ArgsRHS...> const & rhs) const
+  template<class LazyFunctionRHS>
+  inline bool operator< ( SieveLazyEval<ELP,Approximation,LazyFunctionRHS> const & rhs) const
   {
     return eval_exact() < rhs.eval_exact();
   }
@@ -143,6 +154,7 @@ template<class ELP, class Approximation> class LazyWrapExactScalar
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactScalarType const &;
+  using IsLazyNode = std::true_type;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType; // no reference here! We create a new object
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
@@ -165,6 +177,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactScalarType const &,ApproxScalarType const &>;
+  using IsLazyNode = std::true_type;
   using ExactEvalType = ExactScalarType const &;
   using ApproxEvalType = ApproxScalarType const &;
 
@@ -188,6 +201,7 @@ template<class ELP, class Approximation> class LazyWrapExactVector
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = ExactVectorType const &;
+  using IsLazyNode = std::true_type;
   using ExactEvalType = ExactVectorType const &;
   using ApproxEvalType = ApproxVectorType; // No reference here!
 
@@ -211,6 +225,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using TreeType = std::tuple<ExactVectorType const &, ApproxVectorType const &>;
+  using IsLazyNode = std::true_type;
   using ExactEvalType  = ExactVectorType const &;
   using ApproxEvalType = ApproxScalarType const &;
 
@@ -251,20 +266,23 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 
 template<class ELP, class Approximation, class Arg> class Lazy_Identity
 {
+  static_assert(Arg::IsLazyNode::value,"Invalid arg");
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTree = typename Arg::TreeType;
+  using TreeType= std::tuple<ArgTree const>;
   static constexpr int nargs = 1;
+  using IsLazyFunction = std::true_type;
   static constexpr ScalarOrVector scalar_or_vector = Arg::scalar_or_vector;
   using ExactEvalType = typename Arg::ExactEvalType;
   using ApproxEvalType= typename Arg::ApproxEvalType;
   Lazy_Identity(...) = delete;
   // C++14 decltype(auto) would really be helpful here...
-  CPP14CONSTEXPR inline static ExactEvalType eval_exact( std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ExactEvalType eval_exact( TreeType const & arg)
   {
     return Arg(std::get<0>(arg)).eval_exact();
   }
-  CPP14CONSTEXPR inline static ApproxEvalType eval_approx(std::tuple<ArgTree const> const & arg)
+  CPP14CONSTEXPR inline static ApproxEvalType eval_approx(TreeType const & arg)
   {
     return Arg(std::get<0>(arg)).eval_approx();
   }
@@ -278,25 +296,29 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
 
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
 {
+  static_assert(LHS::IsLazyNode::value, "Left hand argument invalid");
+  static_assert(RHS::IsLazyNode::Value, "Right hand argument invalid");
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   using ArgTreeLeft = typename LHS::TreeType;
   using ArgTreeRight= typename RHS::TreeType;
+  using TreeType = std::tuple<ArgTreeLeft const, ArgTreeRight const>;
   static constexpr int nargs = 2;
+  using IsLazyFunction = std::true_type;
   static_assert(LHS::scalar_or_vector == ScalarOrVector::vector_type,"Left hand side is no vector");
   static_assert(RHS::scalar_or_vector == ScalarOrVector::vector_type,"Right hand side is no vector");
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
   using ExactEvalType  = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
 
-  inline static ExactEvalType eval_exact(std::tuple<ArgTreeLeft const, ArgTreeRight const> const & arg)
+  inline static ExactEvalType eval_exact(TreeType const & arg)
   {
     return compute_sc_product_exact(
       LHS(std::get<0>(arg)).eval_exact(),
       RHS(std::get<1>(arg)).eval_exact()
       );
   }
-  inline static ApproxEvalType eval_approx(std::tuple<ArgTreeLeft const, ArgTreeRight const> const & arg)
+  inline static ApproxEvalType eval_approx(TreeType const & arg)
   {
     return compute_sc_product_exact(
     LHS(std::get<0>(arg)).eval_approx(),
