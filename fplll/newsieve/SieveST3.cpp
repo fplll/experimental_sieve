@@ -82,8 +82,11 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
         //std::cout << "sgns: case 1" << std::endl;
         return true;
     }
+  
+    /* bool f = ((x ^ y) < 0); // true iff x and y have opposite signs*/
 
-    if (x3x1 <0 && x1x2>0 && x3x2>0 &&
+    //if (x3x1 <0 && !((x1x2^x3x2) <0) &&
+      if (x3x1 <0 && x1x2>0 && x3x2 >0 &&
         x2.get_norm2() + (x3.get_point()).get_norm2() <
         2 * ( -x3x1 + x1x2 + x3x2 ) )
     {
@@ -207,7 +210,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     //TODO:  RETRIEVE ||p|| from the sc_prods
 
-                    EntryType pnorm_old = p.get_norm2();
+                    //EntryType pnorm_old = p.get_norm2();
                     
                     p += (*it)*sgn2 + (filtered_list_point).get_point() * sgn3;
                     //p +=  (*it)*sgn2 + *(filtered_list_point).get_point() * sgn3;
@@ -338,12 +341,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     //FOR DEBUG
 
+                  /*
                     if (v_new.get_norm2() > (*it).get_norm2())
                     {
                         std::cout << "bug in computing v_new" << std::endl;
                         assert(false);
                     }
-
+                  */
                     main_queue.push(std::move(v_new));
                     it = main_list.erase(it);
 
