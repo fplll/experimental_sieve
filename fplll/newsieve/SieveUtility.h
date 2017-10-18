@@ -219,7 +219,18 @@ public:
   static constexpr UIntClass value = nfixed;
 };
 
+// Type normalization:
+// We turn any Trait class T with T::value==false into a standard std::false_type
+// and T::value==true into a standard std::true_type
+// Note that such non-standard classes T encapsulating a bool constexpr may appear due to
+// processing such types. In particular, there are issues with the TRAIT_CHECK* macros:
+// These internally use a std::is_same< > and the checker classes generated are not standard.
+// These classes help to remedy that:
 
+template<bool> struct TypeNormalize_Helper;
+template<> struct TypeNormalize_Helper<true >{using type=std::true_type; };
+template<> struct TypeNormalize_Helper<false>{using type=std::false_type;};
+template<class T> using NormalizeTrait = typename TypeNormalize_Helper<static_cast<bool>(T::value)>::type;
 
 
 

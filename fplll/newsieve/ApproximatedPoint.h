@@ -13,11 +13,10 @@ namespace GaussSieve{
 template<class ELP, class Approximation> class VectorWithApproximation; //ELP = exact lattice point
 template<class ELP, class Approximation> class ScalarWithApproximation;
 
-
 /**
   This class stores a scalar with an approximation to that scalar.
+  Currently, this class only allows constant objects. We have no arithmetic.
 */
-
 template<class ELP, class Approximation>
 struct ScalarWithApproximation
 {
@@ -32,6 +31,7 @@ struct ScalarWithApproximation
   constexpr operator ExactVectorType() const { return exact_sc_product;}
   constexpr explicit operator ApproxVectorType() const { return approx_sc_product; }
 
+  // const-ness restriction is for debug purposes, mostly.
   ExactScalarType const  exact_sc_product;
   ApproxScalarType const approx_sc_product;
 };
@@ -47,9 +47,9 @@ final : public DefaultStaticInitializer<ScalarWithApproximation<ELP,Approximatio
   StaticInitializer<ExactScalarType> const init_exact_scalar;
   StaticInitializer<ApproxScalarType> const init_approx_scalar;
 
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  explicit StaticInitializer(X const &init_arg) :
-    init_exact_scalar(init_arg), init_approx_scalar(init_arg){}
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<typename std::decay<X>::type>)>
+  explicit StaticInitializer(X &&init_arg) :
+    init_exact_scalar(std::forward<X>(init_arg)), init_approx_scalar(std::forward<X>(init_arg)){}
 };
 
 /**
@@ -68,16 +68,34 @@ class LatticePointTraits< VectorWithApproximation <ELP, Approximation> >
 static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
-  using CoordinateVector        = typename IsCooVector<ELP>::value_t;
-  using CoordinateAccess        = typename HasCoos<ELP>::value_t;
-  using AbsoluteCoos            = typename CoosAreAbsolute<ELP>::value_t;
-  using CheapNorm2              = typename IsNorm2Cheap<ELP>::value_t;
-  using CheapNegate             = typename IsNegateCheap<ELP>::value_t;
-  using HasApproximations       = std::true_type;
-  using CoordinateType          = typename GetCooType<ELP>::type;
-  using HasDelayedScalarProduct = std::true_type;
   using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
+  using ScalarProductStorageType_Full  = void //TODO!
+  using CoordinateType          = typename GetCooType<ELP>::type;
+  using AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
+  using RepCooType              = typename GetRepCooType<ELP>::type;
+  using ExposesCoos             = NormalizeTrait<DoesExposeCoos<ELP>>;
+  using ExposesInternalRep      = NormalizeTrait<HasInternalRep<ELP>>;
+  using InternalRepVector       = NormalizeTrait<IsRepLinear<ELP>>;
+  using InternalRep_RW          = NormalizeTrait<IsRepRW<ELP>>;
+  using InternalRepByCoos       = NormalizeTrait<HasRepByCoos<ELP>>;
+  using InternalRepIsAbsolute   = NormalizeTrait<HasAbsoluteRep<ELP>>;
+  using CheapNorm2              = NormalizeTrait<IsNorm2Cheap<ELP>>;
+  using CheapNegate             = NormalizeTrait<IsNegateCheap<ELP>>;
+
+  using HasApproximations       = std::true_type;
+  using HasDelayedScalarProduct = std::true_type;
+
 };
+
+
+  CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
+               (typically, it's precomputed and stored with the point)
+
+  CheapNegate: Set to true_type to indicate that negation needs no sanitize().
+
+  HasApproximations: Set to true_type to indicate that the point has approximations.
+
+
 
 
 template<class ELP, class Approximation>
@@ -170,10 +188,6 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   ELP exact_point;
   Approximation approx;
 };
-
-
-
-
 
 } // end namespace GaussSieve
 

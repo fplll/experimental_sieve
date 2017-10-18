@@ -21,13 +21,15 @@
 // untested:
 namespace GaussSieve
 {
-  template<class... B> using MyConjunction = std::conjunction<B...>;
-  template<class... B> using MyDisjunction = std::disjunction<B...>;
-  template<class B>    using MyNegation    = std::negation<B>;
-  template<class... B> using MyNAND = MyNegation<MyConjunction<B...>>;
-  template<class... B> using MyNOR  = MyNegation<MyDisjunction<B...>>;
+  template<class... Bs> using MyConjunction = std::conjunction<Bs...>;    //AND
+  template<class... Bs> using MyDisjunction = std::disjunction<Bs...>;    //OR
+  template<class B>     using MyNegation    = std::negation<B>;           //NOT
+  template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;  //NAND
+  template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;  //NOR
 }
 #else
+
+// just implement std::conjunction and friends myself:
 namespace GaussSieve
 {
   template<class...> struct MyConjunction     : std::true_type{};
@@ -41,8 +43,8 @@ namespace GaussSieve
     : std::conditional<static_cast<bool>(B1::value), B1, MyDisjunction<Bs...> >::type {};
 
   template<class B> struct MyNegation : std::integral_constant<bool,!static_cast<bool>(B::value)>{};
-  template<class... B> using MyNAND = MyNegation<MyConjunction<B...>>;
-  template<class... B> using MyNOR  = MyNegation<MyDisjunction<B...>>;
+  template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;
+  template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;
 }
 #endif
 

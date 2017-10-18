@@ -92,9 +92,14 @@ template<class LatticePoint> struct LatticePointTraits
   InternalRepIsAbsolute:  Indicates that the internal representation gives absolute coordinates.
                           implies HasInternalRep
 
+  CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
+               (typically, it's precomputed and stored with the point)
 
+  CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
+  HasApproximations: Set to true_type to indicate that the point has approximations.
 
+DEPRECATED:
 
   CoordinateAccess : Set to true_type to indicate that the class exposes an operator[].
                      We may read LatticePoint[i] for 0 <= i < get_internal_rep_size().
@@ -110,12 +115,7 @@ template<class LatticePoint> struct LatticePointTraits
                  which is part of the class-wide data).
                  We assume that CoordinateAccess is set as well.
 
-  CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
-               (typically, it's precomputed and stored with the point)
 
-  CheapNegate: Set to true_type to indicate that negation needs no sanitize().
-
-  HasApproximations: Set to true_type to indicate that the point has approximations.
 */
 
 /**
@@ -423,6 +423,8 @@ class GeneralLatticePoint
 
      The second version takes norm2 as an argument (to avoid recomputing it).
 */
+
+// TODO: Arg type overloads
     void sanitize() {};
     void sanitize(ScalarProductStorageType const &norm2) { sanitize(); };
 
@@ -434,15 +436,18 @@ class GeneralLatticePoint
      overridden by LatP.
 */
 
+// TODO: This looks wrong regarding types.
+
     inline ScalarProductStorageType get_norm2() const;
 
 /**   This function returns the exact norm, ignoring any approximations. */
     inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
     inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
 
-
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
+
+// TODO: friends
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
