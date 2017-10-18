@@ -96,8 +96,7 @@ using DelayedScalarProduct = LazyEval::SieveLazyEval
     ELP,Approximation,
     LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
     LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
-  >,
-  LazyWrapExactAndApproxVector<ELP,Approximation>
+  >
 >
 // clang-format on
 
