@@ -38,11 +38,11 @@ class DefaultStaticInitializer
   private:
   explicit DefaultStaticInitializer(){ ++user_count; };
 
-  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
   explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
 
 
-  template<class X,TEMPL_RESTRICT_DECL(std::is_integral<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
   [[deprecated]]explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
   template<int nfixed, class IntType>
   [[deprecated]]explicit DefaultStaticInitializer(MaybeFixed<nfixed,IntType> const &) : DefaultStaticInitializer(){}
@@ -80,9 +80,9 @@ class StaticInitializer : public DefaultStaticInitializer<T>
 {
   static_assert(IsStaticInitializerDefaulted<T>::value,"Missing Static Initializer");
   explicit StaticInitializer() = default;
-  template<class X,TEMPL_RESTRICT_DECL(IsArgForStaticInitializer<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
   explicit StaticInitializer(X const &) : StaticInitializer() {}
-  template<class X,TEMPL_RESTRICT_DECL(std::is_integral<X>::value)>
+  template<class X,TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
   [[deprecated]] explicit StaticInitializer(X const &) : StaticInitializer() {}
   template<int nfixed, class IntType>
   [[deprecated]] explicit StaticInitializer(MaybeFixed<nfixed,IntType> const &) : StaticInitializer() {}
