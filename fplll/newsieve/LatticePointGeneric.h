@@ -86,8 +86,8 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 ******************************************/
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL(
-  IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
+  IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
   IMPL_IS_LATP;

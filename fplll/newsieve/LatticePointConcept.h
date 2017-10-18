@@ -282,8 +282,8 @@ class GeneralLatticePoint
 // Otherwise, the SFINAE magic behind it won't work. Of course, we never use these templates with
 // Impl!=LatP and we may even static_assert(Impl==LatP) inside the implementation.
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
-      IsALatticePoint<LatP2>::value && IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
+      IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
     inline LatP& operator+=(LatP2 const &x2);
     template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL(
       IsALatticePoint<LatP2>::value && !(IsRepLinear_RW<Impl>::value && IsRepLinear<LatP2>::value))>
