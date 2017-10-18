@@ -48,9 +48,9 @@ class EMVScalar
     exponent(new_exponent), mantissa(new_mantissa) {};
 
   // construct from integral or floating type
-  template<class Integer, TEMPL_RESTRICT_DECL(std::is_integral<Integer>::value)>
+  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   explicit EMVScalar(Integer const source_arithmetic);
-  template<class FloatType, TEMPL_RESTRICT_DECL(std::is_floating_point<FloatType>::value)>
+  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
@@ -61,16 +61,16 @@ class EMVScalar
   // where 1/2 - eps <= |x| < 1.
   // (eps > 0 is a small error term that only occurs due to numerical issues in the current
   // for Integral source.)
-  template<class Integer, TEMPL_RESTRICT_DECL(std::is_integral<Integer>::value)>
+  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   static signed int get_exponent(Integer const source_int);
-  template<class FloatType, TEMPL_RESTRICT_DECL(std::is_floating_point<FloatType>::value)>
+  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static signed int get_exponent(FloatType const source_float);
   static signed int get_exponent(mpz_class const &source_mpz);
 
   // divides by 2^exp. In the integer and mpz_class version, we assume that exp is positive
-  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
+  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   constexpr static Integer divide_by_power_of_2(Integer const source_int, unsigned int exponent);
-  template<class FloatType, TEMPL_RESTRICT_DECL((std::is_floating_point<FloatType>::value))>
+  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
 };
@@ -216,7 +216,7 @@ unsigned int StaticInitializer<EMVApproximation<nfixed>>::user_counter = 0;
 
 // static helper functions.
 
-template<class Integer, TEMPL_RESTRICT_IMPL((std::is_integral<Integer>::value))>
+template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 signed int EMVScalar::get_exponent(Integer const source_int)
 {
   static_assert(std::numeric_limits<Integer>::radix == 2,"Should never happen");
@@ -230,7 +230,7 @@ signed int EMVScalar::get_exponent(Integer const source_int)
   return ret;
 }
 
-template<class FloatType, TEMPL_RESTRICT_IMPL((std::is_floating_point<FloatType>::value))>
+template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 signed int EMVScalar::get_exponent(FloatType const source_float)
 {
   signed int ret;
@@ -245,13 +245,13 @@ signed int EMVScalar::get_exponent(mpz_class const &source_mpz)
   return ret;
 }
 
-template<class Integer, TEMPL_RESTRICT_IMPL((std::is_integral<Integer>::value))>
+template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 constexpr Integer EMVScalar::divide_by_power_of_2(Integer const source_int, unsigned int exponent)
 {
   return source_int / (1<<exponent); // Note: We don't right-shift source_int, because it might be
                                      // negative
 }
-template<class FloatType, TEMPL_RESTRICT_IMPL((std::is_floating_point<FloatType>::value))>
+template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 FloatType EMVScalar::divide_by_power_of_2(FloatType const source_float, int exponent)
 {
   return std::ldexp(source_float,-exponent);
@@ -267,7 +267,7 @@ mpz_class EMVScalar::divide_by_power_of_2(mpz_class const &source_mpz, unsigned 
 
 // constructors of EMVScalar
 
-template<class Integer, TEMPL_RESTRICT_IMPL(std::is_integral<Integer>::value)>
+template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 EMVScalar::EMVScalar(Integer const source_integer)
 {
   static_assert(std::numeric_limits<Integer>::radix == 2,"Should never happen");
@@ -296,7 +296,7 @@ EMVScalar::EMVScalar(Integer const source_integer)
   }
 }
 
-template<class FloatType, TEMPL_RESTRICT_IMPL(std::is_floating_point<FloatType>::value)>
+template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 EMVScalar::EMVScalar(FloatType source_float)
 {
   // This is probably slow...

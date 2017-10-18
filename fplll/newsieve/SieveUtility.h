@@ -155,6 +155,10 @@ TypeToCheck exists and is equal to TypeShouldBe
 #define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
 #define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
 
+// same as above, but accepts a type rather than a value. This allows for easier syntax.
+#define TEMPL_RESTRICT_DECL2(conditiontype) typename std::enable_if<static_cast<bool>(conditiontype::value),int>::type = 0
+#define TEMPL_RESTRICT_IMPL2(conditiontype) typename std::enable_if<static_cast<bool>(conditiontype::value),int>::type
+
 namespace GaussSieve
 {
 
