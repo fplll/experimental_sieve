@@ -226,7 +226,9 @@ public:
     DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
     #ifdef PROGRESSIVE
     unsigned int get_progressive_rank() const                   {return progressive_rank;};
-    void increase_progressive_rank();                            
+    void increase_progressive_rank();
+    void set_target_list_size(double target)                    {target_list_size = target; return;};
+    double constexpr get_target_list_size() const               {return target_list_size;};
     #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
     void set_k(unsigned int const new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
@@ -293,7 +295,6 @@ private:
 
 //information about lattice and algorithm we are using
 
-
     unsigned int lattice_rank;
     #ifdef PROGRESSIVE
     unsigned int progressive_rank; 
@@ -306,6 +307,9 @@ private:
     HashTablesType hash_tables;
     unsigned short number_of_hash_tables;
     #endif
+#ifdef PROGRESSIVE
+  unsigned int target_list_size;
+#endif
     unsigned int sieve_k; //parameter k of the sieve currently running.
     //SamplerType sampler; //TODO: Thread-safety. Move control to queue.
     int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug

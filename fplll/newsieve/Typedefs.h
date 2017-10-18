@@ -32,6 +32,7 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 
 double constexpr list_size_k2 = 0.2075187494;
 double constexpr list_size_k3 = 0.1887218757;
+//double constexpr list_size_k3 = 0.195;
 double constexpr list_size_k4 = 0.1723692862; 
 
 
