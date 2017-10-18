@@ -555,13 +555,6 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 
 
 // cleaning up internal macros.
-#undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE
-#undef MEMBER_ONLY_EXISTS_IF_COO_READ
-#undef MEMBER_ONLY_EXISTS_IF_COO_WRITE
-
-#undef MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE_IMPL
-#undef MEMBER_ONLY_EXISTS_IF_COO_READ_IMPL
-#undef MEMBER_ONLY_EXISTS_IF_COO_WRITE_IMPL
 
 #undef IMPL_IS_LATP
 #undef FOR_LATTICE_POINT_LP
