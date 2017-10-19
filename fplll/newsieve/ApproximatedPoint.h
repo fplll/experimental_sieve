@@ -80,7 +80,7 @@ public:
 // forwarding traits from ELP
   using Trait_ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
   using Trait_ScalarProductStorageType_Full  = void; //TODO!
-  using Trait_CoordinateType          = typename GetCooType<ELP>::type;
+  using Trait_CoordinateType          = typename GetCoordinateType<ELP>::type;
   using Trait_AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
   using Trait_RepCooType              = typename GetRepCooType<ELP>::type;
   using Trait_ExposesCoos             = NormalizeTrait<DoesExposeCoos<ELP>>;
@@ -112,7 +112,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
   public:
   using LatticePointTag = std::true_type;
-  using ExactCoos = typename GetCooType<ELP>::type; // may be void
+  using ExactCoos = typename GetCoordinateType<ELP>::type; // may be void
   using RepCooType = typename GetRepCooType<ELP>::type;
   using AbsoluteCooType = typename GetAbsoluteCooType<ELP>::type;
 //  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;

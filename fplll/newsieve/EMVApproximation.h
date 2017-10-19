@@ -418,7 +418,7 @@ data()
 #ifdef DEBUG_SIEVE_LP_INIT
   assert(class_initialized);
 #endif
-  using CooType = typename GetCooType<LatticePoint>::type;
+  using CooType = typename GetCoordinateType<LatticePoint>::type;
   using std::abs;
 
   CooType max_entry = 0;

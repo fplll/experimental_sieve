@@ -22,7 +22,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same<typename GetCooType<LatP>::type,typename GetCooType<LatP2>::type>::value,
+  static_assert(std::is_same<typename GetCoordinateType<LatP>::type,typename GetCoordinateType<LatP2>::type>::value,
   "Different coordinate types. Probably an error.");
 
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )

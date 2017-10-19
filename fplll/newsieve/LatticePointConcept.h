@@ -160,22 +160,22 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type,
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_HasApproximations, std::true_type, T_Approximation);
 
 // Retrieving Traits with defaults:
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, GetCooType);
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, GetCoordinateType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, GetScalarProductStorageType);
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
 // default to GetScalarproductStorageType
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
   typename GetScalarProductStorageType<ClassToCheck>::type, GetScalarProductStorageType_Full);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
-  typename GetCooType<ClassToCheck>::type, GetAbsoluteCooType);
+  typename GetCoordinateType<ClassToCheck>::type, GetAbsoluteCooType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
-  typename GetCooType<ClassToCheck>::type, GetRepCooType);
+  typename GetCoordinateType<ClassToCheck>::type, GetRepCooType);
 
 
 // These are what the rest of the code should be actually using:
 template<class LatP> using DoesExposeCoos = std::integral_constant<bool,
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
-  (!std::is_same<typename GetCooType<LatP>::type, void>::value) >;
+  (!std::is_same<typename GetCoordinateType<LatP>::type, void>::value) >;
 
 template<class LatP> using HasInternalRep = std::integral_constant<bool,
   T_InternalRep<LatP>::value || T_RepVector_R<LatP>::value || T_Rep_RW<LatP>::value ||
@@ -221,7 +221,7 @@ class GeneralLatticePoint
     public:
     using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
     using ScalarProductStorageType_Full = typename GetScalarProductStorageType_Full<LatP>::type;
-    using CooType = typename GetCooType<LatP>::type; //may be void
+    using CooType = typename GetCoordinateType<LatP>::type; //may be void
     using AbsCooType = typename GetAbsoluteCooType<LatP>::type;
     using RepCooType = typename GetRepCooType<LatP>::type;
 
@@ -485,7 +485,7 @@ template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename GetCooType<LP>::type;
+  using ET = typename GetCoordinateType<LP>::type;
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
@@ -504,7 +504,7 @@ template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename GetCooType<LP>::type;
+  using ET = typename GetCoordinateType<LP>::type;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
   for(uint_fast16_t i =0; i<dim; ++i)
