@@ -28,13 +28,13 @@ template <class ET, int nfixed> class HashedLatticePoint;
 template <class ET, int nfixed> class LatticePointTraits<HashedLatticePoint<ET, nfixed>>
 {
 public:
-  using ScalarProductStorageType= ET;
-  using CoordinateVector        = std::true_type;
-  using CoordinateAccess        = std::true_type;
-  using AbsoluteCoos            = std::true_type;
-  using CoordinateType          = ET;
-  using CheapNorm2              = std::true_type;
-  using CheapNegate             = std::true_type;
+  using Trait_ScalarProductStorageType= ET;
+  using Trait_CoordinateVector        = std::true_type;
+  using Trait_CoordinateAccess        = std::true_type;
+  using Trait_AbsoluteCoos            = std::true_type;
+  using Trait_CoordinateType          = ET;
+  using Trait_CheapNorm2              = std::true_type;
+  using Trait_CheapNegate             = std::true_type;
 };
 
 template <class ET, int nfixed>

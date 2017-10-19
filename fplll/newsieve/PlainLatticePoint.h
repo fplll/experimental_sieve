@@ -21,17 +21,17 @@ template <class ET, int nfixed> class HashedLatticePoint; //for friend declarati
 template <class ET, int nfixed> class LatticePointTraits<PlainLatticePoint<ET, nfixed>>
 {
 public:
-  using ScalarProductStorageType = ET;
-  using CoordinateVector        = std::true_type;
-  using CoordinateAccess        = std::true_type;
-  using AbsoluteCoos            = std::true_type;
-  using CoordinateType          = ET;
-  using CheapNegate             = std::true_type;
+  using Trait_ScalarProductStorageType = ET;
+  using Trait_CoordinateVector        = std::true_type;
+  using Trait_CoordinateAccess        = std::true_type;
+  using Trait_AbsoluteCoos            = std::true_type;
+  using Trait_CoordinateType          = ET;
+  using Trait_CheapNegate             = std::true_type;
 
-  using InternalRepIsAbsolute   = std::true_type;
-  using InternalRepByCoos       = std::true_type;
-  using InternalRepVector       = std::true_type;
-  using InternalRep_RW          = std::true_type;
+  using Trait_InternalRepIsAbsolute   = std::true_type;
+  using Trait_InternalRepByCoos       = std::true_type;
+  using Trait_InternalRepVector       = std::true_type;
+  using Trait_InternalRep_RW          = std::true_type;
 };
 
 // for nfixed >=0 :

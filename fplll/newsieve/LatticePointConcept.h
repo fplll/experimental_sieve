@@ -66,6 +66,7 @@ template<class LatticePoint> struct LatticePointTraits
                 implied by existence of CoordinateType, InternalRepByCoos. Mandates Coordinate Type
   CoordinateType :  return type of operator[] is a (possibly const) reference to this, if available.
                     implies ExposesCoos, required if ExposesCoos is defined
+  Coos_RW      : operator[] can return non-const reference.
 
   NOTE: ExposesCoos / CoordinateType is a purely syntactic trait.
         It does not tell anything about the semantics of [].
@@ -139,35 +140,35 @@ template<class Implementation> class GeneralLatticePoint;
 // These check for the existence of the trait in the Trait class:
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
 
-CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, ScalarProductStorageType, DeclaresScalarProductStorageType);
-CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, CoordinateType, DoesDeclareCoordinateType);
+CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, Trait_ScalarProductStorageType, DeclaresScalarProductStorageType);
+CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, Trait_CoordinateType, DoesDeclareCoordinateType);
 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, ExposesCoos, std::true_type, T_ExposesCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, ExposesInternalRep, std::true_type, T_InternalRep);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, InternalRepVector, std::true_type, T_RepVector_R);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, InternalRep_RW, std::true_type, T_Rep_RW);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, InternalRepByCoos, std::true_type, T_InternalRepByCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, InternalRepIsAbsolute, std::true_type, T_AbsoluteCoos);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesCoos, std::true_type, T_ExposesCoos);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesInternalRep, std::true_type, T_InternalRep);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepVector, std::true_type, T_RepVector_R);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRep_RW, std::true_type, T_Rep_RW);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepByCoos, std::true_type, T_InternalRepByCoos);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepIsAbsolute, std::true_type, T_AbsoluteCoos);
 
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateVector, std::true_type, IsCooVector);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CoordinateAccess, std::true_type, HasCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, AbsoluteCoos, std::true_type, CoosAreAbsolute);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNorm2, std::true_type, T_Norm2Cheap);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, CheapNegate, std::true_type, T_NegateCheap);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, HasApproximations, std::true_type, T_Approximation);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CoordinateVector, std::true_type, IsCooVector);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CoordinateAccess, std::true_type, HasCoos);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type, CoosAreAbsolute);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_Norm2Cheap);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_NegateCheap);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_HasApproximations, std::true_type, T_Approximation);
 
 // Retrieving Traits with defaults:
-MAKE_TRAIT_GETTER(LatticePointTraits, CoordinateType, void, GetCooType);
-MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType, void, GetScalarProductStorageType);
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, GetCooType);
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, GetScalarProductStorageType);
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
 // default to GetScalarproductStorageType
-MAKE_TRAIT_GETTER(LatticePointTraits, ScalarProductStorageType_Full,
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
   typename GetScalarProductStorageType<ClassToCheck>::type, GetScalarProductStorageType_Full);
-MAKE_TRAIT_GETTER(LatticePointTraits, AbsoluteCooType,
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
   typename GetCooType<ClassToCheck>::type, GetAbsoluteCooType);
-MAKE_TRAIT_GETTER(LatticePointTraits, RepCooType,
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
   typename GetCooType<ClassToCheck>::type, GetRepCooType);
 
 

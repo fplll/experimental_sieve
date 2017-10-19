@@ -78,22 +78,22 @@ class LatticePointTraits< VectorWithApproximation <ELP, Approximation> >
 static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
-  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
-  using ScalarProductStorageType_Full  = void; //TODO!
-  using CoordinateType          = typename GetCooType<ELP>::type;
-  using AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
-  using RepCooType              = typename GetRepCooType<ELP>::type;
-  using ExposesCoos             = NormalizeTrait<DoesExposeCoos<ELP>>;
-  using ExposesInternalRep      = NormalizeTrait<HasInternalRep<ELP>>;
-  using InternalRepVector       = NormalizeTrait<IsRepLinear<ELP>>;
-  using InternalRep_RW          = NormalizeTrait<IsRepRW<ELP>>;
-  using InternalRepByCoos       = NormalizeTrait<HasRepByCoos<ELP>>;
-  using InternalRepIsAbsolute   = NormalizeTrait<HasAbsoluteRep<ELP>>;
-  using CheapNorm2              = NormalizeTrait<IsNorm2Cheap<ELP>>;
-  using CheapNegate             = NormalizeTrait<IsNegateCheap<ELP>>;
+  using Trait_ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
+  using Trait_ScalarProductStorageType_Full  = void; //TODO!
+  using Trait_CoordinateType          = typename GetCooType<ELP>::type;
+  using Trait_AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
+  using Trait_RepCooType              = typename GetRepCooType<ELP>::type;
+  using Trait_ExposesCoos             = NormalizeTrait<DoesExposeCoos<ELP>>;
+  using Trait_ExposesInternalRep      = NormalizeTrait<HasInternalRep<ELP>>;
+  using Trait_InternalRepVector       = NormalizeTrait<IsRepLinear<ELP>>;
+  using Trait_InternalRep_RW          = NormalizeTrait<IsRepRW<ELP>>;
+  using Trait_InternalRepByCoos       = NormalizeTrait<HasRepByCoos<ELP>>;
+  using Trait_InternalRepIsAbsolute   = NormalizeTrait<HasAbsoluteRep<ELP>>;
+  using Trait_CheapNorm2              = NormalizeTrait<IsNorm2Cheap<ELP>>;
+  using Trait_CheapNegate             = NormalizeTrait<IsNegateCheap<ELP>>;
 
-  using HasApproximations       = std::true_type;
-  using HasDelayedScalarProduct = std::true_type;
+  using Trait_HasApproximations       = std::true_type;
+  using Trait_HasDelayedScalarProduct = std::true_type;
 };
 
 // clang-format off
