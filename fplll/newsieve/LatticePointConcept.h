@@ -118,23 +118,8 @@ DEPRECATED:
 
 */
 
-/**
-  Example:
-  template<>
-  struct / class LatticePointTraits<MyCoolLatticePointClass>
-  {
-    public: // automatic for structs
-    using ScalarProductStorageType = long (say)
-    using CoordinateVector = std::true_type
-    using CoordinateType = int
-    ...
-  }
-*/
-
-
+// forward declaration
 template<class Implementation> class GeneralLatticePoint;
-
-
 
 /**
   Trait getters
@@ -281,41 +266,34 @@ class GeneralLatticePoint
 // (Note that LatP is a fixed type is this context and not a template argument)
 // Otherwise, the SFINAE magic behind it won't work. Of course, we never use these templates with
 // Impl!=LatP and we may even static_assert(Impl==LatP) inside the implementation.
+// "Fun" fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma in MyNAND's argument as a macro
+// argument separator, so it has 3 arguments, the third one being garbage like
+// IsRepLinear<LatP2> > >
+// However, due to way TEMPL_RESTRICT_DECL2 is defined, this actually still works!
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
     inline LatP& operator+=(LatP2 const &x2);
 
-    // Fun fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma as a macro argument separator
-    // so it has 3 arguments, the third one being garbage like " IsRepLinear<LatP2> > > "
-    // However, due to way TEMPL_RESTRICT_DECL2 is defined, this actually still works!
-
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , IsRepLinear<LatP2> > )>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , IsRepLinear<LatP2> > )>
     LatP& operator+=(LatP2 const &x2) = delete;
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
     inline LatP& operator-=(LatP2 const &x2);
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, IsRepLinear<LatP2> >)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, IsRepLinear<LatP2> >)>
     LatP& operator-=(LatP2 const &x2) = delete;
 
     template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
     inline bool operator==(LatP2 const &x2) const;
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsALatticePoint<LatP2>, MyNAND<HasInternalRep<Impl>, HasInternalRep<LatP2> >)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<HasInternalRep<Impl>, HasInternalRep<LatP2> >)>
     bool operator==(LatP2 const &x2) = delete;
 
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
+    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
     inline LatP& operator*=(Integer const multiplier);
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(
-      std::is_integral<Integer>, MyNegation<IsRepLinear_RW<Impl> >)>
+    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>, MyNegation<IsRepLinear_RW<Impl> >)>
     LatP& operator*=(Integer const multiplier) = delete;
     inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
 

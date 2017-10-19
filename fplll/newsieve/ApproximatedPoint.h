@@ -93,14 +93,13 @@ using DelayedScalarProduct = LazyEval::SieveLazyEval<
   < ELP,Approximation,
     LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
     LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
-  > >
+  > >;
 // clang-format on
 
 template<class ELP, class Approximation>
 class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
 {
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
-//  friend DelayedScProduct<ELP,Approximation>;
   public:
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
@@ -112,8 +111,6 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
   using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;
 
-
-
   VectorWithApproximation(VectorWithApproximation const &old) = delete;
   VectorWithApproximation(VectorWithApproximation && old) = default;
   VectorWithApproximation & operator= (VectorWithApproximation const & other) = delete;
@@ -123,11 +120,15 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
 
   static std::string class_name() { return ELP::class_name() + "with approximation"; } // TODO:class_name for Approximation
 
-  // operators<,>,<=, >= : No overload for now. Defaults to exact comparison.
+  // operators<,>,<=, >= : No overloads. Defaults to exact comparison.
 
-  ExactCoos &operator[](uint_fast16_t idx) { return exact_point[idx]; }
-  ExactCoos const &operator[](uint_fast16_t idx) const { return exact_point[idx]; }
+  // forward [] to exact class
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(DoesExposeCoos<T>)>
+  ExactCoos &operator[](Arg &&arg) { return exact_point[std::forward<Arg>(arg)]; }
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(DoesExposeCoos<T>)>
+  ExactCoos const &operator[](Arg &&arg) const { return exact_point[std::forward<Arg>(arg)]; }
 
+  // +=, -=, *= and unary- just forward to the exact class and recompute the approximation.
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   VectorWithApproximation& operator+=(LatP2 const &x2) { exact_point+=x2; recompute_approx(); return *this; }
 
@@ -135,12 +136,17 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   VectorWithApproximation& operator-=(LatP2 const &x2) { exact_point-=x2; recompute_approx(); return *this; }
 
   template<class Integer>
-  VectorWithApproximation& operator*=(Integer const &x2) { exact_point*=x2; recompute_approx(); return *this; }
+  VectorWithApproximation& operator*=(Integer &&x2) { exact_point*=std::forward<Integer>(x2); recompute_approx(); return *this; }
 
-  VectorWithApproximation operator-()&& { return static_cast<VectorWithApproximation>(-std::move(exact_point)); }
+  // TODO: Inefficient
+  VectorWithApproximation operator-()&&
+  {
+    return static_cast<VectorWithApproximation>(-std::move(exact_point));
+  }
 
+  // equality comparison.
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
-  bool operator==(LatP2 const &x2) const { return exact_point== x2;};
+  bool operator==(LatP2 const &x2) const { return exact_point == x2;};
   bool operator==(VectorWithApproximation const &x2) const
   {
     if(approx!=x2.approx)
@@ -149,12 +155,15 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
     }
     else
     {
-      return exact_point ==x2.exact_point;
+      return exact_point == x2.exact_point;
     }
   }
 
-  auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
+  template<class T=ELP, TEMPL_RESTRICT_DECL2(HasInternalRep<T>)>
   auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
+
+  auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
+
 
   std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const
   {

@@ -54,6 +54,11 @@ class EMVScalar
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
+  // unary-
+  // For some reason, this does not compile as member functions:
+  // I can turn each variant into a member function individually, but it complains about overloading
+  friend EMVScalar operator-(EMVScalar const &arg) { return EMVScalar(arg.exponent,-arg.mantissa); }
+  friend EMVScalar operator-(EMVScalar &&arg) { arg.mantissa=-arg.mantissa; return arg;  }
 
   // helper functions: included as static functions tied to the class:
 
