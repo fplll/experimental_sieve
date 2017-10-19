@@ -56,6 +56,8 @@ class BitApproximation
   BitApproximation& operator=(BitApproximation && other) = default;
   ~BitApproximation() {};
   
+  
+  //operator[] is provided by both bitset and dtnamic_bitset
   ApproxEntryType &operator[](uint_fast16_t idx) { return data[idx]; };
   ApproxEntryType const &operator[](uint_fast16_t idx) const { return data[idx]; };
   
@@ -65,12 +67,14 @@ class BitApproximation
   FOR_VARIABLE_DIM
   static MaybeFixed<-1> get_dim() { return dim; }
   
+  /*
   FOR_FIXED_DIM
   void reserve_size() {}
+  */
   
   FOR_VARIABLE_DIM
   void reserve_size() {data.reserve(static_cast<typename Container::size_type>(dim));}
-  
+ 
 public:
   
   
@@ -84,6 +88,39 @@ private:
 
 
 };
+  
+  
+// Constructor:
+  
+//TODO: TO FINISH
+
+template<int nfixed>
+template<class LatticePoint>
+BitApproximation<nfixed>::BitApproximation(LatticePoint const &exact_point):
+data()
+{
+  
+  auto const dimension = get_dim();
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
+  assert(dimension == exact_point.get_dim() );
+  assert(dimension == exact_point.get_internal_rep_size() );
+#endif
+  /*
+#ifdef DEBUG_SIEVE_LP_INIT
+  assert(class_initialized);
+#endif
+   */
+  using CooType = typename GetCooType<LatticePoint>::type;
+  using std::abs;
+  
+
+/* sign = 1 ^ ((unsigned int)v >> (sizeof(int) * CHAR_BIT - 1)); // if v < 0 then 0, else 1 */
+  for(uint_fast16_t i=0;i<dimension;++i)
+  {
+    data[i] = (exact_point[i]>0) ? 1 : 0;
+  }
+};
+
 
 
 }
