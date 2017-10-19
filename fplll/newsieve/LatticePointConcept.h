@@ -52,6 +52,10 @@ template<class LatticePoint> struct LatticePointTraits
   Available traits
   (everything that needs to be set to true_type defaults to false, unless specified otherwise)
   These traits are used to selectively enable some meaningful default operations on lattice points.
+  Note: In the actual LatticePointTraits class, the traits are actually prefixed with Trait_
+  (i.e. LatticePointTraits<LP> contains using Trait_ExposesCoos etc.)
+  To retrieve a trait, use Has_TraitName for binary traits.
+  or GetTraitName for non-binary traits
 
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
@@ -160,22 +164,22 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type,
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximation);
 
 // Retrieving Traits with defaults:
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, GetCoordinateType);
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, GetScalarProductStorageType);
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, Get_CoordinateType);
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, Get_ScalarProductStorageType);
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
 // default to GetScalarproductStorageType
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
-  typename GetScalarProductStorageType<ClassToCheck>::type, GetScalarProductStorageType_Full);
+  typename Get_ScalarProductStorageType<ClassToCheck>::type, Get_ScalarProductStorageType_Full);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
-  typename GetCoordinateType<ClassToCheck>::type, GetAbsoluteCooType);
+  typename Get_CoordinateType<ClassToCheck>::type, Get_AbsoluteCooType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
-  typename GetCoordinateType<ClassToCheck>::type, GetRepCooType);
+  typename Get_CoordinateType<ClassToCheck>::type, Get_RepCooType);
 
 
 // These are what the rest of the code should be actually using:
 template<class LatP> using Has_ExposesCoos = std::integral_constant<bool,
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
-  (!std::is_same<typename GetCoordinateType<LatP>::type, void>::value) >;
+  (!std::is_same<typename Get_CoordinateType<LatP>::type, void>::value) >;
 
 template<class LatP> using Has_ExposesInternalRep = std::integral_constant<bool,
   T_InternalRep<LatP>::value || T_RepVector_R<LatP>::value || T_Rep_RW<LatP>::value ||
@@ -219,11 +223,11 @@ class GeneralLatticePoint
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
     public:
-    using ScalarProductStorageType = typename GetScalarProductStorageType<LatP>::type;
-    using ScalarProductStorageType_Full = typename GetScalarProductStorageType_Full<LatP>::type;
-    using CooType = typename GetCoordinateType<LatP>::type; //may be void
-    using AbsCooType = typename GetAbsoluteCooType<LatP>::type;
-    using RepCooType = typename GetRepCooType<LatP>::type;
+    using ScalarProductStorageType = typename Get_ScalarProductStorageType<LatP>::type;
+    using ScalarProductStorageType_Full = typename Get_ScalarProductStorageType_Full<LatP>::type;
+    using CooType = typename Get_CoordinateType<LatP>::type; //may be void
+    using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
+    using RepCooType = typename Get_RepCooType<LatP>::type;
 
     private:
     // Empty base class, only callable from its friends (i.e. from LatP)
@@ -485,7 +489,7 @@ template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename GetCoordinateType<LP>::type;
+  using ET = typename Get_CoordinateType<LP>::type;
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
@@ -504,7 +508,7 @@ template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename GetCoordinateType<LP>::type;
+  using ET = typename Get_CoordinateType<LP>::type;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
   for(uint_fast16_t i =0; i<dim; ++i)

@@ -50,7 +50,7 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 // Last semicolon intentionally missing.
 #define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
   using ExactVectorType = ELP; \
-  using ExactScalarType = typename GetScalarProductStorageType<ELP>::type; \
+  using ExactScalarType = typename Get_ScalarProductStorageType<ELP>::type; \
   using ApproxVectorType = Approximation; \
   using ApproxScalarType = typename Approximation::ScalarProductType
 

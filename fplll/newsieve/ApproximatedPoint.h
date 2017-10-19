@@ -78,11 +78,11 @@ class LatticePointTraits< VectorWithApproximation <ELP, Approximation> >
 static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
-  using Trait_ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
+  using Trait_ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
   using Trait_ScalarProductStorageType_Full  = void; //TODO!
-  using Trait_CoordinateType          = typename GetCoordinateType<ELP>::type;
-  using Trait_AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
-  using Trait_RepCooType              = typename GetRepCooType<ELP>::type;
+  using Trait_CoordinateType          = typename Get_CoordinateType<ELP>::type;
+  using Trait_AbsoluteCoos            = typename Get_AbsoluteCooType<ELP>::type;
+  using Trait_RepCooType              = typename Get_RepCooType<ELP>::type;
   using Trait_ExposesCoos             = NormalizeTrait<Has_ExposesCoos<ELP>>;
   using Trait_ExposesInternalRep      = NormalizeTrait<Has_ExposesInternalRep<ELP>>;
   using Trait_InternalRepLinear       = NormalizeTrait<Has_InternalRepLinear<ELP>>;
@@ -112,13 +112,13 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
   public:
   using LatticePointTag = std::true_type;
-  using ExactCoos = typename GetCoordinateType<ELP>::type; // may be void
-  using RepCooType = typename GetRepCooType<ELP>::type;
-  using AbsoluteCooType = typename GetAbsoluteCooType<ELP>::type;
-//  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
+  using ExactCoos = typename Get_CoordinateType<ELP>::type; // may be void
+  using RepCooType = typename Get_RepCooType<ELP>::type;
+  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
+//  using ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
   using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
 
-  using ExactScalarProductType    = typename GetScalarProductStorageType<ELP>::type;
+  using ExactScalarProductType    = typename Get_ScalarProductStorageType<ELP>::type;
   using ApproxScalarProductType   = typename Approximation::ScalarProductType;
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
   using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;

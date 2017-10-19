@@ -22,7 +22,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same<typename GetCoordinateType<LatP>::type,typename GetCoordinateType<LatP2>::type>::value,
+  static_assert(std::is_same<typename Get_CoordinateType<LatP>::type,typename Get_CoordinateType<LatP2>::type>::value,
   "Different coordinate types. Probably an error.");
 
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
@@ -354,7 +354,7 @@ inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype
 
 
 template<class LatP>
-inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
+inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
 {
   DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
       // This function should not be called if Has_CheapNorm2 is set,
@@ -477,7 +477,7 @@ inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatti
   auto const dim2 = x2.get_dim();
   assert(dim1 == dim2 );
   #endif // DEBUG_SIEVE_LP_MATCHDIM
-  using ET = typename GetAbsoluteCooType<LatP>::type;
+  using ET = typename Get_AbsoluteCooType<LatP>::type;
   auto const dim = CREALTHIS->get_dim();
   ET result = 0; // assumes that ET can be initialized from 0...
   for(uint_fast16_t i=0; i<dim; ++i)
