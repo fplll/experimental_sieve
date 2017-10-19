@@ -111,15 +111,31 @@ data()
 #endif
    */
   using CooType = typename GetCooType<LatticePoint>::type;
-  using std::abs;
+ 
   
 
 /* sign = 1 ^ ((unsigned int)v >> (sizeof(int) * CHAR_BIT - 1)); // if v < 0 then 0, else 1 */
+  
   for(uint_fast16_t i=0;i<dimension;++i)
   {
     data[i] = (exact_point[i]>0) ? 1 : 0;
   }
 };
+
+// output
+
+template<int nfixed>
+inline std::ostream & operator<<(std::ostream &os, BitApproximation<nfixed> const &approximated_vector)
+{
+  os  <<"x [";
+  auto const dim = approximated_vector.get_dim();
+  //for(uint_fast16_t i = 0;i<dim;++i)
+  //{
+    os << approximated_vector.data;
+  //}
+  os << "]" << std::endl;
+  return os;
+}
 
 
 
