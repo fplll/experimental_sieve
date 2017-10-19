@@ -14,12 +14,22 @@
 
 /**
   This defines a lattice point approximation, where the approximation is a binary vector of sgns:
-   * approx[i]=0 if true_vector[i]>=0
+   * approx[i]=1 if true_vector[i]>=0
 */
 
 namespace GaussSieve{
 
 template<int nfixed> class BitApproximation;
+
+class BitApproximationTraits;
+
+class BitApproximationTraits
+{
+  public:
+  
+  using ApproxEntryType = bool; 
+  using ApproxNorm2Type = int_fast32_t;
+};
   
   
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
@@ -48,6 +58,7 @@ class BitApproximation
   public:
   template<class LatticePoint> 
   explicit BitApproximation(LatticePoint const &exact_point);
+  
   
   BitApproximation() = delete;
   BitApproximation(BitApproximation const &old) = delete;
@@ -111,15 +122,53 @@ data()
 #endif
    */
   using CooType = typename GetCooType<LatticePoint>::type;
-  using std::abs;
+ 
   
 
 /* sign = 1 ^ ((unsigned int)v >> (sizeof(int) * CHAR_BIT - 1)); // if v < 0 then 0, else 1 */
+  
   for(uint_fast16_t i=0;i<dimension;++i)
   {
-    data[i] = (exact_point[i]>0) ? 1 : 0;
+    data[i] = (exact_point[i]>=0) ? 1 : 0;
   }
 };
+
+// output
+
+template<int nfixed>
+inline std::ostream & operator<<(std::ostream &os, BitApproximation<nfixed> const &approximated_vector)
+{
+  os  <<" [";
+  auto const dim = approximated_vector.get_dim();
+  //for(uint_fast16_t i = 0;i<dim;++i)
+  //{
+    os << approximated_vector.data;
+  //}
+  os << "]" << std::endl;
+  return os;
+}
+
+// XOR
+/*template<int nfixed>
+inline  BitApproximation& operator^ (BitApproximation<nfixed> const &lhs, BitApproximation<nfixed> const &rhs)
+{
+  
+}*/
+
+//approximate scalar product
+
+template<int nfixed>
+inline int_fast32_t approximate_scalar_product(BitApproximation<nfixed> const &lhs, BitApproximation<nfixed> const &rhs)
+{
+  
+  int_fast32_t result = 0;
+  
+  auto const dim = rhs.get_dim();
+  result = dim - (lhs.data ^ rhs.data).count();
+  
+
+  return result;
+}
 
 
 
