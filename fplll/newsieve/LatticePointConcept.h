@@ -11,6 +11,7 @@
 #include <gmpxx.h>
 #include "GlobalStaticData.h"
 
+
 // clang-format off
 
 namespace GaussSieve{

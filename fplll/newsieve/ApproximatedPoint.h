@@ -34,6 +34,16 @@ struct ScalarWithApproximation
   // const-ness restriction is for debug purposes, mostly.
   ExactScalarType const  exact_sc_product;
   ApproxScalarType const approx_sc_product;
+  template<class LazyFunction>
+  constexpr explicit ScalarWithApproximation(LazyEval::SieveLazyEval<LazyFunction> const &lazy_fun )
+    :exact_sc_product(lazy_fun.eval_exact()),approx_sc_product(lazy_fun.eval_approx())
+    {
+      static_assert(LazyEval::SieveLazyEval<LazyFunction>::scalar_or_vector == LazyEval::ScalarOrVector::scalar_type,"Trying to assign a vector to a scalar");
+    }
+  constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactScalar<ELP,Approximation> const &wrapper)
+    :exact_sc_product(wrapper.eval_exact()),approx_sc_product(wrapper.eval_approx()) {}
+  constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactAndApproxScalar<ELP,Approximation> const &wrapper)
+    :exact_sc_product(wrapper.eval_exact()),approx_sc_product(wrapper.eval_approx()) {}
 };
 
 /**
@@ -204,15 +214,15 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
 
 
 
-//  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
-//  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
-//
-//
-//  DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
-//  ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)
-//  {
-//    return exact_point.do_compute_sc_product_exact(x2);
-//  };
+  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
+  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
+
+
+  DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
+  ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)
+  {
+    return exact_point.do_compute_sc_product_exact(x2);
+  };
 
   private:
 
