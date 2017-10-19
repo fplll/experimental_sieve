@@ -15,6 +15,7 @@
 		</Build>
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
+		<Unit filename="BitApproximation.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
@@ -49,6 +50,7 @@
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestApproximations.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
+		<Unit filename="Tests/TestBitApprox.h" />
 		<Unit filename="Tests/TestEMV.h" />
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestLazy.h" />
