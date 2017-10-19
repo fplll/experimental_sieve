@@ -74,7 +74,7 @@ template<class LatticePoint> struct LatticePointTraits
   AbsoluteCooType : return type of get_absolute_coo
                     defaults to CoordinateType
 
-  RepCooType      : return type of get_internal_rep
+  RepCooType      : return type of get_internal_rep (if available)
                     defaults to CoordinateType
 
   ExposesInternalRep :  Indicates that get_internal_rep(i), get_internal_rep_size() exists and may be
@@ -82,24 +82,24 @@ template<class LatticePoint> struct LatticePointTraits
                         We are guaranteed that these entries determine the point.
                         implied by InternalRepVector_R, InternalRepVector_RW, InternalRepByCoos, InternalRepIsAbsolute
 
-  InternalRepVector:    Indicates that the internal representation is linear.
-                        implies HasInternalRep
+  InternalRepLinear:    Indicates that the internal representation is linear.
+                        implies Has_ExposesInternalRep
   InternalRep_RW:       Indicates that the internal representation may be written to.
                         After calling sanitize(), the class will be in a valid state.
-                        implies HasInternalRep
+                        implies Has_ExposesInternalRep
 
   InternalRepByCoos:  Indicates that the internal representation is accessible by operator[]
-                      implies HasInternalRep, ExposesCoos
+                      implies Has_ExposesInternalRep, ExposesCoos
 
   InternalRepIsAbsolute:  Indicates that the internal representation gives absolute coordinates.
-                          implies HasInternalRep
+                          implies Has_ExposesInternalRep
 
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
-  HasApproximations: Set to true_type to indicate that the point has approximations.
+  Approximations: Set to true_type to indicate that the point has approximations.
 
 DEPRECATED:
 
@@ -126,11 +126,11 @@ template<class Implementation> class GeneralLatticePoint;
 /**
   Trait getters
 */
-// Usage IsNegateCheap<PlainLatticePoint>::value
+// Usage Has_CheapNegate<PlainLatticePoint>::value
 // (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
 
 // The reason is that it is easier to read and that
-// IsNegateCheap<...> defaults to false, whereas
+// Has_CheapNegate<...> defaults to false, whereas
 // LatticePointTraits<...>::... defaults to a compile-time error.
 
 // Trait getter names prefixed with T_ are internal and only serve to construct other getters
@@ -147,7 +147,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTr
 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesCoos, std::true_type, T_ExposesCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesInternalRep, std::true_type, T_InternalRep);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepVector, std::true_type, T_RepVector_R);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepLinear, std::true_type, T_RepVector_R);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRep_RW, std::true_type, T_Rep_RW);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepByCoos, std::true_type, T_InternalRepByCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepIsAbsolute, std::true_type, T_AbsoluteCoos);
@@ -157,7 +157,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CoordinateAccess, std::true_
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type, CoosAreAbsolute);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_Norm2Cheap);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_NegateCheap);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_HasApproximations, std::true_type, T_Approximation);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximation);
 
 // Retrieving Traits with defaults:
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, GetCoordinateType);
@@ -173,28 +173,28 @@ MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
 
 
 // These are what the rest of the code should be actually using:
-template<class LatP> using DoesExposeCoos = std::integral_constant<bool,
+template<class LatP> using Has_ExposesCoos = std::integral_constant<bool,
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
   (!std::is_same<typename GetCoordinateType<LatP>::type, void>::value) >;
 
-template<class LatP> using HasInternalRep = std::integral_constant<bool,
+template<class LatP> using Has_ExposesInternalRep = std::integral_constant<bool,
   T_InternalRep<LatP>::value || T_RepVector_R<LatP>::value || T_Rep_RW<LatP>::value ||
   T_InternalRepByCoos<LatP>::value || T_InternalRepByCoos<LatP>::value >;
-template<class LatP> using IsRepLinear = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepLinear = std::integral_constant<bool,
   T_RepVector_R<LatP>::value>;
-template<class LatP> using IsRepRW = std::integral_constant<bool,
+template<class LatP> using Has_InternalRep_RW = std::integral_constant<bool,
   T_Rep_RW<LatP>::value>;
-template<class LatP> using HasRepByCoos = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepByCoos = std::integral_constant<bool,
   T_InternalRepByCoos<LatP>::value>;
-template<class LatP> using HasAbsoluteRep = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepIsAbsolute = std::integral_constant<bool,
   T_AbsoluteCoos<LatP>::value>;
-template<class LatP> using IsNorm2Cheap = std::integral_constant<bool,
+template<class LatP> using Has_CheapNorm2 = std::integral_constant<bool,
   T_Norm2Cheap<LatP>::value>;
-template<class LatP> using IsNegateCheap = std::integral_constant<bool,
+template<class LatP> using Has_CheapNegate = std::integral_constant<bool,
   T_NegateCheap<LatP>::value>;
 template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
-  IsRepLinear<LatP>::value && IsRepRW<LatP>::value>;
-template<class LatP> using HasApproximations = std::integral_constant<bool,
+  Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
+template<class LatP> using Has_Approximations = std::integral_constant<bool,
   T_Approximation<LatP>::value>;
 
 
@@ -212,7 +212,7 @@ class GeneralLatticePoint
     static_assert(!HasNoLPTraits<LatP>::value, "Trait class not specialized.");
     static_assert(DeclaresScalarProductStorageType<LatP>::value,
                   "Lattice Point class does not typedef its scalar product type");
-    static_assert(!DoesExposeCoos<LatP>::value || DoesDeclareCoordinateType<LatP>::value,
+    static_assert(!Has_ExposesCoos<LatP>::value || DoesDeclareCoordinateType<LatP>::value,
                   "Lattice Point exposes coos, but does not tell its type.");
 
     friend LatP; // makes children able to access private (in addition to protected) members.
@@ -276,27 +276,27 @@ class GeneralLatticePoint
 // Impl!=LatP and we usually even static_assert(Impl==LatP) inside the implementation.
 // "Fun" fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma in MyNAND's argument as a macro
 // argument separator, so it has 3 arguments, the third one being garbage like
-// IsRepLinear<LatP2> > >
+// Has_InternalRepLinear<LatP2> > >
 // However, due to way TEMPL_RESTRICT_DECL2 is defined, this actually still works!
 
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
     inline LatP& operator+=(LatP2 const &x2);
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , IsRepLinear<LatP2> > )>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , Has_InternalRepLinear<LatP2> > )>
     LatP& operator+=(LatP2 const &x2) = delete;
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
     inline LatP& operator-=(LatP2 const &x2);
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, IsRepLinear<LatP2> >)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2> >)>
     LatP& operator-=(LatP2 const &x2) = delete;
 
     template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2>)>
     inline bool operator==(LatP2 const &x2) const;
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<HasInternalRep<Impl>, HasInternalRep<LatP2> >)>
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2> >)>
     bool operator==(LatP2 const &x2) = delete;
 
     template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
@@ -317,27 +317,27 @@ class GeneralLatticePoint
 
     // get_dim must be overloaded.
     // get_internal_rep_size may be overloaded.
-    template<class Impl=LatP,TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
+    template<class Impl=LatP,TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
     inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() );
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>)>
     inline RepCooType const & get_internal_rep(Arg &&arg) const
     {
       return CREALTHIS->operator[](std::forward<Arg>(arg));
     }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
     inline RepCooType & get_internal_rep(Arg &&arg)
     {
       return REALTHIS->operator[](std::forward<Arg>(arg));
     }
 
     // decltype(auto) from C++14 would be a godsend...
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasAbsoluteRep<Impl>)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepIsAbsolute<Impl>)>
     inline auto get_absolute_coo(Arg &&arg) const
     -> typename std::remove_reference< decltype (std::declval<Impl>().get_internal_rep(std::forward<Arg>(arg)) )>::type
     {
       return CREALTHIS->get_internal_rep(std::forward<Arg>(arg));
     }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasAbsoluteRep<Impl> >)>
+    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_InternalRepIsAbsolute<Impl> >)>
     int get_absolute_coo(Arg &&arg) const = delete; // needs to be overloaded
 
     void get_dim() const = delete; // Note that the overload shall NOT have void return type.
@@ -350,7 +350,7 @@ class GeneralLatticePoint
 
     inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
     inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const;
 
     std::istream& read_from_stream(std::istream &is) = delete;
@@ -378,9 +378,9 @@ class GeneralLatticePoint
   Tests whether a lattice point is all-zero.
   May be overloaded.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear<Impl>)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepLinear<Impl>)>
     inline bool is_zero() const;
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear<Impl>>)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_InternalRepLinear<Impl>>)>
     inline bool is_zero() const = delete;
 
 /**
@@ -436,12 +436,12 @@ class GeneralLatticePoint
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasApproximations<Impl> >)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_Approximations<Impl> >)>
     inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<HasApproximations<Impl> >)>
+    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_Approximations<Impl> >)>
     inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
     {
       return CREALTHIS->do_compute_sc_product(x2);

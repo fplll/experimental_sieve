@@ -37,7 +37,7 @@ public:
 
   using Trait_InternalRepIsAbsolute   = std::true_type;
   using Trait_InternalRepByCoos       = std::true_type;
-  using Trait_InternalRepVector       = std::true_type;
+  using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
 };
 

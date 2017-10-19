@@ -17,7 +17,7 @@ namespace GaussSieve{
 
 template<class LatP>
 template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>, HasInternalRep<Impl>, HasInternalRep<LatP2>)>
+  IsALatticePoint<LatP2>, Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2>)>
 inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
@@ -32,7 +32,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
   assert(dim1 == dim2);
   #endif // DEBUG_SIEVE_LP_MATCHDIM
 
-  CPP17CONSTEXPRIF(std::is_same<LatP,LatP2>::value && IsNorm2Cheap<LatP>::value)
+  CPP17CONSTEXPRIF(std::is_same<LatP,LatP2>::value && Has_CheapNorm2<LatP>::value)
   {
     if(CREALTHIS->get_norm2() != x2.get_norm2() )
     {
@@ -87,7 +87,7 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 
 template<class LatP>
 template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+  IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
@@ -113,7 +113,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 
 template<class LatP>
 template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>,IsRepLinear_RW<Impl>, IsRepLinear<LatP2>)>
+  IsALatticePoint<LatP2>,IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
@@ -149,7 +149,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
   {
     REALTHIS->get_internal_rep(i) *= multiplier;
   }
-  CPP17CONSTEXPRIF(IsNorm2Cheap<LatP>::value)
+  CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
   {
     REALTHIS->sanitize(CREALTHIS->get_norm2_exact() * multiplier * multiplier );
   }
@@ -233,7 +233,7 @@ LP1 operator-(LP1 && x1, LP2 const &x2)
 FOR_LATTICE_POINT_LP
 LP operator-(LP const &x1, LP &&x2)
 {
-  static_assert(IsNorm2Cheap<LP>::value,"Improve this code");
+  static_assert(Has_CheapNorm2<LP>::value,"Improve this code");
   LP tmp = std::move(x2);
   tmp.make_negative();
   tmp+=x1;
@@ -308,7 +308,7 @@ inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream 
 }
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(HasInternalRep<Impl>)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(Has_ExposesInternalRep<Impl>)>
 inline std::ostream& GeneralLatticePoint<LatP>::write_lp_rep_to_stream(std::ostream &os) const
 {
   IMPL_IS_LATP;
@@ -342,7 +342,7 @@ Getter functions
 ********************************/
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(HasInternalRep<Impl>)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(Has_ExposesInternalRep<Impl>)>
 inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() )
 {
   IMPL_IS_LATP;
@@ -357,21 +357,21 @@ template<class LatP>
 inline typename GetScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
 {
   DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
-      // This function should not be called if IsNorm2Cheap is set,
-      // since IsNorm2Cheap basically promises an overload.
-  static_assert(IsNorm2Cheap<LatP>::value == false, "");
+      // This function should not be called if Has_CheapNorm2 is set,
+      // since Has_CheapNorm2 basically promises an overload.
+  static_assert(Has_CheapNorm2<LatP>::value == false, "");
   return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
 }
 
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear<Impl>)>
+template<class Impl, TEMPL_RESTRICT_IMPL2(Has_InternalRepLinear<Impl>)>
 inline bool GeneralLatticePoint<LatP>::is_zero() const
 {
   IMPL_IS_LATP;
   DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
 
-  if (IsNorm2Cheap<LatP>::value) // constexpr if
+  if (Has_CheapNorm2<LatP>::value) // constexpr if
   {
     return (CREALTHIS->get_norm2() == 0);
   }
@@ -418,13 +418,13 @@ inline void GeneralLatticePoint<LatP>::make_negative()
   {
     REALTHIS->get_internal_rep(i) = - CREALTHIS->get_internal_rep(i);
   }
-  CPP17CONSTEXPRIF( IsNegateCheap<Impl>::value) // constexpr if
+  CPP17CONSTEXPRIF( Has_CheapNegate<Impl>::value) // constexpr if
   {
     return;
   }
   else
   {
-    if(IsNorm2Cheap<Impl>::value)
+    if(Has_CheapNorm2<Impl>::value)
     {
       REALTHIS->sanitize(CREALTHIS->get_norm2_full() );
     }
@@ -451,7 +451,7 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
   {
     NewLP.get_internal_rep(i) = CREALTHIS->get_internal_rep(i);
   }
-  if (IsNorm2Cheap<LatP>::value)
+  if (Has_CheapNorm2<LatP>::value)
   {
     NewLP.sanitize(CREALTHIS->get_norm2_full() );
   }

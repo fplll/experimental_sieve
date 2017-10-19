@@ -83,17 +83,17 @@ public:
   using Trait_CoordinateType          = typename GetCoordinateType<ELP>::type;
   using Trait_AbsoluteCoos            = typename GetAbsoluteCooType<ELP>::type;
   using Trait_RepCooType              = typename GetRepCooType<ELP>::type;
-  using Trait_ExposesCoos             = NormalizeTrait<DoesExposeCoos<ELP>>;
-  using Trait_ExposesInternalRep      = NormalizeTrait<HasInternalRep<ELP>>;
-  using Trait_InternalRepVector       = NormalizeTrait<IsRepLinear<ELP>>;
-  using Trait_InternalRep_RW          = NormalizeTrait<IsRepRW<ELP>>;
-  using Trait_InternalRepByCoos       = NormalizeTrait<HasRepByCoos<ELP>>;
-  using Trait_InternalRepIsAbsolute   = NormalizeTrait<HasAbsoluteRep<ELP>>;
-  using Trait_CheapNorm2              = NormalizeTrait<IsNorm2Cheap<ELP>>;
-  using Trait_CheapNegate             = NormalizeTrait<IsNegateCheap<ELP>>;
+  using Trait_ExposesCoos             = NormalizeTrait<Has_ExposesCoos<ELP>>;
+  using Trait_ExposesInternalRep      = NormalizeTrait<Has_ExposesInternalRep<ELP>>;
+  using Trait_InternalRepLinear       = NormalizeTrait<Has_InternalRepLinear<ELP>>;
+  using Trait_InternalRep_RW          = NormalizeTrait<Has_InternalRep_RW<ELP>>;
+  using Trait_InternalRepByCoos       = NormalizeTrait<Has_InternalRepByCoos<ELP>>;
+  using Trait_InternalRepIsAbsolute   = NormalizeTrait<Has_InternalRepIsAbsolute<ELP>>;
+  using Trait_CheapNorm2              = NormalizeTrait<Has_CheapNorm2<ELP>>;
+  using Trait_CheapNegate             = NormalizeTrait<Has_CheapNegate<ELP>>;
 
-  using Trait_HasApproximations       = std::true_type;
-  using Trait_HasDelayedScalarProduct = std::true_type;
+  using Trait_Approximations       = std::true_type;
+  using Trait_DelayedScalarProduct = std::true_type;
 };
 
 // clang-format off
@@ -135,9 +135,9 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   // operators<,>,<=, >= : No overloads. Defaults to exact comparison.
 
   // forward [] to exact class
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(DoesExposeCoos<T>)>
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesCoos<T>)>
   ExactCoos &operator[](Arg &&arg) { return exact_point[std::forward<Arg>(arg)]; }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(DoesExposeCoos<T>)>
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesCoos<T>)>
   ExactCoos const &operator[](Arg &&arg) const { return exact_point[std::forward<Arg>(arg)]; }
 
   // +=, -=, *= and unary- just forward to the exact class and recompute the approximation.
@@ -172,11 +172,11 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   }
 
   // forward internal_rep to exact point if it exists.
-  template<class T=ELP, TEMPL_RESTRICT_DECL2(HasInternalRep<T>)>
+  template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
   auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(HasInternalRep<T>)>
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
   RepCooType const & get_internal_rep(Arg &&arg) const { return exact_point.get_internal_rep(std::forward<Arg>(arg)); }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(HasInternalRep<T>, IsRepRW<T>)>
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>, Has_InternalRep_RW<T>)>
   RepCooType & get_internal_rep(Arg &&arg) {return exact_point.get_internal_rep(std::forward<Arg>(arg));}
 
   // forward absolute coos to exact point
@@ -197,7 +197,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
     return os;
   }
 
-  template<class T=ELP, TEMPL_RESTRICT_DECL2(HasInternalRep<ELP>)>
+  template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<ELP>)>
   inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const { return exact_point.write_lp_rep_to_stream(os); }
 
 
