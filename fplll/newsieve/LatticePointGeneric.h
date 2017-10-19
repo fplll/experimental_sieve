@@ -288,8 +288,9 @@ I/O
 *************************/
 
 template<class LatP>
-inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream &os, bool const include_norm2) const
+inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const
 {
+// Note: include_approx is ignored, because classes that have an approximation overload this anyway.
   DEBUG_TRACEGENERIC("Using generic writer (absolute) for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_dim();
   os << "[ "; // makes spaces symmetric

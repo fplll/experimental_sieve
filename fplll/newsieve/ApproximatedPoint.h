@@ -103,6 +103,8 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   public:
   using LatticePointTag = std::true_type;
   using ExactCoos = typename GetCooType<ELP>::type; // may be void
+  using RepCooType = typename GetRepCooType<ELP>::type;
+  using AbsoluteCooType = typename GetAbsoluteCooType<ELP>::type;
 //  using ScalarProductStorageType = typename GetScalarProductStorageType<ELP>::type;
   using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
 
@@ -159,21 +161,40 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
     }
   }
 
+  // forward internal_rep to exact point if it exists.
   template<class T=ELP, TEMPL_RESTRICT_DECL2(HasInternalRep<T>)>
   auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(HasInternalRep<T>)>
+  RepCooType const & get_internal_rep(Arg &&arg) const { return exact_point.get_internal_rep(std::forward<Arg>(arg)); }
+  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(HasInternalRep<T>, IsRepRW<T>)>
+  RepCooType & get_internal_rep(Arg &&arg) {return exact_point.get_internal_rep(std::forward<Arg>(arg));}
 
+  // forward absolute coos to exact point
+  template<class Arg>
+  AbsoluteCooType get_absolute_coo(Arg &&arg) const { return exact_point.get_absolute_coo(std::forward<Arg>(arg));  }
+
+  // forward get_dim
   auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
 
 
-  std::ostream& write_to_stream(std::ostream &os, bool const include_norm2=true) const
+  inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx =true) const
   {
-    return os << exact_point << approx;
+    exact_point.write_lp_to_stream(os, include_norm2,include_approx);
+    if(include_approx)
+    {
+      os << approx;
+    }
+    return os;
   }
+
+  template<class T=ELP, TEMPL_RESTRICT_DECL2(HasInternalRep<ELP>)>
+  inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const { return exact_point.write_lp_rep_to_stream(os); }
+
 
   //TODO: read_from_stream
 
   void fill_with_zero() { exact_point.fill_with_zero(); recompute_approx(); }
-  void make_negative()  { exact_point.make_negative(); recompute_approx(); }
+  void make_negative()  { exact_point.make_negative(); recompute_approx(); } // todo : may optimize
   bool is_zero() { return exact_point.is_zero(); }
   VectorWithApproximation make_copy() const { return VectorWithApproximation(exact_point.make_copy()); }
 
@@ -181,14 +202,17 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   void sanitize(ExactScalarProductType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
   void recompute_approx() { approx = static_cast<Approximation>(exact_point); }
 
-  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
-  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
 
-  DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
-  ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)
-  {
-    return exact_point.do_compute_sc_product_exact(x2);
-  };
+
+//  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
+//  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
+//
+//
+//  DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
+//  ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)
+//  {
+//    return exact_point.do_compute_sc_product_exact(x2);
+//  };
 
   private:
 

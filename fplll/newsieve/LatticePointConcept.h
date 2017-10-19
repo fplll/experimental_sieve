@@ -264,8 +264,14 @@ class GeneralLatticePoint
 // Remark: The class Impl=LatP paramter serves the single purpose that the argument
 // to TEMPL_RESTRICT_DECL is not always false for any possible set of template arguments.
 // (Note that LatP is a fixed type is this context and not a template argument)
-// Otherwise, the SFINAE magic behind it won't work. Of course, we never use these templates with
-// Impl!=LatP and we may even static_assert(Impl==LatP) inside the implementation.
+// Otherwise, the SFINAE magic behind it won't work.
+// More specifically, when the compiler is instantiation the class GeneralLatticePoint<LatP> for a
+// fixed LatP, it will already know LatP. If, based on that information, the compiler is able to
+// short-circuit the argument to TEMPL_RESTRICT_* to false / false_type, you may get an error.
+// This is prevented by the Impl=LatP, because LatP is only the default and it does not know whether
+// we stick to that.
+// Of course, we never use these templates with
+// Impl!=LatP and we usually even static_assert(Impl==LatP) inside the implementation.
 // "Fun" fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma in MyNAND's argument as a macro
 // argument separator, so it has 3 arguments, the third one being garbage like
 // IsRepLinear<LatP2> > >
@@ -312,12 +318,12 @@ class GeneralLatticePoint
     template<class Impl=LatP,TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
     inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() );
     template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>)>
-    inline CooType const & get_internal_rep(Arg &&arg) const
+    inline RepCooType const & get_internal_rep(Arg &&arg) const
     {
       return CREALTHIS->operator[](std::forward<Arg>(arg));
     }
     template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(HasRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
-    inline CooType & get_internal_rep(Arg &&arg)
+    inline RepCooType & get_internal_rep(Arg &&arg)
     {
       return REALTHIS->operator[](std::forward<Arg>(arg));
     }
@@ -340,8 +346,7 @@ class GeneralLatticePoint
   Supposed to be overloaded for the specific class.
 */
 
-//    MEMBER_ONLY_EXISTS_IF_COOS_ABSOLUTE // This may be too strict.
-    inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true) const;
+    inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 
     template<class Impl=LatP, TEMPL_RESTRICT_DECL2(HasInternalRep<Impl>)>
     inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const;
