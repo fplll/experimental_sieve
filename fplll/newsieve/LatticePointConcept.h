@@ -132,6 +132,7 @@ CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, Trait_CoordinateType, DoesDeclareCo
 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
 
+// should enclose these as static members of struct, declared as friend to Traits classes.
 //namespace TraitHelpers // check whether trait exists and equals std::true_type.
 //{
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesCoos, std::true_type, T_ExposesCoos);

@@ -116,7 +116,7 @@ class EMVApproximation
   EMVApproximation& operator=(EMVApproximation && other) = default;
   ~EMVApproximation() {};
 
-  ApproxEntryType &operator[](uint_fast16_t idx) { return data[idx]; };
+  template<class Arg> ApproxEntryType &operator[](uint_fast16_t idx) { return data[idx]; };
   ApproxEntryType const &operator[](uint_fast16_t idx) const { return data[idx]; };
 
   FOR_FIXED_DIM
@@ -136,34 +136,32 @@ class EMVApproximation
   signed int exponent; // shared exponent
   Container data; // array or vector of 16-bit ints
   private:
+  inline static bool is_class_initialized() { return StaticInitializer<EMVApproximation<nfixed>>::is_initialized(); }
   static MaybeFixed<nfixed> dim; // dimension of data
   static unsigned int max_bits; // maximum number of bits inside each entry.
                                 // This depends on the bitlenght of both ApproxEntryType
                                 // and ApproxNorm2Type, as well as on dim.
-
-// TODO: Remove (DefaultStaticInit's job)
-#ifdef DEBUG_SIEVE_LP_INIT
-  static bool class_initialized;
-#endif // DEBUG_SIEVE_LP_INIT
-
 };
-
-
 
 // initialization of static data of template class.
 template<int nfixed> MaybeFixed<nfixed> EMVApproximation<nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 template<int nfixed> unsigned int EMVApproximation<nfixed>::max_bits  = 0;
-#ifdef DEBUG_SIEVE_LP_INIT
-template<int nfixed> bool EMVApproximation<nfixed>::class_initialized = false;
-#endif
 
 // Static Initializer:
 template<int nfixed> class StaticInitializer<EMVApproximation<nfixed> >
+  : public DefaultStaticInitializer<EMVApproximation<nfixed> >
 {
   public:
+  using Parent = DefaultStaticInitializer<EMVApproximation<nfixed>>;
+
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
+  StaticInitializer(X const & init_arg) : StaticInitializer(init_arg.dim) {}
+
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
-    if(user_counter>0)
+    // note: user_count increased by one in initializer list prior to this constructor body.
+    assert(Parent::user_count>0);
+    if(Parent::user_count>1)
     {
       assert((new_dim == EMVApproximation<nfixed>::dim));
       // TODO: Throw exception!
@@ -185,30 +183,12 @@ template<int nfixed> class StaticInitializer<EMVApproximation<nfixed> >
       assert(result_digits - extra_bits>=0);
       EMVApproximation<nfixed>::max_bits= std::min(entry_digits, static_cast<unsigned int>(( result_digits - extra_bits) /2) ) ;
     }
-    ++user_counter;
-#ifdef DEBUG_SIEVE_LP_INIT
-    EMVApproximation<nfixed>::class_initialized = true;
-#endif
   }
 
-  ~StaticInitializer()
-  {
-    assert(user_counter > 0);
-    --user_counter;
-#ifdef DEBUG_SIEVE_LP_INIT
-    EMVApproximation<nfixed>::class_initialized = (user_counter > 0);
-#endif
-  }
+  ~StaticInitializer() {}
 
-  static bool is_initialized(){ return user_counter > 0; }; // Does an object exist?
-
-  private:
-  static unsigned int user_counter; // counts number of StaticInitializer instances.
+  inline static bool is_initialized(){ return Parent::user_count > 0; }; // Does an object exist?
 };
-
-template<int nfixed>
-unsigned int StaticInitializer<EMVApproximation<nfixed>>::user_counter = 0;
-
 
 
 /*******************
@@ -416,7 +396,7 @@ data()
   assert(dimension == exact_point.get_internal_rep_size() );
 #endif
 #ifdef DEBUG_SIEVE_LP_INIT
-  assert(class_initialized);
+  assert(is_class_initialized() );
 #endif
   using CooType = typename Get_CoordinateType<LatticePoint>::type;
   using std::abs;
