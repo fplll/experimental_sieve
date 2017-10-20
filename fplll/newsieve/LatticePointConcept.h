@@ -103,6 +103,9 @@ template<class LatticePoint> struct LatticePointTraits
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
 
+  AccessNorm2:  Set to true_type to indicate that we we have an access_norm2() function to
+                return a const-reference to a precomputed norm2.
+
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
   Approximations: Set to true_type to indicate that the point has approximations.
@@ -146,6 +149,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_CheapNorm2);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximations);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
 //}
 // Retrieving Traits with defaults:
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, Get_CoordinateType);
@@ -197,8 +201,14 @@ template<class LatP> using Has_CheapNegate = std::integral_constant<bool,
 template<class LatP> using Has_Approximations = std::integral_constant<bool,
   T_Approximations<LatP>::value>;
 
+template<class LatP> using Has_AccessNorm2 = std::integral_constant<bool,
+  T_AccessNorm2<LatP>::value>;
+
+// Deprecated
 template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
 Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
+
+
 
 //}
 
@@ -407,6 +417,8 @@ class GeneralLatticePoint
 /**   This function returns the exact norm, ignoring any approximations. */
     inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
     inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
+
+
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.

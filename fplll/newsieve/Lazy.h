@@ -335,6 +335,30 @@ template<class ELP, class Approximation, class LHS, class RHS> class Lazy_Scalar
   }
 };
 
+template<class ELP, class Approximation, class Arg> class Lazy_Norm2
+{
+  static_assert(Arg::IsLazyNode::value, "Arg is invalid");
+  public:
+  LAZY_FUNCTION;
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  using ArgTree = typename Arg::TreeType;
+  using TreeType = std::tuple<ArgTree const>;
+  static constexpr int nargs = 1;
+  static_assert(Arg::scalar_or_vector == ScalarOrVector::vector_type,"Can only take norm2 of vectors");
+  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
+  using ExactEvalType = ExactScalarType;
+  using ApproxEvalType = ApproxScalarType;
+
+  inline static ExactEvalType eval_exact(TreeType const & arg)
+  {
+    return static_cast<ExactEvalType>(Arg(std::get<0>(arg)).eval_exact().get_norm2());
+  }
+  inline static ApproxEvalType eval_approx(TreeType const & arg)
+  {
+    return static_cast<ApproxEvalType>(Arg(std::get<0>(arg)).eval_approx().get_approx_norm() );
+  }
+};
+
 }} //end namespaces
 
 #endif

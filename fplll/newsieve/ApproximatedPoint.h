@@ -79,11 +79,12 @@ static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
   using Trait_ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
-  using Trait_ScalarProductStorageType_Full  = void; //TODO!
+  using Trait_ScalarProductStorageType_Full  = ScalarWithApproximation<ELP,Approximation>;
   using Trait_CoordinateType          = typename Get_CoordinateType<ELP>::type;
   using Trait_AbsoluteCoos            = typename Get_AbsoluteCooType<ELP>::type;
   using Trait_RepCooType              = typename Get_RepCooType<ELP>::type;
   using Trait_ExposesCoos             = NormalizeTrait<Has_ExposesCoos<ELP>>;
+  using Trait_Coos_RW                 = NormalizeTrait<Has_Coos_RW<ELP>>;
   using Trait_ExposesInternalRep      = NormalizeTrait<Has_ExposesInternalRep<ELP>>;
   using Trait_InternalRepLinear       = NormalizeTrait<Has_InternalRepLinear<ELP>>;
   using Trait_InternalRep_RW          = NormalizeTrait<Has_InternalRep_RW<ELP>>;
@@ -109,6 +110,8 @@ using DelayedScalarProduct = LazyEval::SieveLazyEval<
 template<class ELP, class Approximation>
 class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
 {
+  static_assert(Has_CheapNorm2<ELP>::value, "ELP does not store its norm.");
+  // While it's not required, this
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
   public:
   using LatticePointTag = std::true_type;
@@ -122,6 +125,7 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   using ApproxScalarProductType   = typename Approximation::ScalarProductType;
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
   using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;
+  using DelayedNorm2Type          = LazyEval::LazyWrapExactAndApproxScalar<ELP,Approximation>;
 
   VectorWithApproximation(VectorWithApproximation const &old) = delete;
   VectorWithApproximation(VectorWithApproximation && old) = default;
@@ -212,11 +216,15 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   void sanitize(ExactScalarProductType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
   void recompute_approx() { approx = static_cast<Approximation>(exact_point); }
 
-
-
-  CombinedScalarProductType get_norm2() const { return exact_point.get_norm2_exact(); }
+  inline DelayedNorm2Type get_norm2() const
+  {
+    return DelayedNorm2Type ( exact_point.get_norm2(), approx.get_approx_norm2()  );
+  }
   ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
-
+  CombinedScalarProductType get_norm2_full() const
+  {
+    return CombinedScalarProductType(exact_point.get_norm2_exact(),approx.get_approx_norm2()  );
+  }
 
   DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
   ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)

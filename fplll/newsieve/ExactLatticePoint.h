@@ -37,6 +37,7 @@ public:
   using Trait_InternalRepByCoos       = std::true_type;
   using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
+  using Trait_AccessNorm2             = std::true_type;
 };
 
 template <class ET, int nfixed>
