@@ -105,7 +105,7 @@ class EMVApproximation
                       ::type;
 
   public:
-  template<class LatticePoint> // TODO : enable_if to select Lattice Points only (having [])
+  template<class LatticePoint, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>)> // TODO : enable_if to select Lattice Points only (having [])
   explicit EMVApproximation(LatticePoint const &exact_point);
 
   //explicit EMVApproximation(AuxData const &dim); //
@@ -126,15 +126,21 @@ class EMVApproximation
   static MaybeFixed<-1> get_dim() { return dim; }
 
   FOR_FIXED_DIM
-  void reserve_size() {}
+  inline void reserve_size() {}
 
   FOR_VARIABLE_DIM
-  void reserve_size() {data.reserve(static_cast<typename Container::size_type>(dim));}
+  inline void reserve_size() {data.reserve(static_cast<typename Container::size_type>(dim));}
 
   public:
 
+
   signed int exponent; // shared exponent
   Container data; // array or vector of 16-bit ints
+  // Note: Might want to avoid storing exponent twice.
+  EMVScalar get_approx_norm2() const { return approx_norm2; }
+
+  private:
+  EMVScalar approx_norm2;
   private:
   inline static bool is_class_initialized() { return StaticInitializer<EMVApproximation<nfixed>>::is_initialized(); }
   static MaybeFixed<nfixed> dim; // dimension of data
@@ -163,8 +169,7 @@ template<int nfixed> class StaticInitializer<EMVApproximation<nfixed> >
     assert(Parent::user_count>0);
     if(Parent::user_count>1)
     {
-      assert((new_dim == EMVApproximation<nfixed>::dim));
-      // TODO: Throw exception!
+      assert((new_dim == EMVApproximation<nfixed>::dim)); // TODO: Throw exception!
     }
     else
     {
@@ -384,32 +389,34 @@ inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated
 // Constructor:
 
 template<int nfixed>
-template<class LatticePoint>
+template<class LatticePoint, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatticePoint>)>
 EMVApproximation<nfixed>::EMVApproximation(LatticePoint const &exact_point):
 exponent(0),
-data()
+data(),
+approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 {
+  // TODO: static_assert() Traits for LatticePoint?
   reserve_size();
   auto const dimension = get_dim();
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
   assert(dimension == exact_point.get_dim() );
-  assert(dimension == exact_point.get_internal_rep_size() );
+//  assert(dimension == exact_point.get_internal_rep_size() );
 #endif
 #ifdef DEBUG_SIEVE_LP_INIT
   assert(is_class_initialized() );
 #endif
-  using CooType = typename Get_CoordinateType<LatticePoint>::type;
+  using AbsoluteCooType = typename Get_AbsoluteCooType<LatticePoint>::type;
   using std::abs;
 
-  CooType max_entry = 0;
+  AbsoluteCooType max_entry = 0;
   for(uint_fast16_t i=0;i<dimension;++i)
   {
     // The static_cast<CooType> is there to disable lazy evaluation (via expression templates) done
     // in mpz_class. The issue is that this confuses template argument deduction for std::max.
-    max_entry = std::max(max_entry, static_cast<CooType>(abs(exact_point[i])) );
+    max_entry = std::max(max_entry, static_cast<AbsoluteCooType>(abs(exact_point.get_absolute_coo(i) )) );
   }
 
-  if(max_entry ==0 )
+  if( max_entry == 0 )
   {
     exponent = 0;
     for(uint_fast16_t i=0; i<dimension; ++i)
@@ -426,7 +433,7 @@ data()
     // which is correct, but hurts readability
 
     // Note that std::numeric_limits<mpz_class> is specialized by gmpxx, so this case is caught.
-    if(std::numeric_limits<CooType>::is_integer) // constexpr if
+    CPP17CONSTEXPRIF (std::numeric_limits<AbsoluteCooType>::is_integer)
     {
       exponent = std::max(0,exponent);
     }
@@ -434,7 +441,7 @@ data()
     for(uint_fast16_t i=0;i<dimension;++i)
     {
       data[i] = ConvertMaybeMPZ<ApproxEntryType>::convert_to_inttype(
-            EMVScalar::divide_by_power_of_2(exact_point[i],exponent) );
+            EMVScalar::divide_by_power_of_2(exact_point.get_absolute_coo(i),exponent) );
     }
   }
 }
