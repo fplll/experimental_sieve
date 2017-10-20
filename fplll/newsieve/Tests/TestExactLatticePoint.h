@@ -19,7 +19,7 @@ bool test_exact_LP()
   typedef GaussSieve::ExactLatticePoint<long, 10> LPfix;
   typedef GaussSieve::ExactLatticePoint<mpz_class,10> LPGMP;
   static_assert(GaussSieve::IsALatticePoint<LPvar>::value,"");
-  static_assert(GaussSieve::IsCooVector<LPvar>::value,"");
+  static_assert(GaussSieve::Has_InternalRepIsAbsolute<LPvar>::value,"");
 
   GaussSieve::StaticInitializer<LPvar> init1 (MaybeFixed<-1>{10});
   GaussSieve::StaticInitializer<LPvar> init2 (MaybeFixed<-1>{10});
