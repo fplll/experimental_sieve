@@ -16,15 +16,14 @@ namespace GaussSieve{
 **********************/
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>, Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2>)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
 inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
   static_assert(std::is_same<typename Get_CoordinateType<LatP>::type,typename Get_CoordinateType<LatP2>::type>::value,
   "Different coordinate types. Probably an error.");
-
+  static_assert(Has_ExposesInternalRep<Impl>::value,"Cannot compare using ==. Maybe you forget a trait or overloading == ");
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
@@ -86,11 +85,13 @@ inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 ******************************************/
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload +=");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to += invalid: Maybe you forgot a trait or did not overload +=");
+  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to += invalid: Maybe you forgot a trait or did not overload +=");
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
@@ -112,11 +113,13 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 }
 
 template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsALatticePoint<LatP2>,IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
+template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload -=");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to -= invalid: Maybe you forgot a trait or did not overload -=");
+  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to -= invalid: Maybe you forgot a trait or did not overload -=");
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
@@ -138,11 +141,12 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 }
 
 template<class LatP>
-template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(
-  IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
+template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point. Maybe you forgot a trait or did not overload *=");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Cannot multiply with scalar. Maybe you forgot a trait or did not overload *=");
   DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_internal_rep_size();
   for(uint_fast16_t i=0;i<dim;++i)
@@ -342,10 +346,11 @@ Getter functions
 ********************************/
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(Has_ExposesInternalRep<Impl>)>
+template<class Impl>
 inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() )
 {
   IMPL_IS_LATP;
+  static_assert(Has_ExposesInternalRep<Impl>::value,"Trying to obtain internal rep size, but Lattice Point does not claim to have one.");
   DEBUG_TRACEGENERIC("Generically getting vec_size for" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
@@ -388,6 +393,44 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
     return true;
   }
 }
+
+template<class LatP>
+template<class Arg, class Impl>
+inline typename GeneralLatticePoint<LatP>::RepCooType const & GeneralLatticePoint<LatP>::get_internal_rep(Arg &&arg) const
+{
+  IMPL_IS_LATP;
+  static_assert(Has_ExposesInternalRep<Impl>::value,"Asking for internal representation, but lattice point does not claim to have one.");
+  static_assert(Has_InternalRepByCoos<Impl>::value,"Do not know how internal representation looks like. Did you foret a trait or overload of get_internal_rep (read)");
+  return CREALTHIS->operator[](std::forward<Arg>(arg));
+}
+
+template<class LatP>
+template<class Arg, class Impl>
+inline typename GeneralLatticePoint<LatP>::RepCooType & GeneralLatticePoint<LatP>::get_internal_rep(Arg &&arg)
+{
+  IMPL_IS_LATP;
+  static_assert(Has_ExposesInternalRep<Impl>::value,"Asking for internal representation, but lattice point does not claim to have one.");
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to internal representation. Did you forget a trait or overload to get_internal_rep");
+  static_assert(Has_InternalRepByCoos<Impl>::value,"Do not know how internal representation looks like. Did you forget a trait or overload of get_internal_rep (write)");
+  return REALTHIS->operator[](std::forward<Arg>(arg));
+}
+
+template<class LatP>
+template<class Arg, class Impl>
+inline typename GeneralLatticePoint<LatP>::AbsoluteCooType GeneralLatticePoint<LatP>::get_absolute_coo(Arg &&arg) const
+{
+  IMPL_IS_LATP;
+  static_assert(Has_InternalRepIsAbsolute<Impl>::value,"Do not how to obtain absolute coordinates. Did you forget a trait or overload of get_absolute_coo?");
+  return CREALTHIS->get_internal_rep(std::forward<Arg>(arg));
+}
+
+//    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
+//    inline RepCooType & get_internal_rep(Arg &&arg)
+//    {
+//      return REALTHIS->operator[](std::forward<Arg>(arg));
+//    }
+//
+
 
 /**************************
   Initialization functions

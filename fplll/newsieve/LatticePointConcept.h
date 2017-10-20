@@ -202,7 +202,7 @@ Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
 //}
 
 #define IMPL_IS_LATP \
-static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type")
+static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type.")
 
 // unsure whether to use reinterpret_casts here...
 
@@ -224,8 +224,12 @@ class GeneralLatticePoint
     public:
     using ScalarProductStorageType = typename Get_ScalarProductStorageType<LatP>::type;
     using ScalarProductStorageType_Full = typename Get_ScalarProductStorageType_Full<LatP>::type;
+    // deprecated
     using CooType = typename Get_CoordinateType<LatP>::type; //may be void
+    using CoordinateType = typename Get_CoordinateType<LatP>::type; //may be void
+//    deprecated
     using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
+    using AbsoluteCooType = typename Get_AbsoluteCooType<LatP>::type;
     using RepCooType = typename Get_RepCooType<LatP>::type;
 
     private:
@@ -246,6 +250,9 @@ class GeneralLatticePoint
 
 // This one should be overloaded by every derived class. Used for diagnostic.
     static std::string class_name() {return "General Lattice Point.";};
+
+    template<class Arg>
+    void operator[](Arg &&arg) = delete; // This may exists in an overload (if Has_ExposesCoo is true).
 
 // comparison with < or > are by length (by default).
 // Note that == or != are intendend to mean actual equality comparisons,
@@ -277,35 +284,21 @@ class GeneralLatticePoint
 // we stick to that.
 // Of course, we never use these templates with
 // Impl!=LatP and we usually even static_assert(Impl==LatP) inside the implementation.
-// "Fun" fact: TEMPL_RESTRICT_DECL2 misinterprets the second comma in MyNAND's argument as a macro
-// argument separator, so it has 3 arguments, the third one being garbage like
-// Has_InternalRepLinear<LatP2> > >
-// However, due to way TEMPL_RESTRICT_DECL2 is defined, this actually still works!
 
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+    inline LatP& operator+=(LatP2 const &x2); // default implementation asserts linearity
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
-    inline LatP& operator+=(LatP2 const &x2);
-
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl> , Has_InternalRepLinear<LatP2> > )>
-    LatP& operator+=(LatP2 const &x2) = delete;
-
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2>)>
-    inline LatP& operator-=(LatP2 const &x2);
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<IsRepLinear_RW<Impl>, Has_InternalRepLinear<LatP2> >)>
-    LatP& operator-=(LatP2 const &x2) = delete;
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+    inline LatP& operator-=(LatP2 const &x2); // default implementation asserts linearity
 
     template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2>)>
-    inline bool operator==(LatP2 const &x2) const;
-    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, MyNAND<Has_ExposesInternalRep<Impl>, Has_ExposesInternalRep<LatP2> >)>
-    bool operator==(LatP2 const &x2) = delete;
+    template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+    inline bool operator==(LatP2 const &x2) const; // default implementation asserts internal rep
 
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>, std::is_integral<Integer>)>
-    inline LatP& operator*=(Integer const multiplier);
-    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>, MyNegation<IsRepLinear_RW<Impl> >)>
-    LatP& operator*=(Integer const multiplier) = delete;
+    template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+    inline LatP& operator*=(Integer const multiplier); // default implementation asserts linearity
     inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
 
     inline LatP operator-() &&; //unary-
@@ -320,30 +313,19 @@ class GeneralLatticePoint
 
     // get_dim must be overloaded.
     // get_internal_rep_size may be overloaded.
-    template<class Impl=LatP,TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
-    inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() );
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>)>
-    inline RepCooType const & get_internal_rep(Arg &&arg) const
-    {
-      return CREALTHIS->operator[](std::forward<Arg>(arg));
-    }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
-    inline RepCooType & get_internal_rep(Arg &&arg)
-    {
-      return REALTHIS->operator[](std::forward<Arg>(arg));
-    }
+    template<class Impl=LatP> // default implementation asserts Has_InternalRep
+    inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
 
-    // decltype(auto) from C++14 would be a godsend...
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepIsAbsolute<Impl>)>
-    inline auto get_absolute_coo(Arg &&arg) const
-    -> typename std::remove_reference< decltype (std::declval<Impl>().get_internal_rep(std::forward<Arg>(arg)) )>::type
-    {
-      return CREALTHIS->get_internal_rep(std::forward<Arg>(arg));
-    }
-    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_InternalRepIsAbsolute<Impl> >)>
-    int get_absolute_coo(Arg &&arg) const = delete; // needs to be overloaded
+    template<class Arg, class Impl=LatP>
+    inline RepCooType const & get_internal_rep(Arg &&arg) const;
 
-    void get_dim() const = delete; // Note that the overload shall NOT have void return type.
+    template<class Arg, class Impl=LatP>
+    inline RepCooType & get_internal_rep(Arg &&arg);
+
+    template<class Arg, class Impl=LatP>
+    inline AbsoluteCooType get_absolute_coo(Arg &&arg) const;
+
+    void get_dim() const = delete; // Note that the overload shall NOT have void return type. It may be static / constexpr.
                                    // It's just not possible to specific it here w/o C++14 auto.
 
 /**

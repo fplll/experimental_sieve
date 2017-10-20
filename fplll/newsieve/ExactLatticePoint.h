@@ -28,8 +28,6 @@ template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, n
 {
 public:
   using Trait_ScalarProductStorageType= ET;
-  using Trait_CoordinateVector        = std::true_type;
-  using Trait_CoordinateAccess        = std::true_type;
   using Trait_AbsoluteCoos            = std::true_type;
   using Trait_CoordinateType          = ET;
   using Trait_CheapNorm2              = std::true_type;
