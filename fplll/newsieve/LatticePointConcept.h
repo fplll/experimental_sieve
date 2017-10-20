@@ -347,26 +347,18 @@ class GeneralLatticePoint
   The latter depends subtly on the constructors used (empty vs. default constructor...)
   May be overloaded by Derived class.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
-    inline void fill_with_zero();
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl>>)>
-    inline void fill_with_zero() = delete;
+    template<class Impl=LatP> inline void fill_with_zero();
+
 /**
   Changes vector from v to -v. May be overloaded.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
-    inline void make_negative();
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl>>)>
-    inline void make_negative() = delete;
+    template<class Impl=LatP> inline void make_negative();
 
 /**
   Tests whether a lattice point is all-zero.
   May be overloaded.
 */
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepLinear<Impl>)>
-    inline bool is_zero() const;
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_InternalRepLinear<Impl>>)>
-    inline bool is_zero() const = delete;
+    template<class Impl=LatP> inline bool is_zero() const;
 
 /**
   Makes an (explicit) copy of the current point.
@@ -378,10 +370,9 @@ class GeneralLatticePoint
   May be overloaded.
 */
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(IsRepLinear_RW<Impl>)>
-    inline LatP make_copy() const;
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<IsRepLinear_RW<Impl> >)>
-    LatP make_copy() const = delete;
+    template<class Impl=LatP> inline LatP make_copy() const;
+    [[deprecated]] constexpr inline LatP make_copy() && {return *CREALTHIS;} // Calling this is probably an error.
+
 
 /**
      brings the lattice point into a defined state. Defaults to "do nothing".
@@ -394,9 +385,11 @@ class GeneralLatticePoint
      The second version takes norm2 as an argument (to avoid recomputing it).
 */
 
-// TODO: Arg type overloads
+// TODO: Arg type overloads for Full StorageType?
     void sanitize() {};
-    void sanitize(ScalarProductStorageType const &norm2) { sanitize(); };
+    inline void sanitize(ScalarProductStorageType const &norm2) { REALTHIS->sanitize(); };
+    template<class Impl=LatP,TEMPL_RESTRICT_DECL(!(std::is_same<Get_ScalarProductStorageType<Impl>,Get_ScalarProductStorageType_Full<Impl>>::value))>
+    inline void sanitize(ScalarProductStorageType_Full const &norm2_full) = delete; // must be overloaded if meaningful.
 
 
 /**

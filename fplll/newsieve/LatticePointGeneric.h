@@ -370,10 +370,11 @@ inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<Lat
 
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(Has_InternalRepLinear<Impl>)>
+template<class Impl>
 inline bool GeneralLatticePoint<LatP>::is_zero() const
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRepLinear<Impl>::value,"Default Zero-test requires linear representation. Did you forget a trait or to overload is_zero()?");
   DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
 
   if (Has_CheapNorm2<LatP>::value) // constexpr if
@@ -437,10 +438,12 @@ inline typename GeneralLatticePoint<LatP>::AbsoluteCooType GeneralLatticePoint<L
 ***************************/
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
+template<class Impl>
 inline void GeneralLatticePoint<LatP>::fill_with_zero()
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to class. Did you forget to declare a trait or overload fill_with_zero?");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Do not know how to zeroize vector. Did you forget to declare Linearity or overload fill_with_zero?");
   DEBUG_TRACEGENERIC("Using generic fill with zero for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_internal_rep_size();
   for (uint_fast16_t i=0;i<dim;++i)
@@ -451,10 +454,12 @@ inline void GeneralLatticePoint<LatP>::fill_with_zero()
 }
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
+template<class Impl>
 inline void GeneralLatticePoint<LatP>::make_negative()
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to class. Did you forget to declare a trait or overload make_negative?");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Do not know how to negate vector. Did you forget to declare linearity or overload make_negative?");
   DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_internal_rep_size();
   for (uint_fast16_t i=0; i<dim; ++i)
@@ -482,10 +487,11 @@ inline void GeneralLatticePoint<LatP>::make_negative()
 
 
 template<class LatP>
-template<class Impl, TEMPL_RESTRICT_IMPL2(IsRepLinear_RW<Impl>)>
+template<class Impl>
 inline LatP GeneralLatticePoint<LatP>::make_copy() const
 {
   IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point. Did you forget to declare a trait or to overload make_copy()?");
   DEBUG_TRACEGENERIC("Using generic copy for " << LatP::class_name() )
   auto const real_dim=CREALTHIS->get_dim(); // means ambient dimension.
   auto const dim = CREALTHIS->get_internal_rep_size(); // number of coordinates stored. May be rank.
