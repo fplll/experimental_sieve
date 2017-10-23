@@ -93,6 +93,21 @@ bool test_lazy()
   using IdentityFunBV = Lazy_Identity<ELP,Approx,LazyWrapBV>;
   using IdentityFunCV = Lazy_Identity<ELP,Approx,LazyWrapCV>;
 
+  std::cout << IdentityFunBS::eval_exact (std::tuple<typename LazyWrapBS::TreeType>(wrap_scalar1.args)) << " approx. "
+            << IdentityFunBS::eval_approx(std::tuple<typename LazyWrapBS::TreeType>(wrap_scalar1.args)) << std::endl;
+  std::cout << IdentityFunES::eval_exact (std::tuple<typename LazyWrapES::TreeType>(wrap_scalar2.args)) << " approx. "
+            << IdentityFunES::eval_approx(std::tuple<typename LazyWrapES::TreeType>(wrap_scalar2.args)) << std::endl;
+//  std::cout << IdentityFunCS::eval_exact (std::tuple<typename LazyWrapCS::TreeType>(wrap_scalar3.args)) << " approx. "
+//            << IdentityFunCS::eval_approx(std::tuple<typename LazyWrapCS::TreeType>(wrap_scalar3.args)) << std::endl;
+  std::cout << IdentityFunEV::eval_exact (std::tuple<typename LazyWrapEV::TreeType>(wrap_vector1.args))
+            << IdentityFunEV::eval_approx(std::tuple<typename LazyWrapEV::TreeType>(wrap_vector1.args)) << std::endl;
+  std::cout << IdentityFunBV::eval_exact (std::tuple<typename LazyWrapBV::TreeType>(wrap_vector2.args))
+            << IdentityFunBV::eval_approx(std::tuple<typename LazyWrapBV::TreeType>(wrap_vector2.args)) << std::endl;
+//  std::cout << IdentityFunCV::eval_exact (std::tuple<typename LazyWrapCV::TreeType>(wrap_vector3.args))
+//            << IdentityFunCV::eval_approx(std::tuple<typename LazyWrapCV::TreeType>(wrap_vector3.args)) << std::endl;
+
+
+
 //
 //  using VecIdentity = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperEV>;
 //  using VecIdentity2 = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperBV>;
