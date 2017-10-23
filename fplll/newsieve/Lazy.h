@@ -97,6 +97,8 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity;
   Note that leaves are of different types, but expose nearly the same syntax.
 */
 
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
+
 template<class LazyFunction> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
@@ -127,8 +129,8 @@ template<class LazyFunction> class SieveLazyEval
   inline ExactEvalType eval_exact() const { return LazyFunction::eval_exact(args); }
   inline ApproxEvalType eval_approx() const { return LazyFunction::eval_approx(args); }
 
-  inline operator ExactEvalType() const { return eval_exact(); }
-  inline operator ApproxEvalType() const { return eval_approx(); }
+  inline explicit operator ExactEvalType() const { return eval_exact(); }
+  inline explicit operator ApproxEvalType() const { return eval_approx(); }
 
   inline bool operator< ( ExactScalarType const & rhs) const
   {
@@ -136,12 +138,32 @@ template<class LazyFunction> class SieveLazyEval
     return eval_exact() < rhs;
   }
 
-  template<class LazyFunctionRHS>
-  inline bool operator< ( SieveLazyEval<LazyFunctionRHS> const & rhs) const
+  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
+  inline bool operator< ( LazyRHS const & rhs) const
   {
-    static_assert(std::is_same<typename SieveLazyEval<LazyFunctionRHS>::ELP, ELP >::value,"");
-    return eval_exact() < rhs.eval_exact();
+    using RHSType = typename std::decay<LazyRHS>::type;
+    static_assert(std::is_same<typename RHSType::ELP,ELP>::value, ""  );
+    static_assert(std::is_same<typename RHSType::Approximation, Approximation>::value,"");
+    return (eval_approx() < rhs.eval_approx() ) && (eval_exact() < rhs.eval_exact() );
   }
+
+  inline bool operator> ( ExactScalarType const & rhs) const
+  {
+    static_assert(scalar_or_vector == ScalarOrVector::scalar_type,"comparing vector with scalar.");
+    return eval_exact() > rhs;
+  }
+
+  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
+  inline bool operator> ( LazyRHS const & rhs) const
+  {
+    using RHSType = typename std::decay<LazyRHS>::type;
+    static_assert(std::is_same<typename RHSType::ELP,ELP>::value, ""  );
+    static_assert(std::is_same<typename RHSType::Approximation, Approximation>::value,"");
+    return (eval_approx() > rhs.eval_approx() ) && (eval_exact() > rhs.eval_exact() );
+  }
+
+
+
 };
 
 /**
@@ -307,7 +329,7 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
 template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
 {
   static_assert(LHS::IsLazyNode::value, "Left hand argument invalid");
-  static_assert(RHS::IsLazyNode::Value, "Right hand argument invalid");
+  static_assert(RHS::IsLazyNode::value, "Right hand argument invalid");
   public:
   LAZY_FUNCTION;
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
