@@ -191,8 +191,9 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
 
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
 
-  constexpr LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
+  constexpr explicit LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
   : args(std::tie(exact_scalar,approx_scalar)  ) {}
+  constexpr LazyWrapExactAndApproxScalar(TreeType const &arg_wrap):args(arg_wrap) {};
   // These constexprs might require C++14
   inline CPP14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
   inline CPP14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
@@ -235,11 +236,12 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
   using TreeType = std::tuple<ExactVectorType const &, ApproxVectorType const &>;
   using IsLazyNode = std::true_type;
   using ExactEvalType  = ExactVectorType const &;
-  using ApproxEvalType = ApproxScalarType const &;
+  using ApproxEvalType = ApproxVectorType const &;
 
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
-  constexpr LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
+  constexpr explicit LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
   :args(std::tie(exact_vector,approx_vector)) {}
+  constexpr LazyWrapExactAndApproxVector(TreeType const &arg_wrap): args(arg_wrap){};
   CPP14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
   CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
