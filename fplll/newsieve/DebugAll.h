@@ -6,18 +6,21 @@
 #ifndef DEBUG_ALL_H
 #define DEBUG_ALL_H
 
-
-// #define DEBUG_SIEVE_LP_TRACEGENERIC
- #define DEBUG_SIEVE_SILENT_ALL
-
-
 // clang-format kills the indenting for #defines
 // clang-format off
 
+// This causes generic implementations of lattice points to produce verbos output.
+// Used to track which functions get called.
+// #define DEBUG_SIEVE_LP_TRACEGENERIC
+
 // enables all silent checks
+#define DEBUG_SIEVE_SILENT_ALL
+
+// verbos output for Lazy
+#define DEBUG_SIEVE_LAZY_ALL
+
 
 #ifdef DEBUG_SIEVE_SILENT_ALL
-
 // tests that LP classes were initialized prior to using.
   #define DEBUG_SIEVE_LP_INIT
 
@@ -36,7 +39,7 @@
 
 // enables modules which use a pointer to Sieve<...> to be used standalone.
 // Because this actually changes semantics by disabling some features,
-// Do NOT use this outside of testing, because it actually breaks things.
+// do NOT use this outside of testing, because it actually breaks things.
 
 #ifdef DEBUG_SIEVE_STANDALONE_MODULES_ALL
 
@@ -44,6 +47,14 @@
 
   #define DEBUG_SIEVE_STANDALONE_QUEUE
 
+#endif
+
+
+
+#ifdef DEBUG_SIEVE_LAZY_ALL
+  #define DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+  #define DEBUG_SIEVE_LAZY_TRACE_EVALS
+  #define DEBUG_SIEVE_LAZY_TRACE_APPROX
 #endif
 
 

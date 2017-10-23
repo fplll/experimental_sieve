@@ -116,7 +116,12 @@ template<class LazyFunction> class SieveLazyEval
 
   TreeType const args;
 
-  constexpr explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args) {};
+  constexpr explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Lazy function wrapper object for function " << LazyFunction::fun_name() << std::endl;
+#endif
+  };
   SieveLazyEval() = delete;
   constexpr explicit SieveLazyEval(SieveLazyEval const &other) = default;
   constexpr explicit SieveLazyEval(SieveLazyEval && other) = default;
@@ -126,8 +131,20 @@ template<class LazyFunction> class SieveLazyEval
 //  template<class... Args>  constexpr explicit SieveLazyEval(Args const &... args)
 //    : SieveLazyEval(std::tuple) {}
 
-  inline ExactEvalType eval_exact() const { return LazyFunction::eval_exact(args); }
-  inline ApproxEvalType eval_approx() const { return LazyFunction::eval_approx(args); }
+  inline ExactEvalType eval_exact() const
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
+    std::cout << "Calling function exactly. Function is " << LazyFunction::fun_name() << std::endl;
+#endif
+    return LazyFunction::eval_exact(args);
+  }
+  inline ApproxEvalType eval_approx() const
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
+    std::cout << "Calling function approximately. Function is " << LazyFunction::fun_name() << std::endl;
+#endif
+    return LazyFunction::eval_approx(args);
+  }
 
   inline explicit operator ExactEvalType() const { return eval_exact(); }
   inline explicit operator ApproxEvalType() const { return eval_approx(); }
@@ -189,11 +206,22 @@ template<class ELP, class Approximation> class LazyWrapExactScalar
   using ApproxEvalType = ApproxScalarType; // no reference here! We create a new object
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
 
-  constexpr LazyWrapExactScalar(ExactScalarType const &exact_scalar): args(exact_scalar) {};
+  constexpr LazyWrapExactScalar(ExactScalarType const &exact_scalar): args(exact_scalar)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Lazy Wrapper for exact scalars" << std::endl;
+#endif
+  };
 
   inline constexpr ExactEvalType eval_exact() { return args; }
   //[[deprecated]]
-  inline constexpr ApproxEvalType eval_approx() { return static_cast< ApproxScalarType > (args); }
+  inline constexpr ApproxEvalType eval_approx()
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
+    std::cout << "Computing approximation to exact point inside wrapper, since approximation was called for" << std::endl;
+#endif
+    return static_cast< ApproxScalarType > (args);
+  }
 
   TreeType const args;
 };
@@ -214,8 +242,18 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
 
   constexpr explicit LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
-  : args(std::tie(exact_scalar,approx_scalar)  ) {}
-  constexpr LazyWrapExactAndApproxScalar(TreeType const &arg_wrap):args(arg_wrap) {};
+  : args(std::tie(exact_scalar,approx_scalar)  )
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating new Lazy Wrapper for exact and approximate scalars" << std::endl;
+#endif
+  }
+  constexpr LazyWrapExactAndApproxScalar(TreeType const &arg_wrap):args(arg_wrap)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Rebuilding Lazy Wrapper for exact and approximate scalars" << std::endl;
+#endif
+  }
   // These constexprs might require C++14
   inline CPP14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
   inline CPP14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
@@ -237,14 +275,24 @@ template<class ELP, class Approximation> class LazyWrapExactVector
   using ApproxEvalType = ApproxVectorType; // No reference here!
 
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
+  TreeType const args;
 
-  constexpr LazyWrapExactVector(ExactVectorType const &exact_vector): args(exact_vector) {};
+  constexpr LazyWrapExactVector(ExactVectorType const &exact_vector): args(exact_vector)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Lazy Wrapper for exact vectors" << std::endl;
+#endif
+  }
   constexpr ExactEvalType eval_exact() const { return args; }
   //[[deprecated]]
-  constexpr ApproxEvalType eval_approx() const { return static_cast< ApproxVectorType>(args); }
+  constexpr ApproxEvalType eval_approx() const
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
+    std::cout << "Computing approximation to exact vector inside wrapper, since approximation was called for" << std::endl;
+#endif
+    return static_cast< ApproxVectorType>(args);
+  }
 
-
-  TreeType const args;
 };
 
 /**
@@ -262,8 +310,18 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
 
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
   constexpr explicit LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
-  :args(std::tie(exact_vector,approx_vector)) {}
-  constexpr LazyWrapExactAndApproxVector(TreeType const &arg_wrap): args(arg_wrap){};
+  :args(std::tie(exact_vector,approx_vector))
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating new Lazy Wrapper for exact and approximate vectors" << std::endl;
+#endif
+  }
+  constexpr LazyWrapExactAndApproxVector(TreeType const &arg_wrap): args(arg_wrap)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Rebuilding Lazy Wrapper for exact and approximate vectors" << std::endl;
+#endif
+  }
   CPP14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
   CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
@@ -309,7 +367,9 @@ template<class ELP, class Approximation, class Arg> class Lazy_Identity
   using ExactEvalType = typename Arg::ExactEvalType;
   using ApproxEvalType= typename Arg::ApproxEvalType;
   Lazy_Identity(...) = delete;
-  // C++14 decltype(auto) would really be helpful here...
+
+  static std::string fun_name() {return "Identity function";};
+
   CPP14CONSTEXPR inline static ExactEvalType eval_exact( TreeType const & arg)
   {
     return Arg(std::get<0>(arg)).eval_exact();
@@ -343,6 +403,7 @@ template<class ELP, class Approximation, class LHS, class RHS> class Lazy_Scalar
   using ExactEvalType  = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
 
+  static std::string fun_name() {return "Scalar Product";};
   inline static ExactEvalType eval_exact(TreeType const & arg)
   {
     return compute_sc_product_exact(
@@ -372,6 +433,7 @@ template<class ELP, class Approximation, class Arg> class Lazy_Norm2
   static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
   using ExactEvalType = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
+  static std::string fun_name() {return "Norm2";};
 
   inline static ExactEvalType eval_exact(TreeType const & arg)
   {
