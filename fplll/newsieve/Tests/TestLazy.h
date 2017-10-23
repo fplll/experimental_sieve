@@ -35,7 +35,7 @@ bool test_lazy()
   long B[dim] = {34, 12,666, 50, 14,-20,50,61,89,-1000};
   long C = 8000000L;
 
-  std::cout << std::endl << "-- Creating vectors, approximations and combination -- " << std::endl;
+  std::cout << std::endl << "-- Creating vectors, approximations and combination -- " << std::endl << std::flush;
 
   ELP exact_point1 = make_from_any_vector<ELP>(A,dim);
   ELP exact_point2 = make_from_any_vector<ELP>(B,dim);
@@ -61,6 +61,8 @@ bool test_lazy()
   std::cout << exact_scalar1 << " approx. by " << approx_scalar1 << std::endl;
   std::cout << combined_scalar.exact_scalar << "approx. by " << combined_scalar.approx_scalar << std::endl;
 
+  std::cout << std::endl << "-- Wrappers --" << std::endl << std::flush;
+
   using LazyWrapES = LazyWrapExactScalar<ELP,Approx>;
   using LazyWrapBS = LazyWrapExactAndApproxScalar<ELP,Approx>;
   using LazyWrapCS = LazyWrapExactWithApproxScalar<ELP,Approx>;
@@ -75,35 +77,22 @@ bool test_lazy()
   LazyWrapBV wrap_vector2(exact_point2,approx_point2);
   LazyWrapCV wrap_vector3(combined_vector1);
 
+  std::cout << wrap_vector1.eval_exact() << wrap_vector1.eval_approx() << std::endl;
+  std::cout << wrap_vector2.eval_exact() << wrap_vector2.eval_approx() << std::endl;
+  std::cout << wrap_vector3.eval_exact() << wrap_vector3.eval_approx() << std::endl;
+  std::cout << wrap_scalar1.eval_exact() << " approx. by " << wrap_scalar1.eval_approx() << std::endl;
+  std::cout << wrap_scalar2.eval_exact() << " approx. by " << wrap_scalar2.eval_approx() << std::endl;
+  std::cout << wrap_scalar3.eval_exact() << " approx. by " << wrap_scalar3.eval_approx() << std::endl;
 
-//  ELP exact_point = make_from_any_vector<ELP>(A,dim);
-//  ELP second_exact_point = make_from_any_vector<ELP>(B,dim);
-//  Approx approx_point = static_cast<Approx>(exact_point);
-//  Approx second_approx_point = static_cast<Approx>(second_exact_point);
-//
-//  std::cout << "-- Testing Lazy evalutation module with this point --" << std::endl;
-//
-//  std::cout << exact_point << std::endl;
-//  std::cout << approx_point << std::endl;
-//
-//
-//  std::cout << std::endl<< std::endl << "-- Wrappers: --" << std::endl;
-//
-//  using LazyWrapperEV = LazyEval::LazyWrapExactVector<ELP,Approx>;
-//  using LazyWrapperBV = LazyEval::LazyWrapExactAndApproxVector<ELP,Approx>;
-//  LazyWrapperEV vector_wrapper(exact_point);
-//  LazyWrapperEV second_vector_wrapper(second_exact_point);
-//  LazyWrapperBV vector_wrapper2(exact_point,approx_point);
-//  LazyWrapperBV second_vector_wrapper2(second_exact_point, second_approx_point);
-//
-//
-//  std::cout << vector_wrapper.eval_exact() << std::endl;
-//  std::cout << vector_wrapper.eval_approx() << std::endl;
-//
-//  std::cout << second_vector_wrapper2.eval_exact() << std::endl;
-//  std::cout << second_vector_wrapper2.eval_approx() << std::endl << std::flush;
-//
-//  std::cout <<std::endl << std::endl << "-- Direct calling of identity function: --" << std::endl;
+  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
+
+  using IdentityFunES = Lazy_Identity<ELP,Approx,LazyWrapES>;
+  using IdentityFunBS = Lazy_Identity<ELP,Approx,LazyWrapBS>;
+  using IdentityFunCS = Lazy_Identity<ELP,Approx,LazyWrapCS>;
+  using IdentityFunEV = Lazy_Identity<ELP,Approx,LazyWrapEV>;
+  using IdentityFunBV = Lazy_Identity<ELP,Approx,LazyWrapBV>;
+  using IdentityFunCV = Lazy_Identity<ELP,Approx,LazyWrapCV>;
+
 //
 //  using VecIdentity = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperEV>;
 //  using VecIdentity2 = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperBV>;
