@@ -140,10 +140,10 @@ inline std::ostream & operator<<(std::ostream &os, BitApproximation<nfixed> cons
 {
   os  <<" [";
   auto const dim = approximated_vector.get_dim();
-  //for(uint_fast16_t i = 0;i<dim;++i)
-  //{
-    os << approximated_vector.data;
-  //}
+  for(uint_fast16_t i = 0;i<dim;++i)
+  {
+    os << approximated_vector.data[i] << " ";
+  }
   os << "]" << std::endl;
   return os;
 }
