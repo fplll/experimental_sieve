@@ -91,6 +91,7 @@ struct ScalarWithApproximation
   ExactScalarType  exact_scalar;
   ApproxScalarType approx_scalar;
 
+
   template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<typename std::decay<LazyObject>::type> )>
   constexpr explicit ScalarWithApproximation(LazyObject &&lazy_object)
     :exact_scalar(lazy_object.eval_exact()),approx_scalar(lazy_object.eval_approx()) //todo: move semantics
@@ -349,7 +350,7 @@ template<class ELP, class Approximation> class LazyWrapExactWithApproxScalar
   }
 
   inline constexpr ExactEvalType eval_exact() const { return args.exact_scalar; }
-  inline constexpr ApproxScalarType eval_approx() const { return args.approx_scalar; }
+  inline constexpr ApproxEvalType eval_approx() const { return args.approx_scalar; }
   TreeType const args;
 };
 
@@ -441,8 +442,8 @@ template<class ELP, class Approximation> class LazyWrapExactWithApproxVector
     std::cout<< "Creating new Lazy Wrapper for combined vectors" << std::endl;
 #endif
   }
-  constexpr ExactVectorType const & eval_exact() { return args.exact_vector; }
-  constexpr ApproxVectorType const & eval_approx() {  return args.approx_vector; }
+  constexpr ExactEvalType const & eval_exact() { return args.exact_vector; }
+  constexpr ApproxEvalType const & eval_approx() {  return args.approx_vector; }
   TreeType const args;
 };
 
