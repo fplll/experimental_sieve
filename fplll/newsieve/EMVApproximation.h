@@ -474,13 +474,13 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
 template<int nfixed>
 inline std::ostream & operator<<(std::ostream &os, EMVApproximation<nfixed> const &approximated_vector)
 {
-  os << "Approximation :2^" << approximated_vector.exponent <<"x [";
+  os << "Approximation :2^" << approximated_vector.exponent <<" x [";
   auto const dim = approximated_vector.get_dim();
   for(uint_fast16_t i = 0;i<dim;++i)
   {
     os << approximated_vector.data[i] << " ";
   }
-  os << "]" << std::endl;
+  os << "]"; // std::endl by caller;
   return os;
 }
 

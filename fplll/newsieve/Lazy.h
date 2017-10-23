@@ -88,8 +88,8 @@ struct ScalarWithApproximation
   constexpr explicit operator ApproxScalarType() const { return approx_scalar; }
 
   // const-ness restriction is for debug purposes, mostly.
-  ApproxScalarType approx_scalar;
   ExactScalarType  exact_scalar;
+  ApproxScalarType approx_scalar;
 
   template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<typename std::decay<LazyObject>::type> )>
   constexpr explicit ScalarWithApproximation(LazyObject &&lazy_object)
@@ -105,21 +105,23 @@ struct VectorWithApproximation
 {
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
-  constexpr explicit VectorWithApproximation(ExactVectorType const &exact, ApproxVectorType const &approx) = delete;
-  constexpr explicit VectorWithApproximation(ExactVectorType &&exact, ApproxVectorType const &approx)
-    :exact_vector(std::move(exact)), approx_vector(approx) {}
   constexpr explicit VectorWithApproximation(ExactVectorType &&exact, ApproxVectorType &&approx)
     :exact_vector(std::move(exact)), approx_vector(std::move(approx)) {}
+  // Note: This also captures the mixed cases of && / const &.
+  constexpr explicit VectorWithApproximation(ExactVectorType const &exact, ApproxVectorType const &approx) = delete;
 
   constexpr explicit VectorWithApproximation(ExactVectorType const &exact) =delete;
   constexpr explicit VectorWithApproximation(ExactVectorType &&exact)
     :exact_vector(std::move(exact)), approx_vector(static_cast<ApproxVectorType>(exact)) {}
 
-  constexpr explicit operator ExactVectorType() const { return exact_vector;}
-  constexpr explicit operator ApproxVectorType() const { return approx_vector;}
+  constexpr explicit operator ExactVectorType() const & { return exact_vector;}
+  constexpr explicit operator ExactVectorType() && { return std::move(exact_vector); }
+  constexpr explicit operator ApproxVectorType() const & { return approx_vector;}
+  constexpr explicit operator ApproxVectorType() && { return std::move(approx_vector); }
 
-  ApproxVectorType approx_vector;
   ExactVectorType exact_vector;
+  ApproxVectorType approx_vector;
+
 
   template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<typename std::decay<LazyObject>::type>)>
   constexpr explicit VectorWithApproximation(LazyObject &&lazy_object)
