@@ -30,10 +30,16 @@ bool test_lazy()
   long B[dim] = {34, 12,666, 50, 14,-20,50,61,89,-1000};
   ELP exact_point = make_from_any_vector<ELP>(A,dim);
   ELP second_exact_point = make_from_any_vector<ELP>(B,dim);
-  std::cout << exact_point << std::endl;
   Approx approx_point = static_cast<Approx>(exact_point);
   Approx second_approx_point = static_cast<Approx>(second_exact_point);
+
+  std::cout << "-- Testing Lazy evalutation module with this point --" << std::endl;
+
+  std::cout << exact_point << std::endl;
   std::cout << approx_point << std::endl;
+
+
+  std::cout << std::endl<< std::endl << "-- Wrappers: --" << std::endl;
 
   using LazyWrapperEV = LazyEval::LazyWrapExactVector<ELP,Approx>;
   using LazyWrapperBV = LazyEval::LazyWrapExactAndApproxVector<ELP,Approx>;
@@ -42,7 +48,6 @@ bool test_lazy()
   LazyWrapperBV vector_wrapper2(exact_point,approx_point);
   LazyWrapperBV second_vector_wrapper2(second_exact_point, second_approx_point);
 
-  std::cout << std::endl<< std::endl << "-- Wrappers: --" << std::endl;
 
   std::cout << vector_wrapper.eval_exact() << std::endl;
   std::cout << vector_wrapper.eval_approx() << std::endl;
@@ -77,8 +82,9 @@ bool test_lazy()
   using DelayedScProd = LazyEval::SieveLazyEval<ScalarProdFun>;
 
   DelayedScProd delayed_sc_prod{ std::tuple<typename LazyWrapperEV::TreeType,typename LazyWrapperBV::TreeType>(vector_wrapper.args,second_vector_wrapper2.args)};
+//  std::cout << "BLAH" << std::endl;
   std::cout << "Exact Scalar Product is:" << delayed_sc_prod.eval_exact() << std::endl;
-  std::cout << "Approximate Scalar Product is:"<< delayed_sc_prod.eval_exact() << std::endl;
+  std::cout << "Approximate Scalar Product is:"<< delayed_sc_prod.eval_approx() << std::endl;
 
   bool is_smaller = (delayed_sc_prod<170000);
   std::cout << "ScProduct is smaller than 170000:" << is_smaller << std::endl;

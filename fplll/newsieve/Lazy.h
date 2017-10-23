@@ -413,7 +413,7 @@ template<class ELP, class Approximation, class LHS, class RHS> class Lazy_Scalar
   }
   inline static ApproxEvalType eval_approx(TreeType const & arg)
   {
-    return compute_sc_product_exact(
+    return compute_sc_product_approx(
     LHS(std::get<0>(arg)).eval_approx(),
     RHS(std::get<1>(arg)).eval_approx()
     );

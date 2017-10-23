@@ -449,7 +449,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 // actual scalar product
 
 template<int nfixed>
-inline auto approximate_scalar_product(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
+inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
 -> EMVScalar
 {
   static_assert(std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value,"");
@@ -457,7 +457,7 @@ inline auto approximate_scalar_product(EMVApproximation<nfixed> const &lhs, EMVA
 
   ProductType scp =0;
   auto const dim = rhs.get_dim();
-  for(int i=0;i<dim;++i)
+  for(uint_fast16_t i=0;i<dim;++i)
   {
     scp += lhs[i] * rhs[i];
   }
