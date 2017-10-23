@@ -416,7 +416,7 @@ template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
     std::cout << "Rebuilding Lazy Wrapper for exact and approximate vectors" << std::endl;
 #endif
   }
-  CPP14CONSTEXPR ExactVectorType const & eval_exact() { return std::get<0>(args); }
+  CPP14CONSTEXPR ExactVectorType  const & eval_exact()  { return std::get<0>(args); }
   CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
 
   TreeType const args;
@@ -442,8 +442,8 @@ template<class ELP, class Approximation> class LazyWrapExactWithApproxVector
     std::cout<< "Creating new Lazy Wrapper for combined vectors" << std::endl;
 #endif
   }
-  constexpr ExactEvalType const & eval_exact() { return args.exact_vector; }
-  constexpr ApproxEvalType const & eval_approx() {  return args.approx_vector; }
+  constexpr ExactEvalType  const & eval_exact()  { return args.exact_vector; }
+  constexpr ApproxEvalType const & eval_approx() { return args.approx_vector; }
   TreeType const args;
 };
 
