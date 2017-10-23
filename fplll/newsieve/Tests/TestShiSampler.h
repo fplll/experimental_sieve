@@ -26,8 +26,9 @@ bool test_shi_sampler()
   std::cout << B << std::endl << std::flush;
 
   using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
+  typename Traits::GlobalStaticDataInitializer init_arg(dim);
   using Sampler = GaussSieve::ShiSampler<Traits,false,std::mt19937,std::seed_seq>;
-  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B); // convert to SieveLatticeBasis
+  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B,init_arg); // convert to SieveLatticeBasis
 
   std::seed_seq sseq {1,2,3};
 

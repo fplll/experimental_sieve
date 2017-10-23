@@ -34,12 +34,16 @@ struct ScalarWithApproximation
   // const-ness restriction is for debug purposes, mostly.
   ExactScalarType const  exact_sc_product;
   ApproxScalarType const approx_sc_product;
+
+  // initialize from the result of a lazy computation.
   template<class LazyFunction>
   constexpr explicit ScalarWithApproximation(LazyEval::SieveLazyEval<LazyFunction> const &lazy_fun )
     :exact_sc_product(lazy_fun.eval_exact()),approx_sc_product(lazy_fun.eval_approx())
     {
       static_assert(LazyEval::SieveLazyEval<LazyFunction>::scalar_or_vector == LazyEval::ScalarOrVector::scalar_type,"Trying to assign a vector to a scalar");
     }
+
+  // initialize from wrappers
   constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactScalar<ELP,Approximation> const &wrapper)
     :exact_sc_product(wrapper.eval_exact()),approx_sc_product(wrapper.eval_approx()) {}
   constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactAndApproxScalar<ELP,Approximation> const &wrapper)
@@ -54,7 +58,7 @@ class StaticInitializer<ScalarWithApproximation<ELP,Approximation>>
 final : public DefaultStaticInitializer<ScalarWithApproximation<ELP,Approximation>>
 {
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  StaticInitializer<ExactScalarType> const init_exact_scalar;
+  StaticInitializer<ExactScalarType>  const init_exact_scalar;
   StaticInitializer<ApproxScalarType> const init_approx_scalar;
 
   template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<typename std::decay<X>::type>)>
@@ -101,10 +105,22 @@ public:
 template<class ELP, class Approximation>
 using DelayedScalarProduct = LazyEval::SieveLazyEval<
     LazyEval::Lazy_ScalarProduct // encapsulated function
-  < ELP,Approximation,
-    LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
-    LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
-  > >;
+    <
+      ELP,Approximation,
+      LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>, // type of LHS function arg
+      LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>  // type of RHS function arg
+    >
+  >;
+
+template<class ELP, class Approximation>
+using DelayedGetNorm2 = LazyEval::SieveLazyEval<
+    LazyEval::Lazy_Norm2
+    <
+      ELP, Approximation,
+      LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>
+    >
+  >;
+
 // clang-format on
 
 template<class ELP, class Approximation>
@@ -125,7 +141,8 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
   using ApproxScalarProductType   = typename Approximation::ScalarProductType;
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
   using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;
-  using DelayedNorm2Type          = LazyEval::LazyWrapExactAndApproxScalar<ELP,Approximation>;
+  // Think about this:
+  using DelayedNorm2Type          = DelayedGetNorm2<ELP,Approximation>;
 
   VectorWithApproximation(VectorWithApproximation const &old) = delete;
   VectorWithApproximation(VectorWithApproximation && old) = default;
@@ -218,9 +235,12 @@ class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximatio
 
   inline DelayedNorm2Type get_norm2() const
   {
-    return DelayedNorm2Type ( exact_point.get_norm2(), approx.get_approx_norm2()  );
+//    return DelayedNorm2Type ( exact_point.get_norm2(), approx.get_approx_norm2()  );
+    return DelayedNorm2Type(  );
   }
+
   ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
+
   CombinedScalarProductType get_norm2_full() const
   {
     return CombinedScalarProductType(exact_point.get_norm2_exact(),approx.get_approx_norm2()  );

@@ -6,6 +6,7 @@
 #include "../Typedefs.h"
 #include "gmpxx.h"
 #include <iostream>
+#include "../GlobalStaticData.h"
 
 bool test_basis_utils()
 {
@@ -23,10 +24,10 @@ bool test_basis_utils()
   std::cout << B << std::endl << std::flush;
 
   using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
+  typename Traits::GlobalStaticDataInitializer init_args(dim);
 
 
-
-  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B);
+  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B,init_args);
 
   double maxbistar2 = sieve_basis.get_maxbistar2();
 

@@ -4,7 +4,7 @@
 #define DEBUG_SIEVE_INITIALIZATIONS
 #define DEBUG_SIEVE_STANDALONE_MODULES_ALL
 
-//#define TEST_ALL
+#define TEST_ALL
 #define TEST_EMV
 #define TEST_LAZY
 #define TEST_APPROXIMATIONS
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
     std::cout << "Lazy Evaluations work as expected" << std::endl;
   }
 #endif
-  
+
 #ifdef TEST_BITAPPROX
   if (test_bit_approx())
   {

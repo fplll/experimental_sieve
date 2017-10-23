@@ -42,10 +42,27 @@ namespace GaussSieve{
 template<class LatticePoint> struct LatticePointTraits
 {
   public:
-  using Invalid=std::true_type;
+
+  using Invalid=std::true_type; // do not set this at all in an specialization.
   LatticePointTraits(...) = delete;
-  // void Invalid
   // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
+
+  using Trait_ScalarProductStorageType = void;
+  using Trait_ScalarProductStorageType_Full = void;
+  using Trait_ExposesCoos = std::false_type;
+  using Trait_CoordinateType = void;
+  using Trait_Coos_RW = std::false_type;
+  using Trait_AbsoluteCooType = void;
+  using Trait_RepCooType = void;
+  using Trait_ExposesInternalRep = std::false_type;
+  using Trait_InternalRepLinear = std::false_type;
+  using Trait_InternalRep_RW = std::false_type;
+  using Trait_InternalRepByCoos = std::false_type;
+  using Trait_InternalRepIsAbsolute = std::false_type;
+  using Trait_AbsoluteCoos = std::false_type;
+  using Trait_CheapNorm2 = std::false_type;
+  using Trait_CheapNegate = std::false_type;
+  using Trait_Approximations = std::false_type;
 };
 
 /**
@@ -103,8 +120,9 @@ template<class LatticePoint> struct LatticePointTraits
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
 
-  AccessNorm2:  Set to true_type to indicate that we we have an access_norm2() function to
-                return a const-reference to a precomputed norm2.
+// Does not work ATM, might be needed later...
+//  AccessNorm2:  Set to true_type to indicate that we we have an access_norm2() function to
+//                return a const-reference to a precomputed norm2.
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
@@ -116,16 +134,16 @@ template<class Implementation> class GeneralLatticePoint;
 
 /**
   Trait getters
+
+  Usage Has_CheapNegate<PlainLatticePoint>::value
+  (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
+
+  The reason is that it is easier to read and that
+  Has_CheapNegate<...> defaults to false, whereas
+  LatticePointTraits<...>::... defaults to a compile-time error.
+  Furthermore, Has_ExposesCoos<...> is aware of neccessary implications between traits.
+  I.e. if a trait is implied by another trait, it is automagically set.
 */
-// Usage Has_CheapNegate<PlainLatticePoint>::value
-// (as opposed to LatticePointTraits<PlainLatticePoint>::CheapNegate::value )
-
-// The reason is that it is easier to read and that
-// Has_CheapNegate<...> defaults to false, whereas
-// LatticePointTraits<...>::... defaults to a compile-time error.
-// Furthermore, Has_ExposesCoos<...> is aware of neccessary implications between traits.
-// I.e. if a trait is implied by another trait, it is automagically set.
-
 
 // These check for the existence of the trait in the Trait class:
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
@@ -207,8 +225,6 @@ template<class LatP> using Has_AccessNorm2 = std::integral_constant<bool,
 // Deprecated
 template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
 Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
-
-
 
 //}
 

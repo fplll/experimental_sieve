@@ -22,8 +22,9 @@ bool test_queue()
 
   fplll::lll_reduction(B, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
   using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
+  typename Traits::GlobalStaticDataInitializer init_arg (dim);
   using Sampler = GaussSieve::ShiSampler<Traits,false,std::mt19937,std::seed_seq>;
-  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B); // convert to SieveLatticeBasis
+  GaussSieve::SieveLatticeBasis<Traits,false> sieve_basis(B,init_arg); // convert to SieveLatticeBasis
 
 
   // sampler2 is a free-standing sampler for B.
@@ -32,7 +33,7 @@ bool test_queue()
   sampler2.init(nullptr, sieve_basis);
 
   // gauss_queue contains another sampler.
-  GaussSieve::GaussQueue<Traits,false> gauss_queue(nullptr);
+  GaussSieve::GaussQueue<Traits,false> gauss_queue(nullptr,init_arg);
   gauss_queue.sampler->init(nullptr, sieve_basis);
 
   std::cout << "taking 20 elements from the queue (sampling)" << std::endl;
