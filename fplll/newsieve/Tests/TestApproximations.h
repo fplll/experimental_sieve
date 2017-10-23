@@ -9,7 +9,7 @@
 #include "../EMVApproximation.h"
 #include "gmpxx.h"
 
-#include "../ApproximatedPoint.h"
+//#include "../ApproximatedPoint.h"
 
 bool test_approximations()
 {
