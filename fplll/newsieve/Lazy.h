@@ -295,6 +295,7 @@ class LazyWrapExactCR
 {
   public:
   using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType const &;
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::false_type;
@@ -324,16 +325,18 @@ class LazyWrapExactRV
 {
   public:
   using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType &&; // !!!
   using ApproxEvalType= ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::false_type;
-  constexpr LazyWrapExactRV(ExactType &&init_exact) : exact_value(init_exact)
+  constexpr LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy Wrapper for exact values, move version" << std::endl;
 #endif
   }
+  LazyWrapExactRV(ExactType const &&) = delete;
 
   inline ExactType && eval_exact() { return std::move(exact_value); }
   inline ApproxType eval_approx() const
@@ -351,6 +354,7 @@ class LazyWrapBothCR
 {
   public:
   using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType const &;
   using ApproxEvalType = ApproxType const &;
   using MayInvalidateExact = std::false_type;
@@ -378,18 +382,21 @@ class LazyWrapBothRV
 {
   public:
   using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType &&;
   using ApproxEvalType = ApproxType &&;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::true_type;
-  constexpr LazyWrapBothRV(ExactType &&init_exact,ApproxType &&init_approx)
+  constexpr LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
     :exact_value(init_exact), approx_value(init_approx)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy Wrapper for exact value, precomputed approximation, MOVE" << std::endl;
 #endif
   }
-  LazyWrapBothRV(ExactType const &, ApproxType const &) = delete;
+  LazyWrapBothRV(ExactType const &&, ApproxType const &&) = delete;
+  LazyWrapBothRV(ExactType const &,  ApproxType const &&) = delete;
+  LazyWrapBothRV(ExactType const &&, ApproxType const &)  = delete;
 
   inline ExactType&& eval_exact() { return std::move(exact_value); }
   inline ApproxType&& eval_approx() { return std::move(approx_value); }
@@ -423,160 +430,28 @@ class LazyWrapCombinedCR
   CombinedType const & combined_value;
 };
 
-
-/**
-  Wraps around a pair of Exact/Approx Scalar.
-  (two separate references)
-*/
-
-template<class ELP, class Approximation> class LazyWrapExactAndApproxScalar
+template<class CombinedType>
+class LazyWrapCombinedRV
 {
   public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = std::tuple<ExactScalarType const &,ApproxScalarType const &>;
+  using ExactType = typename CombinedType::ExactType;
+  using ApproxType= typename CombinedType::ApproxType;
   using IsLazyNode = std::true_type;
-  using ExactEvalType = ExactScalarType const &;
-  using ApproxEvalType = ApproxScalarType const &;
-
-  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
-
-  constexpr explicit LazyWrapExactAndApproxScalar(ExactScalarType const &exact_scalar, ApproxScalarType const &approx_scalar)
-  : args(std::tie(exact_scalar,approx_scalar)  )
+  using IsLazyLeaf = std::true_type;
+  using ExactEvalType  = ExactType  &&;
+  using ApproxEvalType = ApproxType &&;
+  using MayInvalidateExact = std::true_type;
+  using MayInvalidateApprox= std::true_type;
+  constexpr LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating new Lazy Wrapper for exact and approximate scalars" << std::endl;
+    std::cout << "Creaye Lazy Wrapper for combined value, MOVE version." << std::endl;
 #endif
   }
-  constexpr LazyWrapExactAndApproxScalar(TreeType const &arg_wrap):args(arg_wrap)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Rebuilding Lazy Wrapper for exact and approximate scalars" << std::endl;
-#endif
-  }
-  // These constexprs might require C++14
-  inline CPP14CONSTEXPR ExactEvalType eval_exact() const { return std::get<0>(args); }
-  inline CPP14CONSTEXPR ApproxEvalType eval_approx() const { return std::get<1>(args); }
-  TreeType const args;
-};
-
-/**
-  Wraps around a ScalarWithApproximation object
-  (a reference to a single object)
-*/
-
-template<class ELP, class Approximation> class LazyWrapExactWithApproxScalar
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = ScalarWithApproximation<ELP,Approximation> const &;
-  using IsLazyNode = std::true_type;
-  using ExactEvalType = ExactScalarType const &;
-  using ApproxEvalType = ApproxScalarType const &;
-  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
-  constexpr explicit LazyWrapExactWithApproxScalar(ScalarWithApproximation<ELP,Approximation> const &combined_scalar)
-    : args(combined_scalar)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Create new Lazy Wrapper for combined scalar" << std::endl;
-#endif
-  }
-
-  inline constexpr ExactEvalType eval_exact() const { return args.exact_scalar; }
-  inline constexpr ApproxEvalType eval_approx() const { return args.approx_scalar; }
-  TreeType const args;
-};
-
-/**
-  Wraps around an exact vector
-*/
-
-template<class ELP, class Approximation> class LazyWrapExactVector
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = ExactVectorType const &;
-  using IsLazyNode = std::true_type;
-  using ExactEvalType = ExactVectorType const &;
-  using ApproxEvalType = ApproxVectorType; // No reference here!
-
-  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
-  TreeType const args;
-
-  constexpr LazyWrapExactVector(ExactVectorType const &exact_vector): args(exact_vector)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for exact vectors" << std::endl;
-#endif
-  }
-  constexpr ExactEvalType eval_exact() const { return args; }
-  //[[deprecated]]
-  constexpr ApproxEvalType eval_approx() const
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
-    std::cout << "Computing approximation to exact vector inside wrapper, since approximation was called for" << std::endl;
-#endif
-    return static_cast< ApproxVectorType>(args);
-  }
-
-};
-
-/**
-  Wraps around a exact/approximate pair for a vector.
-  (pair of references)
-*/
-
-template<class ELP, class Approximation> class LazyWrapExactAndApproxVector
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = std::tuple<ExactVectorType const &, ApproxVectorType const &>;
-  using IsLazyNode = std::true_type;
-  using ExactEvalType  = ExactVectorType const &;
-  using ApproxEvalType = ApproxVectorType const &;
-
-  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
-  constexpr explicit LazyWrapExactAndApproxVector(ExactVectorType const &exact_vector, ApproxVectorType const &approx_vector)
-  :args(std::tie(exact_vector,approx_vector))
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating new Lazy Wrapper for exact and approximate vectors" << std::endl;
-#endif
-  }
-  constexpr LazyWrapExactAndApproxVector(TreeType const &arg_wrap): args(arg_wrap)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Rebuilding Lazy Wrapper for exact and approximate vectors" << std::endl;
-#endif
-  }
-  CPP14CONSTEXPR ExactVectorType  const & eval_exact()  { return std::get<0>(args); }
-  CPP14CONSTEXPR ApproxVectorType const & eval_approx() { return std::get<1>(args); }
-
-  TreeType const args;
-};
-
-/**
-  Wraps around a combined vector
-*/
-
-template<class ELP, class Approximation> class LazyWrapExactWithApproxVector
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  using TreeType = VectorWithApproximation<ELP,Approximation> const &;
-  using IsLazyNode = std::true_type;
-  using ExactEvalType = ExactVectorType const &;
-  using ApproxEvalType = ApproxVectorType const &;
-  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::vector_type;
-  constexpr explicit LazyWrapExactWithApproxVector(VectorWithApproximation<ELP,Approximation> const &combined)
-    : args(combined)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout<< "Creating new Lazy Wrapper for combined vectors" << std::endl;
-#endif
-  }
-  constexpr ExactEvalType  const & eval_exact()  { return args.exact_vector; }
-  constexpr ApproxEvalType const & eval_approx() { return args.approx_vector; }
-  TreeType const args;
+  LazyWrapCombinedRV(CombinedType const &&) = delete;
+  inline ExactEvalType eval_exact() { return combined_value.access_exact(); }
+  inline ApproxEvalType eval_approx() { return combined_value.access_approx(); }
+  CombinedType & combined_value;
 };
 
 

@@ -91,6 +91,42 @@ bool test_lazy()
   std::cout << wrap_scalar1.eval_exact() << " approx. by " << wrap_scalar1.eval_approx() << std::endl;
   std::cout << wrap_scalar2.eval_exact() << " approx. by " << wrap_scalar2.eval_approx() << std::endl;
   std::cout << wrap_scalar3.eval_exact() << " approx. by " << wrap_scalar3.eval_approx() << std::endl;
+
+  // rvalue versions:
+
+  using LazyWrapES2 = LazyWrapExactRV<ExactScalar,ApproxScalar>;
+  using LazyWrapBS2 = LazyWrapBothRV <ExactScalar,ApproxScalar>;
+  using LazyWrapCS2 = LazyWrapCombinedRV<CombinedScalar>;
+  using LazyWrapEV2 = LazyWrapExactRV<ELP, Approx>;
+  using LazyWrapBV2 = LazyWrapBothRV<ELP,Approx>;
+  using LazyWrapCV2 = LazyWrapCombinedRV<CombinedVector>;
+
+  //copy everything:
+
+  ExactScalar  exact_scalar_m1(exact_scalar1);
+  ApproxScalar approx_scalar_m1(approx_scalar1);
+  ExactScalar  exact_scalar_m2(exact_scalar2);
+  CombinedScalar combined_scalar_m(combined_scalar);
+  ELP exact_point_m1(exact_point1.make_copy());
+  ELP exact_point_m2(exact_point2.make_copy());
+  Approx approx_point_m2(exact_point_m2);
+  CombinedVector combined_vector_m1( combined_vector1.access_exact().make_copy() );
+
+  // rvalue wrappers.
+
+  LazyWrapBS2 wrap_scalar_m1(exact_scalar_m1,approx_scalar_m1);
+  LazyWrapES2 wrap_scalar_m2(exact_scalar_m2);
+  LazyWrapCS2 wrap_scalar_m3(combined_scalar_m);
+  LazyWrapEV2 wrap_vector_m1(exact_point_m1);
+  LazyWrapBV2 wrap_vector_m2(exact_point_m2,approx_point_m2);
+  LazyWrapCV2 wrap_vector_m3(combined_vector_m1);
+
+  // Note that from a specification POV, the arguments to the constructors are now in a possibly
+  // invalid state, so we won't use them anymore.
+
+
+
+
 //
 //  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
 //
