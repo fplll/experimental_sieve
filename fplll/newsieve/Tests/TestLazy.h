@@ -23,8 +23,8 @@ bool test_lazy()
 
   using ExactScalar = long;
   using ApproxScalar = EMVScalar;
-  using CombinedScalar = ScalarWithApproximation<ELP,Approx>;
-  using CombinedVector = VectorWithApproximation<ELP,Approx>;
+  using CombinedScalar = ObjectWithApproximation<ExactScalar,ApproxScalar>;
+  using CombinedVector = ObjectWithApproximation<ELP,Approx>;
 
 //  using Combiner = LazyEval::Lazy_VectorFromExactAndApprox<ELP,Approx>;
 //  using VectorWrapper  = LazyEval::SieveLazyEval<ELP,Approx,Combiner,ELP,Approx>;
@@ -56,10 +56,10 @@ bool test_lazy()
 
   std::cout << exact_point1 << approx_point1 << std::endl;
   std::cout << exact_point2 << approx_point2 << std::endl;
-  std::cout << combined_vector1.exact_vector << combined_vector1.approx_vector << std::endl;
+  std::cout << combined_vector1.access_exact() << combined_vector1.access_approx() << std::endl;
 
   std::cout << exact_scalar1 << " approx. by " << approx_scalar1 << std::endl;
-  std::cout << combined_scalar.exact_scalar << "approx. by " << combined_scalar.approx_scalar << std::endl;
+  std::cout << combined_scalar.access_exact() << "approx. by " << combined_scalar.access_approx() << std::endl;
 
   std::cout << std::endl << "-- Wrappers --" << std::endl << std::flush;
 
@@ -71,13 +71,6 @@ bool test_lazy()
   using LazyWrapCV = LazyWrapCombinedCR<CombinedVector>;
 
 
-//  using LazyWrapES = LazyWrapExactScalar<ELP,Approx>;
-//  using LazyWrapBS = LazyWrapExactAndApproxScalar<ELP,Approx>;
-//  using LazyWrapCS = LazyWrapExactWithApproxScalar<ELP,Approx>;
-//  using LazyWrapEV = LazyWrapExactVector<ELP,Approx>;
-//  using LazyWrapBV = LazyWrapExactAndApproxVector<ELP,Approx>;
-//  using LazyWrapCV = LazyWrapExactWithApproxVector<ELP,Approx>;
-//
   LazyWrapBS wrap_scalar1(exact_scalar1, approx_scalar1);
   LazyWrapES wrap_scalar2(exact_scalar2);
   LazyWrapCS wrap_scalar3(combined_scalar);
@@ -124,12 +117,20 @@ bool test_lazy()
   // Note that from a specification POV, the arguments to the constructors are now in a possibly
   // invalid state, so we won't use them anymore.
 
+  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
+
+  using IdentityFunScalar = Lazy_Identity<ExactScalar,ApproxScalar>;
+  using IdentityFunVector = Lazy_Identity<ELP,Approx>;
+
+  std::cout << IdentityFunScalar::call_exact(exact_scalar1) << " approx. by " << IdentityFunScalar::call_approx(approx_scalar1) << std::endl;
+  std::cout << IdentityFunVector::call_exact(exact_point1 ) << IdentityFunVector::call_approx(approx_point1)  << std::endl;
+  std::cout << IdentityFunScalar::call_exact(combined_scalar.access_exact())  << "approx. by " << IdentityFunScalar::call_approx(combined_scalar.access_approx()) << std::endl;
+  std::cout << IdentityFunVector::call_exact(combined_vector1.access_exact()) << IdentityFunVector::call_approx(combined_vector1.access_approx()) << std::endl;
 
 
 
-//
-//  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
-//
+
+
 //  using IdentityFunES = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
 //  using IdentityFunBS = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
 //  using IdentityFunCS = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
