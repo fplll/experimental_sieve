@@ -4,6 +4,7 @@
 #define SIEVE_GAUSS_COMPAT_H
 
 #include<type_traits>
+#include<utility>
 
 #if __cpp_constexpr >= 201304
   #define CPP14CONSTEXPR constexpr
@@ -47,5 +48,27 @@ namespace GaussSieve
   template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;
 }
 #endif
+
+namespace GaussSieve
+{
+#if __cpp_lib_integer_sequence >= 201304
+  template<std::size_t... Ints> using MyIndexSeq = std::index_sequence<Ints...>;
+  template<std::size_t N>  using MyMakeIndexSeq = std::make_index_sequence<N>;
+  template<class... T> using MyIndexSequenceFor = std::index_sequence_for<T...>;
+#else
+  template<std::size_t... Ints> class MyIndexSeq {}; // not equivalent to the above, lacks size()
+  namespace Helpers
+  {
+  // encapsulates a integer sequence 0,...,N-1, RestArgs
+    template<std::size_t N, std::size_t... RestArgs> struct GenIndexSeq
+      :GenIndexSeq <N-1,N-1, RestArgs...> {};
+    template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>{using type = MyIndexSeq<RestArgs...>;};
+  }
+  template<std::size_t N> using MyMakeIndexSeq = typename Helpers::GenIndexSeq<N>::type;
+  template<class... T> using MyIndexSequenceFor = MyMakeIndexSeq<sizeof...(T)>;
+#endif
+
+}
+
 
 #endif
