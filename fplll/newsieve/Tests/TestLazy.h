@@ -127,7 +127,13 @@ bool test_lazy()
   std::cout << IdentityFunScalar::call_exact(combined_scalar.access_exact())  << "approx. by " << IdentityFunScalar::call_approx(combined_scalar.access_approx()) << std::endl;
   std::cout << IdentityFunVector::call_exact(combined_vector1.access_exact()) << IdentityFunVector::call_approx(combined_vector1.access_approx()) << std::endl;
 
+  std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
 
+  using IDNode1 = SieveLazyEval<IdentityFunVector,LazyWrapEV2>;
+  using IDNode2 = SieveLazyEval<IdentityFunVector,IDNode1>;
+  IDNode1 lazy_id1{ std::tuple<LazyWrapEV2>(wrap_vector_m1) };
+  IDNode2 lazy_id2{ std::tuple<IDNode1>{lazy_id1} };
+  std::cout << lazy_id2.eval_exact();
 
 
 
