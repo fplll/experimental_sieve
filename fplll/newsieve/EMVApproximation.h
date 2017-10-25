@@ -383,7 +383,7 @@ inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated
 
 
 /**
-  EMVApproximation
+  EMVApproximation implementation
 */
 
 // Constructor:
@@ -465,9 +465,6 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
   EMVScalar result(lhs.exponent + rhs.exponent, scp);
   return result;
 }
-
-
-
 
 // output
 

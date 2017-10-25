@@ -52,22 +52,6 @@ struct ScalarWithApproximation
 };
 
 /**
-  Initializes Static Data for the combination (by forwarding to the individual components)
-*/
-template<class ELP, class Approximation>
-class StaticInitializer<ScalarWithApproximation<ELP,Approximation>>
-  final : public DefaultStaticInitializer<ScalarWithApproximation<ELP,Approximation>>
-{
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  StaticInitializer<ExactScalarType>  const init_exact_scalar;
-  StaticInitializer<ApproxScalarType> const init_approx_scalar;
-
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<typename std::decay<X>::type>)>
-  explicit StaticInitializer(X &&init_arg) :
-    init_exact_scalar(std::forward<X>(init_arg)), init_approx_scalar(std::forward<X>(init_arg)){}
-};
-
-/**
   VectorWithApproximation<ELP,Approximation> is a lattice point class that is
   made from combining ELP with the approximation.
 */
@@ -173,7 +157,6 @@ class VectorWithApproximation
   template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, typename std::decay<Arg>::type>)>
   explicit VectorWithApproximation(ELP && new_exact_point, Arg && new_approx)
     : exact_point(std::move(new_exact_point)), approx(std::forward<Arg>(new_approx)) {}
-
 
 // Implement ObjectWithApproximation's interface as far as meaningful
   using ExactType  = ELP;
@@ -295,6 +278,25 @@ class VectorWithApproximation
 //  };
 //
 };
+
+/**
+  Initializes Static Data for the combination vector (by forwarding to the individual components)
+  Note: Initializing scalars is the job of the initializers of the vectors.
+*/
+template<class ELP, class Approximation>
+class StaticInitializer<VectorWithApproximation<ELP,Approximation>>
+  final : public DefaultStaticInitializer<VectorWithApproximation<ELP,Approximation>>
+{
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  StaticInitializer<ExactVectorType>  const init_exact_vector;
+  StaticInitializer<ApproxVectorType> const init_approx_vector;
+
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<typename std::decay<X>::type>)>
+  explicit StaticInitializer(X &&init_arg) :
+    init_exact_vector(std::forward<X>(init_arg)), init_approx_vector(std::forward<X>(init_arg)){}
+};
+
+
 
 } // end namespace GaussSieve
 
