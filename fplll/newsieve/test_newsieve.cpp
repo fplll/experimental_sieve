@@ -5,7 +5,7 @@
 //#define USE_LSH
 #define PROGRESSIVE // progressive-sieve on
 
-//#define USE_APPROXPOINT //<-does not work yet
+#define USE_APPROXPOINT //<-does not work yet
 
 #include "fplll.h"
 #include <thread>

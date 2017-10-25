@@ -7,6 +7,7 @@
 #include <tuple>
 #include "Lazy.h"
 #include "GlobalStaticData.h"
+#include "PlainLatticePoint.h"
 
 namespace GaussSieve{
 
@@ -158,6 +159,13 @@ class VectorWithApproximation
   template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, typename std::decay<Arg>::type>)>
   explicit VectorWithApproximation(ELP && new_exact_point, Arg && new_approx)
     : exact_point(std::move(new_exact_point)), approx(std::forward<Arg>(new_approx)) {}
+
+  template<class ET, int nfixed>
+  VectorWithApproximation(PlainLatticePoint<ET,nfixed> const &) = delete;
+  template<class ET, int nfixed>
+  VectorWithApproximation(PlainLatticePoint<ET,nfixed> && plain_point)
+    : VectorWithApproximation(static_cast<ELP>(std::move(plain_point))){}
+
 
 // Implement ObjectWithApproximation's interface as far as meaningful
   using ExactType  = ELP;
