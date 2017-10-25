@@ -60,12 +60,15 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
 #endif
 //        return gauss_sieve->sampler->sample();
     assert(sampler!=nullptr);
-    static_assert(std::is_same<typename SieveTraits::GaussSampler_ReturnType, RetType>::value,
-      "Sampler must currently return the same type as the queue.");
+    
+    //I'VE COMMENTED OUT THIS STATIC ASSERT: we convert from what sampler returns to what queue stores here -- EK
+    
+    //static_assert(std::is_same<typename SieveTraits::GaussSampler_ReturnType, RetType>::value,
+    //  "Sampler must currently return the same type as the queue.");
 //    typename SieveTraits::GaussSampler_ReturnType const ret = sampler->sample();
 //    return ret;
 //        return sampler->sample();
-    return sampler->sample();
+    return static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
   }
   else // Queue is not empty, just return stored element.
   {

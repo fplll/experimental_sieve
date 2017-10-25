@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
 
 
-    //Test_3Sieve.run();
+    Test_3Sieve.run();
     std::cout << "sv is " << std::endl;
     Test_3Sieve.print_status();
 

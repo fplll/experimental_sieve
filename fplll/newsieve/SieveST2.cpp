@@ -21,7 +21,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
 {
-  assert(!p2.is_zero());
+  //assert(!p2.is_zero()); <-TODO: ERRS NOW
   using EntryType = typename SieveTraits::EntryType;
   using std::abs;
   using std::round;

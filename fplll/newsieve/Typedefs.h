@@ -95,11 +95,16 @@ class DefaultSieveTraits
   using GaussList_ReturnType    = VectorWithApproximation<ExactLP,Approx>;
   using FastAccess_Point        = VectorWithApproximation<ExactLP,Approx>;
   
+  using GaussQueue_ReturnType   = VectorWithApproximation<ExactLP,Approx>;;
+  using GaussQueue_DataType     = VectorWithApproximation<ExactLP,Approx>;;
+  
 #else
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
   using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
+  using GaussQueue_ReturnType   = GaussSampler_ReturnType;
+  using GaussQueue_DataType     = GaussQueue_ReturnType;
 #endif
   
 #ifdef USE_LSH
@@ -114,8 +119,6 @@ class DefaultSieveTraits
 #endif
 
 
-  using GaussQueue_ReturnType   = GaussSampler_ReturnType;
-  using GaussQueue_DataType     = GaussQueue_ReturnType;
 
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
