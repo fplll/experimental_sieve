@@ -398,7 +398,7 @@ class GeneralLatticePoint
 */
 
     template<class Impl=LatP> inline LatP make_copy() const;
-    [[deprecated]] constexpr inline LatP make_copy() && {return *CREALTHIS;} // Calling this is probably an error.
+    [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
 
 
 /**

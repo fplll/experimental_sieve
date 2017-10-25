@@ -5,6 +5,8 @@
 //#define USE_LSH
 #define PROGRESSIVE // progressive-sieve on
 
+//#define USE_APPROXPOINT //<-does not work yet
+
 #include "fplll.h"
 #include <thread>
 #include <chrono>
@@ -144,7 +146,7 @@ int main(int argc, char **argv)
 
 
 
-    Test_3Sieve.run();
+    //Test_3Sieve.run();
     std::cout << "sv is " << std::endl;
     Test_3Sieve.print_status();
 
