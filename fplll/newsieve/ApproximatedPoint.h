@@ -287,6 +287,7 @@ template<class ELP, class Approximation>
 class StaticInitializer<VectorWithApproximation<ELP,Approximation>>
   final : public DefaultStaticInitializer<VectorWithApproximation<ELP,Approximation>>
 {
+  public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   StaticInitializer<ExactVectorType>  const init_exact_vector;
   StaticInitializer<ApproxVectorType> const init_approx_vector;

@@ -13,6 +13,15 @@
 
 bool test_approximations()
 {
+  int constexpr dimfixed = 25;
+
+  using ExactLP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
+  using Approx  = GaussSieve::EMVApproximation<dimfixed>;
+  using CombinedLP = GaussSieve::VectorWithApproximation<ExactLP,Approx>;
+  using GaussSieve::MaybeFixed;
+  GaussSieve::StaticInitializerArg<MaybeFixed<dimfixed>> init_arg{ MaybeFixed<dimfixed>{dimfixed} };
+  GaussSieve::StaticInitializer<CombinedLP> init1 (init_arg);
+
   return true;
 }
 
