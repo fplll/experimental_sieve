@@ -266,6 +266,10 @@ class VectorWithApproximation
   void sanitize() { exact_point.sanitize(); recompute_approx(); }
   void sanitize(ExactScalarProductType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
   void recompute_approx() { approx = static_cast<Approximation>(exact_point); }
+
+  // TODO:
+  inline ExactScalarProductType get_norm2() const { return exact_point.get_norm2(); }
+
 //
 //  inline DelayedNorm2Type get_norm2() const
 //  {
