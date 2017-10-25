@@ -111,5 +111,5 @@ bool test_emv()
   return true;
 }
 
-
+#undef PRINT_VAL_WITH_EXP
 #endif
