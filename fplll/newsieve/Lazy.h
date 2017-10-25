@@ -461,59 +461,38 @@ class Lazy_Identity
   inline static Arg && call_approx(Arg &&approx) { return std::forward<Arg>(approx);}
 };
 
-//template<class ELP, class Approximation, ScalarOrVector s_or_v> class Lazy_Identity
-//{
-////  static_assert(Arg::IsLazyNode::value,"Invalid arg");
-//  public:
-//  LAZY_FUNCTION;
-//  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-////  using ArgTree = typename Arg::TreeType;
-////  using TreeType= std::tuple<ArgTree const>;
-//  static constexpr int nargs = 1;
-//  static constexpr ScalarOrVector scalar_or_vector = s_or_v;
-//  using ExactEvalType = typename std::conditional<s_or_v==ScalarOrVector::scalar_type,ExactScalarType,ExactVectorType>::type;
-//  using ApproxEvalType= typename std::conditional<s_or_v==ScalarOrVector::scalar_type,ApproxScalarType,ApproxVectorType>::type;
-//  Lazy_Identity(...) = delete;
-//
-//  static std::string fun_name() {return "Identity function";}
-//
-//  constexpr inline static ExactEvalType  call_exact ( ExactEvalType const &arg) {return arg;}
-//  constexpr inline static ApproxEvalType call_approx( ApproxEvalType const &arg) { return arg; }
-//
-////  CPP14CONSTEXPR inline static ExactEvalType eval_exact( TreeType const & arg)
-////  {
-////    return Arg(std::get<0>(arg)).eval_exact();
-////  }
-////  CPP14CONSTEXPR inline static ApproxEvalType eval_approx(TreeType const & arg)
-////  {
-////    return Arg(std::get<0>(arg)).eval_approx();
-////  }
-//};
-//
-///**
-//  Scalar Product function. Delegates to
-//    compute_sc_product_exact resp. compute_sc_product_approx
-//  of its arguments.
-//*/
-//
-//template<class ELP, class Approximation, class LHS, class RHS> class Lazy_ScalarProduct
-//{
-//  static_assert(LHS::IsLazyNode::value, "Left hand argument invalid");
-//  static_assert(RHS::IsLazyNode::value, "Right hand argument invalid");
-//  public:
-//  LAZY_FUNCTION;
-//  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-//  using ArgTreeLeft = typename LHS::TreeType;
-//  using ArgTreeRight= typename RHS::TreeType;
+
+/**
+  Scalar Product function.
+  Delegates to compute_sc_product_exact resp. compute_sc_product_approx
+*/
+
+template<class ELP, class Approximation> class Lazy_ScalarProduct
+{
+  public:
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
 //  using TreeType = std::tuple<ArgTreeLeft const, ArgTreeRight const>;
-//  static constexpr int nargs = 2;
-//  static_assert(LHS::scalar_or_vector == ScalarOrVector::vector_type,"Left hand side is no vector");
-//  static_assert(RHS::scalar_or_vector == ScalarOrVector::vector_type,"Right hand side is no vector");
-//  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
-//  using ExactEvalType  = ExactScalarType;
-//  using ApproxEvalType = ApproxScalarType;
-//
-//  static std::string fun_name() {return "Scalar Product";};
+  static constexpr int nargs = 2;
+  using IsLazyFunction = std::true_type;
+  using ExactEvalType  = ExactScalarType;
+  using ApproxEvalType = ApproxScalarType;
+  static std::string fun_name() {return "Scalar Product";}
+  template<class LHS, class RHS>
+  inline static ExactScalarType call_exact(LHS &&lhs, RHS &&rhs)
+  {
+    static_assert(std::is_same<typename std::decay<LHS>::type,ExactVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<typename std::decay<RHS>::type,ExactVectorType>::value,"RHS wrong type.");
+    return compute_sc_product(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+  }
+  template<class LHS, class RHS>
+  inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
+  {
+    static_assert(std::is_same<typename std::decay<LHS>::type, ApproxVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<typename std::decay<RHS>::type, ApproxVectorType>::value,"RHS wrong type.");
+    return compute_sc_product_approx(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+  }
+};
+
 //  inline static ExactEvalType eval_exact(TreeType const & arg)
 //  {
 //    return compute_sc_product_exact(
