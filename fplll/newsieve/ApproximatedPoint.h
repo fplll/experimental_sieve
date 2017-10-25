@@ -109,8 +109,15 @@ class DelayedScalar
 
 };
 
+template<class ELP, class Approximation, class Function, class... Args>
+class DelayedVector
+  : LazyEval::SieveLazyEval<Function, Args...>
+{
+
+};
+
 template<class ELP, class Approximation>
-using DelayedScalarProductType = DelayedScalar
+using Get_DelayedScalarProductType = DelayedScalar
 <
   ELP, Approximation,
   LazyEval::Lazy_ScalarProduct<ELP,Approximation>, //Function
@@ -118,45 +125,73 @@ using DelayedScalarProductType = DelayedScalar
   LazyEval::LazyWrapCombinedCR<VectorWithApproximation<ELP,Approximation>>  // RHS
 >;
 
-
-////////template<class ELP, class Approximation>
-////////using DelayedGetNorm2 = LazyEval::SieveLazyEval<
-////////    LazyEval::Lazy_Norm2
-////////    <
-////////      ELP, Approximation,
-////////      LazyEval::LazyWrapExactAndApproxVector<ELP,Approximation>
-////////    >
-////////  >;
+template<class ELP, class Approximation>
+using Get_DelayedNorm2Type = DelayedScalar
+<
+  ELP, Approximation,
+  LazyEval::Lazy_Norm2<ELP,Approximation>, //Function
+  LazyEval::LazyWrapCombinedCR<VectorWithApproximation<ELP,Approximation>>  // Argument
+>;
 
 // clang-format on
 
-//template<class ELP, class Approximation>
-//class VectorWithApproximation: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
-//{
-//  static_assert(Has_CheapNorm2<ELP>::value, "ELP does not store its norm.");
-//  // While it's not required, this
-//  static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
-//  public:
-//  using LatticePointTag = std::true_type;
-//  using ExactCoos = typename Get_CoordinateType<ELP>::type; // may be void
-//  using RepCooType = typename Get_RepCooType<ELP>::type;
-//  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
-////  using ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
-//  using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
+template<class ELP, class Approximation>
+class VectorWithApproximation
+: public GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>
+{
+  static_assert(Has_CheapNorm2<ELP>::value, "ELP does not store its norm.");
+  static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
+
+  private:
+  ELP exact_point;
+  Approximation approx;
+
+
+  public:
+  using LatticePointTag = std::true_type;
+  using ExactCoos = typename Get_CoordinateType<ELP>::type; // may be void
+  using RepCooType = typename Get_RepCooType<ELP>::type;
+  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
+//  using ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
+  using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
 //
-//  using ExactScalarProductType    = typename Get_ScalarProductStorageType<ELP>::type;
-//  using ApproxScalarProductType   = typename Approximation::ScalarProductType;
-//  using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
-//  using DelayedScalarProductType  = DelayedScalarProduct<ELP,Approximation>;
+  using ExactScalarProductType    = typename Get_ScalarProductStorageType<ELP>::type;
+  using ApproxScalarProductType   = typename Approximation::ScalarProductType;
+  using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
+  using DelayedScalarProductType  = Get_DelayedScalarProductType<ELP,Approximation>;
 //  // Think about this:
-//  using DelayedNorm2Type          = DelayedGetNorm2<ELP,Approximation>;
+  using DelayedNorm2Type          = Get_DelayedNorm2Type<ELP,Approximation>;
 //
-//  VectorWithApproximation(VectorWithApproximation const &old) = delete;
-//  VectorWithApproximation(VectorWithApproximation && old) = default;
-//  VectorWithApproximation & operator= (VectorWithApproximation const & other) = delete;
-//  VectorWithApproximation & operator= (VectorWithApproximation && other) = default;
-//  explicit VectorWithApproximation(ELP && new_exact_point)
-//    : exact_point(std::move(new_exact_point)), approx(exact_point) {};
+  VectorWithApproximation(VectorWithApproximation const &old) = delete;
+  VectorWithApproximation(VectorWithApproximation && old) = default;
+  VectorWithApproximation & operator= (VectorWithApproximation const & other) = delete;
+  VectorWithApproximation & operator= (VectorWithApproximation && other) = default;
+  explicit VectorWithApproximation(ELP && new_exact_point)
+    : exact_point(std::move(new_exact_point)), approx(exact_point) {};
+
+  // construct with precomputed approximation:
+  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, typename std::decay<Arg>::type>)>
+  explicit VectorWithApproximation(ELP && new_exact_point, Arg && new_approx)
+    : exact_point(std::move(new_exact_point)), approx(std::forward<Arg>(new_approx)) {}
+
+
+// Implement ObjectWithApproximation's interface as far as meaningful
+  using ExactType  = ELP;
+  using ApproxType = Approximation;
+
+  //constexpr      explicit operator ExactType()  const & { return exact_point;}
+  explicit operator ExactType() const & = delete; // would copy point
+  CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_point);}
+  constexpr      explicit operator ApproxType() const & { return approx;}
+  CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx);}
+
+  constexpr      ExactType  const & access_exact()  const { return exact_point; }
+  CPP14CONSTEXPR ExactType        & access_exact()        { return exact_point; }
+  constexpr      ApproxType const & access_approx() const { return approx; }
+  CPP14CONSTEXPR ApproxType       & access_approx()       { return approx; }
+
+
+
 //
 //  static std::string class_name() { return ELP::class_name() + "with approximation"; } // TODO:class_name for Approximation
 //
@@ -259,11 +294,7 @@ using DelayedScalarProductType = DelayedScalar
 //    return exact_point.do_compute_sc_product_exact(x2);
 //  };
 //
-//  private:
-//
-//  ELP exact_point;
-//  Approximation approx;
-//};
+};
 
 } // end namespace GaussSieve
 
