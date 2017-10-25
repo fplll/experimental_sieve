@@ -20,6 +20,8 @@
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
 #include "HashedLatticePoint.h"
+#include "ApproximatedPoint.h"
+#include "EMVApproximation.h"
 
 
 namespace GaussSieve
@@ -42,6 +44,7 @@ template <class ET, int nfixed> class MyLatticePoint;
 template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class HashedLatticePoint;
+template <class ELP, class Approximation> class VectorWithApproximation;
 
 class JustSomeExampleSieveTraitsThatDoNotWork
 {
@@ -81,13 +84,25 @@ class DefaultSieveTraits
 
   using IsSieveTraitsClass = std::true_type;
 
-#ifndef USE_LSH
+#ifdef USE_APPROXPOINT
+  
+  using ExactLP                 = ExactLatticePoint<ET,nfixed>;
+  using Approx                  = EMVApproximation<nfixed>;
+  
+  using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
+  
+  using GaussList_StoredPoint   = VectorWithApproximation<ExactLP,Approx>;
+  using GaussList_ReturnType    = VectorWithApproximation<ExactLP,Approx>;
+  using FastAccess_Point        = VectorWithApproximation<ExactLP,Approx>;
+  
+#else
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
   using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
-
-#else
+#endif
+  
+#ifdef USE_LSH
   using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = HashedLatticePoint<ET,nfixed>;
@@ -97,6 +112,7 @@ class DefaultSieveTraits
   static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
   static constexpr int number_of_hash_functions = 11;
 #endif
+
 
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
