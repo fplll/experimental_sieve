@@ -152,6 +152,7 @@ class VectorWithApproximation
   VectorWithApproximation & operator= (VectorWithApproximation && other) = default;
   explicit VectorWithApproximation(ELP && new_exact_point)
     : exact_point(std::move(new_exact_point)), approx(exact_point) {};
+  VectorWithApproximation(ELP const & new_exact_point) = delete;
 
   // construct with precomputed approximation:
   template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, typename std::decay<Arg>::type>)>
@@ -296,8 +297,6 @@ class StaticInitializer<VectorWithApproximation<ELP,Approximation>>
   explicit StaticInitializer(X &&init_arg) :
     init_exact_vector(std::forward<X>(init_arg)), init_approx_vector(std::forward<X>(init_arg)){}
 };
-
-
 
 } // end namespace GaussSieve
 

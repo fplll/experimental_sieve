@@ -8,6 +8,7 @@
 #include "../SieveUtility.h"
 #include "../EMVApproximation.h"
 #include "gmpxx.h"
+#include <array>
 
 #include "../ApproximatedPoint.h"
 
@@ -21,6 +22,16 @@ bool test_approximations()
   using GaussSieve::MaybeFixed;
   GaussSieve::StaticInitializerArg<MaybeFixed<dimfixed>> init_arg{ MaybeFixed<dimfixed>{dimfixed} };
   GaussSieve::StaticInitializer<CombinedLP> init1 (init_arg);
+
+  std::array<mpz_class,dimfixed> arr;
+  for(int i=0;i<dimfixed;++i)
+  {
+    arr[i] = 400 *i * i;
+  }
+
+  ExactLP latp_exact = GaussSieve::make_from_any_vector<ExactLP>(arr,MaybeFixed<dimfixed>{dimfixed});
+  CombinedLP latp_comb (std::move(latp_exact));
+//  std::cout << latp_exact;
 
   return true;
 }
