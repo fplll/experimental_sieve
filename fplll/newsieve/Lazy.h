@@ -105,7 +105,6 @@ struct ObjectWithApproximation
 ////    static_assert(Arg::scalar_or_vector == ScalarOrVector::scalar_type,"Trying to assign a vector to a scalar");
 ////  }
 //};
-
 };
 
 // TODO: Update documentation to reflect recent changes.
@@ -509,46 +508,25 @@ template<class ELP, class Approximation> class Lazy_ScalarProduct
   }
 };
 
-//  inline static ExactEvalType eval_exact(TreeType const & arg)
-//  {
-//    return compute_sc_product_exact(
-//      LHS(std::get<0>(arg)).eval_exact(),
-//      RHS(std::get<1>(arg)).eval_exact()
-//      );
-//  }
-//  inline static ApproxEvalType eval_approx(TreeType const & arg)
-//  {
-//    return compute_sc_product_approx(
-//    LHS(std::get<0>(arg)).eval_approx(),
-//    RHS(std::get<1>(arg)).eval_approx()
-//    );
-//  }
-//};
-//
-//template<class ELP, class Approximation, class Arg> class Lazy_Norm2
-//{
-//  static_assert(Arg::IsLazyNode::value, "Arg is invalid");
-//  public:
-//  LAZY_FUNCTION;
-//  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-//  using ArgTree = typename Arg::TreeType;
-//  using TreeType = std::tuple<ArgTree const>;
-//  static constexpr int nargs = 1;
-//  static_assert(Arg::scalar_or_vector == ScalarOrVector::vector_type,"Can only take norm2 of vectors");
-//  static constexpr ScalarOrVector scalar_or_vector = ScalarOrVector::scalar_type;
-//  using ExactEvalType = ExactScalarType;
-//  using ApproxEvalType = ApproxScalarType;
-//  static std::string fun_name() {return "Norm2";};
-//
-//  inline static ExactEvalType eval_exact(TreeType const & arg)
-//  {
-//    return static_cast<ExactEvalType>(Arg(std::get<0>(arg)).eval_exact().get_norm2());
-//  }
-//  inline static ApproxEvalType eval_approx(TreeType const & arg)
-//  {
-//    return static_cast<ApproxEvalType>(Arg(std::get<0>(arg)).eval_approx().get_approx_norm() );
-//  }
-//};
+template<class ELP, class Approximation> class Lazy_Norm2
+{
+  public:
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  static constexpr int nargs = 1;
+  using IsLazyFunction = std::true_type;
+  using ExactEvalType  = ExactScalarType;
+  using ApproxEvalType = ApproxScalarType;
+  static std::string fun_name() {return "Norm2";};
+
+  inline static ExactScalarType call_exact(ExactVectorType const &arg)
+  {
+    return arg.get_norm2();
+  }
+  inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
+  {
+    return arg.get_approx_norm2();
+  }
+};
 
 }} //end namespaces
 
