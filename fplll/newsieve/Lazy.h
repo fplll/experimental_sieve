@@ -202,9 +202,25 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return LazyFunction::call_exact( std::get<iarg>(args).eval_exact()... );
   }
 
+  template<std::size_t... iarg>
+  inline ExactEvalType do_eval_approx(MyIndexSeq<iarg...>)
+  {
+    static_assert(sizeof...(iarg) == sizeof...(Args),"Something is very wrong");
+#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
+    std::cout << "Calling function approximately. Function is " << LazyFunction::fun_name() << std::endl;
+#endif
+    return LazyFunction::call_approx( std::get<iarg>(args).eval_approx()... );
+  }
+
+
   inline ExactEvalType eval_exact()
   {
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
+  }
+
+  inline ApproxEvalType approx_exact()
+  {
+    return do_eval_approx(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   inline explicit operator ExactEvalType() { return eval_exact(); }
