@@ -415,6 +415,7 @@ class GeneralLatticePoint
 // TODO: Arg type overloads for Full StorageType?
     void sanitize() {};
     inline void sanitize(ScalarProductStorageType const &norm2) { REALTHIS->sanitize(); };
+
     template<class Impl=LatP,TEMPL_RESTRICT_DECL(!(std::is_same<Get_ScalarProductStorageType<Impl>,Get_ScalarProductStorageType_Full<Impl>>::value))>
     inline void sanitize(ScalarProductStorageType_Full const &norm2_full) = delete; // must be overloaded if meaningful.
 

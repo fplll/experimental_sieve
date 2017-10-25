@@ -56,6 +56,13 @@ enum struct ScalarOrVector{ scalar_type, vector_type };
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+  #define CONSTEXPR_IN_NON_DEBUG_TC
+#else
+  #define CONSTEXPR_IN_NON_DEBUG_TC constexpr
+#endif
+
+
 // forward declarations:
 //template<class LazyFunction, class... Args> class SieveLazyEval;
 
@@ -172,18 +179,18 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"" ); //We might remove this.
   constexpr explicit SieveLazyEval(SieveLazyEval const &other) = default;
   constexpr explicit SieveLazyEval(SieveLazyEval && other) = default;
-  constexpr SieveLazyEval& operator=(SieveLazyEval const &other) = default;
-  constexpr SieveLazyEval& operator=(SieveLazyEval &&other) = default;
+  SieveLazyEval& operator=(SieveLazyEval const &other) = default;
+  SieveLazyEval& operator=(SieveLazyEval &&other) = default;
 
   //  TreeType const args;
 
-  constexpr explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args)
+  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy function wrapper object (via tuple) for function " << LazyFunction::fun_name() << std::endl;
 #endif
   }
-  constexpr explicit SieveLazyEval(TreeType && fn_args) : args(std::move(fn_args))
+  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(TreeType && fn_args) : args(std::move(fn_args))
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy function wrapper object (via tuple-move) for function " << LazyFunction::fun_name() << std::endl;
@@ -279,7 +286,7 @@ class LazyWrapExactCR
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox= std::false_type;
-  constexpr LazyWrapExactCR(ExactType const &init_exact) : exact_value(init_exact)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactCR(ExactType const &init_exact) : exact_value(init_exact)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy Wrapper for exact values." << std::endl;
@@ -288,7 +295,7 @@ class LazyWrapExactCR
   LazyWrapExactCR(ExactType const &&) = delete;
 
   inline constexpr ExactType const & eval_exact()  const { return exact_value; }
-  inline constexpr ApproxType eval_approx() const
+  inline CONSTEXPR_IN_NON_DEBUG_TC ApproxType eval_approx() const
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
     std::cout << "Computing approximation inside wrapper, as requested" << std::endl;
@@ -309,7 +316,7 @@ class LazyWrapExactRV
   using ApproxEvalType= ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::false_type;
-  constexpr LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy Wrapper for exact values, move version" << std::endl;
@@ -338,7 +345,7 @@ class LazyWrapBothCR
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox = std::false_type;
-  constexpr LazyWrapBothCR(ExactType const &init_exact, ApproxType const &init_approx)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothCR(ExactType const &init_exact, ApproxType const &init_approx)
     :exact_value(init_exact),approx_value(init_approx)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -366,7 +373,7 @@ class LazyWrapBothRV
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::true_type;
-  constexpr LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
     :exact_value(init_exact), approx_value(init_approx)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -395,7 +402,7 @@ class LazyWrapCombinedCR
   using ApproxEvalType= ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox= std::false_type;
-  constexpr LazyWrapCombinedCR(CombinedType const &init_combined):combined_value(init_combined)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedCR(CombinedType const &init_combined):combined_value(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy Wrapper for combined value." << std::endl;
@@ -421,7 +428,7 @@ class LazyWrapCombinedRV
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::true_type;
-  constexpr LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creaye Lazy Wrapper for combined value, MOVE version." << std::endl;
@@ -529,5 +536,7 @@ template<class ELP, class Approximation> class Lazy_Norm2
 };
 
 }} //end namespaces
+
+#undef CONSTEXPR_IN_NON_DEBUG_TC
 
 #endif
