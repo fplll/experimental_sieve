@@ -84,7 +84,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
    Contrary to the above function, it does not assume that p1 is max, but deduces it from p_is_max
    Used in 3-sieve
    */
-  
+
 template<class SieveTraits, class Integer, typename std::enable_if<
     std::is_integral<Integer>::value
     ,int>::type =0 >
@@ -99,13 +99,13 @@ template<class SieveTraits, class Integer, typename std::enable_if<
     using EntryType = typename SieveTraits::EntryType;
     EntryType  sc_prod = compute_sc_product(p1,p2);
   #endif
-  
+
     using std::abs;
     using std::round;
 
-  
+
     //EntryType const abs_2scprod = abs(sc_prod << 1);
-    sc_prod >>= 1;
+    sc_prod >>= 1; //Are you sure you don't want <<= ? -- Gotti
     EntryType abs_2scprod =abs(sc_prod);
 
 
