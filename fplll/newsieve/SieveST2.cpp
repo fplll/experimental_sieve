@@ -47,7 +47,11 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
     return true;
 
 }
-
+  /**
+   Checks whether we can perform a 2-reduction. Modifies scalar.
+   Contrary to the above function, it does not assume that p1 is max, but deduces it from p_is_max
+   */
+  
 template<class SieveTraits, class Integer, typename std::enable_if<
     std::is_integral<Integer>::value
     ,int>::type =0 >
@@ -55,12 +59,21 @@ template<class SieveTraits, class Integer, typename std::enable_if<
                     typename SieveTraits::FastAccess_Point const &p2,
                     Integer & scalar, bool& p_is_max)
 {
+  #ifdef USE_APPROXPOINT
+    using EntryType = typename GaussSieve::EMVScalar;
+    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
+  #else
     using EntryType = typename SieveTraits::EntryType;
+    EntryType  sc_prod = compute_sc_product(p1,p2);
+  #endif
+  
     using std::abs;
     using std::round;
 
-    EntryType const sc_prod = compute_sc_product(p1,p2);
-    EntryType const abs_2scprod = abs(sc_prod * 2);
+  
+    //EntryType const abs_2scprod = abs(sc_prod << 1);
+    sc_prod >>= 1;
+    EntryType abs_2scprod =abs(sc_prod);
 
 
     if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
@@ -79,7 +92,6 @@ template<class SieveTraits, class Integer, typename std::enable_if<
         scalar =  round (mult);
         return true;
     }
-
 
     return false;
 }
@@ -134,6 +146,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 //If no such element exists, it_comparison_flip refers to after-the-end.
     if (p.is_zero() )
     {
+      //std::cout << "collision is found " << std::endl;
         number_of_collisions++;
         return;
     }
@@ -175,7 +188,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
-          //cout << "collision on v_new " << endl;
+          //std::cout << "collision on v_new is found " << std::endl;
           number_of_collisions++;
 //          ++it;
 //          continue;

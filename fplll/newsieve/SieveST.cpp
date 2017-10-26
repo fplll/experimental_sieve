@@ -102,8 +102,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
         //convert here???
 
 //        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
-        //typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
-      typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
+      //typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
 //        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
 //        std::cout << p << std::endl << std::flush;
         

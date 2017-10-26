@@ -439,7 +439,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
     {
       data[i] = 0;
     }
-    std::cerr << "Warning: approximating all-zero vector." << std::endl; // TODO : Remove
+    //std::cerr << "Warning: approximating all-zero vector." << std::endl; // TODO : Remove
   }
   else // max_entry !=0
   {

@@ -68,7 +68,9 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
 //    typename SieveTraits::GaussSampler_ReturnType const ret = sampler->sample();
 //    return ret;
 //        return sampler->sample();
-    return static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
+    typename SieveTraits::GaussList_StoredPoint ret = static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
+    return ret;
+    //return static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
   }
   else // Queue is not empty, just return stored element.
   {

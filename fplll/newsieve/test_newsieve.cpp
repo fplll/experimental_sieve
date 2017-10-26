@@ -144,7 +144,9 @@ int main(int argc, char **argv)
 
 	Test_3Sieve.set_termination_condition(termcond);
 
-
+#ifdef USE_APPROXPOINT
+  std::cout << "sieve uses approximations" <<std::endl;
+#endif
 
     Test_3Sieve.run();
     std::cout << "sv is " << std::endl;

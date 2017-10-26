@@ -62,13 +62,15 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
     maxdeviations[i] = sqrt(res) * cutoff;
 
     basis[i] = input_basis.get_basis_vector(i).make_copy();
-
+    //std::cout << maxdeviations[i] << " ";
 //    tmp.set_z(g(i, i));
 //    tmp2.div(maxbistar2, tmp);  // s'_i^2 = max GS length^2 / lenght^2 of basis vector
 //    s2pi[i] = tmp2.get_d() / GaussSieve::pi;
 //    tmp2.sqrt(tmp2);
 //    maxdeviations[i] = tmp2.get_d() * cutoff;
   }
+  
+  
   using RetType = typename SieveTraits::GaussSampler_ReturnType;
 
   if(static_init_plainpoint!=nullptr)
@@ -140,6 +142,7 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 
   typename SieveTraits::GaussSampler_ReturnType ret;
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
+  //if (ret.is_zero()) std::cout << "sampled 0-vector" <<std::endl;
   return ret;
 }
 } // end namespace
