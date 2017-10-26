@@ -61,17 +61,19 @@ template<class SieveTraits, class Integer, typename std::enable_if<
 {
   #ifdef USE_APPROXPOINT
     using EntryType = typename GaussSieve::EMVScalar;
-    EntryType const sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
+    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
   #else
     using EntryType = typename SieveTraits::EntryType;
-    EntryType const sc_prod = compute_sc_product(p1,p2);
+    EntryType  sc_prod = compute_sc_product(p1,p2);
   #endif
   
     using std::abs;
     using std::round;
 
   
-    EntryType const abs_2scprod = abs(sc_prod * 2);
+    //EntryType const abs_2scprod = abs(sc_prod << 1);
+    sc_prod >>= 1;
+    EntryType abs_2scprod =abs(sc_prod);
 
 
     if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
@@ -90,7 +92,6 @@ template<class SieveTraits, class Integer, typename std::enable_if<
         scalar =  round (mult);
         return true;
     }
-
 
     return false;
 }
