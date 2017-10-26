@@ -33,7 +33,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   
   sc_prod >>= 1;
   
-  EntryType abs_2scprod =sc_prod.abs();
+  EntryType abs_2scprod =abs(sc_prod);
   
   if (abs_2scprod <= p2.access_approx().get_approx_norm2())
   {
