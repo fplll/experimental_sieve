@@ -60,6 +60,7 @@ class EMVScalar
   friend EMVScalar operator-(EMVScalar const &arg) { return EMVScalar(arg.exponent,-arg.mantissa); }
   friend EMVScalar operator-(EMVScalar &&arg) { arg.mantissa=-arg.mantissa; return arg;  }
 
+  // TODO: Return value of operators
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline void operator>>=(Integer const &shift) { exponent+=shift; }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
