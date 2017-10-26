@@ -43,7 +43,7 @@ public:
 
   // Note: Sampler::sieveptr is only initialized during Sampler::init.
   // Consequently, some member fields will only be set during custom_init.
-  explicit ShiSampler(Sseq &seq, double const _cutoff = 2.0)
+  explicit ShiSampler(Sseq &seq, double const _cutoff = 9.0)
       : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false),
       static_init_rettype(nullptr), static_init_plainpoint(nullptr)
       {
