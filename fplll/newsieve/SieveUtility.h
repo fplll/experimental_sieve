@@ -14,7 +14,8 @@
 #include "gmp.h"
 
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 template <class T> class IgnoreArg;
 class IgnoreAnyArg;
 template<class T> class IsZNRClass;

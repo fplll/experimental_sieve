@@ -154,7 +154,7 @@ struct ObjectWithApproximation
   Note that leaves are of different types, but expose nearly the same syntax.
 */
 
-template<class LazyFunction, class... Args> class SieveLazyEval
+template<class LazyFunction, int approx_level, class... Args> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
@@ -227,20 +227,24 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
-  inline ApproxEvalType approx_exact()
+  inline ApproxEvalType eval_approx()
   {
     return do_eval_approx(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   inline explicit operator ExactEvalType() { return eval_exact(); }
-//  inline explicit operator ApproxEvalType() const { return eval_approx(); }
+  inline explicit operator ApproxEvalType() { return eval_approx(); }
 
-//  inline bool operator< ( ExactScalarType const & rhs) const
-//  {
-//    static_assert(scalar_or_vector == ScalarOrVector::scalar_type,"comparing vector with scalar.");
-//    return eval_exact() < rhs;
-//  }
-//
+  inline bool operator< ( ExactEvalType const & rhs)
+  {
+    return eval_exact() < rhs;
+  }
+
+  inline bool operator> ( ExactEvalType const & rhs)
+  {
+    return eval_exact() > rhs;
+  }
+
 //  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
 //  inline bool operator< ( LazyRHS const & rhs) const
 //  {

@@ -97,14 +97,14 @@ public:
 
 template<class ELP, class Approximation, class Function, class... Args>
 class DelayedScalar
-  : LazyEval::SieveLazyEval<Function, Args...>
+  : LazyEval::SieveLazyEval<Function,1, Args...>
 {
 
 };
 
 template<class ELP, class Approximation, class Function, class... Args>
 class DelayedVector
-  : LazyEval::SieveLazyEval<Function, Args...>
+  : LazyEval::SieveLazyEval<Function,1, Args...>
 {
 
 };
@@ -265,7 +265,7 @@ class VectorWithApproximation
 //
   void fill_with_zero() { exact_point.fill_with_zero(); recompute_approx(); }
   void make_negative()  { exact_point.make_negative(); recompute_approx(); } // todo : may optimize
-  bool is_zero() { return exact_point.is_zero(); }
+  bool is_zero() const { return exact_point.is_zero(); }
 
   // TODO: Copy approximation
   VectorWithApproximation make_copy() const { return VectorWithApproximation(exact_point.make_copy()); }

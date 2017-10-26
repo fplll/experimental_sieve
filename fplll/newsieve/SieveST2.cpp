@@ -21,8 +21,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
 {
-  //assert(!p2.is_zero()); //<-TODO: ERRS NOW
-  if (p2.get_norm2() == 0) assert(false);
+  assert(!(p2.is_zero()));
   using std::round;
 
   bool res;

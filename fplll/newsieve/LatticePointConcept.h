@@ -63,6 +63,7 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
   using Trait_Approximations = std::false_type;
+  static constexpr int Trait_ApproxLevel = 0;
 };
 
 /**
@@ -127,6 +128,16 @@ template<class LatticePoint> struct LatticePointTraits
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
   Approximations: Set to true_type to indicate that the point has approximations.
+
+  ApproxLevel: Set to std::integral_constant<unsigned int,...> to indicate the approximation level.
+               Defaults to std::integral_constant<unsigned int,0>
+
+               NOTE:  Several classes have a public static constexpr unsigned int member ApproxLevel
+                      (without the Trait_ prefix) to indicate the corresponding approximation level.
+                      Such classes include the lattice point class itself, but also classes storing
+                      exact & approximated scalar product, etc.
+                      Use ApproxLevelOf<Some_Class>::value to obtain Some_Class::ApproxLevel
+                      (with a default of 0 if Some_Class::ApproxLevel does not exist)
 */
 
 // forward declaration
@@ -168,8 +179,27 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximations);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
+
+template<class T,class = int>
+struct T_ApproxLevelOf{
+static constexpr unsigned int value = 0;
+};
+
+template<class T>
+struct T_ApproxLevelOf<T, decltype( static_cast<void>(T::ApproxLevel), static_cast<int>(0))>
+{
+static constexpr unsigned int value = T::ApproxLevel;
+};
+
+template<class T>
+using ApproxLevelOf = std::integral_constant<unsigned int,T_ApproxLevelOf<T>::value>;
+
 //}
 // Retrieving Traits with defaults:
+
+// because the macro below does not like commas in arguments...
+using Zero_Constant = std::integral_constant<unsigned int,0>;
+MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ApproxLevel, Zero_Constant, Get_ApproxLevel);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, Get_CoordinateType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, Get_ScalarProductStorageType);
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it

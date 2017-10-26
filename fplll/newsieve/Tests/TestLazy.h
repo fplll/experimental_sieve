@@ -129,10 +129,10 @@ bool test_lazy()
 
   std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
 
-  using IDNode1 = SieveLazyEval<IdentityFunVector,LazyWrapEV2>;
-  using IDNode2 = SieveLazyEval<IdentityFunVector,IDNode1>;
-  IDNode1 lazy_id1{ std::tuple<LazyWrapEV2>(wrap_vector_m1) };
-  IDNode2 lazy_id2{ std::tuple<IDNode1>{lazy_id1} };
+  using IDNode1 = SieveLazyEval<IdentityFunVector,1,LazyWrapEV2>;
+  using IDNode2 = SieveLazyEval<IdentityFunVector,1,IDNode1>;
+  IDNode1 lazy_id1{ std::make_tuple(wrap_vector_m1) };
+  IDNode2 lazy_id2{ std::make_tuple(lazy_id1) };
   std::cout << lazy_id2.eval_exact();
 
 
