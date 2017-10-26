@@ -20,10 +20,45 @@ template<class ELP, class Approximation> class ScalarWithApproximation;
 */
 template<class ELP, class Approximation>
 struct ScalarWithApproximation
-  :public LazyEval::ObjectWithApproximation<typename Get_ScalarProductStorageType<ELP>::type,typename Approximation::ScalarProductType>
+//  :public LazyEval::ObjectWithApproximation<typename Get_ScalarProductStorageType<ELP>::type,typename Approximation::ScalarProductType>
 {
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
   static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
+  public:
+  using ExactType  = ExactScalarType;
+  using ApproxType = ApproxScalarType;
+  static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
+
+  private:
+  ExactType  exact_scalar;
+  ApproxType approx_scalar;
+  public:
+  constexpr      explicit ScalarWithApproximation(ExactType const& exact,ApproxType const &approx)
+    :exact_scalar(exact),approx_scalar(approx){}
+  CPP14CONSTEXPR explicit ScalarWithApproximation(ExactType     && exact,ApproxType const &approx)
+    :exact_scalar(std::move(exact)),approx_scalar(approx){}
+  CPP14CONSTEXPR explicit ScalarWithApproximation(ExactType const& exact,ApproxType      &&approx)
+    :exact_scalar(exact),approx_scalar(std::move(approx)){}
+  CPP14CONSTEXPR explicit ScalarWithApproximation(ExactType     && exact,ApproxType      &&approx)
+    :exact_scalar(std::move(exact)),approx_scalar(std::move(approx)){}
+  constexpr      explicit ScalarWithApproximation(ExactType const &exact)
+    :exact_scalar(exact), approx_scalar(exact) {}
+  CPP14CONSTEXPR explicit ScalarWithApproximation(ExactType && exact)
+    :exact_scalar(std::move(exact)), approx_scalar(exact_scalar) {} // Note: Ordering matters here
+
+  // default constructors / move assignment should be done automatically.
+
+  constexpr      explicit operator ExactType()  const & { return exact_scalar;}
+  CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_scalar);}
+  constexpr      explicit operator ApproxType() const & { return approx_scalar;}
+  CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_scalar);}
+
+  constexpr      ExactType  const & access_exact()  const { return exact_scalar; }
+  CPP14CONSTEXPR ExactType        & access_exact()        { return exact_scalar; }
+  constexpr      ApproxType const & access_approx() const { return approx_scalar; }
+  CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_scalar; }
+
+
 //
 //  constexpr explicit ScalarWithApproximation(ExactScalarType const &exact, ApproxScalarType const &approx)
 //    :exact_sc_product(exact), approx_sc_product(approx) {};

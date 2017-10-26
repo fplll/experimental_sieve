@@ -80,6 +80,9 @@ struct ObjectWithApproximation
   ExactType  exact_object;
   ApproxType approx_object;
 
+  // This would cause ambiguous overloads.
+  static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
+
   constexpr      explicit ObjectWithApproximation(ExactType const& exact,ApproxType const &approx)
     :exact_object(exact),approx_object(approx){}
   CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType     && exact,ApproxType const &approx)
