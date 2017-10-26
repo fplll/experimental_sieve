@@ -42,7 +42,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
   //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
 
-  sc_prod <<= 1;
+  sc_prod >>= 1;
   double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
 
 
