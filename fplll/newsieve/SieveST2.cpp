@@ -24,52 +24,52 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   //assert(!p2.is_zero()); //<-TODO: ERRS NOW
   if (p2.get_norm2() == 0) assert(false);
   using std::round;
-  
+
   bool res;
-  
+
 #ifdef USE_APPROXPOINT
   using EntryType = typename GaussSieve::EMVScalar;
   EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
-  
-  sc_prod >>= 1;
-  
+
+  sc_prod <<= 1; // Note: I had the definition of >>= / <<= wrong, so I changed it here. -- Gotti
+
   EntryType abs_2scprod =abs(sc_prod);
-  
+
   if (abs_2scprod <= p2.access_approx().get_approx_norm2())
   {
     return false;
   }
-  
+
   //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
-  
+
   sc_prod <<= 1;
   double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
 
-  
+
   scalar =  round (mult);
   //std::cout <<mult  << " " << scalar << std::endl;
-  
-  
+
+
   return true;
 #else
-  
+
   using std::abs;
-  
+
   using EntryType = typename SieveTraits::EntryType;
   EntryType sc_prod = compute_sc_product(p1,p2);
 
-  
+
   EntryType abs_2scprod =abs(sc_prod * 2);
   if (abs_2scprod <= p2.get_norm2())
   {
     return false;
   }
-  
+
   double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
   //std::cout << sc_prod << " " << sc_prod << std::endl;
 
     // check if |2 * <p1, p2>| <= |p2|^2. If yes, no reduction
-  
+
     //compute the multiple mult s.t. res = p1 \pm mult* p2;
     //mult = round ( <p1, p2> / ||p2||^2 )
 
@@ -146,7 +146,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 {
   if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
   bool loop = true;
-  
+
   //std::cout << p.get_norm2 () << std::endl;
 
   auto it_comparison_flip=main_list.cend(); //used to store the point where the list elements become larger than p.
@@ -178,7 +178,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     }
 
   }
-  
+
 //p no longer changes. it_comparison_flip is iterator to first (shortest) element in the list that is longer than p.
 //If no such element exists, it_comparison_flip refers to after-the-end.
     if (p.is_zero() )
@@ -222,7 +222,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
 
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
-        
+
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
           //std::cout << "collision on v_new is found " << std::endl;
