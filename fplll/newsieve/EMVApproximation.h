@@ -60,6 +60,19 @@ class EMVScalar
   friend EMVScalar operator-(EMVScalar const &arg) { return EMVScalar(arg.exponent,-arg.mantissa); }
   friend EMVScalar operator-(EMVScalar &&arg) { arg.mantissa=-arg.mantissa; return arg;  }
 
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline void operator>>=(Integer const &shift) { exponent+=shift; }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline void operator<<=(Integer const &shift) { exponent-=shift; }
+  inline void do_abs()
+  {
+    using std::abs;
+    mantissa=abs(mantissa);
+  }
+  inline EMVScalar abs() const & { EMVScalar tmp(*this); tmp.do_abs(); return tmp;  }
+  inline EMVScalar abs() && { do_abs(); return *this; }
+
+
   // helper functions: included as static functions tied to the class:
 
   // get_exponent(source) Returns an exponent, such that source = 2^exponent * x,
@@ -78,6 +91,8 @@ class EMVScalar
   template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
+
+
 };
 
 
