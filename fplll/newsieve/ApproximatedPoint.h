@@ -58,33 +58,6 @@ struct ScalarWithApproximation
   constexpr      ApproxType const & access_approx() const { return approx_scalar; }
   CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_scalar; }
 
-
-//
-//  constexpr explicit ScalarWithApproximation(ExactScalarType const &exact, ApproxScalarType const &approx)
-//    :exact_sc_product(exact), approx_sc_product(approx) {};
-//  constexpr explicit ScalarWithApproximation(ExactScalarType const &exact)
-//    :exact_sc_product(exact), approx_sc_product(static_cast<ApproxScalarType>(exact)){};
-//
-//  constexpr operator ExactScalarType() const { return exact_sc_product;}
-//  constexpr explicit operator ApproxScalarType() const { return approx_sc_product; }
-//
-//  // const-ness restriction is for debug purposes, mostly.
-//  ExactScalarType const  exact_sc_product;
-//  ApproxScalarType const approx_sc_product;
-//
-//  // initialize from the result of a lazy computation.
-//  template<class LazyFunction>
-//  constexpr explicit ScalarWithApproximation(LazyEval::SieveLazyEval<LazyFunction> const &lazy_fun )
-//    :exact_sc_product(lazy_fun.eval_exact()),approx_sc_product(lazy_fun.eval_approx())
-//    {
-//      static_assert(LazyEval::SieveLazyEval<LazyFunction>::scalar_or_vector == LazyEval::ScalarOrVector::scalar_type,"Trying to assign a vector to a scalar");
-//    }
-//
-//  // initialize from wrappers
-//  constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactScalar<ELP,Approximation> const &wrapper)
-//    :exact_sc_product(wrapper.eval_exact()),approx_sc_product(wrapper.eval_approx()) {}
-//  constexpr explicit ScalarWithApproximation(LazyEval::LazyWrapExactAndApproxScalar<ELP,Approximation> const &wrapper)
-//    :exact_sc_product(wrapper.eval_exact()),approx_sc_product(wrapper.eval_approx()) {}
 };
 
 /**

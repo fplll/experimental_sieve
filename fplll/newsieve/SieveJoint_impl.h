@@ -195,6 +195,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     #endif
     sieve_k(k),
     verbosity(verbosity_),
+    term_cond_owned(termcond==nullptr),
     term_cond(termcond),
     sieve_status(SieveStatus::sieve_status_init),
     shortest_vector_found(nullptr), // NOTE: Static data in class not initialized!

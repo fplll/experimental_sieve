@@ -11,7 +11,7 @@
 //Use this to condition on the second pass.
 
 #ifndef GAUSS_SIEVE_IS_MULTI_THREADED
-    #error wrong usage of SieveJoint.h
+  #error wrong usage of SieveJoint.h
 #endif
 
 #undef DO_INCLUDE_SIEVE_JOINT_H
@@ -231,7 +231,7 @@ public:
     double constexpr get_target_list_size() const               {return target_list_size;};
     #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
-    void set_k(unsigned int const new_k)                              {sieve_k=new_k;return;};            //non-thread-safe
+    void set_k(unsigned int const new_k)                        {sieve_k=new_k;return;};            //non-thread-safe
     bool is_multithreaded_wanted() const                        {return multi_threaded_wanted;};    //Note: No setter
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
     void set_num_threads(unsigned int t);                                                            //non-thread safe, only call while suspended. In SieveMT.cpp
@@ -258,16 +258,21 @@ public:
     #ifdef USE_LSH
     unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
     #endif
-    
-    
+
+
     bool check_if_enough_short_vectors();
-    
+
     //-----------------STATISTICS----------------
-    unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;};
-    unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;};
-    unsigned long long get_number_of_scprods_level3() const     {return number_of_scprods_level3;};
-    [[deprecated]]
-    void set_termination_condition(TermCondType * const termcond)       {term_cond = termcond;}; //TODO: If we default - initialize (and own in this case), may need to delete previous value.
+    unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;}
+    unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;}
+    unsigned long long get_number_of_scprods_level3() const     {return number_of_scprods_level3;}
+
+    void set_termination_condition(TermCondType * const termcond)
+    {
+    if(term_cond_owned && (term_cond!=nullptr)) delete term_cond;
+    term_cond_owned = false;
+    term_cond = termcond;
+    } //TODO: If we default - initialize (and own in this case), may need to delete previous value.
 private:
 
 //Use termination Condition to check whether we are done, based on statistics so far.
@@ -297,7 +302,7 @@ private:
 
     unsigned int lattice_rank;
     #ifdef PROGRESSIVE
-    unsigned int progressive_rank; 
+    unsigned int progressive_rank;
     #endif
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
@@ -318,6 +323,7 @@ private:
 //            //TODO : Change term-cond to a user-provided function.
 //    TerminationConditions<ET> term_cond;
 private:
+    bool term_cond_owned;
     TermCondType * term_cond;
     enum class SieveStatus
     {
