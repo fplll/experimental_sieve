@@ -21,35 +21,68 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
 {
-  //assert(!p2.is_zero()); <-TODO: ERRS NOW
-  using EntryType = typename SieveTraits::EntryType;
-  using std::abs;
+  //assert(!p2.is_zero()); //<-TODO: ERRS NOW
+  if (p2.get_norm2() == 0) assert(false);
   using std::round;
-    /*
-    ET sc_prod, abs_2scprod;
-    sc_prod= compute_sc_product(p1, p2);
-    abs_2scprod.mul_ui(sc_prod,2);
-    abs_2scprod.abs(abs_2scprod);
-    */
+  
+  bool res;
+  
+#ifdef USE_APPROXPOINT
+  using EntryType = typename GaussSieve::EMVScalar;
+  EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
+  
+  sc_prod >>= 1;
+  
+  EntryType abs_2scprod =sc_prod.abs();
+  
+  if (abs_2scprod <= p2.access_approx().get_approx_norm2())
+  {
+    return false;
+  }
+  
+  //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
+  
+  sc_prod <<= 1;
+  double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
 
-    EntryType const sc_prod = compute_sc_product(p1,p2);
-    EntryType const abs_2scprod = abs(sc_prod * 2);
+  
+  scalar =  round (mult);
+  //std::cout <<mult  << " " << scalar << std::endl;
+  
+  
+  return true;
+#else
+  
+  using std::abs;
+  
+  using EntryType = typename SieveTraits::EntryType;
+  EntryType sc_prod = compute_sc_product(p1,p2);
+
+  
+  EntryType abs_2scprod =abs(sc_prod * 2);
+  if (abs_2scprod <= p2.get_norm2())
+  {
+    return false;
+  }
+  
+  double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
+  //std::cout << sc_prod << " " << sc_prod << std::endl;
 
     // check if |2 * <p1, p2>| <= |p2|^2. If yes, no reduction
-    if (abs_2scprod <= p2.get_norm2())
-        return false;
+  
     //compute the multiple mult s.t. res = p1 \pm mult* p2;
     //mult = round ( <p1, p2> / ||p2||^2 )
 
-    double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
     // TODO: Check over- / underflows.
     scalar =  round (mult);
     return true;
+#endif
 
 }
   /**
    Checks whether we can perform a 2-reduction. Modifies scalar.
    Contrary to the above function, it does not assume that p1 is max, but deduces it from p_is_max
+   Used in 3-sieve
    */
   
 template<class SieveTraits, class Integer, typename std::enable_if<
@@ -113,6 +146,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 {
   if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
   bool loop = true;
+  
+  //std::cout << p.get_norm2 () << std::endl;
 
   auto it_comparison_flip=main_list.cend(); //used to store the point where the list elements become larger than p.
 //  auto it = main_list.cbegin();
@@ -122,6 +157,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     loop = false;
     for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
     {
+      //std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
       if (p  < (*it) )
       {
         it_comparison_flip = it;
@@ -134,6 +170,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       {
         assert(scalar!=0);
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
+        //std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
         break;
       }
@@ -141,7 +178,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     }
 
   }
-
+  
 //p no longer changes. it_comparison_flip is iterator to first (shortest) element in the list that is longer than p.
 //If no such element exists, it_comparison_flip refers to after-the-end.
     if (p.is_zero() )
@@ -184,8 +221,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
 
-        //cout << "new v of norm = " << v_new.get_norm2() << endl << flush;
-
+        //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
+        
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
           //std::cout << "collision on v_new is found " << std::endl;

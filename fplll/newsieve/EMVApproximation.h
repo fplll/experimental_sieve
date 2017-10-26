@@ -348,6 +348,21 @@ inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
     return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
   }
 }
+  
+inline bool operator<= (EMVScalar const & lhs, EMVScalar const & rhs)
+  {
+    // We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
+    // The following works, but might need improvement:
+    
+    if(lhs.exponent > rhs.exponent)
+    {
+      return lhs.mantissa <= (rhs.mantissa >> (lhs.exponent - rhs.exponent));
+    }
+    else
+    {
+      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
+    }
+}
 
 template<class T,
 typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
@@ -356,6 +371,14 @@ inline bool operator< (EMVScalar const & lhs, T && rhs)
 {
   return lhs <  static_cast<EMVScalar>(rhs);
 }
+  
+template<class T,
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+>
+inline bool operator<= (EMVScalar const & lhs, T && rhs)
+{
+  return lhs <=  static_cast<EMVScalar>(rhs);
+}
 
 template<class T,
 typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
@@ -363,6 +386,14 @@ typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::
 inline bool operator< (T && lhs, EMVScalar const & rhs)
 {
   return static_cast<EMVScalar>(lhs) < rhs;
+}
+  
+template<class T,
+typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
+>
+inline bool operator<= (T && lhs, EMVScalar const & rhs)
+{
+  return static_cast<EMVScalar>(lhs) <= rhs;
 }
 
 
@@ -468,6 +499,7 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
 -> EMVScalar
 {
   static_assert(std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value,"");
+  
   using ProductType = typename EMVApproximationTraits::ApproxNorm2Type;
 
   ProductType scp =0;
@@ -477,6 +509,7 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
     scp += lhs[i] * rhs[i];
   }
 
+  
   EMVScalar result(lhs.exponent + rhs.exponent, scp);
   return result;
 }
