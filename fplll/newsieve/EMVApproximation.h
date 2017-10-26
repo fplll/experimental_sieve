@@ -70,8 +70,8 @@ class EMVScalar
     using std::abs;
     mantissa=abs(mantissa);
   }
-  inline EMVScalar abs() const & { EMVScalar tmp(*this); tmp.do_abs(); return tmp;  }
-  inline EMVScalar abs() && { do_abs(); return *this; }
+  inline friend EMVScalar abs(EMVScalar const &arg) { EMVScalar tmp(arg); tmp.do_abs(); return tmp;  }
+  inline friend EMVScalar abs(EMVScalar &&arg) { arg.do_abs(); return arg; }
 
 
   // helper functions: included as static functions tied to the class:
