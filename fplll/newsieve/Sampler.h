@@ -90,6 +90,16 @@ public:
     SieveLatticeBasis<SieveTraits,MT> const & input_basis );
   virtual ~Sampler() = 0;  // needs to be virtual
 
+  #ifdef PROGRESSIVE
+  // set_progressive_rank is virtual, so a child might overwrite it, e.g. to update internal data
+  // structures or to output diagnostics whenever the progressive rank changes.
+  virtual void set_progressive_rank(uint_fast16_t const new_progressive_rank)
+  {
+    progressive_rank = new_progressive_rank;
+  }
+  uint_fast16_t get_progressive_rank() const { return progressive_rank; }
+  #endif
+
   /**
   run-time type information.
 
@@ -118,12 +128,14 @@ private:
   // dummy implementation of >> operator.
   virtual std::istream &read_from_stream(std::istream &is) { return is; };
 
+
+
 protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 
   #ifdef PROGRESSIVE
-  uint_fast16_t progressive_rank;
+  uint_fast16_t progressive_rank; // progressive rank. We may want to sample only from a sublattice.
   #endif
 
 };

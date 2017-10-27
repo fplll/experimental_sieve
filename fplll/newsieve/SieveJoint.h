@@ -225,7 +225,7 @@ public:
     unsigned int get_lattice_rank() const                       {return lattice_rank;};             //non-thread-safe
     DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
     #ifdef PROGRESSIVE
-    unsigned int get_progressive_rank() const                   {return progressive_rank;};
+    uint_fast16_t get_progressive_rank() const                   {return progressive_rank;};
     void increase_progressive_rank();
     void set_target_list_size(unsigned int const target)        {target_list_size = target; return;};
     unsigned int get_target_list_size() const                   {return target_list_size;};
@@ -300,7 +300,7 @@ private:
 
     unsigned int lattice_rank;
     #ifdef PROGRESSIVE
-    unsigned int progressive_rank;
+    uint_fast16_t progressive_rank;
     #endif
     bool multi_threaded_wanted;
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true
