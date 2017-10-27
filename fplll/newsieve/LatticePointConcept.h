@@ -151,6 +151,8 @@ template<class LatticePoint> struct LatticePointTraits
                       exact & approximated scalar product, etc.
                       Use ApproxLevelOf<Some_Class>::value to obtain Some_Class::ApproxLevel
                       (with a default of 0 if Some_Class::ApproxLevel does not exist)
+
+    NOTE: Approximations and ApproxLevel do not relate to Bitapproximation.
 */
 
 // forward declaration

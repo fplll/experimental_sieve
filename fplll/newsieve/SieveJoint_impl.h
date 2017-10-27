@@ -307,6 +307,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
   return (term_cond->check(this) != 0)?true:false;
 };
 
+#ifdef PROGRESSIVE
 
 //for progressive sieving
 //TODO: currently the function checks only for the size of the list
@@ -325,6 +326,8 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
     return true;
   return false;
 };
+
+#endif
 
 #ifdef PROGRESSIVE
 template<class SieveTraits>

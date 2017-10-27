@@ -227,8 +227,9 @@ public:
     #ifdef PROGRESSIVE
     unsigned int get_progressive_rank() const                   {return progressive_rank;};
     void increase_progressive_rank();
-    void set_target_list_size(double target)                    {target_list_size = target; return;};
-    double constexpr get_target_list_size() const               {return target_list_size;};
+    void set_target_list_size(unsigned int const target)        {target_list_size = target; return;};
+    unsigned int get_target_list_size() const                   {return target_list_size;};
+    bool check_if_enough_short_vectors();
     #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
     void set_k(unsigned int const new_k)                        {sieve_k=new_k;return;};            //non-thread-safe
@@ -258,9 +259,6 @@ public:
     #ifdef USE_LSH
     unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
     #endif
-
-
-    bool check_if_enough_short_vectors();
 
     //-----------------STATISTICS----------------
     unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;}

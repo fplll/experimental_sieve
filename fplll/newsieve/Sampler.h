@@ -55,6 +55,16 @@ Sseq is supposed to satisfy the C++ concept "SeedSequence". The standard library
 as a canonical example.
 Engine is supposed to satisfy the C++ concept of a "Random Number Engine". <random> provides several
 of those, e.g. std::mt19937_64.
+
+IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any possibly
+            user-defined class derived from Sampler.
+            This user-defined sampler object will be constructed *before* the sieve and may outlive
+            the sieve. For that reason, some initializations are defered from the constructor to
+            init() / custom_init, which get called after the sampler is associated with the sieve.
+            If the macro DEBUG_SIEVE_STANDALONE_SAMPLER is set, we may even use the sampler without
+            any associated sieve. (This latter case need not work with user-defined samplers)
+
+
 */
 
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
