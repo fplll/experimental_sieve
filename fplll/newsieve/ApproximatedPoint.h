@@ -27,6 +27,7 @@ struct ScalarWithApproximation
   public:
   using ExactType  = ExactScalarType;
   using ApproxType = ApproxScalarType;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
   static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
 
   private:
@@ -90,6 +91,7 @@ public:
   using Trait_InternalRepIsAbsolute   = NormalizeTrait<Has_InternalRepIsAbsolute<ELP>>;
   using Trait_CheapNorm2              = NormalizeTrait<Has_CheapNorm2<ELP>>;
   using Trait_CheapNegate             = NormalizeTrait<Has_CheapNegate<ELP>>;
+  using Trait_BitApprox               = NormalizeTrait<Has_BitApprox<ELP>>;
 
   using Trait_Approximations       = std::true_type;
   using Trait_DelayedScalarProduct = std::true_type;
@@ -155,6 +157,7 @@ class VectorWithApproximation
   using DelayedScalarProductType  = Get_DelayedScalarProductType<ELP,Approximation>;
 //  // Think about this:
   using DelayedNorm2Type          = Get_DelayedNorm2Type<ELP,Approximation>;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
 //
   VectorWithApproximation(VectorWithApproximation const &old) = delete;
   VectorWithApproximation(VectorWithApproximation && old) = default;
