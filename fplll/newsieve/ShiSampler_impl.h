@@ -35,10 +35,6 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
   dim           = input_basis.ambient_dimension;
   lattice_rank  = input_basis.lattice_rank;
 
-  #ifdef PROGRESSIVE
-  progressive_rank = sieveptr->get_progressive_rank();
-  #endif
-
   mu_matrix     = input_basis.get_mu_matrix();
 
   // vectors of length lattice_rank
@@ -69,8 +65,8 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 //    tmp2.sqrt(tmp2);
 //    maxdeviations[i] = tmp2.get_d() * cutoff;
   }
-  
-  
+
+
   using RetType = typename SieveTraits::GaussSampler_ReturnType;
 
   if(static_init_plainpoint!=nullptr)
@@ -116,7 +112,7 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
   // (With signed j, the correct for loop would be for(int j = lattice_rank-1 ; j>=0;--j) )
   {
     #ifdef PROGRESSIVE
-    uint_fast16_t j = progressive_rank;
+    uint_fast16_t j = this->get_progressive_rank();
     #else
     uint_fast16_t j = lattice_rank;
     #endif

@@ -267,7 +267,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
 
 #ifdef PROGRESSIVE
-  progressive_rank = lattice_rank / 2; //TODO: to adjust
+  assert(lattice_rank > 0);
+  // Note : The +1 is to ensure correctness if lattice_rank == 1 -- Gotti
+  progressive_rank = (lattice_rank+1 / 2); //TODO: to adjust
 #endif
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
@@ -307,6 +309,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
   return (term_cond->check(this) != 0)?true:false;
 };
 
+#ifdef PROGRESSIVE
 
 //for progressive sieving
 //TODO: currently the function checks only for the size of the list
@@ -325,18 +328,23 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
     return true;
   return false;
 };
+#endif
 
 #ifdef PROGRESSIVE
 template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::increase_progressive_rank()
 {
+  assert(this->progressive_rank < this->get_lattice_rank());
   ++(this->progressive_rank);
   if (this->get_progressive_rank() == this->get_lattice_rank())
+  {
     std::cout << "From now on we are full-rank" << std::endl;
+  }
+  main_queue.sampler->set_progressive_rank(progressive_rank);
 };
 #endif
 
-}
+} // end namespace
 
 #define SIEVE_JOINT_CPP
 #endif

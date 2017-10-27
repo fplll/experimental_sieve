@@ -42,8 +42,12 @@ void Sampler<SieveTraits, MT, Engine, Sseq>::init(Sieve<SieveTraits, MT> *const 
 #endif
 
 #ifdef PROGRESSIVE
-  uint_fast16_t progressive_rank = sieveptr->get_progressive_rank();
-  std::cout << "set progressive rank to " << progressive_rank <<std::endl;
+  #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
+    progressive_rank = sieveptr->get_progressive_rank();
+    std::cout << "initialized progressive rank to " << progressive_rank <<std::endl;
+  #else
+    progressive_rank = input_basis.lattice_rank;
+  #endif
 #endif
 
   custom_init(input_basis);

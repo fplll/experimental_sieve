@@ -55,6 +55,16 @@ Sseq is supposed to satisfy the C++ concept "SeedSequence". The standard library
 as a canonical example.
 Engine is supposed to satisfy the C++ concept of a "Random Number Engine". <random> provides several
 of those, e.g. std::mt19937_64.
+
+IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any possibly
+            user-defined class derived from Sampler.
+            This user-defined sampler object will be constructed *before* the sieve and may outlive
+            the sieve. For that reason, some initializations are defered from the constructor to
+            init() / custom_init, which get called after the sampler is associated with the sieve.
+            If the macro DEBUG_SIEVE_STANDALONE_SAMPLER is set, we may even use the sampler without
+            any associated sieve. (This latter case need not work with user-defined samplers)
+
+
 */
 
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
@@ -79,6 +89,16 @@ public:
   inline void init(Sieve<SieveTraits, MT> *const sieve,
     SieveLatticeBasis<SieveTraits,MT> const & input_basis );
   virtual ~Sampler() = 0;  // needs to be virtual
+
+  #ifdef PROGRESSIVE
+  // set_progressive_rank is virtual, so a child might overwrite it, e.g. to update internal data
+  // structures or to output diagnostics whenever the progressive rank changes.
+  virtual void set_progressive_rank(uint_fast16_t const new_progressive_rank)
+  {
+    progressive_rank = new_progressive_rank;
+  }
+  uint_fast16_t get_progressive_rank() const { return progressive_rank; }
+  #endif
 
   /**
   run-time type information.
@@ -108,12 +128,14 @@ private:
   // dummy implementation of >> operator.
   virtual std::istream &read_from_stream(std::istream &is) { return is; };
 
+
+
 protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 
   #ifdef PROGRESSIVE
-  uint_fast16_t progressive_rank;
+  uint_fast16_t progressive_rank; // progressive rank. We may want to sample only from a sublattice.
   #endif
 
 };
