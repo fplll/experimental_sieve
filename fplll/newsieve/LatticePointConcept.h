@@ -63,6 +63,7 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
   using Trait_Approximations = std::false_type;
+  using Trait_BitApprox = std::false_type;
   static constexpr int Trait_ApproxLevel = 0;
 };
 
@@ -120,6 +121,18 @@ template<class LatticePoint> struct LatticePointTraits
 
   CheapNorm2 : Set to true_type to indicate that get_norm2() is cheap.
                (typically, it's precomputed and stored with the point)
+
+  BitApprox : Set to indicate that we have a bit-approximation.
+              This gives the following promises to the user:
+              There is a public member functions:
+              get_bitapprox_norm2() : Returns the number of bits that we are using
+              - defaults to get_dim()
+              There is a member function:
+              do_compute_sc_product_bitapprox(LatP const &): computes the bit-wise scalar product of
+              bit-approximations of *this with LatP.
+              Use compute_sc_product_bitapprox(LatP const & x1, LatP const &x2) to actually compute
+              the bit-approx scalar product.
+
 
 // Does not work ATM, might be needed later...
 //  AccessNorm2:  Set to true_type to indicate that we we have an access_norm2() function to
@@ -179,6 +192,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, 
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximations);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_BitApprox, std::true_type, T_BitApprox);
 
 template<class T,class = int>
 struct T_ApproxLevelOf{
@@ -251,6 +265,9 @@ template<class LatP> using Has_Approximations = std::integral_constant<bool,
 
 template<class LatP> using Has_AccessNorm2 = std::integral_constant<bool,
   T_AccessNorm2<LatP>::value>;
+
+template<class LatP> using Has_BitApprox = std::integral_constant<bool,
+  T_BitApprox<LatP>::value>;
 
 // Deprecated
 template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
@@ -484,6 +501,19 @@ class GeneralLatticePoint
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
+    template<class Impl=LatP>
+    inline auto get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
+
+    // This function is only ever called from within a block protected by
+    // if(templated constexpr resuting in false){ }. Lacking if constexpr, we bail out at runtime.
+    // Use CPP17CONSTEXPRIF macro for the if.
+    #if __if_constexpr
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    inline int do_compute_sc_product_bitapprox(LatP2 const &) const = delete;
+    #else
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    inline int do_compute_sc_product_bitapprox(LatP2 const &) const { assert(false); }
+    #endif
  };
 
  /**
@@ -501,6 +531,12 @@ inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product_full(lp2); }
+
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
+inline auto compute_sc_product_bitapprox(LP1 const &lp1, LP2 const &lp2)
+// C++14 : -> decltype(auto)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox(lp1,lp2); }
 
 
 #define FOR_LATTICE_POINT_LP \

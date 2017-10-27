@@ -368,6 +368,17 @@ inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<Lat
   return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
 }
 
+template<class LatP>
+template<class Impl>
+inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() )
+{
+  IMPL_IS_LATP;
+  assert(Has_Approximations<Impl>::value);
+  DEBUG_TRACEGENERIC("Generically getting number of bits for bitapprox" << LatP::class_name() )
+  return CREALTHIS->get_dim();
+}
+
+
 
 template<class LatP>
 template<class Impl>
