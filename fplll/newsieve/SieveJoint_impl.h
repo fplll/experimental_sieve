@@ -267,7 +267,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 //    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
 
 #ifdef PROGRESSIVE
-  progressive_rank = lattice_rank / 2; //TODO: to adjust
+  assert(lattice_rank > 0);
+  // Note : The +1 is to ensure correctness if lattice_rank == 1 -- Gotti
+  progressive_rank = (lattice_rank+1 / 2); //TODO: to adjust
 #endif
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();

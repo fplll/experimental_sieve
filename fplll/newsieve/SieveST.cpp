@@ -84,7 +84,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
     int i=0;
 
     std::cout << "start 2-sieve " << std::endl;
-  
+
     //set target list-size for progressive sieving
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k2);
@@ -94,7 +94,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
     {
 
 #ifdef PROGRESSIVE
-      if (check_if_enough_short_vectors() )
+      if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
       {
         increase_progressive_rank();
       }
@@ -106,13 +106,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
       //typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
 //        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
 //        std::cout << p << std::endl << std::flush;
-        
+
 #ifdef USE_LSH
         hash_sieve_2_iteration(p);
 #else
         sieve_2_iteration(p);
 #endif
-        
+
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {
@@ -125,17 +125,17 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
     int i=0;
-    
+
     std::cout << "start 3-sieve " << std::endl;
-  
+
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k3);
 #endif
-  
+
     while (!check_if_done() )
     {
 #ifdef PROGRESSIVE
-      if (check_if_enough_short_vectors() )
+      if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
       {
         increase_progressive_rank();
       }
