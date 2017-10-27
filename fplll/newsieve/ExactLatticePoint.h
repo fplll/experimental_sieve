@@ -14,6 +14,10 @@
 #include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
 
+#include <bitset> //for approximation
+#include <boost/dynamic_bitset.hpp> //for approximation
+
+
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
 
@@ -52,6 +56,11 @@ public:
         std::vector<ET>  >::type;               // if nfixed <0
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
+  
+  using ApproxContainer = typename std::conditional<nfixed >= 0,
+                          std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
+                          boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
+
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -141,6 +150,7 @@ public:
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
+  
   Container data;
   ET norm2;
 };

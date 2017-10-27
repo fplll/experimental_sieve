@@ -24,8 +24,6 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   assert(!(p2.is_zero()));
   using std::round;
 
-  bool res;
-
 #ifdef USE_APPROXPOINT
   using EntryType = typename GaussSieve::EMVScalar;
   EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
