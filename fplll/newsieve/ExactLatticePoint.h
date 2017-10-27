@@ -42,6 +42,7 @@ public:
   using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
   using Trait_AccessNorm2             = std::true_type;
+  using Trait_BitApprox               = std::true_type;
 };
 
 template <class ET, int nfixed>
@@ -117,7 +118,10 @@ public:
   ET const &operator[](uint_fast16_t idx) const { return data[idx]; };
   static std::string class_name() { return "Exact Lattice Point"; };
 
-  void sanitize() { norm2 = compute_sc_product(*this, *this); }
+  void sanitize() {
+      norm2 = compute_sc_product(*this, *this);
+      compute_approximation(*this);
+  }
   void sanitize( ScalarProductStorageType const & new_norm2 ) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
@@ -146,11 +150,25 @@ public:
   res1+=res4;
   return res1;
   }
-
+  
+  //TODO: TO FINISH!
+  inline void compute_approximation(ExactLatticePoint &point)
+  {
+    
+      uint_fast16_t dim = get_dim();
+      for(uint_fast16_t i=0;i<dim;++i)
+      {
+        bitapprox_data[i] = (point[i]>=0) ? 1 : 0;
+      }
+   
+  }
+  
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
-  
+
+  ApproxContainer bitapprox_data;
+
   Container data;
   ET norm2;
 };
