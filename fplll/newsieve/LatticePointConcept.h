@@ -197,10 +197,14 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type,
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_BitApprox, std::true_type, T_BitApprox);
 
 template<class T,class = int>
-struct T_ApproxLevelOf{
+struct T_ApproxLevelOf
+{
 static constexpr unsigned int value = 0;
 };
 
+// the , inside the decltype is the comma operator for void (hence not overloaded)
+// this template specialization is only valid if T::ApproxLevel exists and will be preferred over
+// the general one above.
 template<class T>
 struct T_ApproxLevelOf<T, decltype( static_cast<void>(T::ApproxLevel), static_cast<int>(0))>
 {
@@ -307,6 +311,8 @@ class GeneralLatticePoint
     using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
     using AbsoluteCooType = typename Get_AbsoluteCooType<LatP>::type;
     using RepCooType = typename Get_RepCooType<LatP>::type;
+    static constexpr unsigned int ApproxLevel = ApproxLevelOf<LatticePointTraits<LatP>>::value;
+    static_assert((Has_Approximations<LatP>::value == false) || (ApproxLevel>0 ),"Declares Approximations, but no level");
 
     private:
     // Empty base class, only callable from its friends (i.e. from LatP)

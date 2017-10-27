@@ -52,7 +52,8 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 
 // to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
 // DEPRECATED:
-enum struct ScalarOrVector{ scalar_type, vector_type };
+//[[deprecated]]
+enum struct [[deprecated]] ScalarOrVector{ scalar_type, vector_type };
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 
@@ -79,6 +80,7 @@ struct ObjectWithApproximation
   using ApproxType= ApproximationClass;
   ExactType  exact_object;
   ApproxType approx_object;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ExactClass>::value + 1;
 
   // This would cause ambiguous overloads.
   static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
@@ -154,11 +156,12 @@ struct ObjectWithApproximation
   Note that leaves are of different types, but expose nearly the same syntax.
 */
 
-template<class LazyFunction, int approx_level, class... Args> class SieveLazyEval
+template<class LazyFunction, unsigned int approx_level, class... Args> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   static_assert(MyConjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
+  static_assert(approx_level >0, "Approximation level is 0");
 
   public:
 //  using ELP = typename LazyFunction::ELP_t;
@@ -176,6 +179,7 @@ template<class LazyFunction, int approx_level, class... Args> class SieveLazyEva
   //TODO: ensure consistency.
   using MayInvalidateExact = MyDisjunction< typename Args::MayInvalidateExact...>; //OR of Args
   using MayInvalidateApprox= MyDisjunction< typename Args::MayInvalidateApprox...>;//OR of Args
+  static constexpr unsigned int ApproxLevel = approx_level;
 
   using TreeType = std::tuple<Args...>; //TODO: const-correctness
   TreeType args; //const?
@@ -293,6 +297,7 @@ class LazyWrapExactCR
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox= std::false_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactCR(ExactType const &init_exact) : exact_value(init_exact)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -323,6 +328,7 @@ class LazyWrapExactRV
   using ApproxEvalType= ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::false_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -352,6 +358,7 @@ class LazyWrapBothCR
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox = std::false_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothCR(ExactType const &init_exact, ApproxType const &init_approx)
     :exact_value(init_exact),approx_value(init_approx)
   {
@@ -380,6 +387,7 @@ class LazyWrapBothRV
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::true_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
     :exact_value(init_exact), approx_value(init_approx)
   {
@@ -409,6 +417,7 @@ class LazyWrapCombinedCR
   using ApproxEvalType= ApproxType;
   using MayInvalidateExact = std::false_type;
   using MayInvalidateApprox= std::false_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedCR(CombinedType const &init_combined):combined_value(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -435,6 +444,7 @@ class LazyWrapCombinedRV
   using ApproxEvalType = ApproxType;
   using MayInvalidateExact = std::true_type;
   using MayInvalidateApprox= std::true_type;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS

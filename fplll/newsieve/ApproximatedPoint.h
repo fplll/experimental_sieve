@@ -93,6 +93,7 @@ public:
 
   using Trait_Approximations       = std::true_type;
   using Trait_DelayedScalarProduct = std::true_type;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
 };
 
 template<class ELP, class Approximation, class Function, class... Args>
