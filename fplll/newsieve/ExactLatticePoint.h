@@ -58,10 +58,12 @@ public:
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
   
+  /*
   using ApproxContainer = typename std::conditional<nfixed >= 0,
                           std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                           boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
-
+  */
+  using ApproxContainer = boost::dynamic_bitset<>;
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -105,7 +107,7 @@ public:
 // TODO: Debug output and validation.
 
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
-  : data(std::move(plain_point.data))
+  : data(std::move(plain_point.data)), bitapprox_data()
   {
     sanitize();
   }
@@ -122,10 +124,15 @@ public:
       norm2 = compute_sc_product(*this, *this);
       compute_approximation(*this);
   }
-  void sanitize( ScalarProductStorageType const & new_norm2 ) { norm2 = new_norm2; }
+  void sanitize( ScalarProductStorageType const & new_norm2 ) 
+  { 
+      norm2 = new_norm2; 
+      compute_approximation(*this);
+  }
 
   ET get_norm2() const { return norm2; }
-
+  
+  std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 
   inline ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
   {
@@ -154,13 +161,15 @@ public:
   //TODO: TO FINISH!
   inline void compute_approximation(ExactLatticePoint &point)
   {
-    
+      
       uint_fast16_t dim = get_dim();
+      bitapprox_data.resize(dim);
       for(uint_fast16_t i=0;i<dim;++i)
       {
         bitapprox_data[i] = (point[i]>=0) ? 1 : 0;
+        //bitapprox_data[i] = false;
       }
-   
+      
   }
   
 
@@ -172,6 +181,48 @@ private:
   Container data;
   ET norm2;
 };
+
+
+template <class ET, int nfixed>
+inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const
+{
+// Note: include_approx is ignored, because classes that have an approximation overload this anyway.
+  DEBUG_TRACEGENERIC("Using generic writer (absolute) for " << LatP::class_name() )
+  //std::cout << "call from ExactLatticePoint" << std::endl;
+  auto const dim = get_dim();
+  //os << "dim = " << dim << std::endl;
+  os << "[ "; // makes spaces symmetric
+  for (uint_fast16_t i =0; i<dim; ++i)
+  {
+    os << data[i] << " ";
+  }
+  os << "]";
+  
+  if(include_norm2)
+  {
+    os <<", norm2= " << norm2 << " ";
+  }
+  
+  if (include_approx)
+  {
+    os << " approx = [ ";
+    for (uint_fast16_t i =0; i<dim; ++i)
+    {
+      os << bitapprox_data[i] << " ";
+    }
+    os << "]";
+  }
+  os << std::endl;
+  return os;
+}
+
+
+template <class ET, int nfixed>
+std::ostream& operator<<(std::ostream &os, ExactLatticePoint<ET, nfixed> const &LatP)
+{
+  return LatP.write_lp_to_stream(os, true, true);
+}
+
 
 // initialize static data:
 template <class ET, int nfixed>
@@ -200,11 +251,11 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
     {
       ExactLatticePoint<ET,nfixed>::dim = new_dim;
     }
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed =" << nfixed << "REALDIM = " << new_dim << "Counter is" << Parent::user_count )
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed = " << nfixed << " REALDIM = " << new_dim << " Counter is" << Parent::user_count )
   }
   ~StaticInitializer()
   {
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed =" << nfixed << "Counter is" << Parent::user_count )
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
 };
 

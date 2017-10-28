@@ -337,6 +337,7 @@ std::istream& operator>>(std::istream &is, LP &LatP)
 FOR_LATTICE_POINT_LP
 std::ostream& operator<<(std::ostream &os, LP const &LatP)
 {
+  std::cout << "cout from GeneralLatticePoint" <<std::endl;
   return LatP.write_lp_to_stream(os);
 }
 

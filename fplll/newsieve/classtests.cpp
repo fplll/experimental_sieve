@@ -6,10 +6,10 @@
 
 //#define TEST_ALL
 //#define TEST_EMV
-#define TEST_LAZY
-#define TEST_APPROXIMATIONS
+//#define TEST_LAZY
+//#define TEST_APPROXIMATIONS
 //#define TEST_PLAIN_LATTICE_POINT
-//#define TEST_EXACT_LATTICE_POINT
+#define TEST_EXACT_LATTICE_POINT
 //#define TEST_BITAPPROX
 
 #ifdef TEST_ALL
