@@ -28,6 +28,10 @@ namespace GaussSieve
 // dimension is static
 template <class ET, int nfixed> class ExactLatticePoint;
 
+// result of approximate scalar product
+// wraps around int_fast32_t
+class ApproxScProduct;
+
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
 public:
@@ -43,6 +47,34 @@ public:
   using Trait_InternalRep_RW          = std::true_type;
   using Trait_AccessNorm2             = std::true_type;
   using Trait_BitApprox               = std::true_type;
+};
+
+class ApproxScProduct
+{
+  
+  public:
+    using ApproxScProductReturn       = int_fast32_t;
+    
+  
+  ApproxScProduct(ApproxScProduct const &old) = delete;
+  ApproxScProduct(ApproxScProduct &&old)      = default;
+  
+  ApproxScProduct(ApproxScProductReturn rhs) { this->value = rhs;};
+  
+  ApproxScProduct &operator=(ApproxScProduct const &other) = delete;
+  ApproxScProduct &operator=(ApproxScProduct &&other) = default;
+  
+  //TODO: operator >=, <=
+  
+  inline bool operator<=(ApproxScProductReturn && rhs)
+  {
+    return  this->value <= rhs;
+  } 
+  
+  //member
+  ApproxScProductReturn value;
+  
+    
 };
 
 template <class ET, int nfixed>
@@ -134,6 +166,8 @@ public:
   
   std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 
+  inline ApproxScProduct compute_sc_product_bitapprox(ExactLatticePoint const & another);
+
   inline ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
   {
   ET res1 = 0;
@@ -158,7 +192,7 @@ public:
   return res1;
   }
   
-  //TODO: TO FINISH!
+  
   inline void compute_approximation(ExactLatticePoint &point)
   {
       
@@ -167,7 +201,6 @@ public:
       for(uint_fast16_t i=0;i<dim;++i)
       {
         bitapprox_data[i] = (point[i]>=0) ? 1 : 0;
-        //bitapprox_data[i] = false;
       }
       
   }
@@ -182,6 +215,16 @@ private:
   ET norm2;
 };
 
+
+//approximate scalar product
+template <class ET, int nfixed>
+inline ApproxScProduct ExactLatticePoint<ET, nfixed>::compute_sc_product_bitapprox(ExactLatticePoint const &another)
+  {
+    ApproxScProduct result(0);
+    auto const dim = this.get_dim();
+    result = dim - (this.bitapprox_data ^ another.bitapprox_data).count();
+    return result;
+}
 
 template <class ET, int nfixed>
 inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const

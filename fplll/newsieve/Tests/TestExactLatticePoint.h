@@ -142,6 +142,12 @@ bool test_exact_LP()
   
   std::cout << latp << std::endl;
   std::cout << latp2 << std::endl;
+  
+  
+  using ApproxScProdType = GaussSieve::ApproxScProduct;
+  
+  std::cout << compute_sc_product(latp, latp2) << std::endl;
+  //std::cout << compute_sc_product_bitapprox(latp, latp2) << std::endl; //<-THIS FAILS
 
   return true;
 };
