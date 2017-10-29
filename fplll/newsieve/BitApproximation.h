@@ -1,3 +1,5 @@
+#error Unused
+
 #ifndef BITSET_APPROXIMATION_H
 #define BITSET_APPROXIMATION_H
 
@@ -171,7 +173,5 @@ inline int_fast32_t approximate_scalar_product(BitApproximation<nfixed> const &l
 }
 
 
-
-}
+} // end namespace
 #endif
-

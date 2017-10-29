@@ -11,6 +11,9 @@
 #include <gmpxx.h>
 #include "GlobalStaticData.h"
 
+#include <bitset> //for approximation
+#include <boost/dynamic_bitset.hpp> //for approximation
+
 
 // clang-format off
 
@@ -597,7 +600,26 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   return result;
 }
 
+// new version, with approximations now inside the specific lattice point classes.
+// This class just collects useful functions related to bitapproximations.
+template<int SizeOfBitSet> struct BitApproximation
+{
+  static_assert(SizeOfBitSet==-1, "Only for dynamic bitsets for now.");
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
+  {
+    auto dim = point.get_dim();
+    boost::dynamic_bitset<> ret;
+    ret.resize(dim);
+    for(uint_fast16_t i=0;i<dim;++i)
+    {
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+    }
+    return ret;
+  }
+};
 
+// specialize for
 
 /*
 template<class Implementation>

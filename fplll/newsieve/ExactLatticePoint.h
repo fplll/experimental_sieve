@@ -6,6 +6,9 @@
 #ifndef EXACT_LATTICE_POINT_H
 #define EXACT_LATTICE_POINT_H
 
+
+#define EXACT_LATTICE_POINT_HAS_BITAPPROX
+
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
@@ -14,9 +17,10 @@
 #include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
 
-#include <bitset> //for approximation
-#include <boost/dynamic_bitset.hpp> //for approximation
-
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  #include <bitset> //for approximation
+  #include <boost/dynamic_bitset.hpp> //for approximation
+#endif
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
@@ -28,9 +32,12 @@ namespace GaussSieve
 // dimension is static
 template <class ET, int nfixed> class ExactLatticePoint;
 
-// result of approximate scalar product
+
+// result of bitwise approximate scalar product
 // wraps around int_fast32_t
-class ApproxScProduct;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+class BitApproxScalarProduct;
+#endif
 
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
@@ -46,36 +53,48 @@ public:
   using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
   using Trait_AccessNorm2             = std::true_type;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   using Trait_BitApprox               = std::true_type;
+#endif
 };
 
-class ApproxScProduct
+// Note: I renamed Approx to BitApprox here. We have two types of Approximations and everything related to Bits should have
+// BitApprox in its name to reduce confusion. -- Gotti
+
+/**
+  This class stores the result of computing a scalar product of bitwise
+  approximations.
+  Essentially, just wraps around an int.
+  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
+*/
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+class BitApproxScalarProduct
 {
-  
+
   public:
-    using ApproxScProductReturn       = int_fast32_t;
-    
-  
-  ApproxScProduct(ApproxScProduct const &old) = delete;
-  ApproxScProduct(ApproxScProduct &&old)      = default;
-  
-  ApproxScProduct(ApproxScProductReturn rhs) { this->value = rhs;};
-  
-  ApproxScProduct &operator=(ApproxScProduct const &other) = delete;
-  ApproxScProduct &operator=(ApproxScProduct &&other) = default;
-  
+  using BitApproxScalarProduct_WrappedType       = int_fast32_t;
+
+
+  BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
+  BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
+
+  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
+
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
+
   //TODO: operator >=, <=
-  
-  inline bool operator<=(ApproxScProductReturn && rhs)
+
+  inline bool operator<=(BitApproxScalarProduct_WrappedType && rhs)
   {
     return  this->value <= rhs;
-  } 
-  
+  }
+
   //member
-  ApproxScProductReturn value;
-  
-    
+  BitApproxScalarProduct_WrappedType value;
 };
+#endif
 
 template <class ET, int nfixed>
 class ExactLatticePoint : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
@@ -89,13 +108,15 @@ public:
         std::vector<ET>  >::type;               // if nfixed <0
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
-  
+
   /*
-  using ApproxContainer = typename std::conditional<nfixed >= 0,
+  using BitApproxContainer = typename std::conditional<nfixed >= 0,
                           std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                           boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
   */
-  using ApproxContainer = boost::dynamic_bitset<>;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  using BitApproxContainer = boost::dynamic_bitset<>;
+#endif
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -119,12 +140,17 @@ public:
   }
 
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint() : data(static_cast<unsigned int>(get_dim()))
+  explicit ExactLatticePoint() :
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  bitapprox_data(), // TODO: Can you initialize a dynamic_bitset with its correct size reserved?
+#endif
+  data(static_cast<unsigned int>(get_dim()))
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
     assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
   }
 
+  // TODO: Remove these constructors?
   FOR_FIXED_DIM
   explicit ExactLatticePoint(MaybeFixed<nfixed>) : ExactLatticePoint() {}
 
@@ -139,7 +165,11 @@ public:
 // TODO: Debug output and validation.
 
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
-  : data(std::move(plain_point.data)), bitapprox_data()
+  :
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  bitapprox_data(),
+#endif
+  data(std::move(plain_point.data))
   {
     sanitize();
   }
@@ -152,22 +182,32 @@ public:
   ET const &operator[](uint_fast16_t idx) const { return data[idx]; };
   static std::string class_name() { return "Exact Lattice Point"; };
 
-  void sanitize() {
-      norm2 = compute_sc_product(*this, *this);
-      compute_approximation(*this);
+  void sanitize()
+  {
+    norm2 = compute_sc_product(*this, *this);
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+//      compute_approximation(*this);
+    bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
+#endif
   }
-  void sanitize( ScalarProductStorageType const & new_norm2 ) 
-  { 
-      norm2 = new_norm2; 
-      compute_approximation(*this);
+  void sanitize( ScalarProductStorageType const & new_norm2 )
+  {
+    norm2 = new_norm2;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+//    compute_approximation(*this);
+    bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
+#endif
   }
 
   ET get_norm2() const { return norm2; }
-  
+
   std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  inline BitApproxScalarProduct compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
+#endif
 
-  inline ApproxScProduct compute_sc_product_bitapprox(ExactLatticePoint const & another);
-
+  // TODO: This function was never called anyway, due to a bug. -- Gotti
+  /**
   inline ET compute_sc_product(ExactLatticePoint const &lp1, ExactLatticePoint const &lp2)
   {
   ET res1 = 0;
@@ -191,40 +231,50 @@ public:
   res1+=res4;
   return res1;
   }
-  
-  
+  */
+
+  // moved to LatticePointConcept.h
+  // The reason is that we want a compute_bitapproximation function
+  // that also works with other lattice point classes.
+  // The reason is that in the constructors, we want to be able to set bitapprox_data before data
+  // in the initializer list. (I was getting tons of compiler warnings...) This only works well with a non-member function.
+
+/*
   inline void compute_approximation(ExactLatticePoint &point)
   {
-      
+
       uint_fast16_t dim = get_dim();
       bitapprox_data.resize(dim);
       for(uint_fast16_t i=0;i<dim;++i)
       {
         bitapprox_data[i] = (point[i]>=0) ? 1 : 0;
       }
-      
+
   }
-  
+*/
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
-
-  ApproxContainer bitapprox_data;
-
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  BitApproxContainer bitapprox_data;
+#endif
   Container data;
   ET norm2;
 };
 
 
-//approximate scalar product
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+// bit-approximate scalar product
 template <class ET, int nfixed>
-inline ApproxScProduct ExactLatticePoint<ET, nfixed>::compute_sc_product_bitapprox(ExactLatticePoint const &another)
-  {
-    ApproxScProduct result(0);
-    auto const dim = this.get_dim();
-    result = dim - (this.bitapprox_data ^ another.bitapprox_data).count();
-    return result;
+inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::compute_sc_product_bitapprox(ExactLatticePoint const &another) const
+{
+  auto const dim = this.get_dim();
+//  BitApproxScalarProduct result(0);
+//  result = dim - (this.bitapprox_data ^ another.bitapprox_data).count();
+//  return result;
+  return BitApproxScalarProduct{ dim - (this.bitapprox_data ^ another.bitapprox_data).count() };
 }
+#endif
 
 template <class ET, int nfixed>
 inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const
@@ -240,21 +290,23 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
     os << data[i] << " ";
   }
   os << "]";
-  
+
   if(include_norm2)
   {
     os <<", norm2= " << norm2 << " ";
   }
-  
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   if (include_approx)
   {
-    os << " approx = [ ";
+    os << " bit-approx = [ ";
     for (uint_fast16_t i =0; i<dim; ++i)
     {
       os << bitapprox_data[i] << " ";
     }
     os << "]";
   }
+#endif
   os << std::endl;
   return os;
 }
