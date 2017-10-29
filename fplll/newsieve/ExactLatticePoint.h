@@ -73,13 +73,14 @@ class BitApproxScalarProduct
 {
 
   public:
-  using BitApproxScalarProduct_WrappedType       = int_fast32_t;
+  using BitApproxScalarProduct_WrappedType       = uint_fast32_t;
 
 
   BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
   BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
 
   explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
+  explicit operator BitApproxScalarProduct_WrappedType() { return value; }
 
   BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
   BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
@@ -142,7 +143,7 @@ public:
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint() :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  bitapprox_data(), // TODO: Can you initialize a dynamic_bitset with its correct size reserved?
+  bitapprox_data(static_cast<size_t>(get_dim())), // TODO: Can you initialize a dynamic_bitset with its correct size reserved?
 #endif
   data(static_cast<unsigned int>(get_dim()))
   {
@@ -167,7 +168,7 @@ public:
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
   :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  bitapprox_data(),
+  bitapprox_data(static_cast<size_t>(get_dim())),
 #endif
   data(std::move(plain_point.data))
   {
@@ -203,7 +204,7 @@ public:
 
   std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  inline BitApproxScalarProduct compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
+  inline BitApproxScalarProduct do_compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
 #endif
 
   // TODO: This function was never called anyway, due to a bug. -- Gotti
@@ -266,13 +267,13 @@ private:
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 // bit-approximate scalar product
 template <class ET, int nfixed>
-inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::compute_sc_product_bitapprox(ExactLatticePoint const &another) const
+inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox(ExactLatticePoint const &another) const
 {
-  auto const dim = this.get_dim();
+  auto const dim = this->get_dim();
 //  BitApproxScalarProduct result(0);
 //  result = dim - (this.bitapprox_data ^ another.bitapprox_data).count();
 //  return result;
-  return BitApproxScalarProduct{ dim - (this.bitapprox_data ^ another.bitapprox_data).count() };
+  return BitApproxScalarProduct{ dim - (this->bitapprox_data ^ another.bitapprox_data).count() };
 }
 #endif
 

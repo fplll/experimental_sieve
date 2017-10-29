@@ -147,7 +147,9 @@ bool test_exact_LP()
   using ApproxScProdType = GaussSieve::BitApproxScalarProduct;
 
   std::cout << compute_sc_product(latp, latp2) << std::endl;
-  //std::cout << compute_sc_product_bitapprox(latp, latp2) << std::endl; //<-THIS FAILS
+  std::cout << static_cast<uint_fast32_t>(compute_sc_product_bitapprox(latp, latp2)) << std::endl; //<-THIS FAILS
+  // FIXED, Gotti -- Note that the static cast is there because the return type of the scalar product does not support stream output.
+
 
   return true;
 };

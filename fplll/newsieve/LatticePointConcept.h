@@ -547,7 +547,7 @@ template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatt
 inline auto compute_sc_product_bitapprox(LP1 const &lp1, LP2 const &lp2)
 // C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox(lp1,lp2); }
+{ return lp1.do_compute_sc_product_bitapprox(lp2); }
 
 
 #define FOR_LATTICE_POINT_LP \
@@ -609,8 +609,8 @@ template<int SizeOfBitSet> struct BitApproximation
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
     auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret;
-    ret.resize(dim);
+    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
+//    ret.resize(dim);
     for(uint_fast16_t i=0;i<dim;++i)
     {
       ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
