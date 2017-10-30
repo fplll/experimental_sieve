@@ -235,8 +235,8 @@ template<class T> using NormalizeTrait = typename TypeNormalize_Helper<static_ca
 
 // MaybeConst<true,  T> = T const;
 // MaybeConst<false, T> = T;
-template<bool IsConst, class T>
-using MaybeConst = std::conditional<IsConst,std::add_const<T>::type,T>::type;
+//template<bool IsConst, class T>
+//using MaybeConst = std::conditional<IsConst,std::add_const<T>::type,T>::type;
 
 
 // Z_NR - detection and modification...

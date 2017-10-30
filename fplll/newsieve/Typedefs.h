@@ -20,7 +20,7 @@
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
 #include "HashedLatticePoint.h"
-#include "ApproximatedPoint.h"
+//#include "ApproximatedPoint.h"
 #include "EMVApproximation.h"
 
 
@@ -35,7 +35,7 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 double constexpr list_size_k2 = 0.2075187494;
 double constexpr list_size_k3 = 0.1887218757;
 //double constexpr list_size_k3 = 0.195;
-double constexpr list_size_k4 = 0.1723692862; 
+double constexpr list_size_k4 = 0.1723692862;
 
 
 
@@ -85,19 +85,19 @@ class DefaultSieveTraits
   using IsSieveTraitsClass = std::true_type;
 
 #ifdef USE_APPROXPOINT
-  
+
   using ExactLP                 = ExactLatticePoint<ET,nfixed>;
   using Approx                  = EMVApproximation<nfixed>;
-  
+
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
-  
+
   using GaussList_StoredPoint   = VectorWithApproximation<ExactLP,Approx>;
   using GaussList_ReturnType    = VectorWithApproximation<ExactLP,Approx>;
   using FastAccess_Point        = VectorWithApproximation<ExactLP,Approx>;
-  
+
   using GaussQueue_ReturnType   = VectorWithApproximation<ExactLP,Approx>;;
   using GaussQueue_DataType     = VectorWithApproximation<ExactLP,Approx>;;
-  
+
 #else
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
@@ -106,7 +106,7 @@ class DefaultSieveTraits
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
 #endif
-  
+
 #ifdef USE_LSH
   using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
