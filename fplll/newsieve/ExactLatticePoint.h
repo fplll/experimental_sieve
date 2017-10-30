@@ -143,7 +143,7 @@ public:
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint() :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  bitapprox_data(static_cast<size_t>(get_dim())), // TODO: Can you initialize a dynamic_bitset with its correct size reserved?
+  bitapprox_data(static_cast<size_t>(get_dim())),
 #endif
   data(static_cast<unsigned int>(get_dim()))
   {
@@ -196,6 +196,7 @@ public:
     norm2 = new_norm2;
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 //    compute_approximation(*this);
+// Note: The -1 is because we always use dynamic bitsets atm.
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
 #endif
   }
@@ -233,9 +234,10 @@ public:
 
   // moved to LatticePointConcept.h
   // The reason is that we want a compute_bitapproximation function
-  // that also works with other lattice point classes.
-  // The reason is that in the constructors, we want to be able to set bitapprox_data before data
+  // that also works with other lattice point classes:
+  // In the constructors, we want to be able to set bitapprox_data before data
   // in the initializer list. (I was getting tons of compiler warnings...) This only works well with a non-member function.
+  // Alternatively, move it back to ExactLatticePoint.h, but make it a static function.
 
 /*
   inline void compute_approximation(ExactLatticePoint &point)

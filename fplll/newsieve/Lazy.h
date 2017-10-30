@@ -12,25 +12,23 @@
   A + B, ScalarProduct(A,B)
   whose return type is a "delayed addition of A,B" resp. "delayed scalar product of A,B".
   No actual computation is performed (at runtime). The encapsulation into a
-  "delayed computation object" should be performed at compile time as to give no overhead
-  (in theory, modulo bugs)
+  "delayed computation object" should be performed mostly at compile time as to give no overhead
+  (in theory, modulo bugs, lack of compile optimization)
   Only when such a delayed object is _assigned_ to something is the computation performed.
   More generally, computation is performed whenever an appropriate conversion is (explicitly or
-  implicitly requested). A particular case is comparison via <=, which triggers computation.
+  implicitly requested). A particular case is comparison via <,<=, etc. which trigger computation.
 
-  The allowed data types for A,B are "vectors" or "scalars" or delayed expressions returning such.
+  The allowed data types for A,B may be delayed expressions themselves.
   (this allows building up complex expression trees). A and B are supposed to support both an
   exact and an approximate mode.
-  Consequently, all involved classes are template-parameterized by ELP and Approximation, where
-  ELP is an (exact) lattice point class and
-  Approximation is a class for approximations to a lattice point.
-  The "scalar" types are obtained as the result types of scalar products of these classes.
 
-  Note that currently, the implementation is not "eidetic".
+  Note that the implementation is not "eidetic", i.e. results are not stored.
+  The use-case is that we usually only trigger evaluation (at most) once.
 
   Note further that (even recursive) expression trees only ever store references to the *original*
-  vectors / scalars involved in their creation. In particular, it is possible to store an
-  delayed expression as long as all original objects are in scope.
+  objects involved in their creation an not to internal nodes of the expression trees.
+
+  This makes it possible to store a delayed expression as long as all original objects are in scope.
   i.e. auto Res = A + B + C may actually be valid code, as long as references to A,B,C are valid.
   (This is in stark contrast to the way e.g. libgmp implements expression templates.)
 */
@@ -51,8 +49,6 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
   using ApproxScalarType = typename Approximation::ScalarProductType
 
 // to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
-// DEPRECATED:
-//[[deprecated]]
 enum struct [[deprecated]] ScalarOrVector{ scalar_type, vector_type };
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
@@ -68,9 +64,13 @@ CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyN
 //template<class LazyFunction, class... Args> class SieveLazyEval;
 
 /**
-  This class stores a object with an approximation to that object.
-  Note that this is for storage only. We have no arithmetic etc.
-  Such functionality is defered to ApproximatedPoint.h
+  This class defines an interface for objects that store an exact value and an approximation.
+  This is for storage only, we have no arithmetic etc.
+  This class itself is only used for testing.
+
+  Such functionality is defered to ApproximatedPoint.h.
+  Classes encapsulating such a combination of exact/approx. object should adhere to this interface.
+  (as far as meaningful)
 */
 
 template<class ExactClass, class ApproximationClass>
@@ -101,22 +101,24 @@ struct ObjectWithApproximation
   CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_object);}
   constexpr      explicit operator ApproxType() const & { return approx_object;}
   CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_object);}
+  constexpr      ExactType    eval_exact() const &  { return exact_object;}
+  CPP14CONSTEXPR ExactType&&  eval_exact() &&       { return std::move(exact_object);}
+  constexpr      ApproxType   eval_approx() const & { return approx_object;}
+  CPP14CONSTEXPR ApproxType&& eval_approx() &&      { return std::move(approx_object);}
 
   constexpr      ExactType  const & access_exact()  const { return exact_object; }
   CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
   constexpr      ApproxType const & access_approx() const { return approx_object; }
   CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_object; }
 
-  //TODO
-  //
-////  template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<typename std::decay<LazyObject>::type> )>
-////  constexpr explicit ScalarWithApproximation(LazyObject &&lazy_object)
-////    :exact_scalar(lazy_object.eval_exact()),approx_scalar(lazy_object.eval_approx()) //todo: move semantics
-////  {
-////    using Arg = typename std::decay<LazyObject>::type;
-////    static_assert(Arg::scalar_or_vector == ScalarOrVector::scalar_type,"Trying to assign a vector to a scalar");
-////  }
-//};
+  template<class Arg, TEMPL_RESTRICT_DECL(ApproxLevelOf<Arg>::value > ApproxLevel)>
+  CPP14CONSTEXPR explicit ObjectWithApproximation(Arg &&arg)
+    :ObjectWithApproximation( std::forward<Arg>(arg).eval_exact() ) {}
+  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
+  constexpr explicit operator Arg() const & { return static_cast<Arg>(exact_object); }
+  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
+  CPP14CONSTEXPR explicit operator Arg() && { return static_cast<Arg>(std::move(exact_object)); }
+
 };
 
 // TODO: Update documentation to reflect recent changes.
