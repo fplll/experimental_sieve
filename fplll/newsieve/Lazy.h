@@ -140,48 +140,61 @@ struct ObjectWithApproximation
   two "modes" of evaluation: eval_exact and eval_approx, which trigger either
   exact or approximate evaluation.
 
+  In order for templates to recognize them. each node has the tag IsLazyNode set to std::true_type.
+  ApproxLevel denotes the number of (non-bit) approximations attached to the (result) object
+  represented. Typically ApproxLevel == 1. We emphasize that this is completely unrelated to the
+  depth of the evaluation tree.
+
+
   We support:
   Assignment / conversion operators to the corresponding types (These trigger evaluations).
   Comparison operators (These trigger approximate and *possibly* exact evaluations)
   NOTE: Comparisons short-circuit if the approximate comparison is false.
-        In particular, A < B and B > A are not equivalent:
+      In particular, A < B and B > A are not equivalent:
           We might sometimes err and return false (even thogh the exact values compare true),
           so the direction of comparison determines on which side the error is.
           Furthermore, efficiency is optimized if a false result occurs more often
 */
+
 
 template<class LazyFunction, class... Args> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   static_assert(MyConjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
-  static_assert(approx_level >0, "Approximation level is 0");
+  static_assert(approx_level >0, "Approximation level is 0.");
 
   public:
-//  using ELP = typename LazyFunction::ELP_t;
-//  using Approximation = typename LazyFunction::Approximation_t;
-  // assert all ELP's / Approx's of Arg... are the same?
-  // Actually, this may be too restrictive.
-//  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-//  using TreeType = std::tuple< typename Args::TreeType const...  >;
-//  using TreeType      = typename LazyFunction::TreeType;
+  // cv-unqualified return types of eval_*
   using ExactEvalType =  typename LazyFunction::ExactEvalType;
   using ApproxEvalType = typename LazyFunction::ApproxEvalType;
+  // tags used for various static_assert's and template overload selection:
   using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::false_type;
-//  static constexpr ScalarOrVector scalar_or_vector = LazyFunction::scalar_or_vector;
-  //TODO: ensure consistency.
+  using IsLazyLeaf = std::false_type; // not a leaf of the expression tree.
+  static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
+  // for now:
+  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel = ApproxLevelOf<Arg>::value>...>::value,"All arguments must have the same approximation level");
+
+  // MayInvalidate* means that calling eval_* might modify (and invalidate) the actual objects
+  // refered to by the leaves of the tree. This might happen, because of a delayed move-constructor
+  // move-assignment. If this is set, eval_* can only be called upon rvalues.
+
   using MayInvalidateExact = MyDisjunction< typename Args::MayInvalidateExact...>; //OR of Args
   using MayInvalidateApprox= MyDisjunction< typename Args::MayInvalidateApprox...>;//OR of Args
-  static constexpr unsigned int ApproxLevel = approx_level;
+  static constexpr bool MayInvalidate = MayInvalidateApprox::value || MayInvalidateExact::value;
 
-  using TreeType = std::tuple<Args...>; //TODO: const-correctness
-  TreeType args; //const?
-  SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"" ); //We might remove this.
+  using TreeType = std::tuple<MaybeConst<Args::MayInvalidate,Args>...>; //TODO: const-correctness
+  TreeType args;
+  // This restriction can easily be removed. The issue is just that we want no default-constructor.
+  // (at least for nargs > 0)
+  SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
+  // depends on whether args are copyable.
+  /*
   constexpr explicit SieveLazyEval(SieveLazyEval const &other) = default;
   constexpr explicit SieveLazyEval(SieveLazyEval && other) = default;
   SieveLazyEval& operator=(SieveLazyEval const &other) = default;
   SieveLazyEval& operator=(SieveLazyEval &&other) = default;
+  */
 
   //  TreeType const args;
 
