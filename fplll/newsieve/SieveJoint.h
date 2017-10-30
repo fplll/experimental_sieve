@@ -225,10 +225,10 @@ public:
     unsigned int get_lattice_rank() const                       {return lattice_rank;};             //non-thread-safe
     DimensionType get_ambient_dimension() const                 {return ambient_dimension;};        //non-thread-safe
     #ifdef PROGRESSIVE
-    uint_fast16_t get_progressive_rank() const                   {return progressive_rank;};
+    uint_fast16_t get_progressive_rank() const                  {return progressive_rank;};
     void increase_progressive_rank();
-    void set_target_list_size(unsigned int const target)        {target_list_size = target; return;};
-    unsigned int get_target_list_size() const                   {return target_list_size;};
+    void set_target_list_size(double const target)              {target_list_size = target; return;};
+    double get_target_list_size() const                         {return target_list_size;};
     bool check_if_enough_short_vectors();
     #endif
     unsigned int get_k() const                                  {return sieve_k;};                  //non-thread-safe
@@ -311,7 +311,7 @@ private:
     unsigned short number_of_hash_tables;
     #endif
 #ifdef PROGRESSIVE
-  unsigned int target_list_size;
+    double target_list_size;
 #endif
     unsigned int sieve_k; //parameter k of the sieve currently running.
     //SamplerType sampler; //TODO: Thread-safety. Move control to queue.

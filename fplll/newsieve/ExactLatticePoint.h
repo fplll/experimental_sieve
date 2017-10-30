@@ -91,7 +91,14 @@ class BitApproxScalarProduct
   {
     return  this->value <= rhs;
   }
-
+  
+  /*
+  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
+  {
+    os<< value;
+    return os;
+  }
+   */
   //member
   BitApproxScalarProduct_WrappedType value;
 };
@@ -110,13 +117,15 @@ public:
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
 
-  /*
-  using BitApproxContainer = typename std::conditional<nfixed >= 0,
-                          std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                          boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
-  */
+  
+  
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   using BitApproxContainer = boost::dynamic_bitset<>;
+  /*
+  using BitApproxContainer = typename std::conditional<nfixed >= 0,
+                            std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
+                          boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
+   */
 #endif
 
   FOR_FIXED_DIM
@@ -207,7 +216,7 @@ public:
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   inline BitApproxScalarProduct do_compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
 #endif
-
+  
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
   {
   ET res1 = 0;
@@ -231,27 +240,13 @@ public:
   res1+=res4;
   return res1;
   }
-
+   
   // moved to LatticePointConcept.h
   // The reason is that we want a compute_bitapproximation function
   // that also works with other lattice point classes:
   // In the constructors, we want to be able to set bitapprox_data before data
   // in the initializer list. (I was getting tons of compiler warnings...) This only works well with a non-member function.
   // Alternatively, move it back to ExactLatticePoint.h, but make it a static function.
-
-/*
-  inline void compute_approximation(ExactLatticePoint &point)
-  {
-
-      uint_fast16_t dim = get_dim();
-      bitapprox_data.resize(dim);
-      for(uint_fast16_t i=0;i<dim;++i)
-      {
-        bitapprox_data[i] = (point[i]>=0) ? 1 : 0;
-      }
-
-  }
-*/
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
@@ -272,7 +267,7 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
 //  BitApproxScalarProduct result(0);
 //  result = dim - (this.bitapprox_data ^ another.bitapprox_data).count();
 //  return result;
-  return BitApproxScalarProduct{ dim - (this->bitapprox_data ^ another.bitapprox_data).count() };
+  return BitApproxScalarProduct{ static_cast<size_t>(dim - (this->bitapprox_data ^ another.bitapprox_data).count()) };
 }
 #endif
 

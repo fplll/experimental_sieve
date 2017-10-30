@@ -269,7 +269,8 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 #ifdef PROGRESSIVE
   assert(lattice_rank > 0);
   // Note : The +1 is to ensure correctness if lattice_rank == 1 -- Gotti
-  progressive_rank = (lattice_rank+1 / 2); //TODO: to adjust
+  progressive_rank = ((lattice_rank+1) / 2); //TODO: to adjust
+  std::cout << "set progressive_rank to " <<progressive_rank << std::endl;
 #endif
     if(verbosity>=2)    {std::cout << "Sorting ...";}
         main_list.sort();
@@ -320,10 +321,9 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   // check if the current list is long enough and contains enough short vectors
 
   //TODO:
-  double log_bound = this->get_progressive_rank()*(this->get_target_list_size())+1;
+  double log_bound = 1.5* double(this->get_progressive_rank())*(this->get_target_list_size());
   unsigned long int bound = pow(2, log_bound);
-
-
+  
   if (this->get_current_list_size() > bound)
     return true;
   return false;
