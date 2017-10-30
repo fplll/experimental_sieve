@@ -3,15 +3,12 @@
 
 
 
-
+#define bitapprox_threshold 30
 
 namespace GaussSieve{
 
-/*
+/**
  Assume ||p1|| > ||p2||
- */
-
- /**
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
 template<class SieveTraits, class Integer, typename std::enable_if<
@@ -24,35 +21,48 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   assert(!(p2.is_zero()));
   using std::round;
 
-#ifdef USE_APPROXPOINT
-  using EntryType = typename GaussSieve::EMVScalar;
-  EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
-
-  sc_prod <<= 1; // Note: I had the definition of >>= / <<= wrong, so I changed it here. -- Gotti
-
-  EntryType abs_2scprod =abs(sc_prod);
-
-  if (abs_2scprod <= p2.access_approx().get_approx_norm2())
-  {
-    return false;
-  }
-
-  //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
-
-  sc_prod >>= 1;
-  double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
-
-
-  scalar =  round (mult);
-  //std::cout <<mult  << " " << scalar << std::endl;
-
-
-  return true;
-#else
+//#ifdef USE_APPROXPOINT
+//  using EntryType = typename GaussSieve::EMVScalar;
+//  EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
+//
+//  sc_prod <<= 1; // Note: I had the definition of >>= / <<= wrong, so I changed it here. -- Gotti
+//
+//  EntryType abs_2scprod =abs(sc_prod);
+//
+//  if (abs_2scprod <= p2.access_approx().get_approx_norm2())
+//  {
+//    return false;
+//  }
+//
+//  //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
+//
+//  sc_prod >>= 1;
+//  double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
+//
+//
+//  scalar =  round (mult);
+//  //std::cout <<mult  << " " << scalar << std::endl;
+//
+//
+//  return true;
+//#else
 
   using std::abs;
 
   using EntryType = typename SieveTraits::EntryType;
+  
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
+    //std::cout << static_cast<uint_fast32_t>(approx_scprod_res) << std::endl;
+    //assert(false);
+  
+    if (approx_scprod_res <= bitapprox_threshold)
+    {
+      return false;
+    }
+   
+  #endif
+  
   EntryType sc_prod = compute_sc_product(p1,p2);
 
 
@@ -73,7 +83,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
     // TODO: Check over- / underflows.
     scalar =  round (mult);
     return true;
-#endif
+//#endif
 
 }
   /**

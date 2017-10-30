@@ -91,7 +91,14 @@ class BitApproxScalarProduct
   {
     return  this->value <= rhs;
   }
-
+  
+  /*
+  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
+  {
+    os<< value;
+    return os;
+  }
+   */
   //member
   BitApproxScalarProduct_WrappedType value;
 };
@@ -233,7 +240,7 @@ public:
   res1+=res4;
   return res1;
   }
-
+   
   // moved to LatticePointConcept.h
   // The reason is that we want a compute_bitapproximation function
   // that also works with other lattice point classes:
