@@ -187,7 +187,7 @@ namespace GaussSieve{
     for(int i=0; i<SieveTraits::number_of_hash_tables; ++i)
     {
 
-        int pos = this->all_hash_tables[i].add_to_hash_table(v_copy);
+        //int pos = this->all_hash_tables[i].add_to_hash_table(v_copy);
        // v_copy->positions[i]= pos;
         //std::cout<< pos << " ";
     }
