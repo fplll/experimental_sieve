@@ -121,8 +121,6 @@ struct ObjectWithApproximation
 
 };
 
-// TODO: Update documentation to reflect recent changes.
-
 /**
   SieveLazyEval is the main class of this module:
 
@@ -135,30 +133,24 @@ struct ObjectWithApproximation
   Args... is a tuple of types that are usually of the form SieveLazyEval again or are leaves of the
   expression tree.
 
-  args of type TreeType models the expression tree. Note that the template argument is a variadic
-  template parameter (i.e. SieveLazyEval can take an arbitrary number of class arguments).
-  By contrast, TreeType is a single class, defined as a tuple<Arg1, Arg2,...>. The individual
-  Argi's are either again such TreeTypes or (for leaves) const-references to a scalar/vector.
-  Note that this differs from a standard alternative implementation, where each Argi would be a
-  reference to a Leaf / a reference to a TreeType (i.e. TreeType contains the whole expression tree
-  *without* having to resolve internal references).
-  This allows users to store expression templates (sometimes, at least).
-  The downside may be some overhead due to copying of (sub-)trees, depending on compiler
-  optimizations
+  Note that leaves are of different (wrapper) types, but expose nearly the same syntax.
+  (See below for how the leaves work)
 
-  eval_exact and eval_approx cause exact resp. approximate evaluation.
-  The returned types are announced as ExactEvalType resp. ApproxEvalType.
-  scalar_or_vector indicates whether the result is a scalar or a vector.
+  Every node of the tree, including SieveLazyEval<LazyFunction, Args> supports
+  two "modes" of evaluation: eval_exact and eval_approx, which trigger either
+  exact or approximate evaluation.
 
   We support:
-  eval_* to obtain exact/approximate evaluation
-  assignment to / conversion to the appropriate type (same as eval_*)
-  comparison operators
-
-  Note that leaves are of different types, but expose nearly the same syntax.
+  Assignment / conversion operators to the corresponding types (These trigger evaluations).
+  Comparison operators (These trigger approximate and *possibly* exact evaluations)
+  NOTE: Comparisons short-circuit if the approximate comparison is false.
+        In particular, A < B and B > A are not equivalent:
+          We might sometimes err and return false (even thogh the exact values compare true),
+          so the direction of comparison determines on which side the error is.
+          Furthermore, efficiency is optimized if a false result occurs more often
 */
 
-template<class LazyFunction, unsigned int approx_level, class... Args> class SieveLazyEval
+template<class LazyFunction, class... Args> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
