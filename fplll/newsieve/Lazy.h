@@ -183,8 +183,8 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using MayInvalidateApprox= MyDisjunction< typename Args::MayInvalidateApprox...>;//OR of Args
   static constexpr bool MayInvalidate = MayInvalidateApprox::value || MayInvalidateExact::value;
 
-  using TreeType = std::tuple<MaybeConst<Args::MayInvalidate,Args>...>; //TODO: const-correctness
-  TreeType args;
+  using TreeType = std::tuple<MaybeConst<!(Args::MayInvalidate),Args>...>; //TODO: const-correctness
+  MaybeConst<!MayInvalidate,TreeType> args;
   // This restriction can easily be removed. The issue is just that we want no default-constructor.
   // (at least for nargs > 0)
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
@@ -197,7 +197,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   */
 
   //  TreeType const args;
-
+/*
   CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -211,6 +211,28 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 #endif
   }
   // TODO: Add direct init via Args...
+*/
+  template<class FunArgs...>
+  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs&&... fun_args)
+    : args(std::forward<FunArgs>(fun_args)...)
+  {
+    // Args and FunArgs must be the same (up to const and reference-ness)
+    static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
+    static_assert(MyConjunction< std::is_same<Args,std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
+
+    // If Args_i :: MayInvalidate == true, then fun_args_i must be passed via rvalue-reference (enforcing move!).
+    // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
+    // FunArgs_i itself is a non-refence type.
+    // This means that we must have (FunArgs_i is non reference || Args_i::MayInvalidate == false) for each i
+    static_assert(MyConjunction<
+      std::integral_constant<bool,
+        (std::is_reference<FunArgs>::value == false) || (Args::MayInvalidate == false)
+      >...
+    >::value,"Use (possibly explicit) move semantics for Lazy objects that may contain RValues." );
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Lazy function wrapper object for function " << LazyFunction::fun_name() << std::endl;
+#endif
+  }
 
   template<std::size_t... iarg>
   inline ExactEvalType do_eval_exact(MyIndexSeq<iarg...>)
