@@ -144,7 +144,7 @@ bool test_exact_LP()
   std::cout << latp2 << std::endl;
 
 
-  using ApproxScProdType = GaussSieve::BitApproxScalarProduct;
+  //using ApproxScProdType = GaussSieve::BitApproxScalarProduct;
 
   std::cout << compute_sc_product(latp, latp2) << std::endl;
   std::cout << static_cast<uint_fast32_t>(compute_sc_product_bitapprox(latp, latp2)) << std::endl; //<-THIS FAILS

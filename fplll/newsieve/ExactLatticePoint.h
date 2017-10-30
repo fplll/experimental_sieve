@@ -7,7 +7,7 @@
 #define EXACT_LATTICE_POINT_H
 
 
-//#define EXACT_LATTICE_POINT_HAS_BITAPPROX
+#define EXACT_LATTICE_POINT_HAS_BITAPPROX
 
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"

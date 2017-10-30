@@ -51,27 +51,39 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
   using EntryType = typename SieveTraits::EntryType;
   
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
-    //std::cout << static_cast<uint_fast32_t>(approx_scprod_res) << std::endl;
-    //assert(false);
-  
-    if (approx_scprod_res <= bitapprox_threshold)
-    {
-      return false;
-    }
-   
-  #endif
   
   EntryType sc_prod = compute_sc_product(p1,p2);
-
+  
 
   EntryType abs_2scprod =abs(sc_prod * 2);
   if (abs_2scprod <= p2.get_norm2())
   {
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
+  
+    /*
+    if (approx_scprod_res <= bitapprox_threshold)
+    {
+      return false;
+    }
+     */
+    std::cout <<"FALSE "<< "sc_prod exact: " << sc_prod << " approx_scprod_res: " << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
+  #endif
     return false;
   }
 
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
+  
+    /*
+    if (approx_scprod_res <= bitapprox_threshold)
+    {
+      return false;
+    }
+     */
+    std::cout << "sc_prod exact: " << sc_prod << " approx_scprod_res: " << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
+  #endif
+  
   double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
   //std::cout << sc_prod << " " << sc_prod << std::endl;
 
