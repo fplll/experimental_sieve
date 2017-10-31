@@ -150,7 +150,7 @@ struct ObjectWithApproximation
   Assignment / conversion operators to the corresponding types (These trigger evaluations).
   Comparison operators (These trigger approximate and *possibly* exact evaluations)
   NOTE: Comparisons short-circuit if the approximate comparison is false.
-      In particular, A < B and B > A are not equivalent:
+        In particular, A < B and B > A are not equivalent:
           We might sometimes err and return false (even thogh the exact values compare true),
           so the direction of comparison determines on which side the error is.
           Furthermore, efficiency is optimized if a false result occurs more often
@@ -162,7 +162,6 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   static_assert(MyConjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
-  static_assert(approx_level >0, "Approximation level is 0.");
 
   public:
   // cv-unqualified return types of eval_*
@@ -172,16 +171,18 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::false_type; // not a leaf of the expression tree.
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
+  static_assert(ApproxLevel >0, "Approximation level is 0.");
+
   // for now:
-  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel = ApproxLevelOf<Arg>::value>...>::value,"All arguments must have the same approximation level");
+  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel = ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
 
   // MayInvalidate* means that calling eval_* might modify (and invalidate) the actual objects
   // refered to by the leaves of the tree. This might happen, because of a delayed move-constructor
   // move-assignment. If this is set, eval_* can only be called upon rvalues.
 
-  using MayInvalidateExact = MyDisjunction< typename Args::MayInvalidateExact...>; //OR of Args
-  using MayInvalidateApprox= MyDisjunction< typename Args::MayInvalidateApprox...>;//OR of Args
-  static constexpr bool MayInvalidate = MayInvalidateApprox::value || MayInvalidateExact::value;
+  using EvalOnceExact = MyDisjunction< typename Args::EvalOnceExact...>; //OR of Args
+  using EvalOnceApprox= MyDisjunction< typename Args::EvalOnceApprox...>;//OR of Args
+  static constexpr bool MayInvalidate = EvalOnceApprox::value || EvalOnceExact::value;
 
   using TreeType = std::tuple<MaybeConst<!(Args::MayInvalidate),Args>...>; //TODO: const-correctness
   MaybeConst<!MayInvalidate,TreeType> args;
@@ -212,13 +213,13 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
   // TODO: Add direct init via Args...
 */
-  template<class FunArgs...>
+  template<class... FunArgs>
   CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs&&... fun_args)
     : args(std::forward<FunArgs>(fun_args)...)
   {
     // Args and FunArgs must be the same (up to const and reference-ness)
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
-    static_assert(MyConjunction< std::is_same<Args,std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
+    static_assert(MyConjunction< std::is_same<Args,typename std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
 
     // If Args_i :: MayInvalidate == true, then fun_args_i must be passed via rvalue-reference (enforcing move!).
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
@@ -324,8 +325,8 @@ class LazyWrapExactCR
   using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType;
   using ApproxEvalType = ApproxType;
-  using MayInvalidateExact = std::false_type;
-  using MayInvalidateApprox= std::false_type;
+  using EvalOnceExact = std::false_type;
+  using EvalOnceApprox= std::false_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactCR(ExactType const &init_exact) : exact_value(init_exact)
   {
@@ -355,8 +356,8 @@ class LazyWrapExactRV
   using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType; // Note that we actually return a rvalue-ref!
   using ApproxEvalType= ApproxType;
-  using MayInvalidateExact = std::true_type;
-  using MayInvalidateApprox= std::false_type;
+  using EvalOnceExact = std::true_type;
+  using EvalOnceApprox= std::false_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
   {
@@ -385,8 +386,8 @@ class LazyWrapBothCR
   using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType;
   using ApproxEvalType = ApproxType;
-  using MayInvalidateExact = std::false_type;
-  using MayInvalidateApprox = std::false_type;
+  using EvalOnceExact = std::false_type;
+  using EvalOnceApprox = std::false_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothCR(ExactType const &init_exact, ApproxType const &init_approx)
     :exact_value(init_exact),approx_value(init_approx)
@@ -414,8 +415,8 @@ class LazyWrapBothRV
   using IsLazyLeaf = std::true_type;
   using ExactEvalType = ExactType;
   using ApproxEvalType = ApproxType;
-  using MayInvalidateExact = std::true_type;
-  using MayInvalidateApprox= std::true_type;
+  using EvalOnceExact = std::true_type;
+  using EvalOnceApprox= std::true_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
     :exact_value(init_exact), approx_value(init_approx)
@@ -444,8 +445,8 @@ class LazyWrapCombinedCR
   using IsLazyLeaf= std::true_type;
   using ExactEvalType = ExactType;
   using ApproxEvalType= ApproxType;
-  using MayInvalidateExact = std::false_type;
-  using MayInvalidateApprox= std::false_type;
+  using EvalOnceExact = std::false_type;
+  using EvalOnceApprox= std::false_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedCR(CombinedType const &init_combined):combined_value(init_combined)
   {
@@ -471,8 +472,8 @@ class LazyWrapCombinedRV
   using IsLazyLeaf = std::true_type;
   using ExactEvalType  = ExactType;
   using ApproxEvalType = ApproxType;
-  using MayInvalidateExact = std::true_type;
-  using MayInvalidateApprox= std::true_type;
+  using EvalOnceExact = std::true_type;
+  using EvalOnceApprox= std::true_type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
   {

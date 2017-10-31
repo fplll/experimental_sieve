@@ -37,103 +37,103 @@ bool test_lazy()
 
   std::cout << std::endl << "-- Creating vectors, approximations and combination -- " << std::endl << std::flush;
 
-  ELP exact_point1 = make_from_any_vector<ELP>(A,dim);
-  ELP exact_point2 = make_from_any_vector<ELP>(B,dim);
-  Approx approx_point1 = static_cast<Approx>(exact_point1);
-  Approx approx_point2(exact_point2);
-  ExactScalar exact_scalar1 = C;
-  ApproxScalar approx_scalar1 (exact_scalar1);
-  ExactScalar exact_scalar2 = -24623682362L;
-  CombinedScalar combined_scalar(C);
-  CombinedVector combined_vector1(exact_point1.make_copy());
-
-  // swapping twice to check for std::move-correctness.
-  ELP exact_vector_swp (std::move(combined_vector1));
-  combined_vector1 = static_cast<CombinedVector>(std::move(exact_vector_swp));
-
-  Approx approx_vector_tmp(exact_point2);
-  CombinedVector combined_vector2(exact_point2.make_copy(),std::move(approx_vector_tmp));
-
-  std::cout << exact_point1 << approx_point1 << std::endl;
-  std::cout << exact_point2 << approx_point2 << std::endl;
-  std::cout << combined_vector1.access_exact() << combined_vector1.access_approx() << std::endl;
-
-  std::cout << exact_scalar1 << " approx. by " << approx_scalar1 << std::endl;
-  std::cout << combined_scalar.access_exact() << "approx. by " << combined_scalar.access_approx() << std::endl;
-
-  std::cout << std::endl << "-- Wrappers --" << std::endl << std::flush;
-
-  using LazyWrapES = LazyWrapExactCR<ExactScalar,ApproxScalar>;
-  using LazyWrapBS = LazyWrapBothCR <ExactScalar,ApproxScalar>;
-  using LazyWrapCS = LazyWrapCombinedCR<CombinedScalar>;
-  using LazyWrapEV = LazyWrapExactCR<ELP, Approx>;
-  using LazyWrapBV = LazyWrapBothCR<ELP,Approx>;
-  using LazyWrapCV = LazyWrapCombinedCR<CombinedVector>;
-
-
-  LazyWrapBS wrap_scalar1(exact_scalar1, approx_scalar1);
-  LazyWrapES wrap_scalar2(exact_scalar2);
-  LazyWrapCS wrap_scalar3(combined_scalar);
-  LazyWrapEV wrap_vector1(exact_point1);
-  LazyWrapBV wrap_vector2(exact_point2,approx_point2);
-  LazyWrapCV wrap_vector3(combined_vector1);
-//
-  std::cout << wrap_vector1.eval_exact() << wrap_vector1.eval_approx() << std::endl;
-  std::cout << wrap_vector2.eval_exact() << wrap_vector2.eval_approx() << std::endl;
-  std::cout << wrap_vector3.eval_exact() << wrap_vector3.eval_approx() << std::endl;
-  std::cout << wrap_scalar1.eval_exact() << " approx. by " << wrap_scalar1.eval_approx() << std::endl;
-  std::cout << wrap_scalar2.eval_exact() << " approx. by " << wrap_scalar2.eval_approx() << std::endl;
-  std::cout << wrap_scalar3.eval_exact() << " approx. by " << wrap_scalar3.eval_approx() << std::endl;
-
-  // rvalue versions:
-
-  using LazyWrapES2 = LazyWrapExactRV<ExactScalar,ApproxScalar>;
-  using LazyWrapBS2 = LazyWrapBothRV <ExactScalar,ApproxScalar>;
-  using LazyWrapCS2 = LazyWrapCombinedRV<CombinedScalar>;
-  using LazyWrapEV2 = LazyWrapExactRV<ELP, Approx>;
-  using LazyWrapBV2 = LazyWrapBothRV<ELP,Approx>;
-  using LazyWrapCV2 = LazyWrapCombinedRV<CombinedVector>;
-
-  //copy everything:
-
-  ExactScalar  exact_scalar_m1(exact_scalar1);
-  ApproxScalar approx_scalar_m1(approx_scalar1);
-  ExactScalar  exact_scalar_m2(exact_scalar2);
-  CombinedScalar combined_scalar_m(combined_scalar);
-  ELP exact_point_m1(exact_point1.make_copy());
-  ELP exact_point_m2(exact_point2.make_copy());
-  Approx approx_point_m2(exact_point_m2);
-  CombinedVector combined_vector_m1( combined_vector1.access_exact().make_copy() );
-
-  // rvalue wrappers.
-
-  LazyWrapBS2 wrap_scalar_m1(exact_scalar_m1,approx_scalar_m1);
-  LazyWrapES2 wrap_scalar_m2(exact_scalar_m2);
-  LazyWrapCS2 wrap_scalar_m3(combined_scalar_m);
-  LazyWrapEV2 wrap_vector_m1(exact_point_m1);
-  LazyWrapBV2 wrap_vector_m2(exact_point_m2,approx_point_m2);
-  LazyWrapCV2 wrap_vector_m3(combined_vector_m1);
-
-  // Note that from a specification POV, the arguments to the constructors are now in a possibly
-  // invalid state, so we won't use them anymore.
-
-  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
-
-  using IdentityFunScalar = Lazy_Identity<ExactScalar,ApproxScalar>;
-  using IdentityFunVector = Lazy_Identity<ELP,Approx>;
-
-  std::cout << IdentityFunScalar::call_exact(exact_scalar1) << " approx. by " << IdentityFunScalar::call_approx(approx_scalar1) << std::endl;
-  std::cout << IdentityFunVector::call_exact(exact_point1 ) << IdentityFunVector::call_approx(approx_point1)  << std::endl;
-  std::cout << IdentityFunScalar::call_exact(combined_scalar.access_exact())  << "approx. by " << IdentityFunScalar::call_approx(combined_scalar.access_approx()) << std::endl;
-  std::cout << IdentityFunVector::call_exact(combined_vector1.access_exact()) << IdentityFunVector::call_approx(combined_vector1.access_approx()) << std::endl;
-
-  std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
-
-  using IDNode1 = SieveLazyEval<IdentityFunVector,1,LazyWrapEV2>;
-  using IDNode2 = SieveLazyEval<IdentityFunVector,1,IDNode1>;
-  IDNode1 lazy_id1{ std::make_tuple(wrap_vector_m1) };
-  IDNode2 lazy_id2{ std::make_tuple(lazy_id1) };
-  std::cout << lazy_id2.eval_exact();
+////////  ELP exact_point1 = make_from_any_vector<ELP>(A,dim);
+////////  ELP exact_point2 = make_from_any_vector<ELP>(B,dim);
+////////  Approx approx_point1 = static_cast<Approx>(exact_point1);
+////////  Approx approx_point2(exact_point2);
+////////  ExactScalar exact_scalar1 = C;
+////////  ApproxScalar approx_scalar1 (exact_scalar1);
+////////  ExactScalar exact_scalar2 = -24623682362L;
+////////  CombinedScalar combined_scalar(C);
+////////  CombinedVector combined_vector1(exact_point1.make_copy());
+////////
+////////  // swapping twice to check for std::move-correctness.
+////////  ELP exact_vector_swp (std::move(combined_vector1));
+////////  combined_vector1 = static_cast<CombinedVector>(std::move(exact_vector_swp));
+////////
+////////  Approx approx_vector_tmp(exact_point2);
+////////  CombinedVector combined_vector2(exact_point2.make_copy(),std::move(approx_vector_tmp));
+////////
+////////  std::cout << exact_point1 << approx_point1 << std::endl;
+////////  std::cout << exact_point2 << approx_point2 << std::endl;
+////////  std::cout << combined_vector1.access_exact() << combined_vector1.access_approx() << std::endl;
+////////
+////////  std::cout << exact_scalar1 << " approx. by " << approx_scalar1 << std::endl;
+////////  std::cout << combined_scalar.access_exact() << "approx. by " << combined_scalar.access_approx() << std::endl;
+////////
+////////  std::cout << std::endl << "-- Wrappers --" << std::endl << std::flush;
+////////
+////////  using LazyWrapES = LazyWrapExactCR<ExactScalar,ApproxScalar>;
+////////  using LazyWrapBS = LazyWrapBothCR <ExactScalar,ApproxScalar>;
+////////  using LazyWrapCS = LazyWrapCombinedCR<CombinedScalar>;
+////////  using LazyWrapEV = LazyWrapExactCR<ELP, Approx>;
+////////  using LazyWrapBV = LazyWrapBothCR<ELP,Approx>;
+////////  using LazyWrapCV = LazyWrapCombinedCR<CombinedVector>;
+////////
+////////
+////////  LazyWrapBS wrap_scalar1(exact_scalar1, approx_scalar1);
+////////  LazyWrapES wrap_scalar2(exact_scalar2);
+////////  LazyWrapCS wrap_scalar3(combined_scalar);
+////////  LazyWrapEV wrap_vector1(exact_point1);
+////////  LazyWrapBV wrap_vector2(exact_point2,approx_point2);
+////////  LazyWrapCV wrap_vector3(combined_vector1);
+//////////
+////////  std::cout << wrap_vector1.eval_exact() << wrap_vector1.eval_approx() << std::endl;
+////////  std::cout << wrap_vector2.eval_exact() << wrap_vector2.eval_approx() << std::endl;
+////////  std::cout << wrap_vector3.eval_exact() << wrap_vector3.eval_approx() << std::endl;
+////////  std::cout << wrap_scalar1.eval_exact() << " approx. by " << wrap_scalar1.eval_approx() << std::endl;
+////////  std::cout << wrap_scalar2.eval_exact() << " approx. by " << wrap_scalar2.eval_approx() << std::endl;
+////////  std::cout << wrap_scalar3.eval_exact() << " approx. by " << wrap_scalar3.eval_approx() << std::endl;
+////////
+////////  // rvalue versions:
+////////
+////////  using LazyWrapES2 = LazyWrapExactRV<ExactScalar,ApproxScalar>;
+////////  using LazyWrapBS2 = LazyWrapBothRV <ExactScalar,ApproxScalar>;
+////////  using LazyWrapCS2 = LazyWrapCombinedRV<CombinedScalar>;
+////////  using LazyWrapEV2 = LazyWrapExactRV<ELP, Approx>;
+////////  using LazyWrapBV2 = LazyWrapBothRV<ELP,Approx>;
+////////  using LazyWrapCV2 = LazyWrapCombinedRV<CombinedVector>;
+////////
+////////  //copy everything:
+////////
+////////  ExactScalar  exact_scalar_m1(exact_scalar1);
+////////  ApproxScalar approx_scalar_m1(approx_scalar1);
+////////  ExactScalar  exact_scalar_m2(exact_scalar2);
+////////  CombinedScalar combined_scalar_m(combined_scalar);
+////////  ELP exact_point_m1(exact_point1.make_copy());
+////////  ELP exact_point_m2(exact_point2.make_copy());
+////////  Approx approx_point_m2(exact_point_m2);
+////////  CombinedVector combined_vector_m1( combined_vector1.access_exact().make_copy() );
+////////
+////////  // rvalue wrappers.
+////////
+////////  LazyWrapBS2 wrap_scalar_m1(exact_scalar_m1,approx_scalar_m1);
+////////  LazyWrapES2 wrap_scalar_m2(exact_scalar_m2);
+////////  LazyWrapCS2 wrap_scalar_m3(combined_scalar_m);
+////////  LazyWrapEV2 wrap_vector_m1(exact_point_m1);
+////////  LazyWrapBV2 wrap_vector_m2(exact_point_m2,approx_point_m2);
+////////  LazyWrapCV2 wrap_vector_m3(combined_vector_m1);
+////////
+////////  // Note that from a specification POV, the arguments to the constructors are now in a possibly
+////////  // invalid state, so we won't use them anymore.
+////////
+////////  std::cout << std::endl << "-- Direct calling of identity function: --" << std::endl << std::flush;
+////////
+////////  using IdentityFunScalar = Lazy_Identity<ExactScalar,ApproxScalar>;
+////////  using IdentityFunVector = Lazy_Identity<ELP,Approx>;
+////////
+////////  std::cout << IdentityFunScalar::call_exact(exact_scalar1) << " approx. by " << IdentityFunScalar::call_approx(approx_scalar1) << std::endl;
+////////  std::cout << IdentityFunVector::call_exact(exact_point1 ) << IdentityFunVector::call_approx(approx_point1)  << std::endl;
+////////  std::cout << IdentityFunScalar::call_exact(combined_scalar.access_exact())  << "approx. by " << IdentityFunScalar::call_approx(combined_scalar.access_approx()) << std::endl;
+////////  std::cout << IdentityFunVector::call_exact(combined_vector1.access_exact()) << IdentityFunVector::call_approx(combined_vector1.access_approx()) << std::endl;
+////////
+////////  std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
+////////
+////////  using IDNode1 = SieveLazyEval<IdentityFunVector,1,LazyWrapEV2>;
+////////  using IDNode2 = SieveLazyEval<IdentityFunVector,1,IDNode1>;
+////////  IDNode1 lazy_id1{ std::make_tuple(wrap_vector_m1) };
+////////  IDNode2 lazy_id2{ std::make_tuple(lazy_id1) };
+////////  std::cout << lazy_id2.eval_exact();
 
 
 
