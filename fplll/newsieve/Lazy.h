@@ -176,16 +176,16 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // for now:
   static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel = ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
 
-  // MayInvalidate* means that calling eval_* might modify (and invalidate) the actual objects
+  // EvalOnce* means that calling eval_* might modify (and invalidate) the actual objects
   // refered to by the leaves of the tree. This might happen, because of a delayed move-constructor
   // move-assignment. If this is set, eval_* can only be called upon rvalues.
 
   using EvalOnceExact = MyDisjunction< typename Args::EvalOnceExact...>; //OR of Args
   using EvalOnceApprox= MyDisjunction< typename Args::EvalOnceApprox...>;//OR of Args
-  static constexpr bool MayInvalidate = EvalOnceApprox::value || EvalOnceExact::value;
+  static constexpr bool EvalOnce = EvalOnceApprox::value || EvalOnceExact::value;
 
-  using TreeType = std::tuple<MaybeConst<!(Args::MayInvalidate),Args>...>; //TODO: const-correctness
-  MaybeConst<!MayInvalidate,TreeType> args;
+  using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce),Args>...>; //TODO: const-correctness
+  MaybeConst<!EvalOnce,TreeType> args;
   // This restriction can easily be removed. The issue is just that we want no default-constructor.
   // (at least for nargs > 0)
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
@@ -221,13 +221,13 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
     static_assert(MyConjunction< std::is_same<Args,typename std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
 
-    // If Args_i :: MayInvalidate == true, then fun_args_i must be passed via rvalue-reference (enforcing move!).
+    // If Args_i :: EvalOnce == true, then fun_args_i must be passed via rvalue-reference (enforcing move!).
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
     // FunArgs_i itself is a non-refence type.
-    // This means that we must have (FunArgs_i is non reference || Args_i::MayInvalidate == false) for each i
+    // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce == false) for each i
     static_assert(MyConjunction<
       std::integral_constant<bool,
-        (std::is_reference<FunArgs>::value == false) || (Args::MayInvalidate == false)
+        (std::is_reference<FunArgs>::value == false) || (Args::EvalOnce == false)
       >...
     >::value,"Use (possibly explicit) move semantics for Lazy objects that may contain RValues." );
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -316,6 +316,25 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 /**
   Wraps around (a reference to) an exact scalar.
 */
+
+enum struct WrapMode {ConstRef, Move, DelayedMove};
+
+template<class ExactType, class ApproxType, WrapMode wrap_mode>
+class LazyWrapExact
+{
+  public:
+  using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
+  using ExactEvalType   = ExactType;
+  using ApproxEvalType  = ApproxType;
+  static constexpr bool EvalOnceExact_v = ((wrap_mode==WrapMode::Move) || (wrap_mode==WrapMode::DelayedMove));
+  static constexpr bool EvalOnceApprox_v = false;
+  static constexpr bool EvalOnce_v = EvalOnceExact_v;
+  using EvalOnceExact   = std::integral_constant<bool,EvalOnceExact_v>;
+  using EvalOnceApprox  = std::integral_constant<bool,EvalOnceApprox_v>;
+  using EvalOnce        = EvalOnceExact;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value+1;
+};
 
 template<class ExactType, class ApproxType>
 class LazyWrapExactCR
