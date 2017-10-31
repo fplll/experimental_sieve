@@ -198,7 +198,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using EvalOnce = MyDisjunction< typename Args::EvalOnce...>; //OR of Args
   static constexpr bool EvalOnce_v = EvalOnce::value;
 
-  using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce_v),Args>...>; //TODO: const-correctness
+  using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce_v),Args>...>; // const-ness depends on EvalOnce.
   MaybeConst<!EvalOnce_v,TreeType> args;
   // This restriction can easily be removed. The issue is just that we want no default-constructor.
   // (at least for nargs > 0)
@@ -211,22 +211,6 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   SieveLazyEval& operator=(SieveLazyEval &&other) = default;
   */
 
-  //  TreeType const args;
-/*
-  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(TreeType const & fn_args) : args(fn_args)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy function wrapper object (via tuple) for function " << LazyFunction::fun_name() << std::endl;
-#endif
-  }
-  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(TreeType && fn_args) : args(std::move(fn_args))
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy function wrapper object (via tuple-move) for function " << LazyFunction::fun_name() << std::endl;
-#endif
-  }
-  // TODO: Add direct init via Args...
-*/
   template<class... FunArgs>
   CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs&&... fun_args)
     : args(std::forward<FunArgs>(fun_args)...)
@@ -235,15 +219,15 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
     static_assert(MyConjunction< std::is_same<Args,typename std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
 
-    // If Args_i :: EvalOnce == true, then fun_args_i must be passed via rvalue-reference (enforcing move!).
+    // If Args_i::EvalOnce is set, then fun_args_i must be passed via rvalue-reference (enforcing move!).
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
     // FunArgs_i itself is a non-refence type.
-    // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce == false) for each i
+    // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce_v == false) for each i
     static_assert(MyConjunction<
       std::integral_constant<bool,
         (std::is_reference<FunArgs>::value == false) || (Args::EvalOnce_v == false)
       >...
-    >::value,"Use (possibly explicit) move semantics for Lazy objects that may contain RValues." );
+    >::value,"Use (possibly explicit) move semantics for Lazy objects that may encapsulate RValues." );
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy function wrapper object for function " << LazyFunction::fun_name() << std::endl;
 #endif
@@ -269,6 +253,9 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return LazyFunction::call_approx( std::get<iarg>(args).eval_approx()... );
   }
 
+// MyMakeIndexSeq generates a(n empty) struct MyIndexSeq<0,1,2,...>. This is used as a dummy paramter
+// to select the correct version of do_eval_approx and allows to actually un-std::tuple the argument.
+// (This is the least roundabout way of doing it and corresponds to the implementation of std::apply)
   inline ExactEvalType eval_exact()
   {
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
@@ -387,7 +374,38 @@ inline bool operator>= (LHS && lhs, RHS && rhs)
       && (std::forward<LHS>(lhs).eval_exact()  >= std::forward<RHS>(rhs).eval_exact()  );
 }
 
+// we also do this for ==
+
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator== (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() == std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator== (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) == std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator== (LHS && lhs, RHS && rhs)
+{
+  return (std::forward<LHS>(lhs).eval_approx() == std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  == std::forward<RHS>(rhs).eval_exact()  );
+}
+
+// != is defined in terms of ==
+
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS)>
+inline bool operator != (LHS && lhs, RHS && rhs)
+{
+  return !(std::forward<LHS>(lhs)==std::forward<RHS>(rhs));
+}
+
 #undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+
 
 
 
