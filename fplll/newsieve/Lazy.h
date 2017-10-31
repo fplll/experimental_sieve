@@ -176,7 +176,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(ApproxLevel >0, "Approximation level is 0.");
 
   // for now:
-  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel = ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
+  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel == ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
 
   // EvalOnce means that calling eval_* might actually invalidate the data stored to / refered to.
   // If this is set, we
@@ -195,7 +195,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // This happens if the leaves of the trees encode pass by rvalue-semantics.
 
   // EvalOnce is either std::true_type or std::false_type, EvalOnce_v is either true or false.
-  using EvalOnce = MyDisjunction< typename Args::EvalOnceExact...>; //OR of Args
+  using EvalOnce = MyDisjunction< typename Args::EvalOnce...>; //OR of Args
   static constexpr bool EvalOnce_v = EvalOnce::value;
 
   using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce_v),Args>...>; //TODO: const-correctness
@@ -269,8 +269,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return LazyFunction::call_approx( std::get<iarg>(args).eval_approx()... );
   }
 
-  template<bool Enabled = !EvalOnce_v, TEMPL_RESTRICT_DECL(Enabled)>
-  inline ExactEvalType eval_exact() const &
+  inline ExactEvalType eval_exact()
   {
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
@@ -283,6 +282,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   inline explicit operator ExactEvalType() { return eval_exact(); }
   inline explicit operator ApproxEvalType() { return eval_approx(); }
 
+/*
   inline bool operator< ( ExactEvalType const & rhs)
   {
     return eval_exact() < rhs;
@@ -292,6 +292,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   {
     return eval_exact() > rhs;
   }
+*/
 
 //  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
 //  inline bool operator< ( LazyRHS const & rhs) const
