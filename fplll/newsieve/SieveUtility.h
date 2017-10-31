@@ -238,9 +238,6 @@ template<class T> using NormalizeTrait = typename TypeNormalize_Helper<static_ca
 template<bool IsConst, class T>
 using MaybeConst = typename std::conditional<IsConst,typename std::add_const<T>::type,T>::type;
 
-template<bool DoMove, class T>
-CPP14CONSTEXPR
-
 // Z_NR - detection and modification...
 
 /**
