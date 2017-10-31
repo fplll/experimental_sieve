@@ -281,51 +281,123 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 
   inline explicit operator ExactEvalType() { return eval_exact(); }
   inline explicit operator ApproxEvalType() { return eval_approx(); }
-
-/*
-  inline bool operator< ( ExactEvalType const & rhs)
-  {
-    return eval_exact() < rhs;
-  }
-
-  inline bool operator> ( ExactEvalType const & rhs)
-  {
-    return eval_exact() > rhs;
-  }
-*/
-
-//  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
-//  inline bool operator< ( LazyRHS const & rhs) const
-//  {
-//    using RHSType = typename std::decay<LazyRHS>::type;
-//    static_assert(std::is_same<typename RHSType::ELP,ELP>::value, ""  );
-//    static_assert(std::is_same<typename RHSType::Approximation, Approximation>::value,"");
-//    return (eval_approx() < rhs.eval_approx() ) && (eval_exact() < rhs.eval_exact() );
-//  }
-//
-//  inline bool operator> ( ExactScalarType const & rhs) const
-//  {
-//    static_assert(scalar_or_vector == ScalarOrVector::scalar_type,"comparing vector with scalar.");
-//    return eval_exact() > rhs;
-//  }
-//
-//  template<class LazyRHS, TEMPL_RESTRICT_DECL2( Has_IsLazyNode<typename std::decay<LazyRHS>::type> )>
-//  inline bool operator> ( LazyRHS const & rhs) const
-//  {
-//    using RHSType = typename std::decay<LazyRHS>::type;
-//    static_assert(std::is_same<typename RHSType::ELP,ELP>::value, ""  );
-//    static_assert(std::is_same<typename RHSType::Approximation, Approximation>::value,"");
-//    return (eval_approx() > rhs.eval_approx() ) && (eval_exact() > rhs.eval_exact() );
-//  }
 };
+
+
+// General conditions on LHS, RHS to perform the comparisons via eval_*:
+// Clearly, these definitions only make sense if we have approximations, so we require at least one
+// argument to have an positive ApproxLevel.
+// Also, we may NOT use the functions below to compare lattice points:
+// (we may use it on their norm2's)
+// Note that lattice_point_1 < lattice_point_2 is defined to compute
+// lattice_point_1.get_norm2_exact() < lattice_point_2.get_norm2_exact() in LatticePointConcept.h.
+//  In particular, comparing lattice points directly bypasses all approximations
+// (get_norm2_exact() goes to approximation-level 0). This is to ensure that the comparison function
+// on lattice points actually is an ordering, which approximation errors might violate.
+//
+// Comparing a lattice point with a non-lattice point should also not call the functions below.
+// (Indeed, it is completely unclear what this should be)
+#define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
+      (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
+  &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))
+
+// general comparison for < : We bring down the arguments to the same approximation level,
+// then we compare approximately. If that results in true, we actually do an exact check as well.
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() < std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) < std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+// Note that C++ short-circuits && (unless someone would overloads && for the return type of <)
+  return (std::forward<LHS>(lhs).eval_approx() < std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  < std::forward<RHS>(rhs).eval_exact()  );
+}
+
+// same for <=
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator<= (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() <= std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator<= (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) <= std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator<= (LHS && lhs, RHS && rhs)
+{
+  return (std::forward<LHS>(lhs).eval_approx() <= std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  <= std::forward<RHS>(rhs).eval_exact()  );
+}
+
+// same for >
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator> (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() > std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator> (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) > std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator> (LHS && lhs, RHS && rhs)
+{
+  return (std::forward<LHS>(lhs).eval_approx() > std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  > std::forward<RHS>(rhs).eval_exact()  );
+}
+
+// and for >=
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator>= (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() >= std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator>= (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) >= std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator>= (LHS && lhs, RHS && rhs)
+{
+  return (std::forward<LHS>(lhs).eval_approx() >= std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  >= std::forward<RHS>(rhs).eval_exact()  );
+}
+
+#undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+
+
 
 /**
   LazyWrap* model the leaves of the expression trees.
   These classes are just wrappers around a reference to a *
   and expose the same interface as SieveLazyEval.
 
-  Note that the functionality is a bit more limited than that of SieveLazyEval (due to lazyness of
-  the coder). As a workaround, you may use SieveLazyEval with an IdentityFunction.
+  Note that the functionality may be a bit more limited than that of SieveLazyEval (due to lazyness
+  of the coder). As a workaround, you may use SieveLazyEval with an IdentityFunction.
 */
 
 /**
