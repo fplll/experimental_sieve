@@ -503,18 +503,27 @@ class GeneralLatticePoint
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
 
-// TODO: friends
+// TODO: Make private and befriend allowed callers
+
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_Approximations<Impl> >)>
+    template<class Impl=LatP>
     inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
     {
+      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
       return CREALTHIS->do_compute_sc_product(x2);
     }
-    template<class Impl=LatP, TEMPL_RESTRICT_DECL2(MyNegation<Has_Approximations<Impl> >)>
+    template<class Impl=LatP>
+    inline ScalarProductStorageType do_compute_sc_product_exact_recursive(LatP const &x2) const
+    {
+      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      return CREALTHIS->do_compute_sc_product(x2);
+    }
+    template<class Impl=LatP>
     inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
     {
+      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
       return CREALTHIS->do_compute_sc_product(x2);
     }
 

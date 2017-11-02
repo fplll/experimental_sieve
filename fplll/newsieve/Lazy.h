@@ -737,7 +737,7 @@ template<class ELP, class Approximation> class Lazy_Norm2
 
   inline static ExactScalarType call_exact(ExactVectorType const &arg)
   {
-    return arg.get_norm2(); //TODO: Exact
+    return arg.get_norm2_exact(); //TODO: Exact
   }
   inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
   {
