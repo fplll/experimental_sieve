@@ -503,8 +503,8 @@ class GeneralLatticePoint
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
 
-// TODO: Make private and befriend allowed callers
-
+    // TODO: Make protected and befriend compute_* functions
+//    protected
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
@@ -526,6 +526,7 @@ class GeneralLatticePoint
       IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
       return CREALTHIS->do_compute_sc_product(x2);
     }
+    public:
 
     template<class Impl=LatP>
     inline auto get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
