@@ -155,7 +155,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
   }
   CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
   {
-    REALTHIS->sanitize(CREALTHIS->get_norm2_exact() * multiplier * multiplier );
+    // taking _exact_recursive here. This means we recompute all approximations.
+    REALTHIS->sanitize(CREALTHIS->get_norm2_exact_recursive() * multiplier * multiplier );
   }
   else
   {
@@ -329,16 +330,16 @@ inline std::ostream& GeneralLatticePoint<LatP>::write_lp_rep_to_stream(std::ostr
 
 
 FOR_LATTICE_POINT_LP
-std::istream& operator>>(std::istream &is, LP &LatP)
+std::istream& operator>>(std::istream &is, LP &lp)
 {
-  return LatP.read_from_stream(is);
+  return lp.read_from_stream(is);
 }
 
 FOR_LATTICE_POINT_LP
-std::ostream& operator<<(std::ostream &os, LP const &LatP)
+std::ostream& operator<<(std::ostream &os, LP const &lp)
 {
   std::cout << "cout from GeneralLatticePoint" <<std::endl;
-  return LatP.write_lp_to_stream(os);
+  return lp.write_lp_to_stream(os);
 }
 
 
@@ -366,6 +367,8 @@ inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<Lat
       // This function should not be called if Has_CheapNorm2 is set,
       // since Has_CheapNorm2 basically promises an overload.
   static_assert(Has_CheapNorm2<LatP>::value == false, "");
+  // return type is wrong and point with approximations assume that we store norm2 anyway. This is just to double-check on that.
+  static_assert(Has_Approximations<LatP>::value == false, "");
   return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
 }
 
@@ -389,7 +392,7 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
   static_assert(Has_InternalRepLinear<Impl>::value,"Default Zero-test requires linear representation. Did you forget a trait or to overload is_zero()?");
   DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
 
-  if (Has_CheapNorm2<LatP>::value) // constexpr if
+  CPP17CONSTEXPRIF (Has_CheapNorm2<LatP>::value)
   {
     return (CREALTHIS->get_norm2() == 0);
   }
@@ -478,7 +481,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
   {
     REALTHIS->get_internal_rep(i) = - CREALTHIS->get_internal_rep(i);
   }
-  CPP17CONSTEXPRIF( Has_CheapNegate<Impl>::value) // constexpr if
+  CPP17CONSTEXPRIF( Has_CheapNegate<Impl>::value)
   {
     return;
   }
@@ -512,7 +515,7 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
   {
     NewLP.get_internal_rep(i) = CREALTHIS->get_internal_rep(i);
   }
-  if (Has_CheapNorm2<LatP>::value)
+  CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
   {
     NewLP.sanitize(CREALTHIS->get_norm2_full() );
   }
@@ -533,11 +536,11 @@ template<class LatP>
 inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
 {
   DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_dim();
   auto const dim2 = x2.get_dim();
   assert(dim1 == dim2 );
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
+#endif // DEBUG_SIEVE_LP_MATCHDIM
   using ET = typename Get_AbsoluteCooType<LatP>::type;
   auto const dim = CREALTHIS->get_dim();
   ET result = 0; // assumes that ET can be initialized from 0...
