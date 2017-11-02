@@ -55,28 +55,28 @@ template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() < rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() < rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() > rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() > rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() <= rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() <= rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() >= rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() >= rhs.get_norm2_exact_recursive();
 }
 
 
