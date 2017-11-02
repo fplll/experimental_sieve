@@ -236,7 +236,8 @@ public:
 // and T::value==true into a standard std::true_type
 // Note that such non-standard classes T encapsulating a bool constexpr may appear due to
 // processing such types. In particular, there are issues with the TRAIT_CHECK* macros:
-// These internally use a std::is_same< > and the checker classes generated are not standard.
+// These internally use a std::is_same< > and the checker classes generated may not be standard.
+// (This may be unnecessariy after recent changes to the checker classes)
 // These classes help to remedy that:
 
 template<bool> struct TypeNormalize_Helper;
@@ -281,7 +282,7 @@ public:
 
           Other types are unchanged.
 
-          Usage: using NewType = UnZNR<OldType>::type
+          Usage: using NewType = typename UnZNR<OldType>::type
 */
 
 

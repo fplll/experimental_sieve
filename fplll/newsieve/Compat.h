@@ -18,21 +18,18 @@
   #define CPP17CONSTEXPRIF if
 #endif
 
-#if __cpp_lib_logical_traits >= 201510
-// untested:
 namespace GaussSieve
 {
+#if __cpp_lib_logical_traits >= 201510
+// untested:
+
   template<class... Bs> using MyConjunction = std::conjunction<Bs...>;    //AND
   template<class... Bs> using MyDisjunction = std::disjunction<Bs...>;    //OR
   template<class B>     using MyNegation    = std::negation<B>;           //NOT
   template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;  //NAND
   template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;  //NOR
-}
 #else
-
 // just implement std::conjunction and friends myself:
-namespace GaussSieve
-{
   template<class...> struct MyConjunction     : std::true_type{};
   template<class B1> struct MyConjunction<B1> : B1 {};
   template<class B1,class... Bs> struct MyConjunction<B1,Bs...>
@@ -46,11 +43,9 @@ namespace GaussSieve
   template<class B> struct MyNegation : std::integral_constant<bool,!static_cast<bool>(B::value)>{};
   template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;
   template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;
-}
+
 #endif
 
-namespace GaussSieve
-{
 #if __cpp_lib_integer_sequence >= 201304
   template<std::size_t... Ints> using MyIndexSeq = std::index_sequence<Ints...>;
   template<std::size_t N>  using MyMakeIndexSeq = std::make_index_sequence<N>;
@@ -68,6 +63,9 @@ namespace GaussSieve
   template<class... T> using MyIndexSequenceFor = MyMakeIndexSeq<sizeof...(T)>;
 #endif
 
-}
+  template<class T> using MyDecay_t = typename std::decay<T>::type;
+  template<bool b>  using MyBoolConstant = std::integral_constant<bool, b>;
+
+} // end namespace
 
 #endif

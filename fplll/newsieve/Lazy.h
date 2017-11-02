@@ -284,6 +284,10 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 //
 // Comparing a lattice point with a non-lattice point should also not call the functions below.
 // (Indeed, it is completely unclear what this should be)
+
+// Be aware that these functions are inside namespace GaussSieve::LazyEval,
+// so they are only considered if at least one argument is in that namespace as well.
+
 #define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
       (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
   &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))

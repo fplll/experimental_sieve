@@ -67,7 +67,7 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_CheapNegate = std::false_type;
   using Trait_Approximations = std::false_type;
   using Trait_BitApprox = std::false_type;
-  static constexpr int Trait_ApproxLevel = 0;
+  using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
 };
 
 /**
@@ -314,7 +314,7 @@ class GeneralLatticePoint
     using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
     using AbsoluteCooType = typename Get_AbsoluteCooType<LatP>::type;
     using RepCooType = typename Get_RepCooType<LatP>::type;
-    static constexpr unsigned int ApproxLevel = ApproxLevelOf<LatticePointTraits<LatP>>::value;
+    static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::type::value;
     static_assert((Has_Approximations<LatP>::value == false) || (ApproxLevel>0 ),"Declares Approximations, but no level");
 
     private:
@@ -481,16 +481,21 @@ class GeneralLatticePoint
 /**
      obtains the squared length.
      By default, we use the scalar product to compute it.
-     Usually norm2 will be precomputed, so this function should be
-     overridden by LatP.
+     Usually norm2 will be precomputed, so this function should be overridden by LatP.
+     Overload may have different return type, but convertible to ScalarProductStorageType.
 */
-
-// TODO: This looks wrong regarding types.
 
     inline ScalarProductStorageType get_norm2() const;
 
-/**   This function returns the exact norm, ignoring any approximations. */
+/** The functions below are overloaded in ApproximatedPoint.h for points with (non-bit) Approximations.
+    The _exact variant ignores one approximation. The _exact_recursive variant ignores all approximations.
+    The _full variant returns both exact and approximate norms.
+    Note that for the plain and _exact variants, the return types might differ in the overloads, but be convertible
+    to ScalarProductStorageType.
+*/
+
     inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
+    inline ScalarProductStorageType get_norm2_exact_recursive() const { return CREALTHIS->get_norm2(); }
     inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
 
 
@@ -512,6 +517,7 @@ class GeneralLatticePoint
     {
       return CREALTHIS->do_compute_sc_product(x2);
     }
+
     template<class Impl=LatP>
     inline auto get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
 
@@ -531,6 +537,17 @@ class GeneralLatticePoint
   Non-member functions
   */
 
+// compute scalar products. These are the functions that users of lattice points should use.
+// Users should only ever have to use the plain compute_sc_product and the _bitapprox versions.
+
+// the other variants are only relevant when having approximations:
+// Notably: compute_sc_product may return a Wrapper than encapsulates a lazy evalution.
+// The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
+// The _exact variant computes an exact scalar product.
+// The _exact_recursive variant computes an (recursively) exact scalar product.
+// The difference between the latter versions is if the underlying "exact" type has approximations itself:
+// _exact_recursive ignores all levels of approximations, whereas _exact only one.
+
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product(lp2); }
@@ -538,6 +555,10 @@ inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, L
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product_exact(lp2); }
+
+template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
+inline typename LP::ScalarProductStorageType compute_sc_product_exact_recursive(LP const &lp1, LP const &lp2)
+{ return lp1.do_compute_sc_product_exact_recursive(lp2); }
 
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
