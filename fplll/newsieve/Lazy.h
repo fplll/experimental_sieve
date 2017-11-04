@@ -284,6 +284,10 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 //
 // Comparing a lattice point with a non-lattice point should also not call the functions below.
 // (Indeed, it is completely unclear what this should be)
+
+// Be aware that these functions are inside namespace GaussSieve::LazyEval,
+// so they are only considered if at least one argument is in that namespace as well.
+
 #define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
       (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
   &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))
@@ -416,36 +420,45 @@ inline bool operator != (LHS && lhs, RHS && rhs)
 
   Note that the functionality may be a bit more limited than that of SieveLazyEval (due to lazyness
   of the coder). As a workaround, you may use SieveLazyEval with an IdentityFunction.
+
+  There are several different wrapper that differ in the following aspects:
+  A wrapper may either wrap
+  - only an Exact object. In this case, an approximation is computed on demand. This should probably
+    never be used.
+  - an exact and an approximate object.
+  - a single combined object (such as ObjectWithApproximation defined above) that encapsulates both.
+    This object is required to have access_exact() and access_approx() members that return references
+
+  Furthermore, there is an additional differentiation regarding calling conventions.
+  We support (up to) four different calling conventions:
+  - Const-Ref (CR): The wrapper is initialized with an lvalue and stores a const-reference.
+                    upon eval_*, the lvalue used to initialize must still be valid.
+                    The function used in eval_ must pass this by value of const-ref
+
+  - Delayed-move(RV): This wrapper models delayed (explicit) rvalue-passing.
+                      The wrapper is initialized with an lvalue.
+                      Upon eval_*, the lvalue used to initialize must still be valid.
+                      The function used in eval_ will be called on an rvalue.
+                      (This means that the wrapper (lazily) takes ownership of the wrapped object,
+                      and usage of eval_* might modify the object.
+                      If the evaluation tree contains such an object, EvalOnce is set.)
+
+  Not implemented yet (not needed so far)
+  - Move :  This models immediate rvalue-passing. The wrapper is initialized with an rvalue and
+            directly move-stores the wrapped object. The function used in eval_* will be called on
+            an rvalue.
+            This also sets EvalOnce
+
+  Not implemented yes (not needed so far)
+  - Capture:  This mode stores the values directly (not as reference). The wrapper may be initialized
+              with either rvalues or lvalues. The argument will be passed to eval_* by value or const-ref.
 */
+
+
 
 /**
-  Wraps around (a reference to) an exact scalar.
+  Exact object, Const-Ref
 */
-
-// Wrap modes:
-// ConstRef : Store const ref, pass by const ref / value, initialize by lvalue. -- may copy, const, eval often
-// DelayedMove: Store ref, pass by rvalue, initialize by lvalue -- may move, non-const, eval once
-// Capture: Store value, pass by const ref / value, initialize by lvalue / rvalue -- may copy, const, eval often
-// Move : Store value, pass by rvalue, initialize by rvalue (or lvalue) -- may move, non-const, eval once
-
-//enum struct WrapMode {ConstRef, Move, DelayedMove};
-//
-//template<class ExactType, class ApproxType, WrapMode wrap_mode>
-//class LazyWrapExact
-//{
-//  public:
-//  using IsLazyNode = std::true_type;
-//  using IsLazyLeaf = std::true_type;
-//  using ExactEvalType   = ExactType;
-//  using ApproxEvalType  = ApproxType;
-//  static constexpr bool EvalOnceExact_v = ((wrap_mode==WrapMode::Move) || (wrap_mode==WrapMode::DelayedMove));
-//  static constexpr bool EvalOnceApprox_v = false;
-//  static constexpr bool EvalOnce_v = EvalOnceExact_v;
-//  using EvalOnceExact   = std::integral_constant<bool,EvalOnceExact_v>;
-//  using EvalOnceApprox  = std::integral_constant<bool,EvalOnceApprox_v>;
-//  using EvalOnce        = EvalOnceExact;
-//  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value+1;
-//};
 
 template<class ExactType, class ApproxType>
 class LazyWrapExactCR
@@ -478,6 +491,10 @@ class LazyWrapExactCR
   ExactType const & exact_value;
 };
 
+/**
+  Exact object, delayed-move
+*/
+
 template<class ExactType, class ApproxType>
 class LazyWrapExactRV
 {
@@ -508,6 +525,10 @@ class LazyWrapExactRV
   ExactType & exact_value;
 };
 
+/**
+  Both Exact and Approximate Object in separate classes, Const-Ref passing.
+*/
+
 template<class ExactType, class ApproxType>
 class LazyWrapBothCR
 {
@@ -537,6 +558,11 @@ class LazyWrapBothCR
   ApproxType const & approx_value;
 };
 
+/**
+  Both Exact and Approximate Object in separate classes, Delayed-Move
+*/
+
+
 template<class ExactType, class ApproxType>
 class LazyWrapBothRV
 {
@@ -565,6 +591,10 @@ class LazyWrapBothRV
   ApproxType & approx_value;
 };
 
+/**
+  Wrap combined class, Const-Ref
+*/
+
 template<class CombinedType>
 class LazyWrapCombinedCR
 {
@@ -591,6 +621,10 @@ class LazyWrapCombinedCR
 
   CombinedType const & combined_value;
 };
+
+/**
+  Wrap combined class, Delayed-Move
+*/
 
 template<class CombinedType>
 class LazyWrapCombinedRV
@@ -622,21 +656,19 @@ class LazyWrapCombinedRV
   Layz_F functions.
   These classes provide a unified interface to call various functions F on
   expression trees.
-  The interface is as follows:
-  Lazy_F<ELP,Approximation,Arg1,Arg2,...> has 2+nargs template arguments of class type, where Argi
-  is the type of the ith argument (either SieveLazyEval or LazyWrap*)
 
-  The class is static (i.e. cannot be instantiated)
+  The class is static (i.e. cannot / should not / need not be instantiated)
   It provides the following public typedefs / static constants:
   static constexpr int nargs : number of arguments.
-  static constexpr ScalarOrVector scalar_or_vector : Result of evaluation
   typename ExactEvalType : Result Type of Exact Evaluation
   typename ApproxEvalType: Result Type of Approximate Evaluation
-  static functions eval_exact and eval_approx
-    These take a single argument of Type std::tuple<arg_tree1,arg_tree2,...>
-    where arg_treei is Argi::TreeType
-    The functions perform the actual evaluation of F by unpacking the tuple,
-    evaluating the subtrees and then actually performing F.
+  (these should be non-reference, non cv-qualified)
+  a function fun_name() returning a string identifying the function. For debug purposes.
+  a typedef IsLazyFunction = std::true_type. For traits detection.
+  static functions call_exact(args...) and call_approx(args...). These functions should take
+  nargs may arguments and return a (possibly reference to cv-qualified) ExactEvalType / ApproxEvalType
+  Note that call_exact / call_approx might be templates or overloaded on various argument types.
+
 */
 
 /**
@@ -644,13 +676,16 @@ class LazyWrapCombinedRV
   LazyWrap* to a SieveLazyEval<ELP,Approxiomation,Lazy_Identity<...>,...>
   */
 
+#define GAUSS_SIEVE_LAZY_FUN(nargs_,namestring)                             \
+  constexpr static unsigned int nargs = (nargs_);                           \
+  using IsLazyFunction = std::true_type;                                    \
+  static std::string fun_name() {return namestring ;}
+
 template<class ExactType, class ApproxType>
 class Lazy_Identity
 {
   public:
-  constexpr static unsigned int nargs = 1;
-  static std::string fun_name() {return "Identity function";}
-  using IsLazyFunction = std::true_type;
+  GAUSS_SIEVE_LAZY_FUN(1,"Identity function")
   using ExactEvalType = typename std::decay<ExactType>::type;
   using ApproxEvalType= typename std::decay<ApproxType>::type;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
@@ -671,13 +706,10 @@ template<class ELP, class Approximation> class Lazy_ScalarProduct
 {
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-//  using TreeType = std::tuple<ArgTreeLeft const, ArgTreeRight const>;
-  static constexpr unsigned int nargs = 2;
-  using IsLazyFunction = std::true_type;
+  GAUSS_SIEVE_LAZY_FUN(2,"Scalar Product")
   using ExactEvalType  = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  static std::string fun_name() {return "Scalar Product";}
   template<class LHS, class RHS>
   inline static ExactScalarType call_exact(LHS &&lhs, RHS &&rhs)
   {
@@ -698,16 +730,14 @@ template<class ELP, class Approximation> class Lazy_Norm2
 {
   public:
   BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  constexpr static unsigned int nargs = 1;
+  GAUSS_SIEVE_LAZY_FUN(1,"Get Norm2")
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  using IsLazyFunction = std::true_type;
   using ExactEvalType  = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
-  static std::string fun_name() {return "Norm2";};
 
   inline static ExactScalarType call_exact(ExactVectorType const &arg)
   {
-    return arg.get_norm2();
+    return arg.get_norm2_exact(); //TODO: Exact
   }
   inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
   {
