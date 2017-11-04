@@ -525,6 +525,14 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const { assert(false); }
     #endif
+    
+    #if __if_constexpr
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const = delete;
+    #else
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
+    #endif
  };
 
  /**
@@ -548,6 +556,12 @@ inline auto compute_sc_product_bitapprox(LP1 const &lp1, LP2 const &lp2)
 // C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox(lp2); }
+
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
+inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
+// C++14 : -> decltype(auto)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
 
 
 #define FOR_LATTICE_POINT_LP \
@@ -613,7 +627,29 @@ template<int SizeOfBitSet> struct BitApproximation
 //    ret.resize(dim);
     for(uint_fast16_t i=0;i<dim;++i)
     {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0; 
+    }
+    return ret;
+  }
+  
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point) 
+  {
+    using ET = typename Get_CoordinateType<LatP>::type;
+    using std::abs;
+    ET max_coo = 0;
+    auto dim = point.get_dim();
+    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
+    //find the max fist
+    for(uint_fast16_t i=0;i<dim;++i)
+    { 
+      max_coo = max_coo ^ ((max_coo ^ abs(point.get_absolute_coo(i))) & -(max_coo < abs(point.get_absolute_coo(i)) )); //<-works for positive coeffs
+    }
+    //std::cout << "max_coo = " << max_coo << std::endl;
+    //compute the 2nd-order approximation
+    for(uint_fast16_t i=0;i<dim;++i)
+    { 
+      ret[i] = (abs(2*point.get_absolute_coo(i))  >= max_coo) ? 1 : 0;
     }
     return ret;
   }

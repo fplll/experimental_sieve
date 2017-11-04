@@ -67,6 +67,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include <sys/stat.h>
 #include <fstream>
 #include <exception>
+#include <vector> //only for testing bitapprox, to delete
 //#include "TermCond.h"
 #include "GaussQueue.h"
 //#include "FilteredPoint.h"
@@ -80,6 +81,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "LatticeBases.h"
 
 #include "HyperplaneLSH.h"
+
 
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
@@ -213,7 +215,6 @@ public:
     //void sieve_k_iteration (LatticePoint<ET> &p);
     #endif
 
-
     void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};      //prints status to out. verb overrides the verbosity unless set to -1.
     void dump_status_to_file(std::string const &outfilename, bool overwrite = false);                   //dumps to file (verbosity overridden to 3)
     void dump_status_to_stream(std::ostream &of, int verb=-1);       //dumps to stream. Can be read back if verb>= 3. Otherwise, verbosity determines what is output.
@@ -264,6 +265,7 @@ public:
     unsigned long long get_number_of_scprods_level1() const     {return number_of_scprods_level1;}
     unsigned long long get_number_of_scprods_level2() const     {return number_of_scprods_level2;}
     unsigned long long get_number_of_scprods_level3() const     {return number_of_scprods_level3;}
+    
 
     void set_termination_condition(TermCondType * const termcond)
     {
@@ -316,6 +318,19 @@ private:
     unsigned int sieve_k; //parameter k of the sieve currently running.
     //SamplerType sampler; //TODO: Thread-safety. Move control to queue.
     int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
+    
+    // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+      std::vector<int> no_red_stat;
+      std::vector<int> red_stat;
+      
+      #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+        std::vector<int> no_red_stat2;
+        std::vector<int> red_stat2;
+      #endif
+      
+    #endif
+
 
 //public:  //made public to avoid complicated (due to template hack) friend - declaration.
 //            //TODO : Change term-cond to a user-provided function.

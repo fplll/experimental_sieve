@@ -8,6 +8,7 @@
 
 
 #define EXACT_LATTICE_POINT_HAS_BITAPPROX
+#define EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
 
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
@@ -153,6 +154,9 @@ public:
   explicit ExactLatticePoint() :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   bitapprox_data(static_cast<size_t>(get_dim())),
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  bitapprox2_data(static_cast<size_t>(get_dim())),
+  #endif
 #endif
   data(static_cast<unsigned int>(get_dim()))
   {
@@ -178,6 +182,9 @@ public:
   :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   bitapprox_data(static_cast<size_t>(get_dim())),
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  bitapprox2_data(static_cast<size_t>(get_dim())),
+  #endif
 #endif
   data(std::move(plain_point.data))
   {
@@ -198,6 +205,10 @@ public:
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 //      compute_approximation(*this);
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
+    
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+    bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
+    #endif
 #endif
   }
   void sanitize( ScalarProductStorageType const & new_norm2 )
@@ -207,6 +218,9 @@ public:
 //    compute_approximation(*this);
 // Note: The -1 is because we always use dynamic bitsets atm.
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+    bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
+    #endif
 #endif
   }
 
@@ -215,6 +229,9 @@ public:
   std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   inline BitApproxScalarProduct do_compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  inline BitApproxScalarProduct do_compute_sc_product_bitapprox_2nd_order(ExactLatticePoint const & another) const;
+  #endif
 #endif
   
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
@@ -252,6 +269,9 @@ private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   BitApproxContainer bitapprox_data;
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  BitApproxContainer bitapprox2_data;
+  #endif
 #endif
   Container data;
   ET norm2;
@@ -269,6 +289,20 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
 //  return result;
   return BitApproxScalarProduct{ static_cast<size_t>(dim - (this->bitapprox_data ^ another.bitapprox_data).count()) };
 }
+
+// 2nd order bit-approximate scalar product
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+template <class ET, int nfixed>
+inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_2nd_order(ExactLatticePoint const &another) const
+{
+  BitApproxContainer not_xor_res = (bitapprox_data ^ another.bitapprox_data).flip();
+  //std::cout << not_xor_res << std::endl;
+  //BitApproxContainer not_xor_res = (bitapprox_data ^ another.bitapprox_data);
+  return BitApproxScalarProduct{ static_cast<size_t>( (not_xor_res & another.bitapprox2_data).count() + 
+                                                      (not_xor_res & this->bitapprox2_data).count() ) };
+}
+#endif
+
 #endif
 
 template <class ET, int nfixed>
@@ -300,6 +334,16 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
       os << bitapprox_data[i] << " ";
     }
     os << "]";
+    os << std::endl;
+    
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+    os << " bit-approx2 = [ ";
+    for (uint_fast16_t i =0; i<dim; ++i)
+    {
+      os << bitapprox2_data[i] << " ";
+    }
+    os << "]";
+    #endif
   }
 #endif
   os << std::endl;

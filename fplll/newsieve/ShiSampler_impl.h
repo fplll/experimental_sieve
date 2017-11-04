@@ -54,7 +54,7 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
     double res = maxbistar2 / convert_to_double(input_basis.get_g(i,i));
 
-    s2pi[i] = res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
+    s2pi[i] = 1.0*res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
     maxdeviations[i] = sqrt(res) * cutoff;
 
     basis[i] = input_basis.get_basis_vector(i).make_copy();

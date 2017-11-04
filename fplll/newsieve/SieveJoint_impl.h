@@ -128,6 +128,26 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
         of << "Best vector found so far=";
         shortest_vector_found->write_lp_to_stream(of,true);
         of << endl;
+    
+    //ONLY TO TEST BITAPPROX. TO BE DELETED
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    if(howverb>=1) of << "No reduction: ";
+                  for (unsigned int i=0; i!=no_red_stat.size(); ++i) of <<no_red_stat[i] << " ";
+                   of << endl;
+                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+                   of << "2nd order: ";
+                   for (unsigned int i=0; i!=no_red_stat2.size(); ++i) of <<no_red_stat2[i] << " ";
+                   #endif
+                   of << endl;
+    if(howverb>=1) of << "Reduction: ";
+                   for (unsigned int i=0; i!=red_stat.size(); ++i) of <<red_stat[i] << " ";
+                   of << endl;
+                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+                   of << "2nd order: ";
+                   for (unsigned int i=0; i!=red_stat2.size(); ++i) of <<red_stat2[i] << " ";
+                   #endif
+                   of << endl;
+    #endif
     }
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
 
@@ -293,6 +313,15 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     main_queue.sampler->init(this, lattice_basis);
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
+    
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    no_red_stat.resize(this->ambient_dimension+1);
+    red_stat.resize(this->ambient_dimension+1);
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+      no_red_stat2.resize(2*this->ambient_dimension+1);
+      red_stat2.resize(2*this->ambient_dimension+1);
+    #endif
+  #endif
 };
 
 template<class SieveTraits>

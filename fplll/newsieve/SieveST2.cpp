@@ -13,7 +13,7 @@ namespace GaussSieve{
  */
 template<class SieveTraits, class Integer, typename std::enable_if<
   std::is_integral<Integer>::value
-  ,int>::type =0 >
+  ,int>::type =0 > 
 bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
@@ -58,31 +58,9 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   EntryType abs_2scprod =abs(sc_prod * 2);
   if (abs_2scprod <= p2.get_norm2())
   {
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
-  
-    /*
-    if (approx_scprod_res <= bitapprox_threshold)
-    {
-      return false;
-    }
-     */
-    std::cout <<"FALSE "<< "sc_prod exact: " << sc_prod << " approx_scprod_res: " << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
-  #endif
     return false;
   }
-
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p1, p2);
   
-    /*
-    if (approx_scprod_res <= bitapprox_threshold)
-    {
-      return false;
-    }
-     */
-    std::cout << "sc_prod exact: " << sc_prod << " approx_scprod_res: " << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
-  #endif
   
   double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
   //std::cout << sc_prod << " " << sc_prod << std::endl;
@@ -188,10 +166,33 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       if ( check2red<SieveTraits>(p, *it, scalar) )
       {
         assert(scalar!=0);
+        
+         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
+            red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+            
+            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
+            red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
+            #endif
+        #endif
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
         //std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
+        
         break;
+      }
+      else
+      {
+        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
+            no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+            
+            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
+            no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
+            #endif
+        #endif
       }
 
     }
@@ -239,6 +240,16 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 // This requires the sampler to never output 0.
 
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
+        
+        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
+            
+            red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+              BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
+              red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
+            #endif
+        #endif
 
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
 
@@ -259,6 +270,16 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       }
       else // no reduction.
       {
+        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
+            
+            no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+            
+            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
+            no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
+            #endif
+        #endif
         ++it;
       }
     }
