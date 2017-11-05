@@ -129,6 +129,7 @@ public:
    */
 #endif
 
+
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
   {
@@ -299,7 +300,8 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
   //std::cout << not_xor_res << std::endl;
   //BitApproxContainer not_xor_res = (bitapprox_data ^ another.bitapprox_data);
   return BitApproxScalarProduct{ static_cast<size_t>( (not_xor_res & another.bitapprox2_data).count() + 
-                                                      (not_xor_res & this->bitapprox2_data).count() ) };
+                                                      (not_xor_res & this->bitapprox2_data).count() ) + 
+                                                      not_xor_res.count() };
 }
 #endif
 
