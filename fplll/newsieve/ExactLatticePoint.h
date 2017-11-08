@@ -376,7 +376,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
-
+  
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
     assert(Parent::user_count > 0);
