@@ -483,6 +483,7 @@ class GeneralLatticePoint
      By default, we use the scalar product to compute it.
      Usually norm2 will be precomputed, so this function should be overridden by LatP.
      Overload may have different return type, but convertible to ScalarProductStorageType.
+     If Trait_CheapNorm2 is set, this function *must* be overloaded.
 */
 
     inline ScalarProductStorageType get_norm2() const;
@@ -498,13 +499,10 @@ class GeneralLatticePoint
     inline ScalarProductStorageType get_norm2_exact_recursive() const { return CREALTHIS->get_norm2(); }
     inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
 
-
-
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
 
     // TODO: Make protected and befriend compute_* functions
-//    protected
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
@@ -541,7 +539,7 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const { assert(false); }
     #endif
-    
+
     #if __if_constexpr
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const = delete;
@@ -647,9 +645,26 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 
 // new version, with approximations now inside the specific lattice point classes.
 // This class just collects useful functions related to bitapproximations.
+
 template<int SizeOfBitSet> struct BitApproximation
 {
-  static_assert(SizeOfBitSet==-1, "Only for dynamic bitsets for now.");
+  static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
+  {
+    auto dim = point.get_dim();
+    static_assert(dim == SizeOfBitSet, "Only usable if size of bitset equals fixed ambient dim of vector");
+    std::bitset<SizeOfBitSet> ret;
+    for(uint_fast16_t i=0; i<dim; ++i )
+    {
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 :0;
+    }
+    return ret;
+  }
+};
+
+template<> struct BitApproximation<-1>
+{
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
@@ -658,13 +673,13 @@ template<int SizeOfBitSet> struct BitApproximation
 //    ret.resize(dim);
     for(uint_fast16_t i=0;i<dim;++i)
     {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0; 
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
     }
     return ret;
   }
-  
+
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point) 
+  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
   {
     using ET = typename Get_CoordinateType<LatP>::type;
     using std::abs;
@@ -673,13 +688,18 @@ template<int SizeOfBitSet> struct BitApproximation
     boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
     //find the max fist
     for(uint_fast16_t i=0;i<dim;++i)
-    { 
-      max_coo = max_coo ^ ((max_coo ^ abs(point.get_absolute_coo(i))) & -(max_coo < abs(point.get_absolute_coo(i)) )); //<-works for positive coeffs
+    {
+      // equivalent, but has the problem of not working well for all coo types (in particular, mpz_class)
+//         max_coo = max_coo ^ ((max_coo ^ abs(point.get_absolute_coo(i))) & -(max_coo < abs(point.get_absolute_coo(i)) )); //<-works for positive coeffs
+
+      // Note : The static_cast is needed to deactivate lazy evaluation inside mpz_class.
+      using std::max;
+      max_coo = max(max_coo, static_cast<ET>(abs(point.get_absolute_coo(i))));
     }
     //std::cout << "max_coo = " << max_coo << std::endl;
     //compute the 2nd-order approximation
     for(uint_fast16_t i=0;i<dim;++i)
-    { 
+    {
       ret[i] = (abs(2*point.get_absolute_coo(i))  >= max_coo) ? 1 : 0;
     }
     return ret;
