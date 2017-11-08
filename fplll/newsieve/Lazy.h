@@ -26,7 +26,7 @@
   The use-case is that we usually only trigger evaluation (at most) once.
 
   Note further that (even recursive) expression trees only ever store references to the *original*
-  objects involved in their creation an not to internal nodes of the expression trees.
+  objects involved in their creation and not to internal nodes of the expression trees.
 
   This makes it possible to store a delayed expression as long as all original objects are in scope.
   i.e. auto Res = A + B + C may actually be valid code, as long as references to A,B,C are valid.
@@ -101,10 +101,13 @@ struct ObjectWithApproximation
   CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_object);}
   constexpr      explicit operator ApproxType() const & { return approx_object;}
   CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_object);}
+
+  /*
   constexpr      ExactType    eval_exact() const &  { return exact_object;}
   CPP14CONSTEXPR ExactType&&  eval_exact() &&       { return std::move(exact_object);}
   constexpr      ApproxType   eval_approx() const & { return approx_object;}
   CPP14CONSTEXPR ApproxType&& eval_approx() &&      { return std::move(approx_object);}
+  */
 
   constexpr      ExactType  const & access_exact()  const { return exact_object; }
   CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
@@ -203,13 +206,6 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // This restriction can easily be removed. The issue is just that we want no default-constructor.
   // (at least for nargs > 0)
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
-  // depends on whether args are copyable.
-  /*
-  constexpr explicit SieveLazyEval(SieveLazyEval const &other) = default;
-  constexpr explicit SieveLazyEval(SieveLazyEval && other) = default;
-  SieveLazyEval& operator=(SieveLazyEval const &other) = default;
-  SieveLazyEval& operator=(SieveLazyEval &&other) = default;
-  */
 
   template<class... FunArgs>
   CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs&&... fun_args)
@@ -287,6 +283,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 
 // Be aware that these functions are inside namespace GaussSieve::LazyEval,
 // so they are only considered if at least one argument is in that namespace as well.
+// In particular, the "Disable this template for lattice points" is redundant.
 
 #define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
       (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
@@ -310,7 +307,7 @@ template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON
   && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
 inline bool operator< (LHS && lhs, RHS && rhs)
 {
-// Note that C++ short-circuits && (unless someone would overloads && for the return type of <)
+// Note that C++ short-circuits && (unless someone overloads && for the return type of <)
   return (std::forward<LHS>(lhs).eval_approx() < std::forward<RHS>(rhs).eval_approx() )
       && (std::forward<LHS>(lhs).eval_exact()  < std::forward<RHS>(rhs).eval_exact()  );
 }
@@ -396,8 +393,9 @@ template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON
   && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
 inline bool operator== (LHS && lhs, RHS && rhs)
 {
-  return (std::forward<LHS>(lhs).eval_approx() == std::forward<RHS>(rhs).eval_approx() )
-      && (std::forward<LHS>(lhs).eval_exact()  == std::forward<RHS>(rhs).eval_exact()  );
+//  return (std::forward<LHS>(lhs).eval_approx() == std::forward<RHS>(rhs).eval_approx() )
+//      && (std::forward<LHS>(lhs).eval_exact()  == std::forward<RHS>(rhs).eval_exact()  );
+  return std::forward<LHS>(lhs).eval_exact() == std::forward<RHS>(rhs).eval_exact();
 }
 
 // != is defined in terms of ==
@@ -409,8 +407,6 @@ inline bool operator != (LHS && lhs, RHS && rhs)
 }
 
 #undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
-
-
 
 
 /**
@@ -711,11 +707,12 @@ template<class ELP, class Approximation> class Lazy_ScalarProduct
   using ApproxEvalType = ApproxScalarType;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
   template<class LHS, class RHS>
-  inline static ExactScalarType call_exact(LHS &&lhs, RHS &&rhs)
+  inline static auto call_exact(LHS &&lhs, RHS &&rhs)
+  -> decltype( compute_sc_product_exact( std::declval<LHS &&>(), std::declval<RHS &&>()   )  )
   {
     static_assert(std::is_same<typename std::decay<LHS>::type,ExactVectorType>::value,"LHS wrong type.");
     static_assert(std::is_same<typename std::decay<RHS>::type,ExactVectorType>::value,"RHS wrong type.");
-    return compute_sc_product(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+    return compute_sc_product_exact(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
   }
   template<class LHS, class RHS>
   inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
@@ -735,9 +732,10 @@ template<class ELP, class Approximation> class Lazy_Norm2
   using ExactEvalType  = ExactScalarType;
   using ApproxEvalType = ApproxScalarType;
 
-  inline static ExactScalarType call_exact(ExactVectorType const &arg)
+  inline static auto call_exact(ExactVectorType const &arg)
+  -> decltype( std::declval<ExactVectorType const>().get_norm2_exact()  )
   {
-    return arg.get_norm2_exact(); //TODO: Exact
+    return arg.get_norm2_exact();
   }
   inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
   {

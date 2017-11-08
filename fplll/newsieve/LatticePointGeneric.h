@@ -55,28 +55,28 @@ template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() < rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() < rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() > rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() > rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() <= rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() <= rhs.get_norm2_exact_recursive();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact() >= rhs.get_norm2_exact();
+  return CREALTHIS->get_norm2_exact_recursive() >= rhs.get_norm2_exact_recursive();
 }
 
 
@@ -237,7 +237,7 @@ LP1 operator-(LP1 && x1, LP2 const &x2)
 FOR_LATTICE_POINT_LP
 LP operator-(LP const &x1, LP &&x2)
 {
-  static_assert(Has_CheapNorm2<LP>::value,"Improve this code");
+  static_assert(Has_CheapNegate<LP>::value,"Improve this code");
   LP tmp = std::move(x2);
   tmp.make_negative();
   tmp+=x1;
@@ -355,9 +355,6 @@ inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype
   DEBUG_TRACEGENERIC("Generically getting vec_size for" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
-
-
-
 
 template<class LatP>
 inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
@@ -547,11 +544,6 @@ inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatti
   }
   return static_cast<typename LatP::ScalarProductStorageType>(result);
 }
-
-
-
-
-
 
 } // end namespace
 

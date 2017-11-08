@@ -132,7 +132,6 @@ private:
 template <class ET> MaybeFixed<-1> PlainLatticePoint<ET, -1>::dim = MaybeFixed<-1>(0);
 
 
-
 /**************************
  Static Initializers
 **************************/

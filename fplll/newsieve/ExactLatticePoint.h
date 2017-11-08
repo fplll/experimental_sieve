@@ -92,7 +92,7 @@ class BitApproxScalarProduct
   {
     return  this->value <= rhs;
   }
-  
+
   /*
   friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
   {
@@ -118,8 +118,8 @@ public:
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
 
-  
-  
+
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   using BitApproxContainer = boost::dynamic_bitset<>;
   /*
@@ -209,7 +209,7 @@ public:
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 //      compute_approximation(*this);
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
-    
+
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
     bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
     #endif
@@ -237,7 +237,7 @@ public:
   inline BitApproxScalarProduct do_compute_sc_product_bitapprox_2nd_order(ExactLatticePoint const & another) const;
   #endif
 #endif
-  
+
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
   {
   ET res1 = 0;
@@ -261,7 +261,7 @@ public:
   res1+=res4;
   return res1;
   }
-   
+
   // moved to LatticePointConcept.h
   // The reason is that we want a compute_bitapproximation function
   // that also works with other lattice point classes:
@@ -302,8 +302,8 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
   BitApproxContainer not_xor_res = (bitapprox_data ^ another.bitapprox_data).flip();
   //std::cout << not_xor_res << std::endl;
   //BitApproxContainer not_xor_res = (bitapprox_data ^ another.bitapprox_data);
-  return BitApproxScalarProduct{ static_cast<size_t>( (not_xor_res & another.bitapprox2_data).count() + 
-                                                      (not_xor_res & this->bitapprox2_data).count() ) + 
+  return BitApproxScalarProduct{ static_cast<size_t>( (not_xor_res & another.bitapprox2_data).count() +
+                                                      (not_xor_res & this->bitapprox2_data).count() ) +
                                                       not_xor_res.count() };
 }
 #endif
@@ -340,7 +340,7 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
     }
     os << "]";
     os << std::endl;
-    
+
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
     os << " bit-approx2 = [ ";
     for (uint_fast16_t i =0; i<dim; ++i)
@@ -361,7 +361,6 @@ std::ostream& operator<<(std::ostream &os, ExactLatticePoint<ET, nfixed> const &
 {
   return LatP.write_lp_to_stream(os, true, true);
 }
-
 
 // initialize static data:
 template <class ET, int nfixed>

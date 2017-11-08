@@ -128,7 +128,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
         of << "Best vector found so far=";
         shortest_vector_found->write_lp_to_stream(of,true);
         of << endl;
-    
+
     //ONLY TO TEST BITAPPROX. TO BE DELETED
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     if(howverb>=1) of << "No reduction: ";
@@ -233,7 +233,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     ,garbage_bins(nullptr)
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 {
-
 // BIG TODO: Move these into their respective classes!
 
     if (SieveTraits::get_nfixed!=-1)
@@ -313,7 +312,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     main_queue.sampler->init(this, lattice_basis);
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
-    
+
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     no_red_stat.resize(this->ambient_dimension+1);
     red_stat.resize(this->ambient_dimension+1);
@@ -354,7 +353,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   //TODO:
   double log_bound = 1.5* double(this->get_progressive_rank())*(this->get_target_list_size());
   unsigned long int bound = pow(2, log_bound);
-  
+
   if (this->get_current_list_size() > bound)
     return true;
   return false;

@@ -54,11 +54,18 @@ struct ScalarWithApproximation
   constexpr      explicit operator ApproxType() const & { return approx_scalar;}
   CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_scalar);}
 
+  // In case of unknown conversion, evaluate
+  template<class T>
+  CPP14CONSTEXPR explicit operator T() const & { return static_cast<T>(exact_scalar); }
+  template<class T>
+  CPP14CONSTEXPR explicit operator T() &&      { return static_cast<T>(std::move(exact_scalar));}
+
+  // Accessing the exact / approximate types. Used by the Lazy Evaluation class
+  // (notably, the leaves of the expression trees).
   constexpr      ExactType  const & access_exact()  const { return exact_scalar; }
   CPP14CONSTEXPR ExactType        & access_exact()        { return exact_scalar; }
   constexpr      ApproxType const & access_approx() const { return approx_scalar; }
   CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_scalar; }
-
 };
 
 /**
@@ -100,20 +107,25 @@ public:
 
 template<class ELP, class Approximation, class Function, class... Args>
 class DelayedScalar
-  : LazyEval::SieveLazyEval<Function,1, Args...>
+  : LazyEval::SieveLazyEval<Function,Args...>
 {
-
+  using Parent = LazyEval::SieveLazyEval<Function,Args...>;
+  public:
+  // forward all arguments to Parent constructor
+  template<class... ConstructorArgs>
+  DelayedScalar(ConstructorArgs &&... constructor_args)
+    : Parent(std::forward<ConstructorArgs>(constructor_args)... ) {}
 };
 
 template<class ELP, class Approximation, class Function, class... Args>
 class DelayedVector
-  : LazyEval::SieveLazyEval<Function,1, Args...>
+  : LazyEval::SieveLazyEval<Function,Args...>
 {
-
+  using Parent = LazyEval::SieveLazyEval<Function, Args...>;
 };
 
 template<class ELP, class Approximation>
-using Get_DelayedScalarProductType = DelayedScalar
+using Get_DelayedScalarProductTypeCR = DelayedScalar
 <
   ELP, Approximation,
   LazyEval::Lazy_ScalarProduct<ELP,Approximation>, //Function
@@ -122,7 +134,7 @@ using Get_DelayedScalarProductType = DelayedScalar
 >;
 
 template<class ELP, class Approximation>
-using Get_DelayedNorm2Type = DelayedScalar
+using Get_DelayedNorm2TypeCR = DelayedScalar
 <
   ELP, Approximation,
   LazyEval::Lazy_Norm2<ELP,Approximation>, //Function
@@ -145,18 +157,19 @@ class VectorWithApproximation
 
   public:
   using LatticePointTag = std::true_type;
+  using Myself = VectorWithApproximation<ELP,Approximation>;
+
   using ExactCoos = typename Get_CoordinateType<ELP>::type; // may be void
   using RepCooType = typename Get_RepCooType<ELP>::type;
-  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
-//  using ScalarProductStorageType = typename Get_ScalarProductStorageType<ELP>::type;
+//  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
   using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
 //
   using ExactScalarProductType    = typename Get_ScalarProductStorageType<ELP>::type;
-  using ApproxScalarProductType   = typename Approximation::ScalarProductType;
+//  using ApproxScalarProductType   = typename Approximation::ScalarProductType;
   using CombinedScalarProductType = ScalarWithApproximation<ELP,Approximation>;
-  using DelayedScalarProductType  = Get_DelayedScalarProductType<ELP,Approximation>;
+//  using DelayedScalarProductType  = Get_DelayedScalarProductType<ELP,Approximation>;
 //  // Think about this:
-  using DelayedNorm2Type          = Get_DelayedNorm2Type<ELP,Approximation>;
+//  using DelayedNorm2Type          = Get_DelayedNorm2Type<ELP,Approximation>;
   static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
 //
   VectorWithApproximation(VectorWithApproximation const &old) = delete;
@@ -183,8 +196,7 @@ class VectorWithApproximation
   using ExactType  = ELP;
   using ApproxType = Approximation;
 
-  //constexpr      explicit operator ExactType()  const & { return exact_point;}
-  explicit operator ExactType() const & = delete; // would copy point
+                 explicit operator ExactType() const & = delete; // would copy point
   CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_point);}
   constexpr      explicit operator ApproxType() const & { return approx;}
   CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx);}
@@ -234,23 +246,24 @@ class VectorWithApproximation
       return exact_point == x2.exact_point;
     }
   }
-//
-//  // forward internal_rep to exact point if it exists.
+
+  // forward internal_rep to exact point if it exists.
   template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
   auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return exact_point.get_internal_rep_size(); }
   template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
   RepCooType const & get_internal_rep(Arg &&arg) const { return exact_point.get_internal_rep(std::forward<Arg>(arg)); }
   template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>, Has_InternalRep_RW<T>)>
   RepCooType & get_internal_rep(Arg &&arg) {return exact_point.get_internal_rep(std::forward<Arg>(arg));}
-//
-//  // forward absolute coos to exact point
-  template<class Arg>
-  AbsoluteCooType get_absolute_coo(Arg &&arg) const { return exact_point.get_absolute_coo(std::forward<Arg>(arg));  }
-//
-//  // forward get_dim
+
+  // forward absolute coos to exact point
+  template<class Arg> auto get_absolute_coo(Arg &&arg) const
+    -> decltype( std::declval<ELP>().get_absolute_coo( std::declval<Arg &&>() ))
+  { return exact_point.get_absolute_coo(std::forward<Arg>(arg));  }
+
+  // forward get_dim
   auto get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return exact_point.get_dim(); }
-//
-//
+
+  // write_lp_to_stream outputs the point, then the approximation
   inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx =true) const
   {
     exact_point.write_lp_to_stream(os, include_norm2,include_approx);
@@ -260,15 +273,19 @@ class VectorWithApproximation
     }
     return os;
   }
-//
+
+  // write_lp_rep_to_stream only outputs the exact point. The approximation does not contribute
+  // to the internal representation.
   template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<ELP>)>
   inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const { return exact_point.write_lp_rep_to_stream(os); }
-//
+
 //
 //  //TODO: read_from_stream
 //
-  void fill_with_zero() { exact_point.fill_with_zero(); recompute_approx(); }
-  void make_negative()  { exact_point.make_negative(); recompute_approx(); } // todo : may optimize
+
+
+  void fill_with_zero() { exact_point.fill_with_zero(); recompute_approx(); } // may optimize
+  void make_negative()  { exact_point.make_negative(); recompute_approx(); } // may optimize
   bool is_zero() const { return exact_point.is_zero(); }
 
   // TODO: Copy approximation
@@ -279,29 +296,71 @@ class VectorWithApproximation
   void sanitize(ExactScalarProductType const &norm2) { exact_point.sanitize(norm2); recompute_approx(); }
   void recompute_approx() { approx = static_cast<Approximation>(exact_point); }
 
-  // TODO:
-  inline ExactScalarProductType get_norm2() const { return exact_point.get_norm2(); }
+  // bypass 1 level of approximations
+  inline auto get_norm2_exact() const -> decltype( std::declval<ELP>().get_norm2() )
+  { return exact_point.get_norm2(); }
 
-//
-//  inline DelayedNorm2Type get_norm2() const
-//  {
-////    return DelayedNorm2Type ( exact_point.get_norm2(), approx.get_approx_norm2()  );
-//    return DelayedNorm2Type(  );
-//  }
-//
-//  ExactScalarProductType get_norm2_exact() const {return exact_point.get_norm2_exact(); }
-//
-//  CombinedScalarProductType get_norm2_full() const
-//  {
-//    return CombinedScalarProductType(exact_point.get_norm2_exact(),approx.get_approx_norm2()  );
-//  }
-//
-//  DelayedScalarProductType do_compute_sc_product(VectorWithApproximation const &x2) { };
-//  ExactScalarProductType   do_compute_sc_product_exact(VectorWithApproximation const &x2)
-//  {
-//    return exact_point.do_compute_sc_product_exact(x2);
-//  };
-//
+  // bypass all levels of approximations
+  inline ExactScalarProductType get_norm2_exact_recursive() const { return exact_point.get_norm2_exact_recursive(); }
+
+  // return both
+  inline CombinedScalarProductType get_norm2_full() const
+  { return CombinedScalarProductType{exact_point.get_norm2_exact(), approx.get_approx_norm2()}; }
+
+  // Delayed evaluation(!)
+  inline Get_DelayedNorm2TypeCR<ELP,Approximation> get_norm2() const & // Note: The & is important
+  {
+    return Get_DelayedNorm2TypeCR<ELP,Approximation> { LazyEval::LazyWrapCombinedCR<Myself> {*this } };
+  }
+
+  // scalar products:
+
+  inline auto do_compute_sc_product_exact(Myself const &x2) const
+  -> decltype( std::declval<ELP>().do_compute_sc_product(std::declval<ELP>() ) )
+  {
+    return exact_point.do_compute_sc_product(x2.exact_point);
+  }
+
+  inline ExactScalarProductType do_compute_sc_product_exact_recursive(Myself const &x2) const
+  {
+    return exact_point.do_compute_sc_product_exact_recursive(x2.exact_point);
+  }
+
+  inline CombinedScalarProductType do_compute_sc_product_full(Myself const &x2) const
+  {
+    return CombinedScalarProductType
+    { // constructor args
+      exact_point.do_compute_sc_product_exact(x2.exact_point),
+      compute_sc_product_approx(approx,x2.approx)
+    };
+  }
+
+  inline Get_DelayedScalarProductTypeCR<ELP,Approximation> do_compute_sc_product(Myself const &x2) const &
+  {
+    return Get_DelayedScalarProductTypeCR<ELP,Approximation>
+    { // constructor args
+      LazyEval::LazyWrapCombinedCR<Myself> {*this},
+      LazyEval::LazyWrapCombinedCR<Myself> {x2}
+    };
+  }
+
+  inline Get_DelayedScalarProductTypeCR<ELP,Approximation> do_compute_sc_product(Myself const &&) const & = delete;
+
+  inline auto get_bitapprox_norm2() const -> decltype( std::declval<ELP>().get_bitapprox_norm2() )
+  {
+    return exact_point.get_bitapprox_norm2();
+  }
+
+  inline int do_compute_sc_product_bitapprox(Myself const & x2) const
+  {
+    return exact_point.do_compute_sc_product_bitapprox(x2.exact_point);
+  }
+
+  inline int do_compute_sc_product_bitapprox_2nd_order(Myself const & x2) const
+  {
+    return exact_point.do_compute_sc_product_bitapprox_2nd_order(x2.exact_point);
+  }
+
 };
 
 /**
