@@ -35,6 +35,7 @@
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
+		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
 		<Unit filename="ShiSampler.h" />
