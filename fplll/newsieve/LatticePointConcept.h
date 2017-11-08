@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdint>
 #include <gmpxx.h>
+#include <array>
 #include "GlobalStaticData.h"
 
 #include <bitset> //for approximation
@@ -645,6 +646,8 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   return result;
 }
 
+  
+  
 // new version, with approximations now inside the specific lattice point classes.
 // This class just collects useful functions related to bitapproximations.
 template<int SizeOfBitSet> struct BitApproximation
@@ -663,6 +666,8 @@ template<int SizeOfBitSet> struct BitApproximation
     return ret;
   }
   
+  
+  /*
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point) 
   {
@@ -684,6 +689,17 @@ template<int SizeOfBitSet> struct BitApproximation
     }
     return ret;
   }
+  */
+  
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
+  {
+    boost::dynamic_bitset<> ret{64};
+    using ET = typename Get_CoordinateType<LatP>::type;
+    
+    return ret;
+  }
+
 };
 
 // specialize for

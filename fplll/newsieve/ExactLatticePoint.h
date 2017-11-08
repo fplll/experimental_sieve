@@ -37,7 +37,7 @@ template <class ET, int nfixed> class ExactLatticePoint;
 // result of bitwise approximate scalar product
 // wraps around int_fast32_t
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-class BitApproxScalarProduct;
+  class BitApproxScalarProduct;
 #endif
 
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
@@ -127,6 +127,9 @@ public:
                             std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                           boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
    */
+  
+  
+  
 #endif
 
 

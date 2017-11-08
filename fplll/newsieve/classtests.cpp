@@ -9,8 +9,9 @@
 //#define TEST_LAZY
 //#define TEST_APPROXIMATIONS
 //#define TEST_PLAIN_LATTICE_POINT
-#define TEST_EXACT_LATTICE_POINT
+//#define TEST_EXACT_LATTICE_POINT
 //#define TEST_BITAPPROX
+#define TEST_RELEVANT_COORDS
 
 #ifdef TEST_ALL
   #define TEST_TRAIT_CLASSES
@@ -84,6 +85,10 @@
 
 #ifdef TEST_BITAPPROX
   #include "Tests/TestBitApprox.h"
+#endif
+
+#ifdef TEST_RELEVANT_COORDS
+  #include "Tests/TestRelevantCoords.h"
 #endif
 
 // clang-reorder-guard
@@ -183,6 +188,13 @@ int main(int argc, char **argv)
   if (test_bit_approx())
   {
     std::cout << "Bit Approximation works as expected" <<std::endl;
+  }
+#endif
+  
+#ifdef TEST_RELEVANT_COORDS
+  if(test_relevant_coords())
+  {
+    
   }
 #endif
   return 0; // indicating success.

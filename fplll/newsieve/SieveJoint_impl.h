@@ -320,6 +320,8 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
       no_red_stat2.resize(2*this->ambient_dimension+1);
       red_stat2.resize(2*this->ambient_dimension+1);
+  
+    //RelevantCoordinates &matrix = RelevantCoordinates::get_instance(this->ambient_dimension);
     #endif
   #endif
 };
