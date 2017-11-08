@@ -1,13 +1,16 @@
 #ifndef RELEVANT_COORDS_H
 #define RELEVANT_COORDS_H
 
+
+#include "GlobalStaticData.h"
+
 #define NUM_OF_HASH_VALUES 64
 
 
 
 namespace GaussSieve{
   
-  
+template<int nfixed>
 class RelevantCoordinates;
 
 // SIMPLE SINGLETON
@@ -58,18 +61,20 @@ class RelevantCoordinates;
 //};
   
 
+//TODO: REPLACE rand() by a proper rand
+template<int nfixed>
 class RelevantCoordinates
 {
-private:
-  RelevantCoordinates(int ambient_dim)
+
+  RelevantCoordinates()
   {
     //std::cout << "inside constructor " << std::endl;
     for (uint_fast16_t i=0; i<64; ++i)
     {
-      rel_coo[i][0] = rand() % ambient_dim;
-      rel_coo[i][1] = rand() % ambient_dim;
-      rel_coo[i][2] = rand() % ambient_dim;
-      rel_coo[i][3] = rand() % ambient_dim;
+      rel_coo[i][0] = rand() % nfixed;
+      rel_coo[i][1] = rand() % nfixed;
+      rel_coo[i][2] = rand() % nfixed;
+      rel_coo[i][3] = rand() % nfixed;
     }
     //std::cout << "finish initializing rel_coo " << std::endl;
   }
@@ -78,8 +83,8 @@ private:
   RelevantCoordinates(RelevantCoordinates &&obj)   = delete;
   
   
-  RelevantCoordinates  &operator=(RelevantCoordinates const &obj)      = delete;
-  RelevantCoordinates  &operator=(RelevantCoordinates &obj)            = delete;
+  RelevantCoordinates  &operator=(RelevantCoordinates const &obj) = delete;
+  RelevantCoordinates  &operator=(RelevantCoordinates &obj)       = delete;
 
   
   // for 0<=i<=63; 0<=j<=4
@@ -89,8 +94,52 @@ private:
   }
   
   //member
-  std::array<uint_fast16_t, 4> rel_coo[NUM_OF_HASH_VALUES];
+  private:
+  static std::array<uint_fast16_t, 4> rel_coo[NUM_OF_HASH_VALUES];
+  static int test;
   
+};
+  
+template<int nfixed>
+  int RelevantCoordinates<nfixed>::test = 10;
+  
+
+// Static Initializer:
+template<int nfixed> class StaticInitializer<RelevantCoordinates<nfixed>>
+: public DefaultStaticInitializer<RelevantCoordinates<nfixed>>
+{
+  using Parent = DefaultStaticInitializer<RelevantCoordinates<nfixed>>;
+public:
+  
+  template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
+  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {} //<-WHAT IS IT FOR?
+  
+  StaticInitializer()
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+      assert(false);
+    }
+    else
+    {
+      RelevantCoordinates<nfixed>::test = 10;
+      /*
+      for (uint_fast16_t i=0; i<64; ++i)
+      {
+        RelevantCoordinates<nfixed>::rel_coo[i][0] = rand() % nfixed;
+        RelevantCoordinates<nfixed>::rel_coo[i][1] = rand() % nfixed;
+        RelevantCoordinates<nfixed>::rel_coo[i][2] = rand() % nfixed;
+        RelevantCoordinates<nfixed>::rel_coo[i][3] = rand() % nfixed;
+      }
+       */
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing RelevantCoordinates with nfixed = " << nfixed  << " Counter is" << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing RelevantCoordinates with nfixed = " << nfixed << " Counter is " << Parent::user_count )
+  }
 };
 
   

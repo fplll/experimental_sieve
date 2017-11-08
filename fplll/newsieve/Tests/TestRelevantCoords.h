@@ -14,11 +14,11 @@
 
 bool test_relevant_coords()
 {
-  int dim = 20;
+  const int dim = 20;
   
-  using RelevantCoords = GaussSieve::RelevantCoordinates;
+  using RelevantCoords = GaussSieve::RelevantCoordinates<dim>;
   
-  
+  GaussSieve::StaticInitializer<RelevantCoords> init1;
   
   
   /*
