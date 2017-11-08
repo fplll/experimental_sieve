@@ -667,7 +667,7 @@ template<int SizeOfBitSet> struct BitApproximation
   }
   
   
-  /*
+  
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point) 
   {
@@ -689,8 +689,8 @@ template<int SizeOfBitSet> struct BitApproximation
     }
     return ret;
   }
-  */
   
+  /*
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
   {
@@ -699,7 +699,7 @@ template<int SizeOfBitSet> struct BitApproximation
     
     return ret;
   }
-
+   */
 };
 
 // specialize for
