@@ -15,15 +15,20 @@
 bool test_relevant_coords()
 {
   int dim = 20;
+  
   using RelevantCoords = GaussSieve::RelevantCoordinates;
   
+  
+  
+  
+  /*
   RelevantCoords::get_instance(dim);
   
   int val = RelevantCoords::get_instance(dim).get_ij_value(2,1);
   std::cout << "[2,1]: " << RelevantCoords::get_instance(dim).get_ij_value(2,1) << std::endl;
   std::cout << "[2,1]: " << RelevantCoords::get_instance(dim).get_ij_value(2,1) << std::endl;
   std::cout << "[10,3]: " << RelevantCoords::get_instance(dim).get_ij_value(10,3) << std::endl;
-  
+  */
   return true;
 }
 

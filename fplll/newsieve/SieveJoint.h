@@ -82,8 +82,6 @@ NEED TO GO HERE OR TO SieveGauss.h:
 
 #include "HyperplaneLSH.h"
 
-#include "LatticePointConcept.h"
-
 
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
