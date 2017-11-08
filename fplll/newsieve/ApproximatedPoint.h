@@ -111,11 +111,14 @@ class DelayedScalar
   : LazyEval::SieveLazyEval<Function,Args...>
 {
   using Parent = LazyEval::SieveLazyEval<Function,Args...>;
+  using ExactEvalType = typename Parent::ExactEvalType;
+  using ApproxEvalType = typename Parent::ApproxEvalType;
   public:
   // forward all arguments to Parent constructor
   template<class... ConstructorArgs>
   DelayedScalar(ConstructorArgs &&... constructor_args)
     : Parent(std::forward<ConstructorArgs>(constructor_args)... ) {}
+  operator ExactEvalType() {return this->eval_exact(); }
 };
 
 template<class ELP, class Approximation, class Function, class... Args>

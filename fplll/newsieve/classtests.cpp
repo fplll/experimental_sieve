@@ -6,8 +6,8 @@
 
 //#define TEST_ALL
 //#define TEST_EMV
-#define TEST_LAZY
-#define TEST_APPROXIMATIONS
+//#define TEST_LAZY
+//#define TEST_APPROXIMATIONS
 //#define TEST_PLAIN_LATTICE_POINT
 //#define TEST_EXACT_LATTICE_POINT
 //#define TEST_BITAPPROX
@@ -190,11 +190,11 @@ int main(int argc, char **argv)
     std::cout << "Bit Approximation works as expected" <<std::endl;
   }
 #endif
-  
+
 #ifdef TEST_RELEVANT_COORDS
   if(test_relevant_coords())
   {
-    
+
   }
 #endif
   return 0; // indicating success.

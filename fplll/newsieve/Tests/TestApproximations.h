@@ -31,10 +31,12 @@ bool test_approximations()
 
   ExactLP latp_exact = GaussSieve::make_from_any_vector<ExactLP>(arr,MaybeFixed<dimfixed>{dimfixed});
   CombinedLP latp_comb (std::move(latp_exact));
-//  std::cout << latp_comb << std::endl;
+  std::cout << latp_comb << std::endl;
 //
-//  std::cout << compute_sc_product(latp_comb.access_exact(),latp_comb.access_exact() ) << std::endl;
-//  std::cout << compute_sc_product_approx(latp_comb.access_approx(), latp_comb.access_approx() ) << std::endl;
+  std::cout << compute_sc_product(latp_comb.access_exact(),latp_comb.access_exact() ) << std::endl;
+  std::cout << compute_sc_product_approx(latp_comb.access_approx(), latp_comb.access_approx() ) << std::endl;
+  std::cout << latp_comb.access_exact().get_norm2() << std::endl;
+  mpz_class X = latp_comb.get_norm2(); std::cout << "Delayed:" << X << std::endl;
 //
 //  std::cout <<std::endl<<std::endl << "--------------" << std::endl;
 
