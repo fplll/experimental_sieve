@@ -185,7 +185,7 @@ class VectorWithApproximation
   VectorWithApproximation(ELP const & new_exact_point) = delete;
 
   // construct with precomputed approximation:
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, typename std::decay<Arg>::type>)>
+  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<Approximation, mystd::decay<Arg> >)>
   explicit VectorWithApproximation(ELP && new_exact_point, Arg && new_approx)
     : exact_point(std::move(new_exact_point)), approx(std::forward<Arg>(new_approx)) {}
 
@@ -380,7 +380,7 @@ class StaticInitializer<VectorWithApproximation<ELP,Approximation>>
   StaticInitializer<ExactVectorType>  const init_exact_vector;
   StaticInitializer<ApproxVectorType> const init_approx_vector;
 
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<typename std::decay<X>::type>)>
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<mystd::decay<X>>)>
   explicit StaticInitializer(X &&init_arg) :
     init_exact_vector(std::forward<X>(init_arg)), init_approx_vector(std::forward<X>(init_arg)){}
 };

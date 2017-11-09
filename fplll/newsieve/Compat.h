@@ -63,7 +63,7 @@ namespace GaussSieve
   template<class... T> using MyIndexSequenceFor = MyMakeIndexSeq<sizeof...(T)>;
 #endif
 
-namespace Mystd
+namespace mystd
 {
   template<class T> using decay_t = typename std::decay<T>::type;
   template<bool b>  using bool_constant = std::integral_constant<bool, b>;
