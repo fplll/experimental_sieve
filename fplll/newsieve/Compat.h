@@ -67,6 +67,9 @@ namespace mystd
 {
   template<class T> using decay_t = typename std::decay<T>::type;
   template<bool b>  using bool_constant = std::integral_constant<bool, b>;
+  template<class... Bs> using conjunction = MyConjunction<Bs...>;    //AND
+  template<class... Bs> using disjunction = MyDisjunction<Bs...>;    //OR
+  template<class B>     using negation    = MyNegation<B>;           //NOT
 }
 } // end namespace
 

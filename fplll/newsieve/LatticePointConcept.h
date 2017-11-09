@@ -238,49 +238,49 @@ MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
 //{
 //using namespace TraitHelpers;
 // These are what the rest of the code should be actually using:
-template<class LatP> using Has_ExposesCoos = std::integral_constant<bool,
+template<class LatP> using Has_ExposesCoos = mystd::bool_constant<
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
   (!std::is_void<typename Get_CoordinateType<LatP>::type>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
 
-template<class LatP> using Has_Coos_RW = std::integral_constant<bool,
+template<class LatP> using Has_Coos_RW = mystd::bool_constant<
   T_Coos_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRep_RW<LatP>::value)>;
 
-template<class LatP> using Has_ExposesInternalRep = std::integral_constant<bool,
+template<class LatP> using Has_ExposesInternalRep = mystd::bool_constant<
   T_ExposesInternalRep<LatP>::value || T_InternalRepLinear<LatP>::value || T_InternalRep_RW<LatP>::value ||
   T_InternalRepByCoos<LatP>::value || T_InternalRepIsAbsolute<LatP>::value >;
 
-template<class LatP> using Has_InternalRepLinear = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepLinear = mystd::bool_constant<
   T_InternalRepLinear<LatP>::value>;
 
-template<class LatP> using Has_InternalRep_RW = std::integral_constant<bool,
+template<class LatP> using Has_InternalRep_RW = mystd::bool_constant<
   T_InternalRep_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_Coos_RW<LatP>::value)>;
 
-template<class LatP> using Has_InternalRepByCoos = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepByCoos = mystd::bool_constant<
   T_InternalRepByCoos<LatP>::value>;
 
-template<class LatP> using Has_InternalRepIsAbsolute = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepIsAbsolute = mystd::bool_constant<
   T_InternalRepIsAbsolute<LatP>::value || ( T_InternalRepByCoos<LatP>::value && T_AbsoluteCoos<LatP>::value)>;
 
-template<class LatP> using Has_AbsoluteCoos = std::integral_constant<bool,
+template<class LatP> using Has_AbsoluteCoos = mystd::bool_constant<
   T_AbsoluteCoos<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRepIsAbsolute<LatP>::value)>;
 
-template<class LatP> using Has_CheapNorm2 = std::integral_constant<bool,
+template<class LatP> using Has_CheapNorm2 = mystd::bool_constant<
   T_CheapNorm2<LatP>::value>;
 
-template<class LatP> using Has_CheapNegate = std::integral_constant<bool,
+template<class LatP> using Has_CheapNegate = mystd::bool_constant<
   T_CheapNegate<LatP>::value>;
 
-template<class LatP> using Has_Approximations = std::integral_constant<bool,
+template<class LatP> using Has_Approximations = mystd::bool_constant<
   T_Approximations<LatP>::value>;
 
-template<class LatP> using Has_AccessNorm2 = std::integral_constant<bool,
+template<class LatP> using Has_AccessNorm2 = mystd::bool_constant<
   T_AccessNorm2<LatP>::value>;
 
-template<class LatP> using Has_BitApprox = std::integral_constant<bool,
+template<class LatP> using Has_BitApprox = mystd::bool_constant<
   T_BitApprox<LatP>::value>;
 
 // Deprecated
-template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
+template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
 Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
 
 //}
@@ -377,7 +377,7 @@ class GeneralLatticePoint
     template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
     inline LatP& operator-=(LatP2 const &x2); // default implementation asserts linearity
 
-    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
     template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
@@ -534,18 +534,18 @@ class GeneralLatticePoint
     // if(templated constexpr resuting in false){ }. Lacking if constexpr, we bail out at runtime.
     // Use CPP17CONSTEXPRIF macro for the if.
     #if __if_constexpr
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const = delete;
     #else
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const { assert(false); }
     #endif
 
     #if __if_constexpr
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const = delete;
     #else
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
     #endif
  };

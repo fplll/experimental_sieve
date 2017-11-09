@@ -267,7 +267,7 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
 // Note Integer is passed by value, even for mpz_classes. Not optimal...
 template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   IsALatticePoint<LP>,
-  MyDisjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
+  mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
 //  assert(false);
@@ -278,7 +278,7 @@ inline LP operator*(LP const &x1, Integer const multiplier)
 
 template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   IsALatticePoint<LP>,
-  MyDisjunction< std::is_integral<Integer>, std::is_same<Integer,mpz_class> >)>
+  mystd::disjunction< std::is_integral<Integer>, std::is_same<Integer,mpz_class> >)>
 inline LP operator*(LP &&x1, Integer const multiplier)
 {
   LP tmp = std::move(x1);
