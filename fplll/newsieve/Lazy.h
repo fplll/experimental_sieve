@@ -44,12 +44,9 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 // Last semicolon intentionally missing.
 #define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
   using ExactVectorType = ELP; \
-  using ExactScalarType = typename Get_ScalarProductStorageType<ELP>::type; \
+  using ExactScalarType = Get_ScalarProductStorageType<ELP>; \
   using ApproxVectorType = Approximation; \
   using ApproxScalarType = typename Approximation::ScalarProductType
-
-// to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
-enum struct [[deprecated]] ScalarOrVector{ scalar_type, vector_type };
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 
@@ -166,7 +163,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 {
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
-  static_assert(MyConjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
+  static_assert(mystd::conjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
 
   public:
   // cv-unqualified return types of eval_*
@@ -179,7 +176,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(ApproxLevel >0, "Approximation level is 0.");
 
   // for now:
-  static_assert(MyConjunction<std::integral_constant<bool,ApproxLevel == ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
+  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
 
   // EvalOnce means that calling eval_* might actually invalidate the data stored to / refered to.
   // If this is set, we
@@ -213,14 +210,14 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   {
     // Args and FunArgs must be the same (up to const and reference-ness)
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
-    static_assert(MyConjunction< std::is_same<Args,typename std::decay<FunArgs>::type>...>::value,"Wrong type of arguments to constructor.");
+    static_assert(mystd::conjunction< std::is_same<Args,mystd::decay_t<FunArgs>>...>::value,"Wrong type of arguments to constructor.");
 
     // If Args_i::EvalOnce is set, then fun_args_i must be passed via rvalue-reference (enforcing move!).
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
     // FunArgs_i itself is a non-refence type.
     // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce_v == false) for each i
-    static_assert(MyConjunction<
-      std::integral_constant<bool,
+    static_assert(mystd::conjunction<
+      mystd::bool_constant<
         (std::is_reference<FunArgs>::value == false) || (Args::EvalOnce_v == false)
       >...
     >::value,"Use (possibly explicit) move semantics for Lazy objects that may encapsulate RValues." );
@@ -682,13 +679,13 @@ class Lazy_Identity
 {
   public:
   GAUSS_SIEVE_LAZY_FUN(1,"Identity function")
-  using ExactEvalType = typename std::decay<ExactType>::type;
-  using ApproxEvalType= typename std::decay<ApproxType>::type;
+  using ExactEvalType = mystd::decay_t<ExactType>;
+  using ApproxEvalType= mystd::decay_t<ApproxType>;
   constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
   static_assert(!(std::is_same<ExactEvalType,ApproxEvalType>::value),"");
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ExactEvalType,typename std::decay<Arg>::type>)>
+  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ExactEvalType,mystd::decay_t<Arg>>)>
   inline static Arg && call_exact(Arg &&exact) { return std::forward<Arg>(exact);}
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ApproxEvalType,typename std::decay<Arg>::type>)>
+  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ApproxEvalType,typename mystd::decay_t<Arg>>)>
   inline static Arg && call_approx(Arg &&approx) { return std::forward<Arg>(approx);}
 };
 
@@ -710,15 +707,15 @@ template<class ELP, class Approximation> class Lazy_ScalarProduct
   inline static auto call_exact(LHS &&lhs, RHS &&rhs)
   -> decltype( compute_sc_product_exact( std::declval<LHS &&>(), std::declval<RHS &&>()   )  )
   {
-    static_assert(std::is_same<typename std::decay<LHS>::type,ExactVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<typename std::decay<RHS>::type,ExactVectorType>::value,"RHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<LHS>,ExactVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<RHS>,ExactVectorType>::value,"RHS wrong type.");
     return compute_sc_product_exact(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
   }
   template<class LHS, class RHS>
   inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
   {
-    static_assert(std::is_same<typename std::decay<LHS>::type, ApproxVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<typename std::decay<RHS>::type, ApproxVectorType>::value,"RHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<LHS>, ApproxVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<RHS>, ApproxVectorType>::value,"RHS wrong type.");
     return compute_sc_product_approx(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
   }
 };

@@ -53,7 +53,7 @@ The user needs to put it to emphasize that this is a declaration.
                                                                                                    \
   public:                                                                                          \
     using value_t =                                                                                \
-        std::integral_constant<bool, !(std::is_void<decltype(foo<ClassToCheck>(0))>::value)>;      \
+        mystd::bool_constant< !(std::is_void<decltype(foo<ClassToCheck>(0))>::value)>;      \
     static bool constexpr value = value_t::value;                                                  \
     constexpr operator bool() const { return value; };                                             \
   }
@@ -76,7 +76,7 @@ TypeToCheck exists and is equal to TypeShouldBe
                                                                                                    \
   public:                                                                                          \
     using value_t =                                                                                \
-        std::integral_constant<bool,                                                               \
+        mystd::bool_constant<                                                               \
                                std::is_same<TypeShouldBe, decltype(foo<ClassToCheck>(0))>::value>; \
     static bool constexpr value = value_t::value;                                                  \
     constexpr operator bool() const { return value; };                                             \
@@ -98,7 +98,7 @@ TypeToCheck exists and is equal to TypeShouldBe
     template <class ...> static void                      foo(...);                                \
                                                                                                    \
   public:                                                                                          \
-    using value_t = std::integral_constant<bool,                                                   \
+    using value_t = mystd::bool_constant<                                                   \
         !(std::is_void<decltype(foo<TraitClass<ClassToCheck>>(0))>::value)>;                       \
     static bool constexpr value = value_t::value;                                                  \
     constexpr operator bool() const { return value; };                                             \
@@ -121,7 +121,7 @@ TypeToCheck exists and is equal to TypeShouldBe
                                                                                                    \
   public:                                                                                          \
     using value_t =                                                                                \
-        std::integral_constant<bool,                                                               \
+        mystd::bool_constant<                                                               \
                   std::is_same<TypeShouldBe, decltype(foo<TraitClass<ClassToCheck>>(0))>::value>;  \
     static bool constexpr value = value_t::value;                                                  \
     constexpr operator bool() const { return value; };                                             \
@@ -131,13 +131,14 @@ TypeToCheck exists and is equal to TypeShouldBe
 
 /**
   This is used to obtain traits from a trait class, with default settings.
-  Notably CheckerClassName<T>::type is equal to
+  Notably CheckerClassName<T> is equal to
     TraitClass<T>::TypeToCheck if this exists,
     DefaultType otherwise.
 */
 
 #define MAKE_TRAIT_GETTER(TraitClass, TypeToCheck, DefaultType, CheckerClassName)                  \
-  template <class ClassToCheck> class CheckerClassName                                             \
+namespace TraitGetterHelper{                                                                       \
+  template <class ClassToCheck> class CheckerClassName##_Helper                                    \
   {                                                                                                \
   private:                                                                                         \
     template <class Arg> static typename Arg::TypeToCheck foo(int);                                \
@@ -145,7 +146,10 @@ TypeToCheck exists and is equal to TypeShouldBe
                                                                                                    \
   public:                                                                                          \
     using type = decltype(foo<TraitClass<ClassToCheck>>(0));                                       \
-  }
+  };                                                                                               \
+} \
+template<class ClassToCheck> \
+using CheckerClassName = typename TraitGetterHelper::CheckerClassName##_Helper<ClassToCheck>::type
 
 
 /**
@@ -172,8 +176,8 @@ TypeToCheck exists and is equal to TypeShouldBe
 // Limitation: If the argument contains a comma in its arguments (e.g. template<A,B>), it does not
 // work
 
-#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::MyConjunction<__VA_ARGS__>::value),int>::type = 0
-#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::MyConjunction<__VA_ARGS__>::value),int>::type
+#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type = 0
+#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type
 
 namespace GaussSieve
 {
@@ -397,7 +401,7 @@ template<class Integer> struct ConvertMaybeMPZ
   template<class Source>
   static Integer convert_to_inttype(Source const & source)
   {
-    static_assert(!std::is_same<typename std::decay<Source>::type,mpz_class>::value, "Source is mpz_class");
+    static_assert(!std::is_same<mystd::decay_t<Source>,mpz_class>::value, "Source is mpz_class");
     return static_cast<Integer>(source);
   }
 
