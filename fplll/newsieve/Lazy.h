@@ -42,11 +42,13 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
 // Approximation is an approximation class.
 // This #define just serves to bring the appropriate typedefs into scope.
 // Last semicolon intentionally missing.
+/*
 #define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
   using ExactVectorType = ELP; \
   using ExactScalarType = Get_ScalarProductStorageType<ELP>; \
   using ApproxVectorType = Approximation; \
   using ApproxScalarType = typename Approximation::ScalarProductType
+*/
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 
@@ -56,9 +58,60 @@ CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyN
   #define CONSTEXPR_IN_NON_DEBUG_TC constexpr
 #endif
 
+// ---------------
 
 // forward declarations:
-//template<class LazyFunction, class... Args> class SieveLazyEval;
+template<class LazyFunction, class... Args> class SieveLazyEval;
+template<class ExactClass, class ApproximationClass> class ObjectWithApproximation;
+namespace Helpers
+{
+template<unsigned int level, class ExactClass, class Approximation> class ObjectWithApproximationHelper;
+}
+
+/**
+  Helper class for the class immediately below:
+
+  Since C++ does not allow to partially specialize template functions, we cannot directly write a
+  get<level>() function to get the object at a certain level.
+
+  Instead, we define a helper class with a get member function, so we can partially specialize the
+  class:
+
+  ObjectWithApproximationHelper::Class<level,Exact,Approx>::get(combined_object)
+  will get the exact object of combined_object for level==0 and the approximate object for level==1.
+*/
+
+
+namespace Helpers{
+template<unsigned int level, class ExactClass, class ApproximationClass> class ObjectWithApproximationHelper
+{
+  // this should never be instantiated!
+  static_assert(level<=1,"wrong usage"); // we only have levels 0 and 1 for ObjectWithApproximation
+  friend ObjectWithApproximation<ExactClass,ApproximationClass>;
+};
+template<class ExactClass, class ApproximationClass>
+class ObjectWithApproximationHelper<0,ExactClass,ApproximationClass>
+{
+  public:
+  using CombinedObject = ObjectWithApproximation<ExactClass,ApproximationClass>;
+  using Object = ExactClass;
+  friend CombinedObject;
+  private:
+  static inline Object const & get(CombinedObject const &obj) { return obj.exact_object;}
+  static inline Object &       get(CombinedObject & obj) { return obj.exact_object; }
+};
+template<class ExactClass, class ApproximationClass>
+class ObjectWithApproximationHelper<1,ExactClass,ApproximationClass>
+{
+  public:
+  using CombinedObject = ObjectWithApproximation<ExactClass,ApproximationClass>;
+  using Object = ApproximationClass;
+  friend CombinedObject;
+  private:
+  static inline Object const & get(CombinedObject const &obj) { return obj.approx_object; }
+  static inline Object &       get(CombinedObject & obj) { return obj.approx_object; }
+};
+} // end of Helpers namespace
 
 /**
   This class defines an interface for objects that store an exact value and an approximation.
@@ -70,14 +123,23 @@ CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyN
   (as far as meaningful)
 */
 
+
 template<class ExactClass, class ApproximationClass>
 struct ObjectWithApproximation
 {
+  private:
+  template<unsigned int level> using  Helper = Helpers::ObjectWithApproximationHelper<level,ExactClass, ApproximationClass>;
+  template<unsigned int level, class ExactClass2, class ApproximationClass2> friend class Helpers::ObjectWithApproximationHelper;
   using ExactType = ExactClass;
   using ApproxType= ApproximationClass;
+  public:
+  template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
   ExactType  exact_object;
   ApproxType approx_object;
-  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ExactClass>::value + 1;
+  static_assert(std::is_same<ExactType, ObjectAtLevel<0>>::value,"");
+  static_assert(std::is_same<ApproxType,ObjectAtLevel<1>>::value,"");
+
+  static constexpr unsigned int ApproxLevel = 1;
 
   // This would cause ambiguous overloads.
   static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
@@ -105,6 +167,11 @@ struct ObjectWithApproximation
   constexpr      ApproxType   eval_approx() const & { return approx_object;}
   CPP14CONSTEXPR ApproxType&& eval_approx() &&      { return std::move(approx_object);}
   */
+
+  template<unsigned int level>
+  constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  CPP14CONSTEXPR  ObjectAtLevel<level>       & access()       { return Helper<level>::get(*this); }
 
   constexpr      ExactType  const & access_exact()  const { return exact_object; }
   CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
@@ -167,16 +234,18 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 
   public:
   // cv-unqualified return types of eval_*
-  using ExactEvalType =  typename LazyFunction::ExactEvalType;
-  using ApproxEvalType = typename LazyFunction::ApproxEvalType;
+//  using ExactEvalType =  typename LazyFunction::ExactEvalType;
+//  using ApproxEvalType = typename LazyFunction::ApproxEvalType;
+  template<unsigned int level> using EvalType = typename LazyFunction::template EvalType<level>;
   // tags used for various static_assert's and template overload selection:
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::false_type; // not a leaf of the expression tree.
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
-  static_assert(ApproxLevel >0, "Approximation level is 0.");
+//  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
   // for now:
-  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,"All arguments must have the same approximation level");
+  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
+    "All arguments must have the same approximation level");
 
   // EvalOnce means that calling eval_* might actually invalidate the data stored to / refered to.
   // If this is set, we
@@ -216,16 +285,25 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
     // FunArgs_i itself is a non-refence type.
     // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce_v == false) for each i
-    static_assert(mystd::conjunction<
-      mystd::bool_constant<
-        (std::is_reference<FunArgs>::value == false) || (Args::EvalOnce_v == false)
-      >...
-    >::value,"Use (possibly explicit) move semantics for Lazy objects that may encapsulate RValues." );
+    static_assert(mystd::conjunction< mystd::bool_constant<
+        (std::is_reference<FunArgs>::value == false) || (Args::EvalOnce_v == false) >... >::value,
+        "Use (possibly explicit) move semantics for Lazy objects that may encapsulate RValues." );
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Lazy function wrapper object for function " << LazyFunction::fun_name() << std::endl;
 #endif
   }
 
+  template<unsigned int level, std::size_t... iarg>
+  inline EvalType<level> do_eval(MyIndexSeq<iarg...>)
+  {
+    static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
+#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
+    std::cout << "Calling function " << LazyFunction::fun_name() << " at level " << level << std::endl;
+#endif
+    return LazyFunction::template call<level>( std::get<iarg>(args).eval<level>()... );
+  }
+
+/*
   template<std::size_t... iarg>
   inline ExactEvalType do_eval_exact(MyIndexSeq<iarg...>)
   {
@@ -245,10 +323,19 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 #endif
     return LazyFunction::call_approx( std::get<iarg>(args).eval_approx()... );
   }
+*/
 
 // MyMakeIndexSeq generates a(n empty) struct MyIndexSeq<0,1,2,...>. This is used as a dummy paramter
 // to select the correct version of do_eval_approx and allows to actually un-std::tuple the argument.
 // (This is the least roundabout way of doing it and corresponds to the implementation of std::apply)
+
+  template<unsigned int level>
+  inline EvalType<level> eval()
+  {
+    return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
+  }
+
+  /*
   inline ExactEvalType eval_exact()
   {
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
@@ -258,9 +345,15 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   {
     return do_eval_approx(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
+  */
 
+  template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel)>
+  inline explicit operator EvalType<level>() { return eval<level>; }
+
+  /*
   inline explicit operator ExactEvalType() { return eval_exact(); }
   inline explicit operator ApproxEvalType() { return eval_approx(); }
+  */
 };
 
 
@@ -285,6 +378,8 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 #define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
       (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
   &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))
+
+/**
 
 // general comparison for < : We bring down the arguments to the same approximation level,
 // then we compare approximately. If that results in true, we actually do an exact check as well.
@@ -405,6 +500,7 @@ inline bool operator != (LHS && lhs, RHS && rhs)
 
 #undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
 
+*/
 
 /**
   LazyWrap* model the leaves of the expression trees.
@@ -453,6 +549,7 @@ inline bool operator != (LHS && lhs, RHS && rhs)
   Exact object, Const-Ref
 */
 
+/*
 template<class ExactType, class ApproxType>
 class LazyWrapExactCR
 {
@@ -483,11 +580,13 @@ class LazyWrapExactCR
 
   ExactType const & exact_value;
 };
+*/
 
 /**
   Exact object, delayed-move
 */
 
+/*
 template<class ExactType, class ApproxType>
 class LazyWrapExactRV
 {
@@ -517,11 +616,13 @@ class LazyWrapExactRV
   }
   ExactType & exact_value;
 };
+*/
 
 /**
   Both Exact and Approximate Object in separate classes, Const-Ref passing.
 */
 
+/*
 template<class ExactType, class ApproxType>
 class LazyWrapBothCR
 {
@@ -550,12 +651,14 @@ class LazyWrapBothCR
   ExactType const & exact_value;
   ApproxType const & approx_value;
 };
+*/
+
 
 /**
   Both Exact and Approximate Object in separate classes, Delayed-Move
 */
 
-
+/*
 template<class ExactType, class ApproxType>
 class LazyWrapBothRV
 {
@@ -583,11 +686,66 @@ class LazyWrapBothRV
   ExactType & exact_value;
   ApproxType & approx_value;
 };
+*/
 
 /**
   Wrap combined class, Const-Ref
 */
 
+template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
+class LazyWrapCR
+{
+  public:
+  static constexpr unsigned int ApproxLevel = maxlevel;
+//  template<unsigned int level2> using WrappedType = typename CombinedObject::ObjectAtLevel<level2>;
+  template<unsigned int level> using EvalType = typename CombinedObject::template ObjectAtLevel<level>;
+  static_assert(ApproxLevelOf<CombinedObject>::value == maxlevel,""); // TODO: Relax this
+  using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
+  using EvalOnce   = std::false_type;
+  static constexpr bool EvalOnce_v = false;
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCR(CombinedObject const &init_combined):combined_ref(init_combined)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating CR Lazy Wrapper at level " << maxlevel << std::endl; // TODO: Level of CombType
+#endif
+  }
+  LazyWrapCR(CombinedObject const &&) = delete; // No move!
+  template<unsigned int level>
+  inline EvalType<level> const & eval() const
+  {
+    static_assert(level<=maxlevel,"Cannot evaluate at this level");
+    return combined_ref.template access<level>();
+  }
+  CombinedObject const & combined_ref;
+};
+
+template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
+class LazyWrapRV
+{
+  public:
+  static constexpr unsigned int ApproxLevel = maxlevel;
+  template<unsigned int level> using EvalType = typename CombinedObject::template ObjectAtLevel<level>;
+  static_assert(ApproxLevelOf<CombinedObject>::value == maxlevel,""); // TODO!
+  using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
+  using EvalOnce   = std::true_type;
+  static constexpr bool EvalOnce_v = true;
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapRV(CombinedObject &init_combined):combined_ref(init_combined)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating RV Lazy Wrapper at level " << maxlevel << std::endl; //TODO!
+#endif
+  }
+  LazyWrapRV(CombinedObject &&) = delete;
+  template<unsigned int level> inline EvalType<level> && eval()
+  {
+    return std::move( combined_ref.template access<level>() );
+  }
+  CombinedObject & combined_ref;
+};
+
+/*
 template<class CombinedType>
 class LazyWrapCombinedCR
 {
@@ -615,10 +773,13 @@ class LazyWrapCombinedCR
   CombinedType const & combined_value;
 };
 
+*/
+
 /**
   Wrap combined class, Delayed-Move
 */
 
+/*
 template<class CombinedType>
 class LazyWrapCombinedRV
 {
@@ -643,7 +804,7 @@ class LazyWrapCombinedRV
   inline ApproxType && eval_approx() { return std::move(combined_value.access_approx()); }
   CombinedType & combined_value;
 };
-
+*/
 
 /**
   Layz_F functions.
@@ -674,19 +835,27 @@ class LazyWrapCombinedRV
   using IsLazyFunction = std::true_type;                                    \
   static std::string fun_name() {return namestring ;}
 
-template<class ExactType, class ApproxType>
+template<class CombinedType>
 class Lazy_Identity
 {
   public:
   GAUSS_SIEVE_LAZY_FUN(1,"Identity function")
-  using ExactEvalType = mystd::decay_t<ExactType>;
-  using ApproxEvalType= mystd::decay_t<ApproxType>;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  static_assert(!(std::is_same<ExactEvalType,ApproxEvalType>::value),"");
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<CombinedType>::value;
+  template<unsigned int level> using EvalType = mystd::decay_t<typename CombinedType::template ObjectAtLevel<level>>;
+
+  // Note: TEMPL_RESTRICT_DECL2 short-circuits. This means we cannot instantiate EvalType<level> for too large level.
+  template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(
+    mystd::bool_constant<level<=ApproxLevel>,
+    std::is_same<EvalType<level>, mystd::decay_t<Arg>>
+    )>
+  inline static Arg && call(Arg &&arg) { return std::forward<Arg>(arg); }
+
+  /*
   template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ExactEvalType,mystd::decay_t<Arg>>)>
   inline static Arg && call_exact(Arg &&exact) { return std::forward<Arg>(exact);}
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ApproxEvalType,typename mystd::decay_t<Arg>>)>
+  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ApproxEvalType,mystd::decay_t<Arg>>)>
   inline static Arg && call_approx(Arg &&approx) { return std::forward<Arg>(approx);}
+  */
 };
 
 
@@ -694,6 +863,8 @@ class Lazy_Identity
   Scalar Product function.
   Delegates to compute_sc_product_exact resp. compute_sc_product_approx
 */
+
+/*
 
 template<class ELP, class Approximation> class Lazy_ScalarProduct
 {
@@ -720,6 +891,10 @@ template<class ELP, class Approximation> class Lazy_ScalarProduct
   }
 };
 
+*/
+
+
+/*
 template<class ELP, class Approximation> class Lazy_Norm2
 {
   public:
@@ -739,9 +914,11 @@ template<class ELP, class Approximation> class Lazy_Norm2
     return arg.get_approx_norm2();
   }
 };
+*/
 
 }} //end namespaces
 
+#undef GAUSS_SIEVE_LAZY_FUN
 #undef CONSTEXPR_IN_NON_DEBUG_TC
 
 #endif
