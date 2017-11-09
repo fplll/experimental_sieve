@@ -15,6 +15,8 @@
 #include <bitset> //for approximation
 #include <boost/dynamic_bitset.hpp> //for approximation
 
+#include "RelevantCoords.h"
+
 
 // clang-format off
 
@@ -548,6 +550,16 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
     #endif
+  
+  
+    //FOR SIM-HASH
+    #if __if_constexpr
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const = delete;
+    #else
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const { assert(false); }
+    #endif
  };
 
  /**
@@ -592,6 +604,14 @@ inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp
 // C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
+  
+  
+//FOR SIM-HASH
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
+inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
+// C++14 : -> decltype(auto)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox_fixed(lp2); }
 
 
 #define FOR_LATTICE_POINT_LP \
@@ -671,6 +691,7 @@ template<int SizeOfBitSet> struct BitApproximation
 // variable-dim version:
 template<> struct BitApproximation<-1>
 {
+  
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
@@ -682,6 +703,30 @@ template<> struct BitApproximation<-1>
       ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
     }
     return ret;
+  }
+  
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
+  {
+    using RelevantCoords = GaussSieve::RelevantCoordinates;
+    using ET = typename Get_CoordinateType<LatP>::type;
+    RelevantCoords matrix_of_rel_coo; //supposed to be initialized during the construction if Sieve
+    
+    //std::cout << "rel_coo_matrix used: " <<std::endl;
+    //matrix_of_rel_coo.print();
+    
+    std::bitset<sim_hash_len> ret;
+    for(uint_fast16_t i=0;i<sim_hash_len;++i)
+    {
+      ET res = point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,0)) +
+               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,1)) +
+               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,2)) +
+               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,3));
+      ret[i] = (res>=0) ? 1: 0;
+    }
+    
+    return ret;
+    
   }
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>

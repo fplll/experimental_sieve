@@ -16,10 +16,16 @@ bool test_relevant_coords()
 {
   const int dim = 20;
   
-  using RelevantCoords = GaussSieve::RelevantCoordinates<dim>;
+  using RelevantCoords = GaussSieve::RelevantCoordinates;
   
-  GaussSieve::StaticInitializer<RelevantCoords> init1;
+  GaussSieve::StaticInitializer<RelevantCoords> init1(dim);
+  RelevantCoords matrix_of_rel_coo;
   
+  
+  std::cout << "matrix_of_rel_coo[3,2] = " << matrix_of_rel_coo.get_ij_value(3,2) << std::endl;
+  std::cout << "matrix_of_rel_coo[1,2] = " << matrix_of_rel_coo.get_ij_value(1,2) << std::endl;
+  
+  matrix_of_rel_coo.print();
   
   /*
   RelevantCoords::get_instance(dim);
