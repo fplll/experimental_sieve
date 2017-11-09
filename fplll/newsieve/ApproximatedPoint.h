@@ -165,7 +165,7 @@ class VectorWithApproximation
 
   using ExactCoos   = Get_CoordinateType<ELP>; // may be void
   using RepCooType  = Get_RepCooType<ELP>;
-//  using AbsoluteCooType = typename Get_AbsoluteCooType<ELP>::type;
+//  using AbsoluteCooType = Get_AbsoluteCooType<ELP>;
   using typename GeneralLatticePoint<VectorWithApproximation<ELP,Approximation>>::ScalarProductStorageType;
 //
   using ExactScalarProductType    = Get_ScalarProductStorageType<ELP>;
