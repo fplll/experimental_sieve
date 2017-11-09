@@ -178,7 +178,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             #endif
         #endif
         */
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
         #endif
@@ -201,7 +201,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             #endif
         #endif
         */
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
         #endif
@@ -264,7 +264,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             #endif
         #endif
         */
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
         red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 #endif
@@ -299,7 +299,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
             #endif
         #endif
          */
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
         no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 #endif

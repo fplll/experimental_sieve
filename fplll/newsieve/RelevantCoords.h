@@ -59,7 +59,7 @@ class RelevantCoordinates;
 
   
   uint_fast16_t constexpr  sim_hash_len = 128;
-  uint_fast16_t constexpr  num_of_coord = 4;
+  uint_fast16_t constexpr  num_of_coord = 2;
 
 //TODO: REPLACE rand() by a proper rand
 //template<int nfixed>
@@ -88,10 +88,14 @@ public:
   void print()
   {
     std::cout << "relevant matrix is: " << std::endl;
-    for (uint_fast16_t i=0; i<sim_hash_len; i++)
-    {
-      std::cout << rel_coo[i][0] << "," << rel_coo[i][1] << "," << rel_coo[i][2] << "," << rel_coo[i][3] <<std::endl;
-    }
+    //for (uint_fast16_t i=0; i<sim_hash_len; i++)
+    //{
+      for (uint_fast16_t j=0; j<num_of_coord; ++j)
+        std::cout << rel_coo[1][j] << ",";
+        
+      //std::cout << std::endl;
+      //std::cout << rel_coo[i][0] << "," << rel_coo[i][1] << "," << rel_coo[i][2] << "," << rel_coo[i][3] <<std::endl;
+    //}
   }
 
   //member
@@ -126,8 +130,8 @@ public:
       {
         RelevantCoordinates::rel_coo[i][0] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][1] = rand() % abmient_dimension;
-        RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
-        RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
+        //RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
+        //RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
       }
 
     }

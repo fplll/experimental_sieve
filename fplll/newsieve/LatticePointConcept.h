@@ -710,19 +710,23 @@ template<> struct BitApproximation<-1>
   {
     using RelevantCoords = GaussSieve::RelevantCoordinates;
     using ET = Get_CoordinateType<LatP>;
-    RelevantCoords matrix_of_rel_coo; //supposed to be initialized during the construction if Sieve
+    
+    //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix(point.get_dim());
+    //RelevantCoords matrix_of_rel_coo; //supposed to be initialized during the construction if Sieve
+    
     
     //std::cout << "rel_coo_matrix used: " <<std::endl;
     //matrix_of_rel_coo.print();
     
+    //assert(false);
     std::bitset<sim_hash_len> ret;
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
-      ET res = point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,0)) +
-               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,1)) +
-               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,2)) +
-               point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,3));
-      ret[i] = (res>=0) ? 1: 0;
+      //ET res = point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,0));
+               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,1));
+               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,2)) -
+               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,3));
+      //ret[i] = (res>=0) ? 1: 0;
     }
     
     return ret;

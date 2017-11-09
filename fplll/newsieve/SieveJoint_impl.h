@@ -332,21 +332,23 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
   
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix(ambient_dimension);
+    GaussSieve::RelevantCoordinates matrix_of_rel_coo;
     red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
     no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
   #endif
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     no_red_stat.resize(this->ambient_dimension+1);
     red_stat.resize(this->ambient_dimension+1);
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
       no_red_stat2.resize(2*this->ambient_dimension+1);
       red_stat2.resize(2*this->ambient_dimension+1);
   
     //RelevantCoordinates &matrix = RelevantCoordinates::get_instance(this->ambient_dimension);
     #endif
-  #endif
+#endif
 };
 
 template<class SieveTraits>

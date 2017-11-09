@@ -24,6 +24,8 @@
   #include <boost/dynamic_bitset.hpp> //for approximation
 #endif
 
+#include "RelevantCoords.h"
+
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
 
@@ -294,6 +296,7 @@ private:
   
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   BitApproxContainerFixed fixed_bitapprox_data;
+  static GaussSieve::RelevantCoordinates & matrix;
 #endif
   
   Container data;
