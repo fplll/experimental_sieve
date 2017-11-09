@@ -48,9 +48,6 @@ namespace LazyEval{     // sub-namespace to inject free functions like abs
   using ApproxVectorType = Approximation; \
   using ApproxScalarType = typename Approximation::ScalarProductType
 
-// to differentiate between vectors and scalars. Mostly used for static_asserts to catch bugs.
-enum struct [[deprecated]] ScalarOrVector{ scalar_type, vector_type };
-
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
