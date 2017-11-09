@@ -81,6 +81,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "LatticeBases.h"
 
 #include "HyperplaneLSH.h"
+#include "RelevantCoords.h"
 
 
 namespace GaussSieve{
@@ -330,6 +331,10 @@ private:
       #endif
       
     #endif
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    std::vector<int> no_red_stat_sim_hash;
+    std::vector<int> red_stat_sim_hash;
+  #endif
 
 
 //public:  //made public to avoid complicated (due to template hack) friend - declaration.

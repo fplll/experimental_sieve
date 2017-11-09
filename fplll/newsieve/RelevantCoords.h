@@ -58,7 +58,7 @@ class RelevantCoordinates;
 //};
 
   
-  uint_fast16_t constexpr  sim_hash_len = 64;
+  uint_fast16_t constexpr  sim_hash_len = 128;
   uint_fast16_t constexpr  num_of_coord = 4;
 
 //TODO: REPLACE rand() by a proper rand
