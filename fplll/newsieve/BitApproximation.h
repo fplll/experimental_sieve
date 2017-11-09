@@ -52,10 +52,9 @@ class BitApproximation
   using ApproxEntryType = bool;
   using ApproxNorm2Type = int_fast32_t;
 
-  using Container = typename std::conditional<nfixed >= 0,
+  using Container = mystd::conditional<nfixed >= 0,
                       std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                      boost::dynamic_bitset<>  >                       // if nfixed <  0
-                      ::type;
+                      boost::dynamic_bitset<>  >;                       // if nfixed <  0
 
   public:
   template<class LatticePoint>

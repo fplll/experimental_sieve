@@ -70,6 +70,7 @@ namespace mystd
   template<class... Bs> using conjunction = MyConjunction<Bs...>;    //AND
   template<class... Bs> using disjunction = MyDisjunction<Bs...>;    //OR
   template<class B>     using negation    = MyNegation<B>;           //NOT
+  template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
 }
 } // end namespace
 
