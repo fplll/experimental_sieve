@@ -8,7 +8,8 @@
 
 
 #define EXACT_LATTICE_POINT_HAS_BITAPPROX
-#define EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+//#define EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+#define EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
 
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
@@ -39,6 +40,7 @@ template <class ET, int nfixed> class ExactLatticePoint;
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   class BitApproxScalarProduct;
 #endif
+  
 
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
@@ -120,15 +122,19 @@ public:
 
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  
+  
   using BitApproxContainer = boost::dynamic_bitset<>;
   /*
   using BitApproxContainer = typename std::conditional<nfixed >= 0,
                             std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                           boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
    */
-
-
-
+  
+#endif
+  
+#ifdef  EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  using BitApproxContainerFixed   = std::bitset<sim_hash_len>;
 #endif
 
 
@@ -157,6 +163,7 @@ public:
   explicit ExactLatticePoint() :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   bitapprox_data(static_cast<size_t>(get_dim())),
+  
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
   bitapprox2_data(static_cast<size_t>(get_dim())),
   #endif
@@ -185,6 +192,7 @@ public:
   :
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   bitapprox_data(static_cast<size_t>(get_dim())),
+  
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
   bitapprox2_data(static_cast<size_t>(get_dim())),
   #endif
@@ -206,18 +214,21 @@ public:
   {
     norm2 = compute_sc_product(*this, *this);
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-//      compute_approximation(*this);
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
 
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
     bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
     #endif
 #endif
+ #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    fixed_bitapprox_data = BitApproximation<-1>::compute_fixed_bitapproximation(*this);
+#endif
   }
   void sanitize( ScalarProductStorageType const & new_norm2 )
   {
     norm2 = new_norm2;
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    
 //    compute_approximation(*this);
 // Note: The -1 is because we always use dynamic bitsets atm.
     bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
@@ -235,6 +246,10 @@ public:
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
   inline BitApproxScalarProduct do_compute_sc_product_bitapprox_2nd_order(ExactLatticePoint const & another) const;
   #endif
+#endif
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  inline BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
 #endif
 
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
@@ -276,6 +291,11 @@ private:
   BitApproxContainer bitapprox2_data;
   #endif
 #endif
+  
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  BitApproxContainerFixed fixed_bitapprox_data;
+#endif
+  
   Container data;
   ET norm2;
 };
@@ -306,7 +326,15 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
                                                       not_xor_res.count() };
 }
 #endif
+#endif
 
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+template <class ET, int nfixed>
+inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const &another) const
+{
+    return BitApproxScalarProduct {static_cast<size_t>(sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
+}
+  
 #endif
 
 template <class ET, int nfixed>
@@ -348,6 +376,16 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
     }
     os << "]";
     #endif
+  }
+#endif
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  if (include_approx)
+  {
+    os<< "sim-hash = [ ";
+    for (uint_fast16_t i=0; i<sim_hash_len; i++) {
+      os << fixed_bitapprox_data[i] << " ";
+    }
+    os << "] ";
   }
 #endif
   os << std::endl;
