@@ -123,7 +123,7 @@ data()
   assert(class_initialized);
 #endif
    */
-  using CooType = typename Get_CoordinateType<LatticePoint>::type;
+  using CooType = Get_CoordinateType<LatticePoint>;
 
 
 

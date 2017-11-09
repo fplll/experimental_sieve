@@ -131,13 +131,14 @@ TypeToCheck exists and is equal to TypeShouldBe
 
 /**
   This is used to obtain traits from a trait class, with default settings.
-  Notably CheckerClassName<T>::type is equal to
+  Notably CheckerClassName<T> is equal to
     TraitClass<T>::TypeToCheck if this exists,
     DefaultType otherwise.
 */
 
 #define MAKE_TRAIT_GETTER(TraitClass, TypeToCheck, DefaultType, CheckerClassName)                  \
-  template <class ClassToCheck> class CheckerClassName                                             \
+namespace TraitGetterHelper{                                                                       \
+  template <class ClassToCheck> class CheckerClassName##_Helper                                    \
   {                                                                                                \
   private:                                                                                         \
     template <class Arg> static typename Arg::TypeToCheck foo(int);                                \
@@ -145,7 +146,10 @@ TypeToCheck exists and is equal to TypeShouldBe
                                                                                                    \
   public:                                                                                          \
     using type = decltype(foo<TraitClass<ClassToCheck>>(0));                                       \
-  }
+  };                                                                                               \
+} \
+template<class ClassToCheck> \
+using CheckerClassName = typename TraitGetterHelper::CheckerClassName##_Helper<ClassToCheck>::type
 
 
 /**

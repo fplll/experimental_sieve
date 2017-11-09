@@ -78,7 +78,7 @@ template<class LatticePoint> struct LatticePointTraits
   Note: In the actual LatticePointTraits class, the traits are actually prefixed with Trait_
   (i.e. LatticePointTraits<LP> contains using Trait_ExposesCoos etc.)
   To retrieve a trait, use Has_TraitName for binary traits.
-  or GetTraitName for non-binary traits
+  or Get_TraitName for non-binary traits
 
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
@@ -229,18 +229,18 @@ MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, Get_
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
 // default to GetScalarproductStorageType
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
-  typename Get_ScalarProductStorageType<ClassToCheck>::type, Get_ScalarProductStorageType_Full);
+  Get_ScalarProductStorageType<ClassToCheck>, Get_ScalarProductStorageType_Full);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
-  typename Get_CoordinateType<ClassToCheck>::type, Get_AbsoluteCooType);
+  Get_CoordinateType<ClassToCheck>, Get_AbsoluteCooType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
-  typename Get_CoordinateType<ClassToCheck>::type, Get_RepCooType);
+  Get_CoordinateType<ClassToCheck>, Get_RepCooType);
 
 //{
 //using namespace TraitHelpers;
 // These are what the rest of the code should be actually using:
 template<class LatP> using Has_ExposesCoos = mystd::bool_constant<
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
-  (!std::is_void<typename Get_CoordinateType<LatP>::type>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
+  (!std::is_void<Get_CoordinateType<LatP>>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
 
 template<class LatP> using Has_Coos_RW = mystd::bool_constant<
   T_Coos_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRep_RW<LatP>::value)>;
@@ -306,16 +306,16 @@ class GeneralLatticePoint
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
     public:
-    using ScalarProductStorageType = typename Get_ScalarProductStorageType<LatP>::type;
-    using ScalarProductStorageType_Full = typename Get_ScalarProductStorageType_Full<LatP>::type;
+    using ScalarProductStorageType      = Get_ScalarProductStorageType<LatP>;
+    using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<LatP>;
     // deprecated
-    using CooType = typename Get_CoordinateType<LatP>::type; //may be void
-    using CoordinateType = typename Get_CoordinateType<LatP>::type; //may be void
+    using CooType         = Get_CoordinateType<LatP>; //may be void
+    using CoordinateType  = Get_CoordinateType<LatP>; //may be void
 //    deprecated
-    using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
-    using AbsoluteCooType = typename Get_AbsoluteCooType<LatP>::type;
-    using RepCooType = typename Get_RepCooType<LatP>::type;
-    static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::type::value;
+    using AbsCooType      = Get_AbsoluteCooType<LatP>;
+    using AbsoluteCooType = Get_AbsoluteCooType<LatP>;
+    using RepCooType      = Get_RepCooType<LatP>;
+    static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::value;
     static_assert((Has_Approximations<LatP>::value == false) || (ApproxLevel>0 ),"Declares Approximations, but no level");
 
     private:
@@ -614,7 +614,7 @@ template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename Get_CoordinateType<LP>::type;
+  using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
@@ -633,7 +633,7 @@ template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename Get_CoordinateType<LP>::type;
+  using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
   for(uint_fast16_t i =0; i<dim; ++i)
@@ -687,7 +687,7 @@ template<> struct BitApproximation<-1>
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
   {
-    using ET = typename Get_CoordinateType<LatP>::type;
+    using ET = Get_CoordinateType<LatP>;
     using std::abs;
     ET max_coo = 0;
     auto dim = point.get_dim();
@@ -716,7 +716,7 @@ template<> struct BitApproximation<-1>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
   {
     boost::dynamic_bitset<> ret{64};
-    using ET = typename Get_CoordinateType<LatP>::type;
+    using ET = Get_CoordinateType<LatP>;
 
     return ret;
   }

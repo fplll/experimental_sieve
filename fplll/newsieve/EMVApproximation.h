@@ -438,7 +438,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 #ifdef DEBUG_SIEVE_LP_INIT
   assert(is_class_initialized() );
 #endif
-  using AbsoluteCooType = typename Get_AbsoluteCooType<LatticePoint>::type;
+  using AbsoluteCooType = Get_AbsoluteCooType<LatticePoint>;
   using std::abs;
 
   AbsoluteCooType max_entry = 0;
