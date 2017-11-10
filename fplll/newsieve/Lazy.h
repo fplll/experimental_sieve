@@ -171,7 +171,11 @@ struct ObjectWithApproximation
   template<unsigned int level>
   constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
   template<unsigned int level>
+  constexpr       ObjectAtLevel<level> const & get_value_at_level() const { return Helper<level>::get(*this); }
+  template<unsigned int level>
   CPP14CONSTEXPR  ObjectAtLevel<level>       & access()       { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  CPP14CONSTEXPR  ObjectAtLevel<level>       & get_value_at_level()       { return Helper<level>::get(*this); }
 
   constexpr      ExactType  const & access_exact()  const { return exact_object; }
   CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
@@ -333,6 +337,11 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   inline EvalType<level> eval()
   {
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
+  }
+  template<unsigned int level>
+  inline EvalType<level> get_value_at_level()
+  {
+    return eval<level>();
   }
 
   /*
@@ -693,7 +702,7 @@ class LazyWrapBothRV
 */
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
-class LazyWrapCR
+struct LazyWrapCR
 {
   public:
   static constexpr unsigned int ApproxLevel = maxlevel;
@@ -717,11 +726,19 @@ class LazyWrapCR
     static_assert(level<=maxlevel,"Cannot evaluate at this level");
     return combined_ref.template access<level>();
   }
+  template<unsigned int level>
+  inline EvalType<level> const & get_value_at_level() const
+  {
+    static_assert(level<=maxlevel,"Cannote evaluate at this level");
+    return combined_ref.template access<level>();
+  }
+
+
   CombinedObject const & combined_ref;
 };
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
-class LazyWrapRV
+struct LazyWrapRV
 {
   public:
   static constexpr unsigned int ApproxLevel = maxlevel;
@@ -740,6 +757,12 @@ class LazyWrapRV
   LazyWrapRV(CombinedObject &&) = delete;
   template<unsigned int level> inline EvalType<level> && eval()
   {
+    static_assert(level <= maxlevel,"Cannot evaluate at this level");
+    return std::move( combined_ref.template access<level>() );
+  }
+  template<unsigned int level> inline EvalType<level> && get_value_at_level()
+  {
+    static_assert(level <= maxlevel,"Cannot evaluate at this level");
     return std::move( combined_ref.template access<level>() );
   }
   CombinedObject & combined_ref;
