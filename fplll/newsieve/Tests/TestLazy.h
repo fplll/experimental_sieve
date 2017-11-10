@@ -118,7 +118,7 @@ bool test_lazy()
   IDNode1S lazy_id1_s_copy {lazy_id1_s};
   IDNode2S lazy_id2_s{ lazy_id1_s  };
   IDNode1S lazy_id3_s{ wrap_scalar };
-//  std::cout << "Compare:" << ( lazy_id1_s < lazy_id3_s ) << std::endl;
+  std::cout << "Compare:" << ( lazy_id2_s < lazy_id3_s ) << std::endl;
 
 
 

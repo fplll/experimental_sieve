@@ -317,8 +317,21 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 #endif
   }
 
+  // the functions below have both const and non-const versions, which are identical. This
+  // is required to propagate const-ness throgh the expression tree when evaluating.
+
   template<unsigned int level, std::size_t... iarg>
   inline EvalType<level> do_eval(MyIndexSeq<iarg...>)
+  {
+    static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
+#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
+    std::cout << "Calling function " << LazyFunction::fun_name() << " at level " << level << std::endl;
+#endif
+    return LazyFunction::template call<level>( std::get<iarg>(args).eval<level>()... );
+  }
+
+  template<unsigned int level, std::size_t... iarg>
+  inline EvalType<level> do_eval(MyIndexSeq<iarg...>) const
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -358,11 +371,17 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   {
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
+
   template<unsigned int level>
-  inline EvalType<level> get_value_at_level()
+  inline EvalType<level> eval() const
   {
-    return eval<level>();
+    return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
+
+  template<unsigned int level>
+  inline EvalType<level> get_value_at_level() { return eval<level>(); }
+  template<unsigned int level>
+  inline EvalType<level> get_value_at_level() const { return eval<level>(); }
 
   /*
   inline ExactEvalType eval_exact()
@@ -761,87 +780,130 @@ template<class ELP, class Approximation> class Lazy_Norm2
 
 }} //end namespaces
 
-// General conditions on LHS, RHS to perform the comparisons via eval_*:
-// Clearly, these definitions only make sense if we have approximations, so we require at least one
-// argument to have an positive ApproxLevel.
-// Also, we may NOT use the functions below to compare lattice points:
-// (we may use it on their norm2's)
-// Note that lattice_point_1 < lattice_point_2 is defined to compute
-// lattice_point_1.get_norm2_exact() < lattice_point_2.get_norm2_exact() in LatticePointConcept.h.
-//  In particular, comparing lattice points directly bypasses all approximations
-// (get_norm2_exact() goes to approximation-level 0). This is to ensure that the comparison function
-// on lattice points actually is an ordering, which approximation errors might violate.
-//
-// Comparing a lattice point with a non-lattice point should also not call the functions below.
-// (Indeed, it is completely unclear what this should be)
+/**
+  We compare objects which have a public typedef LeveledComparison set to std::true_type in the
+  following way:
+  - We assume that there exists a get_value_at_level<level> function that returns something
+    for which comparison is meaningful.
+  We compare them level by level, starting with the highest level that both objects have.
+  (As defined by ApproxLevelOf<Type>)
+  If any comparison turns out false, the result is false.
+  Note that A < B does not imply B > A in this manner.
+  This is useful if comparisons may sometimes turn out wrong. For efficiency, write comparisons such
+  that a *false* result occurs more often.
 
-// Be aware that these functions are inside namespace GaussSieve::LazyEval,
-// so they are only considered if at least one argument is in that namespace as well.
-// In particular, the "Disable this template for lattice points" is redundant.
+  Note:  If only one side of the comparison has LeveledComparison set, we only use the 0th level.
+  Note2: Lattice Points themselves are not supposed to set LeveledComparison to std::true_type
+         The reason is that we want LatticePoint1 < LatticePoint2 to compare exactly (by norm), in
+         order to ensure that this ordering is actually well-behaved. Such comparison might occur
+         for sorting lists. Use LatticePoint1.get_norm2() < LatticePoint2.get_norm2() and set
+         LeveledComparison for the return type of get_norm2() if you want to use leveled comparisons
+*/
+
+
 
 namespace GaussSieve{
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledComparison,std::true_type,Has_LeveledComparison);
 
-#define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
-      (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
-  &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))
+
+// clang-format off
+
+// LHSLeveled / RHSLeveled are shorthands for testing if LHS / RHS have LeveledComparsion set.
+
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledComparison,std::true_type,Has_LeveledComparison);
 #define LHSLeveled (Has_LeveledComparison<mystd::decay_t<LHS>>::value)
 #define RHSLeveled (Has_LeveledComparison<mystd::decay_t<RHS>>::value)
 
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && (!RHSLeveled))>
-CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
-{
-  return std::forward<LHS>(lhs).template get_value_at_level<0>() < std::forward<RHS>(rhs);
-}
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL((!LHSLeveled) && RHSLeveled)>
-CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
-{
-  return std::forward<LHS>(lhs) < std::forward<RHS>(rhs).template get_value_at_level<0>();
+/**
+  In order to avoid code duplication, we define a macro that is to be instantiated with
+  OP in { <, >, <=, >= }. helper_name is just a name of a dummy helper class that needs to be
+  different for each OP.
+*/
+
+#define DEFINE_DEFAULT_LEVELED_COMPARISON(OP, helper_name)                                        \
+                                                                                                  \
+/* Case 1: Only one the arguments has LeveledComparison set. We evaluate that at the 0th level    \
+           and compare with the other side */                                                     \
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && (!RHSLeveled))>                  \
+CPP14CONSTEXPR inline bool operator OP (LHS &&lhs, RHS &&rhs)                                     \
+{                                                                                                 \
+  return std::forward<LHS>(lhs).template get_value_at_level<0>() OP std::forward<RHS>(rhs);       \
+}                                                                                                 \
+/* Case 2: Like case 1, just the other argument */                                                \
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL((!LHSLeveled) && RHSLeveled)>                  \
+CPP14CONSTEXPR inline bool operator OP (LHS &&lhs, RHS &&rhs)                                     \
+{                                                                                                 \
+  return std::forward<LHS>(lhs) OP std::forward<RHS>(rhs).template get_value_at_level<0>();       \
+}                                                                                                 \
+                                                                                                  \
+/* Case 3: Both arguments have LeveledComparison set. In this case, we do a kind-of for loop over \
+           the levels, stating with the largest level. Now, observe that the level is a template  \
+           argument and hence needs to be known at compile time, so we can't use a for-loop.      \
+           Rather, we write it recursively via a compare_at_level<i> function (that may call a    \
+           compare_at_level<i-1> function to simulate the for loop. Since C++ does not allow to   \
+           partially specialize functions (such as our would-be compare_at_level<i>), we cannot   \
+           easily write the (special) base case for the 0th level (lacking C++17 constexpr if)    \
+           To work around that, we use a template helper *class* with a compare function, so      \
+           we use helper_name<i>::compare rather than compare_at_level<i>.                        \
+           The template arguments LHS, RHS are just forwarded through.                            \
+  NOTE: Regarding move semantics, we assume that std::move(lhs).access_at_level<i> may only       \
+        invalidate lhs at levels >=i. So in particular,                                           \
+        std::move(lhs).access_at_level<1>() followed by std::move(lhs).access_at_level<2>()       \
+        is valid.                                                                                 \
+                                                                                                  \
+namespace ComparisonHelper /* Save the environment! Dont pollute your namespaces! */              \
+{                                                                                                 \
+template<class LHS, class RHS, unsigned int level> struct helper_name                             \
+{                                                                                                 \
+  static_assert(level>0,""); /* specialization for level 0 below */                               \
+  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");                            \
+  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");                            \
+  helper_name() = delete;                                                                         \
+  static inline bool compare(LHS &&lhs, RHS &&rhs)                                                \
+  {                                                                                               \
+  /* note:  This uses std::forward (i.e. possibly std::move) twice. This is consistent with the   \
+            move semantics specification of Leveled objects. See remark above                  */ \
+  /* note2: The && short-circuits, so if the comparison at the current level is false, we don't   \
+            try the next one.                                                                  */ \
+    return (  std::forward<LHS>(lhs).template get_value_at_level<level>()                         \
+          OP  std::forward<RHS>(rhs).template get_value_at_level<level>() ) &&                    \
+            helper_name<LHS,RHS,level-1>::compare(std::forward<LHS>(lhs),std::forward<RHS>(rhs)); \
+  }                                                                                               \
+};                                                                                                \
+template<class LHS, class RHS> struct helper_name<LHS,RHS,0>                                      \
+{                                                                                                 \
+  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");                            \
+  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");                            \
+  helper_name() = delete;                                                                         \
+  CPP14CONSTEXPR static inline bool compare(LHS &&lhs, RHS &&rhs)                                 \
+  {                                                                                               \
+    return   std::forward<LHS>(lhs).template get_value_at_level<0>()                              \
+          OP std::forward<RHS>(rhs).template get_value_at_level<0>();                             \
+  }                                                                                               \
+};                                                                                                \
+} /* end of helper namespace */                                                                   \
+                                                                                                  \
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && RHSLeveled)>                     \
+CPP14CONSTEXPR inline bool operator OP (LHS &&lhs, RHS &&rhs)                                     \
+{                                                                                                 \
+  return ComparisonHelper::helper_name                                                            \
+  <                                                                                               \
+    LHS,RHS,                                                                                      \
+    /* std::max is not constexpr in C++11..., so we have to compute the max by ?: */              \
+    ApproxLevelOf<mystd::decay_t<LHS>>::value >= ApproxLevelOf<mystd::decay_t<RHS>>::value ?      \
+    ApproxLevelOf<mystd::decay_t<LHS>>::value : ApproxLevelOf<mystd::decay_t<RHS>>::value         \
+  >::compare(std::forward<LHS>(lhs), std::forward<RHS>(rhs));                                     \
 }
 
-namespace ComparisonHelper
-{
-template<class LHS, class RHS, unsigned int level> struct compare_less
-{
-  static_assert(level>0,"");
-  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");
-  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");
-  compare_less() = delete;
-  static inline bool compare(LHS &&lhs, RHS &&rhs)
-  {
-    std::cout << "Comparing at level " << level << std::endl;
-  // note: This uses std::forward (i.e. possibly std::move) twice. This is consistent with the
-  //       move semantics specification of Leveled objects.
-    return (  std::forward<LHS>(lhs).template get_value_at_level<level>()
-            < std::forward<RHS>(rhs).template get_value_at_level<level>() ) &&
-            compare_less<LHS,RHS,level-1>::compare(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
-  }
-};
-template<class LHS, class RHS> struct compare_less<LHS,RHS,0>
-{
-  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");
-  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");
-  compare_less() = delete;
-  CPP14CONSTEXPR static inline bool compare(LHS &&lhs, RHS &&rhs)
-  {
-    return   std::forward<LHS>(lhs).template get_value_at_level<0>()
-           < std::forward<RHS>(rhs).template get_value_at_level<0>();
-  }
-};
-} // end helper namespace
+DEFINE_DEFAULT_LEVELED_COMPARISON(<, helper_less)
+DEFINE_DEFAULT_LEVELED_COMPARISON(>, helper_greater)
+DEFINE_DEFAULT_LEVELED_COMPARISON(<=,helper_leq)
+DEFINE_DEFAULT_LEVELED_COMPARISON(>=,helper_geq)
 
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && RHSLeveled)>
-CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
-{
-  return ComparisonHelper::compare_less
-  <
-    LHS,RHS,
-    // std::max is not constexpr in C++11..., so we have to compute the max by ?:
-    ApproxLevelOf<mystd::decay_t<LHS>>::value >= ApproxLevelOf<mystd::decay_t<RHS>>::value ?
-    ApproxLevelOf<mystd::decay_t<LHS>>::value : ApproxLevelOf<mystd::decay_t<RHS>>::value
-  >::compare(std::forward<LHS>(lhs), std::forward<RHS>(rhs));
-}
+#undef DEFINE_DEFAULT_LEVELED_COMPARISON
+#undef LHSLeveled
+#undef RHSLeveled
 
+// clang-format on
 
 /**
 // general comparison for < : We bring down the arguments to the same approximation level,
@@ -870,7 +932,6 @@ inline bool operator< (LHS && lhs, RHS && rhs)
 
 }
 
-#undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
 #undef GAUSS_SIEVE_LAZY_FUN
 #undef CONSTEXPR_IN_NON_DEBUG_TC
 
