@@ -708,27 +708,28 @@ template<> struct BitApproximation<-1>
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
   {
-    using RelevantCoords = GaussSieve::RelevantCoordinates;
+    //using RelevantCoords = GaussSieve::RelevantCoordinates;
     using ET = Get_CoordinateType<LatP>;
     
-    //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix(point.get_dim());
-    //RelevantCoords matrix_of_rel_coo; //supposed to be initialized during the construction if Sieve
+    
     
     
     //std::cout << "rel_coo_matrix used: " <<std::endl;
-    //matrix_of_rel_coo.print();
+    //RelevantCoordinates::print();
     
-    //assert(false);
+    
     std::bitset<sim_hash_len> ret;
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
-      //ET res = point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,0));
-               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,1));
-               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,2)) -
-               //point.get_absolute_coo(matrix_of_rel_coo.get_ij_value(i,3));
-      //ret[i] = (res>=0) ? 1: 0;
+      ET res = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) -
+               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
+               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
+               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
+      //std::cout << "i = " << i << " res =" << res << " ";
+      ret[i] = (res>=0) ? 1: 0;
     }
     
+    //assert(false);
     return ret;
     
   }

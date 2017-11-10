@@ -7,7 +7,7 @@
 #define EXACT_LATTICE_POINT_H
 
 
-#define EXACT_LATTICE_POINT_HAS_BITAPPROX
+//#define EXACT_LATTICE_POINT_HAS_BITAPPROX
 //#define EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
 #define EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
 
@@ -73,7 +73,7 @@ public:
   Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
 */
 
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 class BitApproxScalarProduct
 {
 
@@ -107,7 +107,7 @@ class BitApproxScalarProduct
   //member
   BitApproxScalarProduct_WrappedType value;
 };
-#endif
+//#endif
 
 template <class ET, int nfixed>
 class ExactLatticePoint : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
@@ -170,6 +170,13 @@ public:
   bitapprox2_data(static_cast<size_t>(get_dim())),
   #endif
 #endif
+
+/*
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  fixed_bitapprox_data.set();
+#endif
+*/
+  
   data(static_cast<unsigned int>(get_dim()))
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
@@ -199,6 +206,11 @@ public:
   bitapprox2_data(static_cast<size_t>(get_dim())),
   #endif
 #endif
+/*
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  fixed_bitapprox_data.set(),
+#endif
+*/  
   data(std::move(plain_point.data))
   {
     sanitize();
@@ -238,6 +250,11 @@ public:
     bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
     #endif
 #endif
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    fixed_bitapprox_data = BitApproximation<-1>::compute_fixed_bitapproximation(*this);
+#endif
+    
   }
 
   ET get_norm2() const { return norm2; }
@@ -250,7 +267,7 @@ public:
   #endif
 #endif
 
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
 #endif
 
@@ -296,7 +313,6 @@ private:
   
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   BitApproxContainerFixed fixed_bitapprox_data;
-  static GaussSieve::RelevantCoordinates & matrix;
 #endif
   
   Container data;
@@ -335,6 +351,8 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
 template <class ET, int nfixed>
 inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const &another) const
 {
+  //std::cout << "sim-hash1 = " << this->fixed_bitapprox_data << std::endl;
+  //std::cout << "sim-hash1 = " << another.fixed_bitapprox_data << std::endl;
     return BitApproxScalarProduct {static_cast<size_t>(sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
 }
   
@@ -384,7 +402,7 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   if (include_approx)
   {
-    os<< "sim-hash = [ ";
+    os<< "Sim-Hash = [ ";
     for (uint_fast16_t i=0; i<sim_hash_len; i++) {
       os << fixed_bitapprox_data[i] << " ";
     }
@@ -407,6 +425,8 @@ template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
 
+
+
 // Static Initializer:
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
   : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
@@ -417,8 +437,9 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
-  StaticInitializer(MaybeFixed<nfixed> const new_dim)
+  StaticInitializer(MaybeFixed<nfixed> const new_dim):  init_relevant_coo_matrix(new_dim)
   {
+    
     assert(Parent::user_count > 0);
     if(Parent::user_count>1)
     {
@@ -428,6 +449,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
     else
     {
       ExactLatticePoint<ET,nfixed>::dim = new_dim;
+      
     }
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed = " << nfixed << " REALDIM = " << new_dim << " Counter is" << Parent::user_count )
   }
@@ -435,6 +457,8 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
+  
+  GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
 };
 
 }  // end of namespace

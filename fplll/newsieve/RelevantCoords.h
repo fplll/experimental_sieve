@@ -59,7 +59,7 @@ class RelevantCoordinates;
 
   
   uint_fast16_t constexpr  sim_hash_len = 128;
-  uint_fast16_t constexpr  num_of_coord = 2;
+  uint_fast16_t constexpr  num_of_coord = 4;
 
 //TODO: REPLACE rand() by a proper rand
 //template<int nfixed>
@@ -68,7 +68,7 @@ class RelevantCoordinates
   friend StaticInitializer<RelevantCoordinates>;
   
 public:
-  RelevantCoordinates(){}; //The matrix is constructed inside StaticInitializer
+  RelevantCoordinates() = delete; 
 
   RelevantCoordinates(RelevantCoordinates const &) = delete;
   RelevantCoordinates(RelevantCoordinates &&obj)   = delete;
@@ -80,12 +80,12 @@ public:
 
 public:
   // for 0<=i<sim_hash_len; 0<=j<num_of_coord
-  uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
+  static uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
   {
     return (rel_coo[i][j]);
   }
   
-  void print()
+  static void print()
   {
     std::cout << "relevant matrix is: " << std::endl;
     //for (uint_fast16_t i=0; i<sim_hash_len; i++)
@@ -108,7 +108,9 @@ std::array<uint_fast16_t,num_of_coord> RelevantCoordinates::rel_coo[sim_hash_len
 
 
 // Static Initializer:
-template<> class StaticInitializer<class RelevantCoordinates>
+//template<int nxfixed>
+template<>
+class StaticInitializer<class RelevantCoordinates>
 : public DefaultStaticInitializer<RelevantCoordinates>
 {
   using Parent = DefaultStaticInitializer<RelevantCoordinates>;
@@ -122,16 +124,17 @@ public:
     assert(Parent::user_count > 0);
     if(Parent::user_count>1)
     {
-      assert(false);
+      //assert(false);
     }
     else
     {
       for (uint_fast16_t i=0; i<sim_hash_len; ++i)
       {
+        //RelevantCoordinates::rel_coo[i][0] = rand() % nxfixed;
         RelevantCoordinates::rel_coo[i][0] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][1] = rand() % abmient_dimension;
-        //RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
-        //RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
+        RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
+        RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
       }
 
     }
