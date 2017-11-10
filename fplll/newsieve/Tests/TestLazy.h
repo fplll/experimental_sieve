@@ -105,11 +105,20 @@ bool test_lazy()
 
   std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
 
+
   using IDNode1 = SieveLazyEval<IdentityFunVector,LazyWrapV2>;
   using IDNode2 = SieveLazyEval<IdentityFunVector,IDNode1>;
   IDNode1 lazy_id1{ std::move(wrap_vector_m1) };
   IDNode2 lazy_id2{ std::move(lazy_id1) };
   std::cout << "Lazy Eval:" << lazy_id2.eval<0>() << lazy_id2.eval<1>() << std::endl;
+
+  using IDNode1S = SieveLazyEval<IdentityFunScalar, LazyWrapS>;
+  using IDNode2S = SieveLazyEval<IdentityFunScalar, IDNode1S>;
+  IDNode1S lazy_id1_s{ wrap_scalar };
+  IDNode1S lazy_id1_s_copy {lazy_id1_s};
+  IDNode2S lazy_id2_s{ lazy_id1_s  };
+  IDNode1S lazy_id3_s{ wrap_scalar };
+//  std::cout << "Compare:" << ( lazy_id1_s < lazy_id3_s ) << std::endl;
 
 
 

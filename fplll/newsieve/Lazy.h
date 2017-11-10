@@ -123,7 +123,6 @@ class ObjectWithApproximationHelper<1,ExactClass,ApproximationClass>
   (as far as meaningful)
 */
 
-
 template<class ExactClass, class ApproximationClass>
 struct ObjectWithApproximation
 {
@@ -133,6 +132,7 @@ struct ObjectWithApproximation
   using ExactType = ExactClass;
   using ApproxType= ApproximationClass;
   public:
+  using LeveledComparison = std::true_type;
   template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
   ExactType  exact_object;
   ApproxType approx_object;
@@ -235,6 +235,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
   static_assert(mystd::conjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
+  static_assert(mystd::conjunction< std::is_same<Args,mystd::decay_t<Args>>...>::value,"Args are of wrong type");
 
   public:
   // cv-unqualified return types of eval_*
@@ -244,6 +245,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // tags used for various static_assert's and template overload selection:
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::false_type; // not a leaf of the expression tree.
+  using LeveledComparison = std::true_type;
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
@@ -277,8 +279,26 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // (at least for nargs > 0)
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
 
-  template<class... FunArgs>
-  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs&&... fun_args)
+// Main Constructor: This takes a list of arguments and constructs a new lazy evaluation object
+// that wraps calling function LazyFunction on those arguments.
+
+  template<class... FunArgs, TEMPL_RESTRICT_DECL(
+  // There is a problem with clashing with the copy / move - constructors:
+  // SieveLazyEval mave have automatically generated copy / move constructors, depending on whether
+  // the std::tuple args is copyable/moveable, which depends on the types of Args...
+  // This is as it should be.
+  //
+  // However, note that the (possibly default) copy constructors has signature
+  // SieveLazyEval(SieveLazyEval const &).
+  // The variadic template also contains (for FunArgs == SieveLazyEval &) a constructor with
+  // signature SieveLazyEval(SieveLazyEval &). Now if we copy from a non-const object, the
+  // variadic template is a better match.
+  // Of course, this does not work (and the static_assert's will fire).
+  // Hence, we deactivate this constructor for that case.
+  !( (sizeof...(Args)==1) &&
+     (mystd::conjunction< std::is_same<mystd::decay_t<FunArgs>,SieveLazyEval>...>::value  )
+  ))>
+  CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs &&... fun_args)
     : args(std::forward<FunArgs>(fun_args)...)
   {
     // Args and FunArgs must be the same (up to const and reference-ness)
@@ -555,149 +575,6 @@ inline bool operator != (LHS && lhs, RHS && rhs)
 
 
 /**
-  Exact object, Const-Ref
-*/
-
-/*
-template<class ExactType, class ApproxType>
-class LazyWrapExactCR
-{
-  public:
-  using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::true_type;
-  using ExactEvalType = ExactType;
-  using ApproxEvalType = ApproxType;
-  using EvalOnce = std::false_type;
-  constexpr static bool EvalOnce_v = false;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactCR(ExactType const &init_exact) : exact_value(init_exact)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for exact values." << std::endl;
-#endif
-  };
-  LazyWrapExactCR(ExactType const &&) = delete;
-
-  inline constexpr ExactType const & eval_exact()  const { return exact_value; }
-  inline CONSTEXPR_IN_NON_DEBUG_TC ApproxType eval_approx() const
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
-    std::cout << "Computing approximation inside wrapper, as requested" << std::endl;
-#endif
-    return static_cast<ApproxType>(exact_value);
-  }
-
-  ExactType const & exact_value;
-};
-*/
-
-/**
-  Exact object, delayed-move
-*/
-
-/*
-template<class ExactType, class ApproxType>
-class LazyWrapExactRV
-{
-  public:
-  using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::true_type;
-  using ExactEvalType = ExactType; // Note that we actually return a rvalue-ref!
-  using ApproxEvalType= ApproxType;
-  using EvalOnce = std::true_type;
-  constexpr static bool EvalOnce_v = true;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapExactRV(ExactType & init_exact) : exact_value(init_exact)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for exact values, move version" << std::endl;
-#endif
-  }
-  LazyWrapExactRV(ExactType const &&) = delete;
-
-  inline ExactType && eval_exact() { return std::move(exact_value); }
-  inline ApproxType eval_approx() const
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_APPROX
-    std::cout << "Computing approximation inside wrapper, as requested (move version)" << std::endl;
-    return static_cast<ApproxType>(exact_value);
-#endif
-  }
-  ExactType & exact_value;
-};
-*/
-
-/**
-  Both Exact and Approximate Object in separate classes, Const-Ref passing.
-*/
-
-/*
-template<class ExactType, class ApproxType>
-class LazyWrapBothCR
-{
-  public:
-  using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::true_type;
-  using ExactEvalType = ExactType;
-  using ApproxEvalType = ApproxType;
-  using EvalOnce = std::false_type;
-  constexpr static bool EvalOnce_v = false;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothCR(ExactType const &init_exact, ApproxType const &init_approx)
-    :exact_value(init_exact),approx_value(init_approx)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for exact value, precomputed approximation" << std::endl;
-#endif
-  }
-  LazyWrapBothCR(ExactType const &&,ApproxType const &) = delete;
-  LazyWrapBothCR(ExactType const &, ApproxType const &&)= delete;
-  LazyWrapBothCR(ExactType const &&,ApproxType const &&)= delete;
-
-  inline ExactType  const & eval_exact() const { return exact_value; }
-  inline ApproxType const & eval_approx() const { return approx_value; }
-
-  ExactType const & exact_value;
-  ApproxType const & approx_value;
-};
-*/
-
-
-/**
-  Both Exact and Approximate Object in separate classes, Delayed-Move
-*/
-
-/*
-template<class ExactType, class ApproxType>
-class LazyWrapBothRV
-{
-  public:
-  using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::true_type;
-  using ExactEvalType = ExactType;
-  using ApproxEvalType = ApproxType;
-  using EvalOnce = std::true_type;
-  constexpr static bool EvalOnce_v = true;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapBothRV(ExactType &init_exact,ApproxType &init_approx)
-    :exact_value(init_exact), approx_value(init_approx)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for exact value, precomputed approximation, MOVE" << std::endl;
-#endif
-  }
-  LazyWrapBothRV(ExactType const &&, ApproxType const &&) = delete;
-  LazyWrapBothRV(ExactType const &,  ApproxType const &&) = delete;
-  LazyWrapBothRV(ExactType const &&, ApproxType const &)  = delete;
-
-  inline ExactType&&  eval_exact()  { return std::move(exact_value); }
-  inline ApproxType&& eval_approx() { return std::move(approx_value); }
-  ExactType & exact_value;
-  ApproxType & approx_value;
-};
-*/
-
-/**
   Wrap combined class, Const-Ref
 */
 
@@ -712,6 +589,7 @@ struct LazyWrapCR
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::true_type;
   using EvalOnce   = std::false_type;
+  using LeveledComparison = std::true_type;
   static constexpr bool EvalOnce_v = false;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCR(CombinedObject const &init_combined):combined_ref(init_combined)
   {
@@ -747,6 +625,7 @@ struct LazyWrapRV
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::true_type;
   using EvalOnce   = std::true_type;
+  using LeveledComparison = std::true_type;
   static constexpr bool EvalOnce_v = true;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapRV(CombinedObject &init_combined):combined_ref(init_combined)
   {
@@ -768,66 +647,6 @@ struct LazyWrapRV
   CombinedObject & combined_ref;
 };
 
-/*
-template<class CombinedType>
-class LazyWrapCombinedCR
-{
-  public:
-  using ExactType = typename CombinedType::ExactType;
-  using ApproxType= typename CombinedType::ApproxType;
-  using IsLazyNode= std::true_type;
-  using IsLazyLeaf= std::true_type;
-  using ExactEvalType = ExactType;
-  using ApproxEvalType= ApproxType;
-  using EvalOnce = std::false_type;
-  constexpr static bool EvalOnce_v = false;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedCR(CombinedType const &init_combined):combined_value(init_combined)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creating Lazy Wrapper for combined value." << std::endl;
-#endif
-  }
-  LazyWrapCombinedCR(CombinedType const &&init_combined) = delete;
-
-  inline ExactType  const & eval_exact()  const { return combined_value.access_exact(); }
-  inline ApproxType const & eval_approx() const { return combined_value.access_approx(); }
-
-  CombinedType const & combined_value;
-};
-
-*/
-
-/**
-  Wrap combined class, Delayed-Move
-*/
-
-/*
-template<class CombinedType>
-class LazyWrapCombinedRV
-{
-  public:
-  using ExactType = typename CombinedType::ExactType;
-  using ApproxType= typename CombinedType::ApproxType;
-  using IsLazyNode = std::true_type;
-  using IsLazyLeaf = std::true_type;
-  using ExactEvalType  = ExactType;
-  using ApproxEvalType = ApproxType;
-  using EvalOnce = std::true_type;
-  constexpr static bool EvalOnce_v = true;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ExactType>::value + 1;
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCombinedRV(CombinedType &init_combined) : combined_value(init_combined)
-  {
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-    std::cout << "Creaye Lazy Wrapper for combined value, MOVE version." << std::endl;
-#endif
-  }
-  LazyWrapCombinedRV(CombinedType const &&) = delete;
-  inline ExactType  && eval_exact()  { return std::move(combined_value.access_exact()); }
-  inline ApproxType && eval_approx() { return std::move(combined_value.access_approx()); }
-  CombinedType & combined_value;
-};
-*/
 
 /**
   Layz_F functions.
@@ -856,6 +675,7 @@ class LazyWrapCombinedRV
 #define GAUSS_SIEVE_LAZY_FUN(nargs_,namestring)                             \
   constexpr static unsigned int nargs = (nargs_);                           \
   using IsLazyFunction = std::true_type;                                    \
+  using LeveledComparison  = std::true_type;                                    \
   static std::string fun_name() {return namestring ;}
 
 template<class CombinedType>
@@ -871,7 +691,7 @@ class Lazy_Identity
     mystd::bool_constant<level<=ApproxLevel>,
     std::is_same<EvalType<level>, mystd::decay_t<Arg>>
     )>
-  inline static Arg && call(Arg &&arg) { return std::forward<Arg>(arg); }
+  inline static Arg call(Arg &&arg) { return std::forward<Arg>(arg); }
 
   /*
   template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ExactEvalType,mystd::decay_t<Arg>>)>
@@ -941,6 +761,116 @@ template<class ELP, class Approximation> class Lazy_Norm2
 
 }} //end namespaces
 
+// General conditions on LHS, RHS to perform the comparisons via eval_*:
+// Clearly, these definitions only make sense if we have approximations, so we require at least one
+// argument to have an positive ApproxLevel.
+// Also, we may NOT use the functions below to compare lattice points:
+// (we may use it on their norm2's)
+// Note that lattice_point_1 < lattice_point_2 is defined to compute
+// lattice_point_1.get_norm2_exact() < lattice_point_2.get_norm2_exact() in LatticePointConcept.h.
+//  In particular, comparing lattice points directly bypasses all approximations
+// (get_norm2_exact() goes to approximation-level 0). This is to ensure that the comparison function
+// on lattice points actually is an ordering, which approximation errors might violate.
+//
+// Comparing a lattice point with a non-lattice point should also not call the functions below.
+// (Indeed, it is completely unclear what this should be)
+
+// Be aware that these functions are inside namespace GaussSieve::LazyEval,
+// so they are only considered if at least one argument is in that namespace as well.
+// In particular, the "Disable this template for lattice points" is redundant.
+
+namespace GaussSieve{
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledComparison,std::true_type,Has_LeveledComparison);
+
+#define SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS                                  \
+      (MyNOR<IsALatticePoint<LHS>,IsALatticePoint<RHS>>::value                   \
+  &&  ((ApproxLevelOf<LHS>::value > 0) || (ApproxLevelOf<RHS>::value >0)))
+#define LHSLeveled (Has_LeveledComparison<mystd::decay_t<LHS>>::value)
+#define RHSLeveled (Has_LeveledComparison<mystd::decay_t<RHS>>::value)
+
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && (!RHSLeveled))>
+CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
+{
+  return std::forward<LHS>(lhs).template get_value_at_level<0>() < std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL((!LHSLeveled) && RHSLeveled)>
+CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
+{
+  return std::forward<LHS>(lhs) < std::forward<RHS>(rhs).template get_value_at_level<0>();
+}
+
+namespace ComparisonHelper
+{
+template<class LHS, class RHS, unsigned int level> struct compare_less
+{
+  static_assert(level>0,"");
+  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");
+  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");
+  compare_less() = delete;
+  static inline bool compare(LHS &&lhs, RHS &&rhs)
+  {
+    std::cout << "Comparing at level " << level << std::endl;
+  // note: This uses std::forward (i.e. possibly std::move) twice. This is consistent with the
+  //       move semantics specification of Leveled objects.
+    return (  std::forward<LHS>(lhs).template get_value_at_level<level>()
+            < std::forward<RHS>(rhs).template get_value_at_level<level>() ) &&
+            compare_less<LHS,RHS,level-1>::compare(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+  }
+};
+template<class LHS, class RHS> struct compare_less<LHS,RHS,0>
+{
+  static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");
+  static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");
+  compare_less() = delete;
+  CPP14CONSTEXPR static inline bool compare(LHS &&lhs, RHS &&rhs)
+  {
+    return   std::forward<LHS>(lhs).template get_value_at_level<0>()
+           < std::forward<RHS>(rhs).template get_value_at_level<0>();
+  }
+};
+} // end helper namespace
+
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL(LHSLeveled && RHSLeveled)>
+CPP14CONSTEXPR inline bool operator< (LHS &&lhs, RHS &&rhs)
+{
+  return ComparisonHelper::compare_less
+  <
+    LHS,RHS,
+    // std::max is not constexpr in C++11..., so we have to compute the max by ?:
+    ApproxLevelOf<mystd::decay_t<LHS>>::value >= ApproxLevelOf<mystd::decay_t<RHS>>::value ?
+    ApproxLevelOf<mystd::decay_t<LHS>>::value : ApproxLevelOf<mystd::decay_t<RHS>>::value
+  >::compare(std::forward<LHS>(lhs), std::forward<RHS>(rhs));
+}
+
+
+/**
+// general comparison for < : We bring down the arguments to the same approximation level,
+// then we compare approximately. If that results in true, we actually do an exact check as well.
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs).eval_exact() < std::forward<RHS>(rhs);
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+  return std::forward<LHS>(lhs) < std::forward<RHS>(rhs).eval_exact();
+}
+template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
+  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
+inline bool operator< (LHS && lhs, RHS && rhs)
+{
+// Note that C++ short-circuits && (unless someone overloads && for the return type of <)
+  return (std::forward<LHS>(lhs).eval_approx() < std::forward<RHS>(rhs).eval_approx() )
+      && (std::forward<LHS>(lhs).eval_exact()  < std::forward<RHS>(rhs).eval_exact()  );
+}
+*/
+
+}
+
+#undef SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
 #undef GAUSS_SIEVE_LAZY_FUN
 #undef CONSTEXPR_IN_NON_DEBUG_TC
 
