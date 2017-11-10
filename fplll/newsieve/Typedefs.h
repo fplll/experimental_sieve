@@ -36,7 +36,7 @@ double constexpr list_size_k2 = 0.2075187494;
 double constexpr list_size_k3 = 0.1887218757;
 //double constexpr list_size_k3 = 0.195;
 double constexpr list_size_k4 = 0.1723692862;
-  
+
 
 
 
@@ -123,7 +123,7 @@ class DefaultSieveTraits
 
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
-  using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
+  //using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
 
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
   //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;

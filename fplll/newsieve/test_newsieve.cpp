@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 
 //    using Traits = GaussSieve::DefaultSieveTraits<long, false, -1>;
     //using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
-    using Traits = GaussSieve::DefaultSieveTraits<long, false, -1, ZZ_mat< mpz_t > >;
+    using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, ZZ_mat< mpz_t > >;
 
 
 
