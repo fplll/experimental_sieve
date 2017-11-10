@@ -157,7 +157,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     if(howverb>=1)
     {
-      of << "SIM-HASH HNo reduction: ";
+      of << "SIM-HASH No reduction: ";
       for (unsigned int i=0; i!=no_red_stat_sim_hash.size(); ++i) of <<no_red_stat_sim_hash[i] << " ";
       of << endl;
       of << "SIM-HASH Reduction: ";
@@ -332,9 +332,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 
     std::cout << "sampler is initialized " << std::endl << std::flush;
   
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix(ambient_dimension);
-    GaussSieve::RelevantCoordinates matrix_of_rel_coo;
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED 
     red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
     no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
   #endif
