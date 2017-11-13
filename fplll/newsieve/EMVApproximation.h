@@ -54,9 +54,6 @@ class EMVScalar
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
-  // unary-
-  // For some reason, this does not compile as member functions:
-  // I can turn each variant into a member function individually, but it complains about overloading
   EMVScalar operator-() const & { return EMVScalar(exponent,-mantissa); }
   EMVScalar operator-() &&      { mantissa=-mantissa; return *this;  }
 
@@ -65,13 +62,17 @@ class EMVScalar
   inline void operator>>=(Integer const &shift) { exponent-=shift; }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline void operator<<=(Integer const &shift) { exponent+=shift; }
-  inline void do_abs()
+
+  inline friend EMVScalar abs(EMVScalar const &arg)
   {
     using std::abs;
-    mantissa=abs(mantissa);
+    return EMVScalar {arg.exponent,abs(arg.mantissa)  };
   }
-  inline friend EMVScalar abs(EMVScalar const &arg) { EMVScalar tmp(arg); tmp.do_abs(); return tmp;  }
-  inline friend EMVScalar abs(EMVScalar &&arg) { arg.do_abs(); return arg; }
+  inline friend EMVScalar abs(EMVScalar &&arg)
+  {
+    using std::abs; arg.mantissa=abs(arg.mantissa);
+    return arg;
+  }
 
 
   // helper functions: included as static functions tied to the class:
