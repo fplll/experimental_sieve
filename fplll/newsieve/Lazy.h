@@ -347,7 +347,8 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
     static_assert(mystd::conjunction< std::is_same<Args,mystd::decay_t<FunArgs>>...>::value,"Wrong type of arguments to constructor.");
 
-    // If Args_i::EvalOnce is set, then fun_args_i must be passed via rvalue-reference (enforcing move!).
+    // If Args_i::EvalOnce is set, then fun_args_i must be passed via rvalue-reference
+    // to the constructor of SieveLazyEval (possibly by explicit std::move).
     // If fun_args_i is passed via rvalue-ref, then (via the way forwarding reference capture works)
     // FunArgs_i itself is a non-refence type.
     // This means that we must have (FunArgs_i is non reference || Args_i::EvalOnce_v == false) for each i
@@ -360,10 +361,14 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
 
   // the functions below have both const and non-const versions, which are identical. This
-  // is required to propagate const-ness throgh the expression tree when evaluating.
+  // is required to propagate const-ness through the expression tree when evaluating.
+
+  // do_eval is a helper function, whose sole purpose is to introduce a unnamed (dummy) variable,
+  // whose template parameters iarg_0, iarg_1,... can be used to un-tuple args.
+  // The parameter itself is then removed via inlining.
 
   template<unsigned int level, std::size_t... iarg>
-  inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>)
+  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>)
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -373,7 +378,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
 
   template<unsigned int level, std::size_t... iarg>
-  inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>) const
+  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>) const
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
