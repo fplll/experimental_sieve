@@ -33,23 +33,22 @@
   (This is in stark contrast to the way e.g. libgmp implements expression templates.)
 */
 
+/**
+  This file also specifies the notion of leveled objects. These are objects that have several
+  "levels", intended to be used for approximations. An object with two levels encapsulates a
+  level-0 object and a level-1 object. For us, the level-0 object is an exact value (of e.g. a
+  lattice point) and the level-1 object an approximation. Higher levels would correspond to coarser
+  approximations. Such levels are closely tied to lazy evaluation, because the whole point of lazy
+  evaluation is that computations on higher levels are faster than on lower levels and may often
+  make the lower-level computations unneccessary.
+  In particular, comparison operations on lazy objects first compute everthing on higher levels
+  and if that result is false, the whole result is considered false (without even touching the
+  lower levels).
+*/
+
 
 namespace GaussSieve{
 namespace LazyEval{     // sub-namespace to inject free functions like abs
-
-
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
-
-// If DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS is set, we perform some debug output.
-// As a consequence, some functions have side-effects (notably, output) and are no longer constexpr.
-
-#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
-  #define CONSTEXPR_IN_NON_DEBUG_TC
-#else
-  #define CONSTEXPR_IN_NON_DEBUG_TC constexpr
-#endif
-
-// ---------------
 
 // forward declarations:
 template<class LazyFunction, class... Args> class SieveLazyEval;
@@ -59,8 +58,129 @@ namespace Helpers
 template<unsigned int level, class ExactClass, class Approximation> class ObjectWithApproximationHelper;
 }
 
+// If DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS is set, we perform some debug output.
+// As a consequence, some functions have side-effects (notably, output) and are no longer constexpr.
+// This #define is local (i.e. #undef'd at the end of the file).
+
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+  #define CONSTEXPR_IN_NON_DEBUG_TC
+#else
+  #define CONSTEXPR_IN_NON_DEBUG_TC constexpr
+#endif
+
 /**
-  Helper class for the class immediately below:
+  Leveled Objects:
+
+  A leveled object has to declare the following members / typedefs:
+
+  - using LeveledObject = std::true_type  for trait detection. Use Has_LeveledObject<Obj> to query.
+
+  - static constexpr unsigned int ApproxLevel to denote the maximal level.
+
+  - a template ObjectAtLevel<level> to denote the (std::decay'ed) object encapsulated at the desired
+    level. This specifies (up to const- and reference- ness the return types of the functions below)
+
+  - using LeveledObject_Base = std::true_type / false_type.
+    Query with Has_LeveledObject_Base<Obj>;
+    Denotes whether this is a "base" object. Base objects have access<level> - members and
+    are *not* Lazy Objects.
+    (Currently, every object is either base or lazy -- this is just to make sure )
+
+  - using LeveledComparison = std::true_type / false_type.
+    This controls whether comparison operators work by comparing level-by-level, starting with the
+    highest. As soon as any level compares false, the result is false.
+
+  template member functions
+  - get_value_at_level<level> : These may return values or (typically const) references to the objects.
+
+  - access<level> : Returns reference / const-reference (depending of const-ness of the this pointer)
+                  This is only defined for base objects.
+*/
+
+
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject, std::true_type, Has_LeveledObject);
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject_Base, std::true_type, Has_LeveledObject_Base);
+
+
+// ---------------
+
+/**
+  Example Leveled Object:
+  This class defines an interface for objects that store an exact value and an approximation.
+  This class itself is only used for testing.
+*/
+
+template<class ExactClass, class ApproximationClass>
+struct ObjectWithApproximation
+{
+  private:
+  // helper classes defined below
+  template<unsigned int level> using  Helper = Helpers::ObjectWithApproximationHelper<level,ExactClass, ApproximationClass>;
+  template<unsigned int level, class ExactClass2, class ApproximationClass2> friend class Helpers::ObjectWithApproximationHelper;
+
+  // TODO: Rename things and remove these typedefs.
+  using ExactType = ExactClass;
+  using ApproxType= ApproximationClass;
+  public:
+  using LeveledComparison = std::true_type;
+  using LeveledObject     = std::true_type;
+  using LeveledObject_Base= std::true_type;
+  template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
+  ExactType  exact_object;
+  ApproxType approx_object;
+  static_assert(std::is_same<ExactType, ObjectAtLevel<0>>::value,"");
+  static_assert(std::is_same<ApproxType,ObjectAtLevel<1>>::value,"");
+
+  static constexpr unsigned int ApproxLevel = 1;
+
+  // This would cause ambiguous overloads.
+  static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
+
+  constexpr      explicit ObjectWithApproximation(ExactType const& exact,ApproxType const &approx)
+    :exact_object(exact),approx_object(approx){}
+  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType     && exact,ApproxType const &approx)
+    :exact_object(std::move(exact)),approx_object(approx){}
+  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType const& exact,ApproxType      &&approx)
+    :exact_object(exact),approx_object(std::move(approx)){}
+  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType     && exact,ApproxType      &&approx)
+    :exact_object(std::move(exact)),approx_object(std::move(approx)){}
+  constexpr      explicit ObjectWithApproximation(ExactType const &exact)
+    :exact_object(exact), approx_object(exact) {}
+  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType && exact)
+    :exact_object(std::move(exact)), approx_object(exact_object) {}
+  constexpr      explicit operator ExactType()  const & { return exact_object;}
+  CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_object);}
+  constexpr      explicit operator ApproxType() const & { return approx_object;}
+  CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_object);}
+
+  template<unsigned int level>
+  constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  constexpr       ObjectAtLevel<level> const & get_value_at_level() const { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  CPP14CONSTEXPR  ObjectAtLevel<level>       & access()       { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  CPP14CONSTEXPR  ObjectAtLevel<level>       & get_value_at_level()       { return Helper<level>::get(*this); }
+
+  // TODO: Remove
+  constexpr      ExactType  const & access_exact()  const { return exact_object; }
+  CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
+  constexpr      ApproxType const & access_approx() const { return approx_object; }
+  CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_object; }
+
+  template<class Arg, TEMPL_RESTRICT_DECL(ApproxLevelOf<Arg>::value > ApproxLevel)>
+  CPP14CONSTEXPR explicit ObjectWithApproximation(Arg &&arg)
+    :ObjectWithApproximation( std::forward<Arg>(arg).eval_exact() ) {}
+  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
+  constexpr explicit operator Arg() const & { return static_cast<Arg>(exact_object); }
+  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
+  CPP14CONSTEXPR explicit operator Arg() && { return static_cast<Arg>(std::move(exact_object)); }
+
+};
+
+/**
+  Helper class for the class above:
 
   Since C++ does not allow to partially specialize template functions, we cannot directly write a
   get<level>() function to get the object at a certain level.
@@ -104,72 +224,6 @@ class ObjectWithApproximationHelper<1,ExactClass,ApproximationClass>
 };
 } // end of Helpers namespace
 
-/**
-  This class defines an interface for objects that store an exact value and an approximation.
-  This class itself is only used for testing.
-*/
-
-template<class ExactClass, class ApproximationClass>
-struct ObjectWithApproximation
-{
-  private:
-  template<unsigned int level> using  Helper = Helpers::ObjectWithApproximationHelper<level,ExactClass, ApproximationClass>;
-  template<unsigned int level, class ExactClass2, class ApproximationClass2> friend class Helpers::ObjectWithApproximationHelper;
-  using ExactType = ExactClass;
-  using ApproxType= ApproximationClass;
-  public:
-  using LeveledComparison = std::true_type;
-  template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
-  ExactType  exact_object;
-  ApproxType approx_object;
-  static_assert(std::is_same<ExactType, ObjectAtLevel<0>>::value,"");
-  static_assert(std::is_same<ApproxType,ObjectAtLevel<1>>::value,"");
-
-  static constexpr unsigned int ApproxLevel = 1;
-
-  // This would cause ambiguous overloads.
-  static_assert(!(std::is_same<ExactType,ApproxType>::value),"Can not approximate by itself currently");
-
-  constexpr      explicit ObjectWithApproximation(ExactType const& exact,ApproxType const &approx)
-    :exact_object(exact),approx_object(approx){}
-  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType     && exact,ApproxType const &approx)
-    :exact_object(std::move(exact)),approx_object(approx){}
-  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType const& exact,ApproxType      &&approx)
-    :exact_object(exact),approx_object(std::move(approx)){}
-  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType     && exact,ApproxType      &&approx)
-    :exact_object(std::move(exact)),approx_object(std::move(approx)){}
-  constexpr      explicit ObjectWithApproximation(ExactType const &exact)
-    :exact_object(exact), approx_object(exact) {}
-  CPP14CONSTEXPR explicit ObjectWithApproximation(ExactType && exact)
-    :exact_object(std::move(exact)), approx_object(exact_object) {}
-  constexpr      explicit operator ExactType()  const & { return exact_object;}
-  CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_object);}
-  constexpr      explicit operator ApproxType() const & { return approx_object;}
-  CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_object);}
-
-  template<unsigned int level>
-  constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
-  template<unsigned int level>
-  constexpr       ObjectAtLevel<level> const & get_value_at_level() const { return Helper<level>::get(*this); }
-  template<unsigned int level>
-  CPP14CONSTEXPR  ObjectAtLevel<level>       & access()       { return Helper<level>::get(*this); }
-  template<unsigned int level>
-  CPP14CONSTEXPR  ObjectAtLevel<level>       & get_value_at_level()       { return Helper<level>::get(*this); }
-
-  constexpr      ExactType  const & access_exact()  const { return exact_object; }
-  CPP14CONSTEXPR ExactType        & access_exact()        { return exact_object; }
-  constexpr      ApproxType const & access_approx() const { return approx_object; }
-  CPP14CONSTEXPR ApproxType       & access_approx()       { return approx_object; }
-
-  template<class Arg, TEMPL_RESTRICT_DECL(ApproxLevelOf<Arg>::value > ApproxLevel)>
-  CPP14CONSTEXPR explicit ObjectWithApproximation(Arg &&arg)
-    :ObjectWithApproximation( std::forward<Arg>(arg).eval_exact() ) {}
-  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
-  constexpr explicit operator Arg() const & { return static_cast<Arg>(exact_object); }
-  template<class Arg, TEMPL_RESTRICT_DECL( ApproxLevelOf<Arg>::value < ApproxLevelOf<ExactClass>::value)>
-  CPP14CONSTEXPR explicit operator Arg() && { return static_cast<Arg>(std::move(exact_object)); }
-
-};
 
 /**
   SieveLazyEval is the main class of this module:
@@ -188,17 +242,17 @@ struct ObjectWithApproximation
   Note that leaves are of different (wrapper) types, but expose nearly the same syntax.
   (See below for how the leaves work)
 
-  Every node of the tree, including SieveLazyEval<LazyFunction, Args> supports
-  two "modes" of evaluation: eval_exact and eval_approx, which trigger either
-  exact or approximate evaluation.
+  Every node of the tree, including SieveLazyEval<LazyFunction, Args> is a leveled object.
+  Such objects support an eval<level> function that triggers evaluation at the desired level.
+  level 0 corresponds to the "exact" object and higher levels model approximations.
 
-  In order for templates to recognize them. each node has the tag IsLazyNode set to std::true_type.
-  ApproxLevel denotes the number of (non-bit) approximations attached to the (result) object
-  represented. Typically ApproxLevel == 1. We emphasize that this is completely unrelated to the
-  depth of the evaluation tree.
+  The maximal level is given by ApproxLevel. Typically ApproxLevel == 1.
+  We emphasize that these levels are completely unrelated to the depth of the evaluation tree.
 
+  In order for templates to recognize them. each node has the tag IsLazyNode set to std::true_type
+  and IsLazyLeaf declares whether it is a leaf.
 
-  We support:
+  We support (TODO!)
   Assignment / conversion operators to the corresponding types (These trigger evaluations).
   Comparison operators (These trigger approximate and *possibly* exact evaluations)
   NOTE: Comparisons short-circuit if the approximate comparison is false.
@@ -211,20 +265,24 @@ struct ObjectWithApproximation
 
 template<class LazyFunction, class... Args> class SieveLazyEval
 {
+  // LazyFunction must have a specified tag defined.
   static_assert(LazyFunction::IsLazyFunction::value,"No Lazy Function");
   static_assert(sizeof...(Args) == LazyFunction::nargs, "Wrong number of arguments");
+  // Each child in the expression tree has to be a lazy node.
   static_assert(mystd::conjunction< Has_IsLazyNode<Args>... >::value,"Some argument is wrong.");
+  // The template paratmers Args must be std::decay'ed.
   static_assert(mystd::conjunction< std::is_same<Args,mystd::decay_t<Args>>...>::value,"Args are of wrong type");
 
   public:
-  // cv-unqualified return types of eval_*
-//  using ExactEvalType =  typename LazyFunction::ExactEvalType;
-//  using ApproxEvalType = typename LazyFunction::ApproxEvalType;
-  template<unsigned int level> using EvalType = typename LazyFunction::template EvalType<level>;
+  // The type encapsulated is encoded in the function.
+  template<unsigned int level> using ObjectAtLevel = typename LazyFunction::template EvalType<level>;
+
   // tags used for various static_assert's and template overload selection:
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::false_type; // not a leaf of the expression tree.
   using LeveledComparison = std::true_type;
+  using LeveledObject     = std::true_type;
+  using LeveledObject_Base= std::false_type;
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
@@ -300,7 +358,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // is required to propagate const-ness throgh the expression tree when evaluating.
 
   template<unsigned int level, std::size_t... iarg>
-  inline EvalType<level> do_eval(MyIndexSeq<iarg...>)
+  inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>)
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -310,7 +368,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
 
   template<unsigned int level, std::size_t... iarg>
-  inline EvalType<level> do_eval(MyIndexSeq<iarg...>) const
+  inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>) const
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -319,67 +377,45 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return LazyFunction::template call<level>( std::get<iarg>(args).eval<level>()... );
   }
 
-/*
-  template<std::size_t... iarg>
-  inline ExactEvalType do_eval_exact(MyIndexSeq<iarg...>)
-  {
-    static_assert(sizeof...(iarg) == sizeof...(Args),"Something is very wrong");
-#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
-    std::cout << "Calling function exactly. Function is " << LazyFunction::fun_name() << std::endl;
-#endif
-    return LazyFunction::call_exact( std::get<iarg>(args).eval_exact()... );
-  }
-
-  template<std::size_t... iarg>
-  inline ExactEvalType do_eval_approx(MyIndexSeq<iarg...>)
-  {
-    static_assert(sizeof...(iarg) == sizeof...(Args),"Something is very wrong");
-#ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
-    std::cout << "Calling function approximately. Function is " << LazyFunction::fun_name() << std::endl;
-#endif
-    return LazyFunction::call_approx( std::get<iarg>(args).eval_approx()... );
-  }
-*/
-
 // MyMakeIndexSeq generates a(n empty) struct MyIndexSeq<0,1,2,...>. This is used as a dummy paramter
 // to select the correct version of do_eval_approx and allows to actually un-std::tuple the argument.
 // (This is the least roundabout way of doing it and corresponds to the implementation of std::apply)
 
   template<unsigned int level>
-  inline EvalType<level> eval()
+  inline ObjectAtLevel<level> eval()
   {
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
-  inline EvalType<level> eval() const
+  inline ObjectAtLevel<level> eval() const
   {
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
-  inline EvalType<level> get_value_at_level() { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level() { return eval<level>(); }
   template<unsigned int level>
-  inline EvalType<level> get_value_at_level() const { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level() const { return eval<level>(); }
 
   /*
-  inline ExactEvalType eval_exact()
+  inline ExactObjectAtLevel eval_exact()
   {
     return do_eval_exact(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
-  inline ApproxEvalType eval_approx()
+  inline ApproxObjectAtLevel eval_approx()
   {
     return do_eval_approx(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
   */
 
   template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel)>
-  inline explicit operator EvalType<level>() { return eval<level>; }
+  inline explicit operator ObjectAtLevel<level>() { return eval<level>; }
 
   /*
-  inline explicit operator ExactEvalType() { return eval_exact(); }
-  inline explicit operator ApproxEvalType() { return eval_approx(); }
+  inline explicit operator ExactObjectAtLevel() { return eval_exact(); }
+  inline explicit operator ApproxObjectAtLevel() { return eval_approx(); }
   */
 };
 
