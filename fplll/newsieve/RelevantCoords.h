@@ -128,6 +128,7 @@ public:
     }
     else
     {
+      
       for (uint_fast16_t i=0; i<sim_hash_len; ++i)
       {
         //RelevantCoordinates::rel_coo[i][0] = rand() % nxfixed;

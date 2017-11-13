@@ -719,7 +719,13 @@ template<> struct BitApproximation<-1>
     
     
     std::bitset<sim_hash_len> ret;
-    for(uint_fast16_t i=0;i<sim_hash_len;++i)
+    
+    for(uint_fast16_t i=0;i<point.get_dim();++i)
+    {
+        ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+    }
+    
+    for(uint_fast16_t i=point.get_dim();i<sim_hash_len;++i)
     {
       ET res = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) -
                point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
