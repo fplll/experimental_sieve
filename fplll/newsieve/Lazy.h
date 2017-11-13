@@ -441,15 +441,23 @@ template<class LazyFunction, class... Args> class SieveLazyEval
                       and usage of eval_* might modify the object.
                       If the evaluation tree contains such an object, EvalOnce is set.)
 
-  Not implemented yet (not needed so far)
+  Untested, not used so far:
+
   - Move :  This models immediate rvalue-passing. The wrapper is initialized with an rvalue and
             directly move-stores the wrapped object. The function used in eval_* will be called on
             an rvalue.
             This also sets EvalOnce
 
-  Not implemented yes (not needed so far)
+  Untested, not used so far:
+
   - Capture:  This mode stores the values directly (not as reference). The wrapper may be initialized
               with either rvalues or lvalues. The argument will be passed to eval_* by value or const-ref.
+
+  Additionally, we have a wrapper
+  - Value:  Stores the value of a NON-LEVELED object itself. Calling eval<level> will return the
+            object for any level. Used to encapsulate things like "x<<=2", where x is leveled, but
+            2 is not.
+
 */
 
 
@@ -535,7 +543,7 @@ struct LazyWrapMove
 {
   using EvalOnce   = std::true_type;
   LAZY_WRAP_ALL
-  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapMove(CombinedObject &&init_combined):combined_store(std::move(init_combined))
+  LazyWrapMove(CombinedObject &&init_combined):combined_store(std::move(init_combined))
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
     std::cout << "Creating Move Lazy Wrapper at level " << maxlevel << std::endl;
@@ -557,12 +565,62 @@ struct LazyWrapMove
   CombinedObject combined_store;
 };
 
+// untested:
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value>
 struct LazyWrapCapture
 {
   using EvalOnce = std::false_type;
   LAZY_WRAP_ALL
+  CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCapture(CombinedObject const &init_combined)
+    :combined_store(init_combined)
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Capture Lazy Wrapper at level " << maxlevel << std::endl;
+#endif
+  }
+  LazyWrapCapture(CombinedObject &&init_combined)
+    :combined_store(std::move(init_combined))
+  {
+#ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
+    std::cout << "Creating Capture Lazy Wrapper at level " << maxlevel << std::endl;
+#endif
+  }
+  template<unsigned int level> inline ObjectAtLevel<level> const & eval() const
+  {
+    static_assert(level<= maxlevel,"Cannot evaluate at this level");
+    return combined_store;
+  }
+  template<unsigned int level> inline ObjectAtLevel<level> const & get_value_at_level() const
+  {
+    static_assert(level<= maxlevel,"Cannot evaluate at this level");
+    return combined_store;
+  }
+  CombinedObject const combined_store;
+};
+
+// this one stores NON-Leveled objects by value. The purpose is to store secondary arguments.
+template<class Object, unsigned int maxlevel>
+struct LazyWrapValue
+{
+  using EvalOnce = std::false_type;
+  // well, we *could* wrap those, but it's most likely an error. We would rather wrap access<0>().
+  static_assert(!(Has_LeveledObject_Base<Object>::value),"Can NOT wrap base leveled objects.");
+  static constexpr unsigned int ApproxLevel = maxlevel;
+  template<unsigned int level> using ObjectAtLevel = Object;
+  using IsLazyNode = std::true_type;
+  using IsLazyLeaf = std::true_type;
+  static constexpr bool EvalOnce_v = false;
+  using LeveledObject = std::true_type;
+  using LeveledComparison = std::true_type;
+  using LeveledObject_Base = std::false_type;
+
+  // No debug output. constexpr is super-important here.
+  constexpr LazyWrapValue( Object const & obj) : stored_obj(obj) {}
+  LazyWrapValue (Object && obj): stored_obj(std::move(obj)) {}
+  Object const stored_obj;
+  template<unsigned int level> constexpr inline Object get_value_at_level() const { return stored_obj; }
+  template<unsigned int level> constexpr inline Object eval() const { return stored_obj; }
 };
 
 #undef LAZY_WRAP_ALL
