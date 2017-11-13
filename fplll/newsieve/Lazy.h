@@ -413,7 +413,6 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 
 };
 
-
 /**
   LazyWrap* model the leaves of the expression trees.
   These classes are just wrappers around a reference to a *
@@ -422,15 +421,8 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   Note that the functionality may be a bit more limited than that of SieveLazyEval (due to lazyness
   of the coder). As a workaround, you may use SieveLazyEval with an IdentityFunction.
 
-  There are several different wrapper that differ in the following aspects:
-  A wrapper may either wrap
-  - only an Exact object. In this case, an approximation is computed on demand. This should probably
-    never be used.
-  - an exact and an approximate object.
-  - a single combined object (such as ObjectWithApproximation defined above) that encapsulates both.
-    This object is required to have access_exact() and access_approx() members that return references
+  There are several different wrappers that differ in the calling conventions:
 
-  Furthermore, there is an additional differentiation regarding calling conventions.
   We support (up to) four different calling conventions:
   - Const-Ref (CR): The wrapper is initialized with an lvalue and stores a const-reference.
                     upon eval_*, the lvalue used to initialize must still be valid.
@@ -456,23 +448,26 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 */
 
 
-
 /**
-  Wrap combined class, Const-Ref
+  Wrap via Const-Ref
 */
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
 struct LazyWrapCR
 {
+  static_assert(Has_LeveledObject_Base<CombinedObject>::value,"Can only wrap leveled objects.");
   public:
   static constexpr unsigned int ApproxLevel = maxlevel;
 //  template<unsigned int level2> using WrappedType = typename CombinedObject::ObjectAtLevel<level2>;
   template<unsigned int level> using EvalType = typename CombinedObject::template ObjectAtLevel<level>;
+  template<unsigned int level> using ObjectAtLevel = EvalType<level>;
   static_assert(ApproxLevelOf<CombinedObject>::value == maxlevel,""); // TODO: Relax this
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::true_type;
   using EvalOnce   = std::false_type;
   using LeveledComparison = std::true_type;
+  using LeveledObject = std::true_type;
+  using LeveledObject_Base = std::false_type;
   static constexpr bool EvalOnce_v = false;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCR(CombinedObject const &init_combined):combined_ref(init_combined)
   {
@@ -494,21 +489,24 @@ struct LazyWrapCR
     return combined_ref.template access<level>();
   }
 
-
   CombinedObject const & combined_ref;
 };
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
 struct LazyWrapRV
 {
+  static_assert(Has_LeveledObject_Base<CombinedObject>::value,"Can only wrap leveled objects.");
   public:
   static constexpr unsigned int ApproxLevel = maxlevel;
   template<unsigned int level> using EvalType = typename CombinedObject::template ObjectAtLevel<level>;
+  template<unsigned int level> using ObjectAtLevel = EvalType<level>;
   static_assert(ApproxLevelOf<CombinedObject>::value == maxlevel,""); // TODO!
   using IsLazyNode = std::true_type;
   using IsLazyLeaf = std::true_type;
   using EvalOnce   = std::true_type;
   using LeveledComparison = std::true_type;
+  using LeveledObject =std::true_type;
+  using LeveledObject_Base = std::false_type;
   static constexpr bool EvalOnce_v = true;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapRV(CombinedObject &init_combined):combined_ref(init_combined)
   {
