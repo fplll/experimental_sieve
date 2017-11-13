@@ -408,9 +408,9 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   template<unsigned int level>
   inline ObjectAtLevel<level> get_value_at_level() const { return eval<level>(); }
 
-  template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel)>
+  template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel && level>0)>
   inline explicit operator ObjectAtLevel<level>() { return eval<level>(); }
-
+  inline operator ObjectAtLevel<0>() { return eval<0>(); }
 };
 
 /**
