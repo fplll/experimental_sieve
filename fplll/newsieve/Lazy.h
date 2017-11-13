@@ -101,6 +101,7 @@ template<unsigned int level, class ExactClass, class Approximation> class Object
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject, std::true_type, Has_LeveledObject);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject_Base, std::true_type, Has_LeveledObject_Base);
+CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(DelayedDefaultFunctions, std::true_type, Has_DelayedDefaultFunctions);
 
 
 // ---------------
@@ -126,6 +127,7 @@ struct ObjectWithApproximation
   using LeveledComparison = std::true_type;
   using LeveledObject     = std::true_type;
   using LeveledObject_Base= std::true_type;
+  using DelayedDefaultFunctions = std::true_type;
   template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
   ExactType  exact_object;
   ApproxType approx_object;
@@ -283,12 +285,17 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using LeveledComparison = std::true_type;
   using LeveledObject     = std::true_type;
   using LeveledObject_Base= std::false_type;
+  using DelayedDefaultFunctions = std::true_type;
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
-  // for now. This may be relaxed later.
+#ifdef DEBUG_SIEVE_ALL_APPROX_AT_SAME_LEVEL
   static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
-    "All arguments must have the same approximation level");
+    "All arguments must have at the same approximation level");
+#else
+  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
+    "All arguments must have at the same approximation level");
+#endif
 
   // EvalOnce means that calling eval_* might actually invalidate the data stored to / refered to.
   // If this is set, we
@@ -626,6 +633,8 @@ struct LazyWrapValue
 #undef LAZY_WRAP_ALL
 
 
+
+
 /**
   Layz_F functions.
   These classes provide a unified interface to call various functions F on
@@ -644,6 +653,43 @@ struct LazyWrapValue
   Note that call_exact / call_approx might be templates or overloaded on various argument types.
 
 */
+
+
+template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_DelayedDefaultFunctions<mystd::decay_t<LazyObject>>)>
+auto abs(LazyObject &&obj)
+{
+
+}
+
+template<class CombinedObject>
+struct CanCall_abs
+{
+  static_assert(Has_LeveledObject<CombinedObject>::value,"");
+  private:
+  template<unsigned int level> constexpr static bool has_abs(...) { return false; }
+  template<unsigned int level> /* better match, but only if the argument inside declval is valid */
+  constexpr static auto has_abs(int)
+  -> decltype ( static_cast<void>(
+    abs(std::declval<typename CombinedObject::template ObjectAtLevel<level> >() )
+  ), std::declval<bool>() )
+  { return true; }
+  static_assert(has_abs<0>() == true,"");
+
+  /* all ?:'s are just to workaround limitations of C++...; */
+
+  template<unsigned int level> constexpr static bool has_abs_upto()
+  {
+    return has_abs<level>() && ( (level==0) ? true : has_abs_upto<(level>0?level-1:0)>() );
+  }
+
+  /* at least the first ?: is actually meaningful. */
+  public:
+  template<unsigned int maxlevel> constexpr static unsigned int has_abs_maxlevel()
+  {
+    return has_abs_upto<maxlevel> ? maxlevel : (maxlevel==0 ? 0 : has_abs_maxlevel< (maxlevel>0 ? maxlevel-1 : 0)>() );
+  }
+};
+
 
 /**
   Identity function. F(x) = x. Can be used to promote a
@@ -670,13 +716,6 @@ class Lazy_Identity
     std::is_same<EvalType<level>, mystd::decay_t<Arg>>
     )>
   inline static Arg call(Arg &&arg) { return std::forward<Arg>(arg); }
-
-  /*
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ExactEvalType,mystd::decay_t<Arg>>)>
-  inline static Arg && call_exact(Arg &&exact) { return std::forward<Arg>(exact);}
-  template<class Arg, TEMPL_RESTRICT_DECL2(std::is_same<ApproxEvalType,mystd::decay_t<Arg>>)>
-  inline static Arg && call_approx(Arg &&approx) { return std::forward<Arg>(approx);}
-  */
 };
 
 

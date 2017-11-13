@@ -71,6 +71,13 @@ namespace mystd
   template<class... Bs> using disjunction = MyDisjunction<Bs...>;    //OR
   template<class B>     using negation    = MyNegation<B>;           //NOT
   template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
+
+  // std::max is not constexpr until C++14. This version is always constexpr, but does not support
+  // custom comparators or initializer lists.
+  template<class T> constexpr const T& constexpr_max(const T& x1, const T& x2)
+  { return (x1<x2) ? x2 : x1; }
+  template<class T> constexpr const T& constexpr_min(const T& x1, const T& x2)
+  { return (x1<x2) ? x1 : x2; }
 }
 } // end namespace
 
