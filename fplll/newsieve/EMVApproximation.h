@@ -57,8 +57,8 @@ class EMVScalar
   // unary-
   // For some reason, this does not compile as member functions:
   // I can turn each variant into a member function individually, but it complains about overloading
-  friend EMVScalar operator-(EMVScalar const &arg) { return EMVScalar(arg.exponent,-arg.mantissa); }
-  friend EMVScalar operator-(EMVScalar &&arg) { arg.mantissa=-arg.mantissa; return arg;  }
+  EMVScalar operator-() const & { return EMVScalar(exponent,-mantissa); }
+  EMVScalar operator-() &&      { mantissa=-mantissa; return *this;  }
 
   // TODO: Return value of operators
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
