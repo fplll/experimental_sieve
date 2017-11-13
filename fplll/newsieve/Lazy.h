@@ -37,20 +37,11 @@
 namespace GaussSieve{
 namespace LazyEval{     // sub-namespace to inject free functions like abs
 
-// We might remove this:
-// ELP is an exact lattic point class.
-// Approximation is an approximation class.
-// This #define just serves to bring the appropriate typedefs into scope.
-// Last semicolon intentionally missing.
-/*
-#define BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation) \
-  using ExactVectorType = ELP; \
-  using ExactScalarType = Get_ScalarProductStorageType<ELP>; \
-  using ApproxVectorType = Approximation; \
-  using ApproxScalarType = typename Approximation::ScalarProductType
-*/
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
+
+// If DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS is set, we perform some debug output.
+// As a consequence, some functions have side-effects (notably, output) and are no longer constexpr.
 
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
   #define CONSTEXPR_IN_NON_DEBUG_TC
@@ -115,12 +106,7 @@ class ObjectWithApproximationHelper<1,ExactClass,ApproximationClass>
 
 /**
   This class defines an interface for objects that store an exact value and an approximation.
-  This is for storage only, we have no arithmetic etc.
   This class itself is only used for testing.
-
-  Such functionality is defered to ApproximatedPoint.h.
-  Classes encapsulating such a combination of exact/approx. object should adhere to this interface.
-  (as far as meaningful)
 */
 
 template<class ExactClass, class ApproximationClass>
@@ -160,13 +146,6 @@ struct ObjectWithApproximation
   CPP14CONSTEXPR explicit operator ExactType()  &&      { return std::move(exact_object);}
   constexpr      explicit operator ApproxType() const & { return approx_object;}
   CPP14CONSTEXPR explicit operator ApproxType() &&      { return std::move(approx_object);}
-
-  /*
-  constexpr      ExactType    eval_exact() const &  { return exact_object;}
-  CPP14CONSTEXPR ExactType&&  eval_exact() &&       { return std::move(exact_object);}
-  constexpr      ApproxType   eval_approx() const & { return approx_object;}
-  CPP14CONSTEXPR ApproxType&& eval_approx() &&      { return std::move(approx_object);}
-  */
 
   template<unsigned int level>
   constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
