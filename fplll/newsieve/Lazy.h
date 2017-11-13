@@ -849,7 +849,7 @@ CPP14CONSTEXPR inline bool operator OP (LHS &&lhs, RHS &&rhs)                   
         invalidate lhs at levels >=i. So in particular,                                           \
         std::move(lhs).access_at_level<1>() followed by std::move(lhs).access_at_level<2>()       \
         is valid.                                                                                 \
-                                                                                                  \
+*/                                                                                                \
 namespace ComparisonHelper /* Save the environment! Dont pollute your namespaces! */              \
 {                                                                                                 \
 template<class LHS, class RHS, unsigned int level> struct helper_name                             \
