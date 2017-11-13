@@ -286,7 +286,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
-  // for now:
+  // for now. This may be relaxed later.
   static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
     "All arguments must have the same approximation level");
 
@@ -298,9 +298,9 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // (Note that disabling automagically generated constructors based on traits is quite non-trivial
   // in C++ and subject to many gotchas... The issue being that if you template these functions, the
   // compiler may no longer recognize them as "special".)
-  // - eval_* may only be called on rvalue.
-  // - may only call eval_* once. More precisely, calling eval_exact() forbids any future calls to
-  //   either eval_* and calling eval_approx forbids calls to eval_approx.
+  // - eval may only be called on rvalue.
+  // - may only call eval once. More precisely, calling eval<level> forbids any future calls to
+  //   eval<level'> with level'>=level.
   // These restrictions might not be enforced.
   // (Note that these restriction could be slightly relaxed, separating the restrictions, but it
   //  seems not worth the hassle.)
@@ -312,31 +312,36 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 
   using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce_v),Args>...>; // const-ness depends on EvalOnce.
   MaybeConst<!EvalOnce_v,TreeType> args;
+
   // This restriction can easily be removed. The issue is just that we want no default-constructor.
   // (at least for nargs > 0)
   SieveLazyEval() = delete; static_assert( sizeof...(Args)>0,"0-ary functions not supported yet." );
 
 // Main Constructor: This takes a list of arguments and constructs a new lazy evaluation object
 // that wraps calling function LazyFunction on those arguments.
+// Technically, we "just" take any set of arguments and and use them to construct the
+// std::tuple args from it.
 
-  template<class... FunArgs, TEMPL_RESTRICT_DECL(
+  template<class... FunArgs,
   // There is a problem with clashing with the copy / move - constructors:
   // SieveLazyEval mave have automatically generated copy / move constructors, depending on whether
   // the std::tuple args is copyable/moveable, which depends on the types of Args...
   // This is as it should be.
   //
-  // However, note that the (possibly default) copy constructors has signature
+  // However, note that the (possibly default) copy constructor has signature
   // SieveLazyEval(SieveLazyEval const &).
   // The variadic template also contains (for FunArgs == SieveLazyEval &) a constructor with
   // signature SieveLazyEval(SieveLazyEval &). Now if we copy from a non-const object, the
   // variadic template is a better match.
   // Of course, this does not work (and the static_assert's will fire).
   // Hence, we deactivate this constructor for that case.
-  !( (sizeof...(Args)==1) &&
-     (mystd::conjunction< std::is_same<mystd::decay_t<FunArgs>,SieveLazyEval>...>::value  )
-  ))>
+  TEMPL_RESTRICT_DECL
+    (!( (sizeof...(Args)==1) &&
+        (mystd::conjunction< std::is_same<mystd::decay_t<FunArgs>,SieveLazyEval>...>::value)
+      )
+    )>
   CONSTEXPR_IN_NON_DEBUG_TC explicit SieveLazyEval(FunArgs &&... fun_args)
-    : args(std::forward<FunArgs>(fun_args)...)
+    : args(std::forward<FunArgs>(fun_args)...) // the only line that actually does something here...
   {
     // Args and FunArgs must be the same (up to const and reference-ness)
     static_assert(sizeof...(Args) == sizeof...(FunArgs),"wrong number of arguments to constructor.");
