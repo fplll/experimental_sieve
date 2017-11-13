@@ -157,9 +157,9 @@ struct ObjectWithApproximation
   template<unsigned int level>
   constexpr       ObjectAtLevel<level> const & access() const { return Helper<level>::get(*this); }
   template<unsigned int level>
-  constexpr       ObjectAtLevel<level> const & get_value_at_level() const { return Helper<level>::get(*this); }
-  template<unsigned int level>
   CPP14CONSTEXPR  ObjectAtLevel<level>       & access()       { return Helper<level>::get(*this); }
+  template<unsigned int level>
+  constexpr       ObjectAtLevel<level> const & get_value_at_level() const { return Helper<level>::get(*this); }
   template<unsigned int level>
   CPP14CONSTEXPR  ObjectAtLevel<level>       & get_value_at_level()       { return Helper<level>::get(*this); }
 
@@ -404,18 +404,18 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
 
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level() { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level()        { return eval<level>(); }
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level() const { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level() const  { return eval<level>(); }
 
   template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel && level>0)>
-  inline explicit operator ObjectAtLevel<level>() { return eval<level>(); }
+  inline explicit operator ObjectAtLevel<level>()       { return eval<level>(); }
   template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel && level>0)>
   inline explicit operator ObjectAtLevel<level>() const { return eval<level>(); }
 
 
-  inline operator ObjectAtLevel<0>() const { return eval<0>(); }
-  inline operator ObjectAtLevel<0>() { return eval<0>(); }
+  inline operator ObjectAtLevel<0>() const  { return eval<0>(); }
+  inline operator ObjectAtLevel<0>()        { return eval<0>(); }
 };
 
 /**
@@ -645,7 +645,7 @@ template<class ELP, class Approximation> class Lazy_Norm2
 };
 */
 
-}} //end namespaces
+}} //end namespaces GaussSieve and LazyEval
 
 /**
   We compare objects which have a public typedef LeveledComparison set to std::true_type in the
@@ -675,6 +675,7 @@ namespace GaussSieve{
 // clang-format off
 
 // LHSLeveled / RHSLeveled are shorthands for testing if LHS / RHS have LeveledComparsion set.
+// #defines are local (#undef'd after use)
 
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledComparison,std::true_type,Has_LeveledComparison);
 #define LHSLeveled (Has_LeveledComparison<mystd::decay_t<LHS>>::value)
@@ -725,7 +726,7 @@ template<class LHS, class RHS, unsigned int level> struct helper_name           
   static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");                            \
   static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");                            \
   helper_name() = delete;                                                                         \
-  static inline bool compare(LHS &&lhs, RHS &&rhs)                                                \
+  [[gnu::always_inline]]static inline bool compare(LHS &&lhs, RHS &&rhs)                          \
   {                                                                                               \
   /* note:  This uses std::forward (i.e. possibly std::move) twice. This is consistent with the   \
             move semantics specification of Leveled objects. See remark above                  */ \
@@ -741,7 +742,7 @@ template<class LHS, class RHS> struct helper_name<LHS,RHS,0>                    
   static_assert(Has_LeveledComparison<mystd::decay_t<LHS>>::value,"");                            \
   static_assert(Has_LeveledComparison<mystd::decay_t<RHS>>::value,"");                            \
   helper_name() = delete;                                                                         \
-  CPP14CONSTEXPR static inline bool compare(LHS &&lhs, RHS &&rhs)                                 \
+  [[gnu::always_inline]]CPP14CONSTEXPR static inline bool compare(LHS &&lhs, RHS &&rhs)           \
   {                                                                                               \
     return   std::forward<LHS>(lhs).template get_value_at_level<0>()                              \
           OP std::forward<RHS>(rhs).template get_value_at_level<0>();                             \
@@ -772,32 +773,8 @@ DEFINE_DEFAULT_LEVELED_COMPARISON(>=,helper_geq)
 
 // clang-format on
 
-/**
-// general comparison for < : We bring down the arguments to the same approximation level,
-// then we compare approximately. If that results in true, we actually do an exact check as well.
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
-  && (ApproxLevelOf<LHS>::value > ApproxLevelOf<RHS>::value))>
-inline bool operator< (LHS && lhs, RHS && rhs)
-{
-  return std::forward<LHS>(lhs).eval_exact() < std::forward<RHS>(rhs);
-}
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
-  && (ApproxLevelOf<LHS>::value < ApproxLevelOf<RHS>::value))>
-inline bool operator< (LHS && lhs, RHS && rhs)
-{
-  return std::forward<LHS>(lhs) < std::forward<RHS>(rhs).eval_exact();
-}
-template<class LHS, class RHS, TEMPL_RESTRICT_DECL ( SIEVE_GAUSS_LAZY_COMPARISON_CONDITIONS
-  && (ApproxLevelOf<LHS>::value == ApproxLevelOf<RHS>::value))>
-inline bool operator< (LHS && lhs, RHS && rhs)
-{
-// Note that C++ short-circuits && (unless someone overloads && for the return type of <)
-  return (std::forward<LHS>(lhs).eval_approx() < std::forward<RHS>(rhs).eval_approx() )
-      && (std::forward<LHS>(lhs).eval_exact()  < std::forward<RHS>(rhs).eval_exact()  );
-}
-*/
 
-}
+} // end namespace GaussSieve
 
 #undef GAUSS_SIEVE_LAZY_FUN
 #undef CONSTEXPR_IN_NON_DEBUG_TC
