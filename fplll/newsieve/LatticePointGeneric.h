@@ -55,28 +55,28 @@ template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() < rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() < rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() > rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() > rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() <= rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() <= rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() >= rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() >= rhs.template get_norm2_at_level<0>();
 }
 
 
@@ -155,7 +155,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
   }
   CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
   {
-    REALTHIS->sanitize(CREALTHIS->get_norm2_exact() * multiplier * multiplier );
+    REALTHIS->sanitize(CREALTHIS->template get_norm2_at_level<0>() * multiplier * multiplier );
   }
   else
   {

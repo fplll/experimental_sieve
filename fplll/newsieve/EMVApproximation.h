@@ -425,7 +425,6 @@ inline bool operator>= (EMVScalar const & lhs, EMVScalar const rhs)
 }
 
 
-
 // output of EMVScalars
 
 inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated_number)

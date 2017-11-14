@@ -492,14 +492,19 @@ class GeneralLatticePoint
     inline ScalarProductStorageType get_norm2() const;
 
 /** The functions below are overloaded in ApproximatedPoint.h for points with (non-bit) Approximations.
-    The _exact variant ignores one approximation. The _exact_recursive variant ignores all approximations.
-    The _full variant returns both exact and approximate norms.
-    Note that for the plain and _exact variants, the return types might differ in the overloads, but be convertible
-    to ScalarProductStorageType.
+    The _at_level variant gets the value at the given approximation level.
+    The _full variant gets an object holding all levels.
+    Note that for the plain and _exact variants, the return types might differ in the overloads,
+    but need to be convertible to ScalarProductStorageType.
 */
 
-    inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
-    inline ScalarProductStorageType get_norm2_exact_recursive() const { return CREALTHIS->get_norm2(); }
+    template<unsigned int level, class Impl=LatP>
+    inline ScalarProductStorageType get_norm2_at_level() const
+    {
+      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false,"Need to overload");
+      static_assert(level==0,"Default only has level 0");
+      return CREALTHIS->get_norm2();
+    }
     inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
@@ -509,16 +514,11 @@ class GeneralLatticePoint
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    template<class Impl=LatP>
-    inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
+    template<unsigned int level,class Impl=LatP>
+    inline ScalarProductStorageType do_compute_sc_product_at_level(LatP const &x2) const
     {
       IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
-      return CREALTHIS->do_compute_sc_product(x2);
-    }
-    template<class Impl=LatP>
-    inline ScalarProductStorageType do_compute_sc_product_exact_recursive(LatP const &x2) const
-    {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      static_assert(level==0,"Default only has level 0");
       return CREALTHIS->do_compute_sc_product(x2);
     }
     template<class Impl=LatP>
@@ -550,8 +550,8 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
     #endif
-  
-  
+
+
     //FOR SIM-HASH
     #if __if_constexpr
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
@@ -572,22 +572,15 @@ class GeneralLatticePoint
 // the other variants are only relevant when having approximations:
 // Notably: compute_sc_product may return a Wrapper than encapsulates a lazy evalution.
 // The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
-// The _exact variant computes an exact scalar product.
-// The _exact_recursive variant computes an (recursively) exact scalar product.
-// The difference between the latter versions is if the underlying "exact" type has approximations itself:
-// _exact_recursive ignores all levels of approximations, whereas _exact only one.
+// The _at_level<level> variant computes the approximation at the given level (0 for exact)
 
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
 { return lp1.do_compute_sc_product(lp2); }
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_exact(lp2); }
-
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product_exact_recursive(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_exact_recursive(lp2); }
+template<unsigned int level, class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
+inline typename LP::ScalarProductStorageType compute_sc_product_at_level(LP const &lp1, LP const &lp2)
+{ return lp1.template do_compute_sc_product_at_level<level>(lp2); }
 
 template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
@@ -604,8 +597,8 @@ inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp
 // C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
-  
-  
+
+
 //FOR SIM-HASH
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
@@ -691,7 +684,7 @@ template<int SizeOfBitSet> struct BitApproximation
 // variable-dim version:
 template<> struct BitApproximation<-1>
 {
-  
+
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
@@ -704,28 +697,28 @@ template<> struct BitApproximation<-1>
     }
     return ret;
   }
-  
+
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
   {
     //using RelevantCoords = GaussSieve::RelevantCoordinates;
     using ET = Get_CoordinateType<LatP>;
-    
-    
-    
-    
+
+
+
+
     //std::cout << "rel_coo_matrix used: " <<std::endl;
     //RelevantCoordinates::print();
     //assert(false);
-    
+
     std::bitset<sim_hash_len> ret;
-    
-    
+
+
     for(uint_fast16_t i=0;i<point.get_dim();++i)
     {
         ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
     }
-    
+
     //for(uint_fast16_t i=0;i<sim_hash_len;++i)
     for(uint_fast16_t i=point.get_dim();i<sim_hash_len;++i)
     {
@@ -736,10 +729,10 @@ template<> struct BitApproximation<-1>
       //std::cout << "i = " << i << " res =" << res << " ";
       ret[i] = (res>=0) ? 1: 0;
     }
-    
+
     //assert(false);
     return ret;
-    
+
   }
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
