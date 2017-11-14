@@ -293,8 +293,8 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
     "All arguments must have at the same approximation level");
 #else
-  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
-    "All arguments must have at the same approximation level");
+  static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel <= ApproxLevelOf<Args>::value>...>::value,
+    "All arguments must have at least the given approximation level");
 #endif
 
   // EvalOnce means that calling eval_* might actually invalidate the data stored to / refered to.
@@ -401,26 +401,37 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   template<unsigned int level>
   inline ObjectAtLevel<level> eval()
   {
+    static_assert(level <= ApproxLevel, "");
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
   inline ObjectAtLevel<level> eval() const
   {
+    static_assert(level <= ApproxLevel, "");
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level()        { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level()
+  {
+    static_assert(level <= ApproxLevel, "");
+    return eval<level>();
+  }
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level() const  { return eval<level>(); }
+  inline ObjectAtLevel<level> get_value_at_level() const
+  {
+    static_assert(level <= ApproxLevel, "");
+    return eval<level>();
+  }
 
-  template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel && level>0)>
+  // force_enable is just to make sure the argument to TEMPL_RESTRICT_DECL is not always false.
+  template<unsigned int level, bool force_enable = false, TEMPL_RESTRICT_DECL(force_enable || (level<=ApproxLevel && level>0))>
   inline explicit operator ObjectAtLevel<level>()       { return eval<level>(); }
-  template<unsigned int level, TEMPL_RESTRICT_DECL(level<=ApproxLevel && level>0)>
+  template<unsigned int level, bool force_enable = false, TEMPL_RESTRICT_DECL(force_enable || (level<=ApproxLevel && level>0))>
   inline explicit operator ObjectAtLevel<level>() const { return eval<level>(); }
 
-
+// not explicit (by design)
   inline operator ObjectAtLevel<0>() const  { return eval<0>(); }
   inline operator ObjectAtLevel<0>()        { return eval<0>(); }
 };
@@ -485,15 +496,13 @@ using IsLazyLeaf = std::true_type; \
 static constexpr bool EvalOnce_v = EvalOnce::value; \
 using LeveledObject = std::true_type; \
 using LeveledComparison = std::true_type; \
-using LeveledObject_Base = std::false_type; \
-
-
+using LeveledObject_Base = std::false_type
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
 struct LazyWrapCR
 {
   using EvalOnce   = std::false_type;
-  LAZY_WRAP_ALL
+  LAZY_WRAP_ALL;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCR(CombinedObject const &init_combined):combined_ref(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -513,7 +522,6 @@ struct LazyWrapCR
     static_assert(level<=maxlevel,"Cannote evaluate at this level");
     return combined_ref.template access<level>();
   }
-
   CombinedObject const & combined_ref;
 };
 
@@ -522,7 +530,7 @@ struct LazyWrapRV
 {
   public:
   using EvalOnce   = std::true_type;
-  LAZY_WRAP_ALL
+  LAZY_WRAP_ALL;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapRV(CombinedObject &init_combined):combined_ref(init_combined)
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -549,7 +557,7 @@ template<class CombinedObject, unsigned int maxlevel  = ApproxLevelOf<CombinedOb
 struct LazyWrapMove
 {
   using EvalOnce   = std::true_type;
-  LAZY_WRAP_ALL
+  LAZY_WRAP_ALL;
   LazyWrapMove(CombinedObject &&init_combined):combined_store(std::move(init_combined))
   {
 #ifdef DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
@@ -578,7 +586,7 @@ template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObj
 struct LazyWrapCapture
 {
   using EvalOnce = std::false_type;
-  LAZY_WRAP_ALL
+  LAZY_WRAP_ALL;
   CONSTEXPR_IN_NON_DEBUG_TC LazyWrapCapture(CombinedObject const &init_combined)
     :combined_store(init_combined)
   {
@@ -606,6 +614,7 @@ struct LazyWrapCapture
   CombinedObject const combined_store;
 };
 
+// untested:
 // this one stores NON-Leveled objects by value. The purpose is to store secondary arguments.
 template<class Object, unsigned int maxlevel>
 struct LazyWrapValue
@@ -622,7 +631,7 @@ struct LazyWrapValue
   using LeveledComparison = std::true_type;
   using LeveledObject_Base = std::false_type;
 
-  // No debug output. constexpr is super-important here.
+  // No debug output. retaining constexpr is too important here.
   constexpr LazyWrapValue( Object const & obj) : stored_obj(obj) {}
   LazyWrapValue (Object && obj): stored_obj(std::move(obj)) {}
   Object const stored_obj;
@@ -654,53 +663,16 @@ struct LazyWrapValue
 
 */
 
-
-template<class LazyObject, TEMPL_RESTRICT_DECL2(Has_DelayedDefaultFunctions<mystd::decay_t<LazyObject>>)>
-auto abs(LazyObject &&obj)
-{
-
-}
-
-template<class CombinedObject>
-struct CanCall_abs
-{
-  static_assert(Has_LeveledObject<CombinedObject>::value,"");
-  private:
-  template<unsigned int level> constexpr static bool has_abs(...) { return false; }
-  template<unsigned int level> /* better match, but only if the argument inside declval is valid */
-  constexpr static auto has_abs(int)
-  -> decltype ( static_cast<void>(
-    abs(std::declval<typename CombinedObject::template ObjectAtLevel<level> >() )
-  ), std::declval<bool>() )
-  { return true; }
-  static_assert(has_abs<0>() == true,"");
-
-  /* all ?:'s are just to workaround limitations of C++...; */
-
-  template<unsigned int level> constexpr static bool has_abs_upto()
-  {
-    return has_abs<level>() && ( (level==0) ? true : has_abs_upto<(level>0?level-1:0)>() );
-  }
-
-  /* at least the first ?: is actually meaningful. */
-  public:
-  template<unsigned int maxlevel> constexpr static unsigned int has_abs_maxlevel()
-  {
-    return has_abs_upto<maxlevel> ? maxlevel : (maxlevel==0 ? 0 : has_abs_maxlevel< (maxlevel>0 ? maxlevel-1 : 0)>() );
-  }
-};
-
+#define GAUSS_SIEVE_LAZY_FUN(nargs_,namestring)                             \
+  constexpr static unsigned int nargs = (nargs_);                           \
+  using IsLazyFunction = std::true_type;                                    \
+  static std::string fun_name() {return namestring ;}
 
 /**
   Identity function. F(x) = x. Can be used to promote a
   LazyWrap* to a SieveLazyEval<ELP,Approxiomation,Lazy_Identity<...>,...>
   */
 
-#define GAUSS_SIEVE_LAZY_FUN(nargs_,namestring)                             \
-  constexpr static unsigned int nargs = (nargs_);                           \
-  using IsLazyFunction = std::true_type;                                    \
-  using LeveledComparison  = std::true_type;                                    \
-  static std::string fun_name() {return namestring ;}
 
 template<class CombinedType>
 class Lazy_Identity
@@ -710,7 +682,8 @@ class Lazy_Identity
   static constexpr unsigned int ApproxLevel = ApproxLevelOf<CombinedType>::value;
   template<unsigned int level> using EvalType = mystd::decay_t<typename CombinedType::template ObjectAtLevel<level>>;
 
-  // Note: TEMPL_RESTRICT_DECL2 short-circuits. This means we cannot instantiate EvalType<level> for too large level.
+  // Note: TEMPL_RESTRICT_DECL2's implicit and short-circuits template instantiation.
+  // This means we will not instantiate EvalType<level> for too large level.
   template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(
     mystd::bool_constant<level<=ApproxLevel>,
     std::is_same<EvalType<level>, mystd::decay_t<Arg>>
@@ -718,65 +691,74 @@ class Lazy_Identity
   inline static Arg call(Arg &&arg) { return std::forward<Arg>(arg); }
 };
 
-
-/**
-  Scalar Product function.
-  Delegates to compute_sc_product_exact resp. compute_sc_product_approx
-*/
-
-/*
-
-template<class ELP, class Approximation> class Lazy_ScalarProduct
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  GAUSS_SIEVE_LAZY_FUN(2,"Scalar Product")
-  using ExactEvalType  = ExactScalarType;
-  using ApproxEvalType = ApproxScalarType;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  template<class LHS, class RHS>
-  inline static auto call_exact(LHS &&lhs, RHS &&rhs)
-  -> decltype( compute_sc_product_exact( std::declval<LHS &&>(), std::declval<RHS &&>()   )  )
-  {
-    static_assert(std::is_same<mystd::decay_t<LHS>,ExactVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<mystd::decay_t<RHS>,ExactVectorType>::value,"RHS wrong type.");
-    return compute_sc_product_exact(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
-  }
-  template<class LHS, class RHS>
-  inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
-  {
-    static_assert(std::is_same<mystd::decay_t<LHS>, ApproxVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<mystd::decay_t<RHS>, ApproxVectorType>::value,"RHS wrong type.");
-    return compute_sc_product_approx(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
-  }
-};
-
-*/
-
-
-/*
-template<class ELP, class Approximation> class Lazy_Norm2
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  GAUSS_SIEVE_LAZY_FUN(1,"Get Norm2")
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  using ExactEvalType  = ExactScalarType;
-  using ApproxEvalType = ApproxScalarType;
-
-  inline static auto call_exact(ExactVectorType const &arg)
-  -> decltype( std::declval<ExactVectorType const>().get_norm2_exact()  )
-  {
-    return arg.get_norm2_exact();
-  }
-  inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
-  {
-    return arg.get_approx_norm2();
-  }
-};
-*/
-
 }} //end namespaces GaussSieve and LazyEval
+
+namespace GaussSieve::LazyEval::AbsFun{
+
+using std::abs;
+
+template<template<unsigned int> class TestObjectAtLevel>
+struct CanCall_abs
+{
+//  static_assert(Has_LeveledObject<CombinedObject>::value,"");
+  private:
+  template<unsigned int level> constexpr static bool has_abs(...) { return false; }
+  template<unsigned int level> /* better match, but only if the argument inside declval is valid */
+  constexpr static auto has_abs(int)
+  -> mystd::decay_t<decltype ( static_cast<void>(
+    abs(std::declval<TestObjectAtLevel<level> >() )
+  ), bool(true) )>
+  { return true; }
+  static_assert(has_abs<0>(1),"");
+
+  /* all ?:'s are just to workaround limitations of C++...; */
+
+  template<unsigned int level> constexpr static bool has_abs_upto()
+  {
+    return has_abs<level>(1) && ( (level==0) ? true : has_abs_upto<( (level>0)?level-1:0)>() );
+  }
+
+  /* at least the first ?: is actually meaningful. */
+  public:
+  template<unsigned int maxlevel> constexpr static unsigned int has_abs_maxlevel()
+  {
+    return has_abs_upto<maxlevel>() ? maxlevel : ( (maxlevel==0) ? 0 : has_abs_maxlevel< ( (maxlevel>0) ? maxlevel-1 : 0)>() );
+  }
+};
+
+template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel>
+struct Lazy_abs
+{
+  GAUSS_SIEVE_LAZY_FUN(1,"absolute value")
+  static constexpr unsigned int ApproxLevel = maxlevel;
+  template<unsigned int level> using EvalType = mystd::decay_t<
+    decltype( abs(std::declval<ArgAtLevel<level>>() ))
+    >;
+
+  template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(
+    mystd::bool_constant<level<=ApproxLevel>,
+    std::is_same<ArgAtLevel<level>, mystd::decay_t<Arg>>
+    )>
+  inline static EvalType<level> call(Arg &&arg) { return abs(std::forward<Arg>(arg)); }
+};
+
+} // end namespace GaussSieve::LazyEval::AbsFun
+
+namespace GaussSieve{
+
+template<class LazyObject, TEMPL_RESTRICT_DECL2(LazyEval::Has_DelayedDefaultFunctions<mystd::decay_t<LazyObject>>)>
+decltype(auto) abs(LazyObject &&obj)
+{
+  static constexpr unsigned int arglevel = ApproxLevelOf<mystd::decay_t<LazyObject>>::value;
+  static constexpr unsigned int newarglevel=
+    LazyEval::AbsFun::CanCall_abs<mystd::decay_t<LazyObject>::template ObjectAtLevel>::template has_abs_maxlevel<arglevel>();
+  using LazyFun = LazyEval::AbsFun::Lazy_abs<newarglevel, mystd::decay_t<LazyObject>::template ObjectAtLevel>;
+  using RetType = LazyEval::SieveLazyEval<LazyFun, mystd::decay_t<LazyObject>>;
+  return RetType{std::forward<LazyObject>(obj)};
+}
+
+} // end namespace GaussSieve
+
 
 /**
   We compare objects which have a public typedef LeveledComparison set to std::true_type in the
@@ -911,3 +893,61 @@ DEFINE_DEFAULT_LEVELED_COMPARISON(>=,helper_geq)
 #undef CONSTEXPR_IN_NON_DEBUG_TC
 
 #endif
+
+
+/**
+  Scalar Product function.
+  Delegates to compute_sc_product_exact resp. compute_sc_product_approx
+*/
+
+/*
+
+template<class ELP, class Approximation> class Lazy_ScalarProduct
+{
+  public:
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  GAUSS_SIEVE_LAZY_FUN(2,"Scalar Product")
+  using ExactEvalType  = ExactScalarType;
+  using ApproxEvalType = ApproxScalarType;
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
+  template<class LHS, class RHS>
+  inline static auto call_exact(LHS &&lhs, RHS &&rhs)
+  -> decltype( compute_sc_product_exact( std::declval<LHS &&>(), std::declval<RHS &&>()   )  )
+  {
+    static_assert(std::is_same<mystd::decay_t<LHS>,ExactVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<RHS>,ExactVectorType>::value,"RHS wrong type.");
+    return compute_sc_product_exact(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+  }
+  template<class LHS, class RHS>
+  inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
+  {
+    static_assert(std::is_same<mystd::decay_t<LHS>, ApproxVectorType>::value,"LHS wrong type.");
+    static_assert(std::is_same<mystd::decay_t<RHS>, ApproxVectorType>::value,"RHS wrong type.");
+    return compute_sc_product_approx(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
+  }
+};
+
+*/
+
+
+/*
+template<class ELP, class Approximation> class Lazy_Norm2
+{
+  public:
+  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
+  GAUSS_SIEVE_LAZY_FUN(1,"Get Norm2")
+  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
+  using ExactEvalType  = ExactScalarType;
+  using ApproxEvalType = ApproxScalarType;
+
+  inline static auto call_exact(ExactVectorType const &arg)
+  -> decltype( std::declval<ExactVectorType const>().get_norm2_exact()  )
+  {
+    return arg.get_norm2_exact();
+  }
+  inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
+  {
+    return arg.get_approx_norm2();
+  }
+};
+*/

@@ -64,12 +64,12 @@ bool test_lazy()
   std::cout << std::endl << "-- Wrappers --" << std::endl << std::flush;
 
 
-  using LazyWrapS  = LazyWrapCR<CombinedScalar>;
-  using LazyWrapV  = LazyWrapCR<CombinedVector,1>;
+  using LazyWrapS_CR  = LazyWrapCR<CombinedScalar>;
+  using LazyWrapV_CR  = LazyWrapCR<CombinedVector,1>;
 
 
-  LazyWrapS wrap_scalar(combined_scalar);
-  LazyWrapV wrap_vector1(combined_vector1);
+  LazyWrapS_CR wrap_scalar(combined_scalar);
+  LazyWrapV_CR wrap_vector1(combined_vector1);
 
   std::cout << "Vector: " << wrap_vector1.eval<0>() << wrap_vector1.eval<1>() << std::endl;
   std::cout << "Scalar: " << wrap_scalar.eval<0>() << " approx. by " << wrap_scalar.eval<1>() << std::endl;
@@ -77,8 +77,8 @@ bool test_lazy()
 
   // rvalue versions:
 
-  using LazyWrapS2  = LazyWrapRV<CombinedScalar>;
-  using LazyWrapV2  = LazyWrapRV<CombinedVector,1>;
+  using LazyWrapS_RV  = LazyWrapRV<CombinedScalar>;
+  using LazyWrapV_RV  = LazyWrapRV<CombinedVector,1>;
 
   //copy everything:
 
@@ -87,8 +87,8 @@ bool test_lazy()
 
   // rvalue wrappers.
 
-  LazyWrapS2 wrap_scalar_m(combined_scalar_m);
-  LazyWrapV2 wrap_vector_m1(combined_vector_m1);
+  LazyWrapS_RV wrap_scalar_m(combined_scalar_m);
+  LazyWrapV_RV wrap_vector_m1(combined_vector_m1);
 
   // Note that from a specification POV, the arguments to the constructors are now in a possibly
   // invalid state, so we won't use them anymore.
@@ -106,20 +106,22 @@ bool test_lazy()
   std::cout << std::endl << "-- Lazyly calling identity function: --" << std::endl << std::flush;
 
 
-  using IDNode1 = SieveLazyEval<IdentityFunVector,LazyWrapV2>;
+  using IDNode1 = SieveLazyEval<IdentityFunVector,LazyWrapV_RV>;
   using IDNode2 = SieveLazyEval<IdentityFunVector,IDNode1>;
   IDNode1 lazy_id1{ std::move(wrap_vector_m1) };
   IDNode2 lazy_id2{ std::move(lazy_id1) };
   std::cout << "Lazy Eval:" << lazy_id2.eval<0>() << lazy_id2.eval<1>() << std::endl;
 
-  using IDNode1S = SieveLazyEval<IdentityFunScalar, LazyWrapS>;
+  using IDNode1S = SieveLazyEval<IdentityFunScalar, LazyWrapS_CR>;
   using IDNode2S = SieveLazyEval<IdentityFunScalar, IDNode1S>;
   IDNode1S lazy_id1_s{ wrap_scalar };
   IDNode1S lazy_id1_s_copy {lazy_id1_s};
   IDNode2S lazy_id2_s{ lazy_id1_s  };
   IDNode1S lazy_id3_s{ wrap_scalar };
-  std::cout << "Compare:" << ( lazy_id2_s < lazy_id3_s ) << std::endl;
-
+  std::cout << "Compare:" << std::endl;
+  std::cout << ( lazy_id2_s < lazy_id3_s ) << std::endl;
+  std::cout << (abs(lazy_id2_s)< lazy_id2_s) << std::endl;
+  std::cout << (abs(lazy_id2_s) <= lazy_id2_s) << std::endl;
 
 
 //  using IdentityFunES = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;

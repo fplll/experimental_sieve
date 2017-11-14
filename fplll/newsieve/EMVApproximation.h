@@ -362,7 +362,7 @@ inline bool operator<= (EMVScalar const & lhs, EMVScalar const & rhs)
     }
     else
     {
-      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
+      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) <= rhs.mantissa;
     }
 }
 
@@ -406,6 +406,25 @@ inline bool operator> (EMVScalar const & lhs, EMVScalar const rhs)
 {
   return rhs < lhs;
 }
+
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
+inline bool operator>= (EMVScalar const & lhs, T && rhs)
+{
+  return std::forward<T>(rhs) <= lhs;
+}
+
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
+inline bool operator>= (T && lhs, EMVScalar const & rhs)
+{
+  return rhs <= std::forward<T>(lhs);
+}
+
+inline bool operator>= (EMVScalar const & lhs, EMVScalar const rhs)
+{
+  return rhs <= lhs;
+}
+
+
 
 // output of EMVScalars
 
