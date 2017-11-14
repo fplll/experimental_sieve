@@ -154,7 +154,7 @@ class EMVApproximation
   signed int exponent; // shared exponent
   Container data; // array or vector of 16-bit ints
   // Note: Might want to avoid storing exponent twice.
-  EMVScalar get_approx_norm2() const { return approx_norm2; }
+  EMVScalar get_norm2() const { return approx_norm2; }
 
   private:
   EMVScalar approx_norm2;

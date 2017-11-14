@@ -123,65 +123,6 @@ bool test_lazy()
   std::cout << (abs(lazy_id2_s)< lazy_id2_s) << std::endl;
   std::cout << (abs(lazy_id2_s) <= lazy_id2_s) << std::endl;
 
-
-//  using IdentityFunES = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
-//  using IdentityFunBS = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
-//  using IdentityFunCS = Lazy_Identity<ELP,Approx,ScalarOrVector::scalar_type>;
-//  using IdentityFunEV = Lazy_Identity<ELP,Approx,ScalarOrVector::vector_type>;
-//  using IdentityFunBV = Lazy_Identity<ELP,Approx,ScalarOrVector::vector_type>;
-//  using IdentityFunCV = Lazy_Identity<ELP,Approx,ScalarOrVector::vector_type>;
-
-//  std::cout << IdentityFunBS::eval_exact (std::tuple<typename LazyWrapBS::TreeType>(wrap_scalar1.args)) << " approx. "
-//            << IdentityFunBS::eval_approx(std::tuple<typename LazyWrapBS::TreeType>(wrap_scalar1.args)) << std::endl;
-//  std::cout << IdentityFunES::eval_exact (std::tuple<typename LazyWrapES::TreeType>(wrap_scalar2.args)) << " approx. "
-//            << IdentityFunES::eval_approx(std::tuple<typename LazyWrapES::TreeType>(wrap_scalar2.args)) << std::endl;
-//  std::cout << IdentityFunCS::eval_exact (std::tuple<typename LazyWrapCS::TreeType>(wrap_scalar3.args)) << " approx. "
-//            << IdentityFunCS::eval_approx(std::tuple<typename LazyWrapCS::TreeType>(wrap_scalar3.args)) << std::endl;
-//  std::cout << IdentityFunEV::eval_exact (std::tuple<typename LazyWrapEV::TreeType>(wrap_vector1.args))
-//            << IdentityFunEV::eval_approx(std::tuple<typename LazyWrapEV::TreeType>(wrap_vector1.args)) << std::endl;
-//  std::cout << IdentityFunBV::eval_exact (std::tuple<typename LazyWrapBV::TreeType>(wrap_vector2.args))
-//            << IdentityFunBV::eval_approx(std::tuple<typename LazyWrapBV::TreeType>(wrap_vector2.args)) << std::endl;
-//  std::cout << IdentityFunCV::eval_exact (std::tuple<typename LazyWrapCV::TreeType>(wrap_vector3.args))
-//            << IdentityFunCV::eval_approx(std::tuple<typename LazyWrapCV::TreeType>(wrap_vector3.args)) << std::endl;
-
-
-
-//
-//  using VecIdentity = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperEV>;
-//  using VecIdentity2 = LazyEval::Lazy_Identity<ELP,Approx,LazyWrapperBV>;
-//
-//  std::cout << VecIdentity::eval_exact(std::tuple<typename LazyWrapperEV::TreeType>(vector_wrapper.args)) << std::endl;
-//  std::cout << VecIdentity2::eval_exact(std::tuple<typename LazyWrapperBV::TreeType>(vector_wrapper2.args)) << std::endl<<std::flush;
-//
-//  std::cout << std::endl << std::endl << "-- Calling though delayed evaluation object: --" << std::endl;
-//
-//  using DelayedIdentity = LazyEval::SieveLazyEval<VecIdentity>;
-//  using DelayedIdentity2 = LazyEval::SieveLazyEval<VecIdentity2>;
-//
-//  DelayedIdentity delayed_identity{  std::tuple<typename LazyWrapperEV::TreeType>(vector_wrapper.args )   };
-//  DelayedIdentity2 delayed_identity2{ std::tuple<typename LazyWrapperBV::TreeType>(vector_wrapper2.args)   };
-//
-//  std::cout << delayed_identity.eval_exact() << std::endl;
-//  std::cout << delayed_identity.eval_approx() << std::endl;
-//  std::cout << delayed_identity2.eval_exact() << std::endl;
-//  std::cout << delayed_identity2.eval_approx() << std::endl << std::flush;
-//
-//  std::cout << std::endl << std::endl << "-- Creating delayed scalar product object: --" << std::endl;
-//
-//  using ScalarProdFun = LazyEval::Lazy_ScalarProduct<ELP,Approx,LazyWrapperEV, LazyWrapperBV>;
-//  using DelayedScProd = LazyEval::SieveLazyEval<ScalarProdFun>;
-//
-//  DelayedScProd delayed_sc_prod{ std::tuple<typename LazyWrapperEV::TreeType,typename LazyWrapperBV::TreeType>(vector_wrapper.args,second_vector_wrapper2.args)};
-////  std::cout << "BLAH" << std::endl;
-//  std::cout << "Exact Scalar Product is:" << delayed_sc_prod.eval_exact() << std::endl;
-//  std::cout << "Approximate Scalar Product is:"<< delayed_sc_prod.eval_approx() << std::endl;
-//
-//  bool is_smaller = (delayed_sc_prod<170000);
-//  std::cout << "ScProduct is smaller than 170000:" << is_smaller << std::endl;
-//  bool is_larger  = (delayed_sc_prod>175000);
-//  std::cout << "ScProduct is larger than 175000:"  << is_larger << std::endl;
-
-
   return true;
 }
 
