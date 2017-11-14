@@ -1,9 +1,8 @@
 #ifndef RELEVANT_COORDS_H
 #define RELEVANT_COORDS_H
 
-
+#include <random>
 #include "GlobalStaticData.h"
-
 
 namespace GaussSieve{
 
@@ -128,14 +127,22 @@ public:
     }
     else
     {
+      std::mt19937 rng;
+      rng.seed(std::random_device()());
+      std::uniform_int_distribution<std::mt19937::result_type> distr(0,abmient_dimension-1);
       
       for (uint_fast16_t i=0; i<sim_hash_len; ++i)
       {
-        //RelevantCoordinates::rel_coo[i][0] = rand() % nxfixed;
+        RelevantCoordinates::rel_coo[i][0] = distr(rng);
+        RelevantCoordinates::rel_coo[i][1] = distr(rng);
+        RelevantCoordinates::rel_coo[i][2] = distr(rng);
+        RelevantCoordinates::rel_coo[i][3] = distr(rng);
+        /*
         RelevantCoordinates::rel_coo[i][0] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][1] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
+         */
       }
       RelevantCoordinates::print();
 

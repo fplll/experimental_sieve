@@ -140,9 +140,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
         increase_progressive_rank();
       }
 #endif
-        //typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); //comment out for now to text the approximation class
-
-        //sieve_3_iteration(p);
+        typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); 
+        sieve_3_iteration(p);
         ++i;
         if (( i % 1000 == 0) && (verbosity >=2))
         {

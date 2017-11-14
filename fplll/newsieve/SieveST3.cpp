@@ -240,8 +240,20 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
             typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
             filtered_list.push_back(std::move(new_filtered_point));
+          
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+          BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
+          red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+#endif
 
-        }
+        } // if  | <p, x1> | >=px1_target
+      else
+      {
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+        BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
+        no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+#endif
+      }
 
         ++it;
     } //while-loop
@@ -295,7 +307,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             x1_reduced = true;
 
 
-            //it was increased by the erase; we may already reach the end, so the code below will segfalut
+            //it was increased by the erase; we may already reach the end, so the code below will segfalut without the if-cond below
             if (it == main_list.cend())
                 return;
 
@@ -306,7 +318,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         // 3-rediction
         //
         // Now x1 is the largest
-        
+      
+      
+      //x1 can be modified during the check_2_red, hence the computed sc_prod there is no longer valid
         if (x1_reduced) {
             sc_prod_px1 = compute_sc_product(p,*it);
             ++number_of_scprods_level1;
@@ -357,7 +371,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     break; //for-loop over the filtered_list
                 }
-            } //if-cond
+            } //for-loop
 
 
             if (!x1_reduced)
@@ -366,7 +380,19 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
                 filtered_list.push_back(std::move(new_filtered_point));
             }
+          
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+          BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
+          red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+#endif
 
+        }
+        else
+        {
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+          BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
+          no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+#endif
         }
 
         if (!x1_reduced)
