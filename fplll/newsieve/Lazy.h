@@ -693,72 +693,98 @@ class Lazy_Identity
 
 }} //end namespaces GaussSieve and LazyEval
 
-namespace GaussSieve::LazyEval::AbsFun{
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(function_name, namespace_injection)    \
+namespace GaussSieve::LazyEval::function_name##_helper_namespace{                                  \
+namespace_injection                                                                                \
+                                                                                                   \
+/** allows to detect whether function_name(arg) is valid at various levels */                      \
+template<template<unsigned int> class TestObjectAtLevel>                                           \
+struct CanCall_##function_name                                                                     \
+{                                                                                                  \
+  private:                                                                                         \
+  /** has_fun_name<level>(0) returns true if fun_name(TestObjectAtLevel<level>) is valid */        \
+  template<unsigned int level> constexpr static bool has_##function_name(...) { return false; }    \
+  template<unsigned int level> /* better match, but only if the argument inside declval is valid */\
+  constexpr static auto has_##function_name(int) /* argument is unused, but needed */              \
+  -> mystd::decay_t<decltype ( static_cast<void>(                                                  \
+    function_name(std::declval<TestObjectAtLevel<level> >() )                                      \
+  ), bool(true) )>                                                                                 \
+  { return true; }                                                                                 \
+  static_assert(has_##function_name<0>(1),"");                                                     \
+                                                                                                   \
+  /** has_fun_name_upto<level>() returns true if function_name(TestObjectAtLevel<level'>)          \
+      is valid for all level' <= level */                                                          \
+  /* all ?:'s are just to workaround limitations of C++...; */                                     \
+  template<unsigned int level> constexpr static bool has_##function_name##_upto()                  \
+  {                                                                                                \
+    return has_##function_name<level>(1) &&                                                        \
+           ( (level==0) ? true : has_##function_name##_upto<( (level>0)?level-1:0)>() );           \
+  }                                                                                                \
+  /** has_function_name_maxlevel<maxlevel> returns min(maxlevel, maximal level for which           \
+   function_name(TestObjectAtLevel<level>)  is valid ) */                                          \
+  /* at least the first ?: is actually meaningful. */                                              \
+  public:                                                                                          \
+  template<unsigned int maxlevel> constexpr static unsigned int has_##function_name##_maxlevel()   \
+  {                                                                                                \
+    return has_##function_name##_upto<maxlevel>() ?                                                \
+       maxlevel :                                                                                  \
+      ( (maxlevel==0) ? 0 : has_##function_name##_maxlevel< ( (maxlevel>0) ? maxlevel-1 : 0)>() ); \
+  }                                                                                                \
+};                                                                                                 \
+                                                                                                   \
+/** Actual Lazy Function wrapper */                                                                \
+template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel>                           \
+struct Lazy_##function_name                                                                        \
+{                                                                                                  \
+  GAUSS_SIEVE_LAZY_FUN(1,#function_name)                                                           \
+  static constexpr unsigned int ApproxLevel = maxlevel;                                            \
+  template<unsigned int level> using EvalType = mystd::decay_t<                                    \
+    decltype( fun_name(std::declval<ArgAtLevel<level>>() ))                                        \
+    >;                                                                                             \
+                                                                                                   \
+  template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(                                    \
+    mystd::bool_constant<level<=ApproxLevel>,                                                      \
+    std::is_same<ArgAtLevel<level>, mystd::decay_t<Arg>>                                           \
+    )>                                                                                             \
+  inline static EvalType<level> call(Arg &&arg) { return function_name(std::forward<Arg>(arg)); }  \
+};                                                                                                 \
+                                                                                                   \
+} /* end namespace GaussSieve::LazyEval::function_name_helper_namespace */                         \
+                                                                                                   \
+namespace GaussSieve{                                                                              \
+                                                                                                   \
+/** actual function: declares function_name(Arg) for all Args for which Has_DelayedDefaultFunctions\
+    is set. It detects the maximal level, for which fun_name is defined for all approximations     \
+    (static_asserting it is defined at least for level 0) and creates an object wrapping the       \
+    evaluation */                                                                                  \
+template<class LazyObject,                                                                         \
+         TEMPL_RESTRICT_DECL2(LazyEval::Has_DelayedDefaultFunctions<mystd::decay_t<LazyObject>>)>  \
+auto function_name(LazyObject &&obj)                                                               \
+/* decltype(auto) would be REALLY useful */                                                        \
+-> LazyEval::SieveLazyEval<                                                                        \
+    LazyEval::function_name##_helper_namespace::Lazy_##function_name< /* LazyFun */                \
+      LazyEval::function_name##_helper_namespace::CanCall_##function_name<                         \
+          mystd::decay_t<LazyObject>::template ObjectAtLevel>::template has_##function_name##_max_level /* newarglevel */ \
+      <                                                                                            \
+        ApproxLevelOf<mystd::decay_t<LazyObject>>::value /* arglevel */                            \
+      >(),                                                                                         \
+      mystd::decay_t<LazyObject>::template ObjectAtLevel>,                                         \
+    mystd::decay_t<LazyObject> >                                                                   \
+{                                                                                                  \
+  static constexpr unsigned int arglevel = ApproxLevelOf<mystd::decay_t<LazyObject>>::value;       \
+  static constexpr unsigned int newarglevel=                                                       \
+    LazyEval::function_name##_helper_namespace::CanCall_##function_name<                           \
+        mystd::decay_t<LazyObject>::template ObjectAtLevel>::template has_##function_name##_maxlevel<arglevel>(); \
+  using LazyFun = LazyEval::function_name##_helper_namespace::Lazy_##function_name<newarglevel, mystd::decay_t<LazyObject>::template ObjectAtLevel>; \
+  using RetType = LazyEval::SieveLazyEval<LazyFun, mystd::decay_t<LazyObject>>;                    \
+  return RetType{std::forward<LazyObject>(obj)};                                                   \
+}                                                                                                  \
+                                                                                                   \
+} /* end namespace GaussSieve */
 
-using std::abs;
+GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, using std::abs;)
 
-template<template<unsigned int> class TestObjectAtLevel>
-struct CanCall_abs
-{
-//  static_assert(Has_LeveledObject<CombinedObject>::value,"");
-  private:
-  template<unsigned int level> constexpr static bool has_abs(...) { return false; }
-  template<unsigned int level> /* better match, but only if the argument inside declval is valid */
-  constexpr static auto has_abs(int)
-  -> mystd::decay_t<decltype ( static_cast<void>(
-    abs(std::declval<TestObjectAtLevel<level> >() )
-  ), bool(true) )>
-  { return true; }
-  static_assert(has_abs<0>(1),"");
-
-  /* all ?:'s are just to workaround limitations of C++...; */
-
-  template<unsigned int level> constexpr static bool has_abs_upto()
-  {
-    return has_abs<level>(1) && ( (level==0) ? true : has_abs_upto<( (level>0)?level-1:0)>() );
-  }
-
-  /* at least the first ?: is actually meaningful. */
-  public:
-  template<unsigned int maxlevel> constexpr static unsigned int has_abs_maxlevel()
-  {
-    return has_abs_upto<maxlevel>() ? maxlevel : ( (maxlevel==0) ? 0 : has_abs_maxlevel< ( (maxlevel>0) ? maxlevel-1 : 0)>() );
-  }
-};
-
-template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel>
-struct Lazy_abs
-{
-  GAUSS_SIEVE_LAZY_FUN(1,"absolute value")
-  static constexpr unsigned int ApproxLevel = maxlevel;
-  template<unsigned int level> using EvalType = mystd::decay_t<
-    decltype( abs(std::declval<ArgAtLevel<level>>() ))
-    >;
-
-  template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(
-    mystd::bool_constant<level<=ApproxLevel>,
-    std::is_same<ArgAtLevel<level>, mystd::decay_t<Arg>>
-    )>
-  inline static EvalType<level> call(Arg &&arg) { return abs(std::forward<Arg>(arg)); }
-};
-
-} // end namespace GaussSieve::LazyEval::AbsFun
-
-namespace GaussSieve{
-
-template<class LazyObject, TEMPL_RESTRICT_DECL2(LazyEval::Has_DelayedDefaultFunctions<mystd::decay_t<LazyObject>>)>
-decltype(auto) abs(LazyObject &&obj)
-{
-  static constexpr unsigned int arglevel = ApproxLevelOf<mystd::decay_t<LazyObject>>::value;
-  static constexpr unsigned int newarglevel=
-    LazyEval::AbsFun::CanCall_abs<mystd::decay_t<LazyObject>::template ObjectAtLevel>::template has_abs_maxlevel<arglevel>();
-  using LazyFun = LazyEval::AbsFun::Lazy_abs<newarglevel, mystd::decay_t<LazyObject>::template ObjectAtLevel>;
-  using RetType = LazyEval::SieveLazyEval<LazyFun, mystd::decay_t<LazyObject>>;
-  return RetType{std::forward<LazyObject>(obj)};
-}
-
-} // end namespace GaussSieve
-
+#undef GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS
 
 /**
   We compare objects which have a public typedef LeveledComparison set to std::true_type in the
