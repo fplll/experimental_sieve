@@ -154,7 +154,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
                    of << endl;
     }
     #endif
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     if(howverb>=1)
     {
       of << "SIM-HASH No reduction: ";

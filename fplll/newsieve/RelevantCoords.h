@@ -88,14 +88,14 @@ public:
   static void print()
   {
     std::cout << "relevant matrix is: " << std::endl;
-    //for (uint_fast16_t i=0; i<sim_hash_len; i++)
-    //{
+    for (uint_fast16_t i=0; i<sim_hash_len; i++)
+    {
       for (uint_fast16_t j=0; j<num_of_coord; ++j)
-        std::cout << rel_coo[1][j] << ",";
+        std::cout << rel_coo[i][j] << ", ";
         
-      //std::cout << std::endl;
+      std::cout << std::endl;
       //std::cout << rel_coo[i][0] << "," << rel_coo[i][1] << "," << rel_coo[i][2] << "," << rel_coo[i][3] <<std::endl;
-    //}
+    }
   }
 
   //member
@@ -137,6 +137,7 @@ public:
         RelevantCoordinates::rel_coo[i][2] = rand() % abmient_dimension;
         RelevantCoordinates::rel_coo[i][3] = rand() % abmient_dimension;
       }
+      RelevantCoordinates::print();
 
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing RelevantCoordinates; Counter is " << Parent::user_count )
