@@ -37,7 +37,7 @@
 
 // Tests whether some lazy evaluation actually actually loses some levels in the process.
 // This may be caused by missing features of an approximation.
-  #define DEBUG_SIEVE_ALL_APPROX_AT_SAME_LEVEL
+//  #define DEBUG_SIEVE_ALL_APPROX_AT_SAME_LEVEL
 
 #endif  // DEBUG_SIEVE_SILENT_ALL
 
