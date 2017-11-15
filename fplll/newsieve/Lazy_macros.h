@@ -20,7 +20,13 @@ template<bool enabled=true>                                                     
  * Notably, it creates a CanCall_function_id<LeveledObjects> struct into the subnamespace          *
  * LazyEval::function_id_helper_namespace. It contains a public static member function template    *
  * has_function_id_maxlevel<maxlevel>() which returns the maximal level, for which                 *
- * function_name(LeveledObjects<level>) is valid, capped at maxlevel.                              *
+ * function_name() is valid, capped at maxlevel.                                                   *
+ *                                                                                                 *
+ * For GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION, this means                                 *
+ * validity of function_name(LeveledObject<level>)                                                 *
+ * For GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION, it means                            *
+ * validity of LeveledObject<level>.function_name()                                                *
+ * ("unary" always includes the implict *this argument here)                                       *
  *                                                                                                 *
  * Note: function_id should be a unique (in this context) identifier and is used to compose the    *
  *       names of the helper structures via ##. By default, use function_id == function_name.      *
@@ -29,7 +35,8 @@ template<bool enabled=true>                                                     
  *       of function_name(LeveledObjects<level>) expression (needed for std::abs and std::swap)    *
  **************************************************************************************************/
 
-#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION(function_name,function_id,namespace_injection)\
+/* Helper macro to unify the cases above by choosing different unary_expressions */
+#define GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION(function_name,function_id,unary_expression,namespace_injection)\
 namespace LazyEval::function_id##_helper_namespace{                                                \
 namespace_injection                                                                                \
                                                                                                    \
@@ -42,9 +49,7 @@ struct CanCall_##function_id                                                    
   template<unsigned int level> constexpr static bool has_##function_id(...) { return false; }      \
   template<unsigned int level> /* better match, but only if the argument inside declval is valid */\
   constexpr static auto has_##function_id(int) /* argument is unused, but needed */                \
-  -> mystd::decay_t<decltype ( static_cast<void>(                                                  \
-    function_name(std::declval<TestObjectAtLevel<level> >() )                                      \
-  ), bool(true) )>                                                                                 \
+  -> mystd::decay_t<decltype ( static_cast<void>( unary_expression), bool(true) )>                                                                                 \
   { return true; }                                                                                 \
   static_assert(has_##function_id<0>(1),"");                                                       \
                                                                                                    \
@@ -69,6 +74,33 @@ struct CanCall_##function_id                                                    
 };                                                                                                 \
 } /* end namespace */
 
+/**
+  For forward declarations.
+*/
+
+#define GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION_FORWARD_DECLARE(function_id)                 \
+namespace LazyEval::function_id##_helper_namespace{                                                \
+template<template<unsigned int> class TestObjectAtLevel> struct CanCall_##function_id;             \
+}
+
+/**
+  Use these macros:
+*/
+
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION(function_name,function_id,namespace_injection)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION(function_name,function_id,function_name(std::declval<TestObjectAtLevel<level>>()),namespace_injection)
+#define GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION(function_name,function_id)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION(function_name,function_id,std::declval<TestObjectAtLevel<level>>().function_name(), )
+
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION_FORWARD_DECLARE(function_name,function_id) \
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION_FORWARD_DECLARE(function_id)
+#define GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION_FORWARD_DECLARE(function_name,function_id)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION_FORWARD_DECLARE(function_id)
+
+
+// Does not work, because the above (iterated) macro expansion is delayed until final use...
+// #undef GAUSS_SIEVE_LAZY_UNARY_THINGY_LEVEL_DETECTION
+
 /***************************************************************************************************
  * Creates a Lazy_function_name wrapper to be used as a LazyFunction is SieveLazyEval              *                                                                                      *
  *                                                                                                 *
@@ -81,8 +113,9 @@ struct CanCall_##function_id                                                    
  * member function template, which is of the form required by SieveLazyEval.                       *
  **************************************************************************************************/
 
-#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER(function_name, function_id, namespace_injection)\
+#define GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER(function_name, function_id, namespace_injection, function_call, function_call_type)\
 namespace LazyEval::function_id##_helper_namespace{                                                \
+namespace_injection                                                                                \
 template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel>                           \
 struct Lazy_##function_id                                                                          \
 {                                                                                                  \
@@ -91,7 +124,7 @@ struct Lazy_##function_id                                                       
   static std::string fun_name() {return #function_name;}                                           \
   static constexpr unsigned int ApproxLevel = maxlevel;                                            \
   template<unsigned int level> using EvalType = mystd::decay_t<                                    \
-    decltype( function_name(std::declval<ArgAtLevel<level>>() ))                                   \
+    decltype( function_call_type )                                                                 \
     >;                                                                                             \
                                                                                                    \
   template<unsigned int level, class Arg, TEMPL_RESTRICT_DECL2(                                    \
@@ -101,10 +134,31 @@ struct Lazy_##function_id                                                       
   {                                                                                                \
     static_assert(level <= maxlevel,"Cannot call at this level");                                  \
     static_assert(std::is_same<ArgAtLevel<level>,mystd::decay_t<Arg>>::value,"Invalid argument");  \
-    return function_name(std::forward<Arg>(arg));                                                  \
+    return function_call;                                                                          \
   }                                                                                                \
 };                                                                                                 \
 } /* end LazyEval::function_name_helper_namespace */
+
+/**
+  For forward declarations:
+*/
+
+#define GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER_FORWARD_DECLARE(function_id)             \
+namespace LazyEval::function_id##_helper_namespace{                                                \
+template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel> struct Lazy_##function_id;\
+}
+
+
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER(function_name,function_id, namespace_injection)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER(function_name,function_id,namespace_injection,function_name(std::forward<Arg>(arg)),function_name(std::declval<ArgAtLevel<level>>()) )
+#define GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_CREATE_LAZY_WRAPPER(function_name,function_id) \
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER(function_name,function_id, ,std::forward<Arg>(arg).function_name(), std::declval<ArgAtLevel<level>>().function_name() )
+
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER_FORWARD_DECLARE(function_name,function_id)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER_FORWARD_DECLARE(function_id)
+#define GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_CREATE_LAZY_WRAPPER_FORWARD_DECLARE(function_name,function_id)\
+  GAUSS_SIEVE_LAZY_UNARY_THINGY_CREATE_LAZY_WRAPPER_FORWARD_DELCARE(function_id)
+
 
 /***************************************************************************************************
  * Defines the function function_name(Arg) for Args satisfying a certain predicate by creating     *
@@ -126,7 +180,7 @@ struct Lazy_##function_id                                                       
  **************************************************************************************************/
 
 #define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(function_name, function_id, ...)               \
-template<class Arg, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<Arg>,__VA_ARGS__)>                         \
+template<class Arg, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg>>,__VA_ARGS__)>         \
 auto function_name(Arg &&arg)                                                                      \
 /* decltype(auto) would be REALLY useful */                                                        \
 -> LazyEval::SieveLazyEval<                                                                        \
@@ -153,7 +207,22 @@ auto function_name(Arg &&arg)                                                   
   return RetType{std::forward<Arg>(arg)};                                                          \
 }
 
+/**
+  Forward declaration:
+*/
 
+#define GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY_FORWARD_DECLARE(function_name,function_id,...) \
+template<class Arg, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg>>,__VA_ARGS__)>         \
+auto function_name(Arg &&arg)                                                                      \
+-> LazyEval::SieveLazyEval<                                                                        \
+    LazyEval::function_id##_helper_namespace::Lazy_##function_id< /* LazyFun */                    \
+      LazyEval::function_id##_helper_namespace::CanCall_##function_id<                             \
+          mystd::decay_t<Arg>::template ObjectAtLevel>::template has_##function_id##_maxlevel /* newarglevel */ \
+      <                                                                                            \
+        ApproxLevelOf<mystd::decay_t<Arg>>::value /* arglevel */                                   \
+      >(),                                                                                         \
+      mystd::decay_t<Arg>::template ObjectAtLevel>,                                                \
+    mystd::decay_t<Arg> >;
 
 
 /**
