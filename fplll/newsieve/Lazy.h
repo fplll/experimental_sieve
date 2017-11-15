@@ -101,7 +101,8 @@ template<unsigned int level, class ExactClass, class Approximation> class Object
 */
 
 
-namespace GaussSieve::LazyEval{
+namespace GaussSieve
+{
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject, std::true_type, Has_LeveledObject);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject_Base, std::true_type, Has_LeveledObject_Base);
@@ -109,7 +110,7 @@ CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(DelayedDefaultFunctions, std::true_type
 }
 
 namespace GaussSieve{
-GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(abs,abs)
+//GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(abs,abs)
 GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(get_norm2)
 }
 // ---------------
@@ -707,9 +708,13 @@ class Lazy_Identity
 } //end namespace GaussSieve::LazyEval
 
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS(get_norm2)
-GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, abs, using std::abs;)
+GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION    (abs,abs,using std::abs;)
+GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER(abs,abs,using std::abs;)
+GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(abs,abs,std::true_type)
+//GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, abs, using std::abs;)
 GAUSS_SIEVE_LAZY_BINARY_OP_FOR_DELAYED_OBJECTS_BOTH(+ ,operator_add_both_delayed)
 }
 
@@ -832,6 +837,8 @@ DEFINE_DEFAULT_LEVELED_COMPARISON(<, helper_less)
 DEFINE_DEFAULT_LEVELED_COMPARISON(>, helper_greater)
 DEFINE_DEFAULT_LEVELED_COMPARISON(<=,helper_leq)
 DEFINE_DEFAULT_LEVELED_COMPARISON(>=,helper_geq)
+
+/** TODO: == and !=, unsure whether to use approximations for this */
 
 #undef DEFINE_DEFAULT_LEVELED_COMPARISON
 #undef LHSLeveled
