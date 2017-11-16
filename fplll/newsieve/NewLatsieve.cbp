@@ -32,6 +32,7 @@
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
 		<Unit filename="Lazy.h" />
+		<Unit filename="Lazy_macros.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />

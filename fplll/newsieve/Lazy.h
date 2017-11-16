@@ -58,9 +58,8 @@ namespace Helpers
 {
 template<unsigned int level, class ExactClass, class Approximation> class ObjectWithApproximationHelper;
 }
-
-
 }
+
 // If DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS is set, we perform some debug output.
 // As a consequence, some functions have side-effects (notably, output) and are no longer constexpr.
 // This #define is local (i.e. #undef'd at the end of the file).
@@ -110,8 +109,14 @@ CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(DelayedDefaultFunctions, std::true_type
 }
 
 namespace GaussSieve{
+//GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION_FORWARD_DECLARE(get_norm2,get_norm2)
+//GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER_FORWARD_DECLARE(get_norm2,get_norm2)
+//GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY_FORWARD_DECLARE(call_get_norm2,get_norm2, std::true_type)
+}
+
+namespace GaussSieve{
 //GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(abs,abs)
-GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(get_norm2)
+//GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS_FORWARD_DECLARE(get_norm2)
 }
 // ---------------
 
@@ -445,7 +450,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 // not explicit (by design)
   inline operator ObjectAtLevel<0>() const  { return eval<0>(); }
   inline operator ObjectAtLevel<0>()        { return eval<0>(); }
-  GAUSS_SIEVE_FORWARD_UNARY_MEMBER_FUNCTION_TO_DELAYED(get_norm2)
+//  GAUSS_SIEVE_FORWARD_UNARY_MEMBER_FUNCTION_TO_DELAYED(get_norm2,call_get_norm2,SieveLazyEval)
 };
 
 /**
@@ -710,14 +715,18 @@ class Lazy_Identity
 
 namespace GaussSieve
 {
-GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS(get_norm2)
+//GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_FOR_DELAYED_OBJECTS(get_norm2)
 
 GAUSS_SIEVE_LAZY_UNARY_FUNCTION_LEVEL_DETECTION    (abs,abs,using std::abs;)
 GAUSS_SIEVE_LAZY_UNARY_FUNCTION_CREATE_LAZY_WRAPPER(abs,abs,using std::abs;)
 GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(abs,abs,std::true_type)
 
+GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION(get_norm2,get_norm2)
+GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_CREATE_LAZY_WRAPPER(get_norm2,get_norm2)
+GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(call_get_norm2,get_norm2,std::true_type)
+
 //GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, abs, using std::abs;)
-GAUSS_SIEVE_LAZY_BINARY_OP_FOR_DELAYED_OBJECTS_BOTH(+ ,operator_add_both_delayed)
+//GAUSS_SIEVE_LAZY_BINARY_OP_FOR_DELAYED_OBJECTS_BOTH(+ ,operator_add_both_delayed)
 }
 
 /**
