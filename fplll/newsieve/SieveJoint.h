@@ -68,6 +68,8 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include <fstream>
 #include <exception>
 #include <vector> //only for testing bitapprox, to delete
+#include <iomanip> // only to implement compute_statistics function; to delete
+
 //#include "TermCond.h"
 #include "GaussQueue.h"
 //#include "FilteredPoint.h"
@@ -219,6 +221,11 @@ public:
     void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};      //prints status to out. verb overrides the verbosity unless set to -1.
     void dump_status_to_file(std::string const &outfilename, bool overwrite = false);                   //dumps to file (verbosity overridden to 3)
     void dump_status_to_stream(std::ostream &of, int verb=-1);       //dumps to stream. Can be read back if verb>= 3. Otherwise, verbosity determines what is output.
+    
+    //computes some stats to determine good sim-hash
+    // here because I'm tires of copy-pasting into spread-sheets. to be deleted
+    void compute_statistics(std::ostream &of);
+  
 
 //getter / setter functions
 

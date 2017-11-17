@@ -80,6 +80,64 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_file(std::
     }
 }
 
+
+/*
+ Computes statistics for sim-hash 
+ */
+template<class SieveTraits>
+void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics(std::ostream &of)
+{
+  using std::endl;
+  
+  std::ofstream myfile;
+  myfile.open ("Statistics.txt");
+  
+  unsigned long long sum_no_red = 0;
+  unsigned long long sum_red = 0;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+    sum_no_red+=no_red_stat_sim_hash[i];
+    sum_red+=red_stat_sim_hash[i];
+  }
+  
+  float pdf_no_red[no_red_stat_sim_hash.size()];
+  float pdf_red[no_red_stat_sim_hash.size()];
+  
+  float cdf_no_red[no_red_stat_sim_hash.size()];
+  float cdf_red[no_red_stat_sim_hash.size()];
+  
+  float accum_cdf_no_red = 0;
+  float accum_cdf_red = 0;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+      pdf_no_red[i] = (float)no_red_stat_sim_hash[i]/ (float)sum_no_red;
+      pdf_red[i] = (float)red_stat_sim_hash[i] / (float) sum_red;
+      
+      accum_cdf_no_red+=no_red_stat_sim_hash[i];
+      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
+      
+      accum_cdf_red+=red_stat_sim_hash[i];
+      cdf_red[i] = accum_cdf_red/sum_red;
+      
+  }
+  
+  myfile << "Statistics for dim = " << lattice_rank << endl;
+  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash[i] << " | " <<  
+                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" << 
+                     std::setw(7) << red_stat_sim_hash[i] << " | " <<  
+                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
+  }
+  
+  myfile.close();
+  
+}
+
 template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std::ostream &of, int verb)
 {
@@ -163,9 +221,8 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
       of << "SIM-HASH Reduction: ";
       for (unsigned int i=0; i!=red_stat_sim_hash.size(); ++i) of <<red_stat_sim_hash[i] << " ";
       of << endl;
-
-    
     }
+    compute_statistics(of);
     #endif
   
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
