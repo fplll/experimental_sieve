@@ -450,7 +450,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 // not explicit (by design)
   inline operator ObjectAtLevel<0>() const  { return eval<0>(); }
   inline operator ObjectAtLevel<0>()        { return eval<0>(); }
-//  GAUSS_SIEVE_FORWARD_UNARY_MEMBER_FUNCTION_TO_DELAYED(get_norm2,call_get_norm2,SieveLazyEval)
+  GAUSS_SIEVE_FORWARD_UNARY_MEMBER_FUNCTION_TO_DELAYED(get_norm2,call_get_norm2,SieveLazyEval)
 };
 
 /**

@@ -216,21 +216,23 @@ Forward unary member function to unary free function. This is just to simplify t
 ***************************************************************************************************/
 
 #define GAUSS_SIEVE_FORWARD_UNARY_MEMBER_FUNCTION_TO_DELAYED(member_function_name,free_function_name,class_name) \
-/* The template parameter enabled serves the purpose that the function is only instantiated        \
-   if it is actually used. */                                                                      \
-template<class RealClass = class_name>                                           \
-[[gnu::always_inline]] inline auto member_function_name()  const &                                 \
--> decltype(free_function_name(std::declval<class_name>())) \
+/* The template parameter RealClass=class_name serves the purpose that the function is only        \
+   instantiated if it is actually used. */                                                         \
+template<class RealClass = class_name>                                                             \
+[[gnu::always_inline]]  inline auto member_function_name()  const &                                \
+-> decltype(free_function_name(std::declval<RealClass>()) )                                        \
 {                                                                                                  \
+  static_assert(std::is_same<RealClass,class_name>::value,"");                                     \
   return free_function_name(static_cast<RealClass>(*this));                                        \
 }                                                                                                  \
-/*                                                                                                   \
-template<bool enabled=true,class RealClass = class_name>                                           \
+                                                                                                   \
+template<class RealClass = class_name>                                                             \
 [[gnu::always_inline]] inline auto member_function_name()  &&                                      \
--> typename std::enable_if<enabled,decltype(free_function_name(std::move(*this)))>::type           \
+-> decltype(free_function_name(std::move(std::declval<RealClass>()   )))                           \
 {                                                                                                  \
+  static_assert(std::is_same<RealClass,class_name>::value,"");                                     \
   return free_function_name(std::move(static_cast<RealClass>(*this)));                             \
-}*/
+}
 
 
 /**
