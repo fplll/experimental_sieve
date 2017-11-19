@@ -57,7 +57,9 @@ class RelevantCoordinates;
 //};
 
   
-  uint_fast16_t constexpr  sim_hash_len = 128;
+  uint_fast16_t constexpr  sim_hash_len = 64;
+  uint_fast16_t constexpr  sim_hash2_len = 64;
+  
   uint_fast16_t constexpr  num_of_coord = 4;
 
 //TODO: REPLACE rand() by a proper rand
@@ -77,13 +79,13 @@ public:
   RelevantCoordinates  &operator=(RelevantCoordinates &obj)       = delete;
 
 
-public:
   // for 0<=i<sim_hash_len; 0<=j<num_of_coord
   static uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
   {
     return (rel_coo[i][j]);
   }
   
+public:
   static void print()
   {
     std::cout << "relevant matrix is: " << std::endl;

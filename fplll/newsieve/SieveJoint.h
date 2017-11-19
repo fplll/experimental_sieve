@@ -225,7 +225,7 @@ public:
     //computes some stats to determine good sim-hash
     // here because I'm tires of copy-pasting into spread-sheets. to be deleted
     void compute_statistics(std::ostream &of);
-  
+    void compute_statistics_2nd_order(std::ostream &of);
 
 //getter / setter functions
 
@@ -341,6 +341,9 @@ private:
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     std::vector<int> no_red_stat_sim_hash;
     std::vector<int> red_stat_sim_hash;
+    
+    std::vector<int> no_red_stat_sim_hash2;
+    std::vector<int> red_stat_sim_hash2;
   #endif
 
 

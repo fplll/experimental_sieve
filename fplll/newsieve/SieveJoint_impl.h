@@ -90,7 +90,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics(std::o
   using std::endl;
   
   std::ofstream myfile;
-  myfile.open ("Statistics.txt");
+  myfile.open ("newsieve/Statistics/Statistics.txt");
   
   unsigned long long sum_no_red = 0;
   unsigned long long sum_red = 0;
@@ -131,6 +131,61 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics(std::o
     myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash[i] << " | " <<  
                      std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" << 
                      std::setw(7) << red_stat_sim_hash[i] << " | " <<  
+                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
+  }
+  
+  myfile.close();
+  
+}
+
+
+template<class SieveTraits>
+void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics_2nd_order(std::ostream &of)
+{
+  using std::endl;
+  
+  std::ofstream myfile;
+  myfile.open ("newsieve/Statistics/Statistics_2.txt");
+  
+  unsigned long long sum_no_red = 0;
+  unsigned long long sum_red = 0;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+    sum_no_red+=no_red_stat_sim_hash2[i];
+    sum_red+=red_stat_sim_hash2[i];
+  }
+  
+  float pdf_no_red[no_red_stat_sim_hash2.size()];
+  float pdf_red[no_red_stat_sim_hash2.size()];
+  
+  float cdf_no_red[no_red_stat_sim_hash2.size()];
+  float cdf_red[no_red_stat_sim_hash2.size()];
+  
+  float accum_cdf_no_red = 0;
+  float accum_cdf_red = 0;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+      pdf_no_red[i] = (float)no_red_stat_sim_hash2[i]/ (float)sum_no_red;
+      pdf_red[i] = (float)red_stat_sim_hash2[i] / (float) sum_red;
+      
+      accum_cdf_no_red+=no_red_stat_sim_hash2[i];
+      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
+      
+      accum_cdf_red+=red_stat_sim_hash2[i];
+      cdf_red[i] = accum_cdf_red/sum_red;
+      
+  }
+  
+  myfile << "2nd order Statistics for dim = " << lattice_rank << endl;
+  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+  
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash2[i] << " | " <<  
+                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" << 
+                     std::setw(7) << red_stat_sim_hash2[i] << " | " <<  
                      std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
   }
   
@@ -223,6 +278,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
       of << endl;
     }
     compute_statistics(of);
+    compute_statistics_2nd_order(of);
     #endif
   
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
@@ -392,6 +448,9 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED 
     red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
     no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+    
+    red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+    no_red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
   #endif
   
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
@@ -400,8 +459,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
       no_red_stat2.resize(2*this->ambient_dimension+1);
       red_stat2.resize(2*this->ambient_dimension+1);
-  
-    //RelevantCoordinates &matrix = RelevantCoordinates::get_instance(this->ambient_dimension);
     #endif
 #endif
 };
