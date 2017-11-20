@@ -514,7 +514,7 @@ static constexpr bool EvalOnce_v = EvalOnce::value; \
 using LeveledObject = std::true_type; \
 using LeveledComparison = std::true_type; \
 using LeveledObject_Base = std::false_type; \
-  using DelayedDefaultFunctions = std::true_type
+using DelayedDefaultFunctions = std::true_type
 
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
@@ -724,6 +724,9 @@ GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(abs,abs,std::true_type)
 GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION(get_norm2,get_norm2)
 GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_CREATE_LAZY_WRAPPER(get_norm2,get_norm2)
 GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(call_get_norm2,get_norm2,std::true_type)
+
+GAUSS_SIEVE_LAZY_BINARY_OP_TT_LEVEL_DETECTION(+,addition)
+GAUSS_SIEVE_LAZY_BINARY_OP_TT_CREATE_LAZY_WRAPPER(+,addition)
 
 //GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, abs, using std::abs;)
 //GAUSS_SIEVE_LAZY_BINARY_OP_FOR_DELAYED_OBJECTS_BOTH(+ ,operator_add_both_delayed)
