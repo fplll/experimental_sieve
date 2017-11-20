@@ -242,6 +242,8 @@ class ObjectWithApproximationHelper<1,ExactClass,ApproximationClass>
 };
 } // end of Helpers namespace
 
+template<bool Good> struct LevelIsGood{static_assert(Good,"Calling at invalid level");};
+
 
 /**
   SieveLazyEval is the main class of this module:
@@ -292,8 +294,6 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   static_assert(mystd::conjunction< std::is_same<Args,mystd::decay_t<Args>>...>::value,"Args are of wrong type");
 
   public:
-  // The type encapsulated is encoded in the function.
-  template<unsigned int level> using ObjectAtLevel = typename LazyFunction::template EvalType<level>;
 
   // tags used for various static_assert's and template overload selection:
   using IsLazyNode = std::true_type;
@@ -304,6 +304,14 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using DelayedDefaultFunctions = std::true_type;
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
+
+// The type encapsulated is encoded in the function. Note that the line below is equivalent to
+// template<unsigned int level> using ObjectAtLevel = typename LazyFunction::template EvalType<level>;
+// This more complicated way gives better error messages (Notably, aliasing LazyFunction>::EvalType<level>
+// might SFINAE-fail, removing functions from overloads. This way ensures we hit static_asserts
+  template<unsigned int level> using ObjectAtLevel =
+    typename std::conditional<level<=ApproxLevel,typename LazyFunction::template EvalType<level<=ApproxLevel?level:0>,LevelIsGood<level<=ApproxLevel>>::type;
+
 
 #ifdef DEBUG_SIEVE_ALL_APPROX_AT_SAME_LEVEL
   static_assert(mystd::conjunction<mystd::bool_constant<ApproxLevel == ApproxLevelOf<Args>::value>...>::value,
@@ -725,8 +733,9 @@ GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_LEVEL_DETECTION(get_norm2,get_norm2)
 GAUSS_SIEVE_LAZY_UNARY_MEMBER_FUNCTION_CREATE_LAZY_WRAPPER(get_norm2,get_norm2)
 GAUSS_SIEVE_LAZY_UNARY_FUNCTION_DIRECT_LAZY(call_get_norm2,get_norm2,std::true_type)
 
-GAUSS_SIEVE_LAZY_BINARY_OP_TT_LEVEL_DETECTION(+,addition)
-GAUSS_SIEVE_LAZY_BINARY_OP_TT_CREATE_LAZY_WRAPPER(+,addition)
+GAUSS_SIEVE_LAZY_BINARY_OP_TT_LEVEL_DETECTION(+,addition_tt)
+GAUSS_SIEVE_LAZY_BINARY_OP_TT_CREATE_LAZY_WRAPPER(+,addition_tt)
+GAUSS_SIEVE_LAZY_BINARY_FUNCTION_DIRECT_LAZY(operator +, addition_tt,std::true_type)
 
 //GAUSS_SIEVE_LAZY_UNARY_FUNCTION_FOR_DELAYED_OBJECTS(abs, abs, using std::abs;)
 //GAUSS_SIEVE_LAZY_BINARY_OP_FOR_DELAYED_OBJECTS_BOTH(+ ,operator_add_both_delayed)

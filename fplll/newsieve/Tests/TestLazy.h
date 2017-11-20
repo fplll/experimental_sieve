@@ -122,7 +122,7 @@ bool test_lazy()
   std::cout << ( lazy_id2_s < lazy_id3_s ) << std::endl;
   std::cout << (abs(lazy_id2_s)< lazy_id2_s) << std::endl;
   std::cout << (abs(lazy_id2_s) <= lazy_id2_s) << std::endl;
-//  std::cout << (wrap_scalar + wrap_scalar) << std::endl;
+  std::cout << (lazy_id2_s + lazy_id3_s).eval<1>() << std::endl;
   return true;
 }
 

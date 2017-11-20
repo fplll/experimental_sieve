@@ -306,7 +306,7 @@ template<class RealClass = class_name>                                          
 */
 
 #define GAUSS_SIEVE_LAZY_BINARY_FUNCTION_DIRECT_LAZY(function_name, function_id,...) \
-template<class Arg1, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg1>>,Has_IsLazyNode<mystd::decay_t<Arg2>>,__VA_ARGS__)>         \
+template<class Arg1, class Arg2, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg1>>,Has_IsLazyNode<mystd::decay_t<Arg2>>,__VA_ARGS__)>         \
 auto function_name(Arg1 &&arg1, Arg2 &&arg2)                                                                      \
 -> LazyEval::SieveLazyEval<                                                                        \
     LazyEval::function_id##_helper_namespace::Lazy_##function_id< /* LazyFun */                    \
