@@ -121,9 +121,9 @@ bool test_lazy()
   std::cout << "Compare:" << std::endl;
   std::cout << ( (lazy_id2_s>>2) < lazy_id3_s ) << std::endl;
   std::cout << ( (lazy_id2_s<<2) < lazy_id3_s ) << std::endl;
-//  std::cout << (abs(lazy_id2_s)< lazy_id2_s) << std::endl;
-//  std::cout << (abs(lazy_id2_s) <= lazy_id2_s) << std::endl;
-//  std::cout << (lazy_id2_s + lazy_id3_s).eval<0>() << std::endl;
+  std::cout << (abs(lazy_id2_s)< lazy_id2_s) << std::endl;
+  std::cout << (abs(lazy_id2_s) <= lazy_id2_s) << std::endl;
+  std::cout << (lazy_id2_s + lazy_id3_s).eval<0>() << std::endl;
   return true;
 }
 

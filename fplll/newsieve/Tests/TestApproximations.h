@@ -14,6 +14,7 @@
 
 bool test_approximations()
 {
+  /*
   int constexpr dimfixed = 25;
 
   using ExactLP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
@@ -39,6 +40,8 @@ bool test_approximations()
   mpz_class X = latp_comb.get_norm2(); std::cout << "Delayed:" << X << std::endl;
 //
 //  std::cout <<std::endl<<std::endl << "--------------" << std::endl;
+
+*/
 
   return true;
 }

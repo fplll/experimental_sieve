@@ -86,7 +86,7 @@ template<unsigned int level, class ExactClass, class Approximation> class Object
     Query with Has_LeveledObject_Base<Obj>;
     Denotes whether this is a "base" object. Base objects have access<level> - members and
     are *not* Lazy Objects.
-    (Currently, every object is either base or lazy -- this is just to make sure )
+    (Currently, every leveled object is either base or lazy -- this is just to make sure )
 
   - using LeveledComparison = std::true_type / false_type.
     This controls whether comparison operators work by comparing level-by-level, starting with the
@@ -105,7 +105,7 @@ namespace GaussSieve
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(IsLazyNode, std::true_type, Has_IsLazyNode);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject, std::true_type, Has_LeveledObject);
 CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LeveledObject_Base, std::true_type, Has_LeveledObject_Base);
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(DelayedDefaultFunctions, std::true_type, Has_DelayedDefaultFunctions);
+// CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(DelayedDefaultFunctions, std::true_type, Has_DelayedDefaultFunctions);
 }
 
 namespace GaussSieve{
@@ -143,7 +143,7 @@ struct ObjectWithApproximation
   using LeveledComparison = std::true_type;
   using LeveledObject     = std::true_type;
   using LeveledObject_Base= std::true_type;
-  using DelayedDefaultFunctions = std::true_type;
+//  using DelayedDefaultFunctions = std::true_type;
   template<unsigned int level> using ObjectAtLevel = typename Helper<level>::Object;
   ExactType  exact_object;
   ApproxType approx_object;
@@ -301,7 +301,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   using LeveledComparison = std::true_type;
   using LeveledObject     = std::true_type;
   using LeveledObject_Base= std::false_type;
-  using DelayedDefaultFunctions = std::true_type;
+//  using DelayedDefaultFunctions = std::true_type;
   static constexpr unsigned int ApproxLevel = LazyFunction::ApproxLevel;
 //  static_assert(ApproxLevel >0, "Approximation level is 0.");
 
@@ -521,8 +521,9 @@ using IsLazyLeaf = std::true_type; \
 static constexpr bool EvalOnce_v = EvalOnce::value; \
 using LeveledObject = std::true_type; \
 using LeveledComparison = std::true_type; \
-using LeveledObject_Base = std::false_type; \
-using DelayedDefaultFunctions = std::true_type
+using LeveledObject_Base = std::false_type;
+
+//using DelayedDefaultFunctions = std::true_type
 
 
 template<class CombinedObject, unsigned int maxlevel = ApproxLevelOf<CombinedObject>::value >
