@@ -474,7 +474,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   We support (up to) four different calling conventions:
   - Const-Ref (CR): The wrapper is initialized with an lvalue and stores a const-reference.
                     upon eval_*, the lvalue used to initialize must still be valid.
-                    The function used in eval_ must pass this by value of const-ref
+                    The function used in eval_ must pass this by value or const-ref
 
   - Delayed-move(RV): This wrapper models delayed (explicit) rvalue-passing.
                       The wrapper is initialized with an lvalue.
@@ -499,7 +499,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   Additionally, we have a wrapper
   - Value:  Stores the value of a NON-LEVELED object itself. Calling eval<level> will return the
             object for any level. Used to encapsulate things like "x<<=2", where x is leveled, but
-            2 is not.
+            2 is not. This is essentially equivalent to Capture except for the leveled-ness.
 
 */
 
@@ -662,8 +662,16 @@ struct LazyWrapValue
   constexpr LazyWrapValue( Object const & obj) : stored_obj(obj) {}
   LazyWrapValue (Object && obj): stored_obj(std::move(obj)) {}
   Object const stored_obj;
-  template<unsigned int level> constexpr inline Object get_value_at_level() const { return stored_obj; }
-  template<unsigned int level> constexpr inline Object eval() const { return stored_obj; }
+  template<unsigned int level> constexpr inline Object get_value_at_level() const
+  {
+    static_assert(level<=maxlevel,"");
+    return stored_obj;
+  }
+  template<unsigned int level> constexpr inline Object eval() const
+  {
+    static_assert(level<=maxlevel,"");
+    return stored_obj;
+  }
 };
 
 #undef LAZY_WRAP_ALL
