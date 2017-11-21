@@ -211,7 +211,7 @@ template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel> struct 
   std::forward<Arg1>(arg1) op std::forward<Arg2>(arg2),\
   std::declval<Arg1AtLevel<level>>() op std::declval<Arg2NoLevel>(),\
   static_assert(std::is_same<Arg1AtLevel<level>,mystd::decay_t<Arg1>>::value,"Arg1 invalid");\
-  static_assert(std::is_same<Arg2NoLevel,       mystd::decay_t<Arg2>>::value,"Arg2 invalid") ,\
+  static_assert(std::is_same<Arg2NoLevel,       mystd::decay_t<Arg2>>::value,"Arg2 invalid"); ,\
   , \
   template<unsigned int> class Arg1AtLevel, class Arg2NoLevel)
 #define GAUSS_SIEVE_LAZY_BINARY_OP_OT_CREATE_LAZY_WRAPPER(op,function_id)\
@@ -219,7 +219,7 @@ template<unsigned int maxlevel, template<unsigned int> class ArgAtLevel> struct 
   std::forward<Arg1>(arg1) op std::forward<Arg2>(arg2),\
   std::declval<Arg1NoLevel>() op std::declval<Arg2AtLevel<level>>(),\
   static_assert(std::is_same<Arg1NoLevel,       mystd::decay_t<Arg1>>::value,"Arg1 invalid");\
-  static_assert(std::is_same<Arg2AtLevel<level>,mystd::decay_t<Arg2>>::value,"Arg2 invalid") ,\
+  static_assert(std::is_same<Arg2AtLevel<level>,mystd::decay_t<Arg2>>::value,"Arg2 invalid"); ,\
   , \
   class Arg1AtLevel, template<unsigned int> class Arg2NoLevel)
 
@@ -355,7 +355,7 @@ auto inline function_name(Arg1 &&arg1, Arg2 &&arg2)                             
 }
 
 #define GAUSS_SIEVE_LAZY_BINARY_FUNCTION_DIRECT_LAZY_VALUE(function_name,function_id,...)          \
-template<class Arg1, class Arg2, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg1>>,__VA_ARGS__)>\
+template<class Arg1, class Arg2, TEMPL_RESTRICT_DECL2(Has_IsLazyNode<mystd::decay_t<Arg1>>,mystd::negation<Has_IsLazyNode<mystd::decay_t<Arg2>>>,__VA_ARGS__)>\
 decltype(auto) inline function_name(Arg1 &&arg1, Arg2 &&arg2)                                      \
 {                                                                                                  \
   static constexpr unsigned int arglevel = ApproxLevelOf<mystd::decay_t<Arg1>>::value;             \
@@ -373,8 +373,8 @@ decltype(auto) inline function_name(Arg1 &&arg1, Arg2 &&arg2)                   
     >;                                                                                             \
   using ValueCapture = LazyEval::LazyWrapValue                                                     \
     <                                                                                              \
-      newarglevel,                                                                                 \
-      mystd::decay_t<Arg2>                                                                         \
+      mystd::decay_t<Arg2>,                                                                        \
+      newarglevel                                                                                  \
     >;                                                                                             \
   using RetType = LazyEval::SieveLazyEval                                                          \
     <                                                                                              \

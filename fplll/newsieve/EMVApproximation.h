@@ -62,6 +62,28 @@ class EMVScalar
   inline void operator>>=(Integer const &shift) { exponent-=shift; }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline void operator<<=(Integer const &shift) { exponent+=shift; }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator>>(Integer const &shift) &
+  {
+    EMVScalar retval; retval>>=shift; return retval;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator>>(Integer const &shift) &&
+  {
+    *this>>=shift; return *this;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator<<(Integer const &shift) &
+  {
+    EMVScalar retval; retval<<=shift; return retval;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator<<(Integer const &shift) &&
+  {
+    *this<<=shift; return *this;
+  }
+
+
 
   inline friend EMVScalar abs(EMVScalar const &arg)
   {
