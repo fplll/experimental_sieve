@@ -138,10 +138,9 @@ class EMVApproximation
   using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
   using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
-  using Container = typename std::conditional<nfixed >= 0,
+  using Container = mystd::conditional_t<nfixed >= 0,
                       std::array<ApproxEntryType, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                      std::vector<ApproxEntryType> >                       // if nfixed <  0
-                      ::type;
+                      std::vector<ApproxEntryType> >;                      // if nfixed <  0
 
   public:
   template<class LatticePoint, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>)> // TODO : enable_if to select Lattice Points only (having [])

@@ -371,7 +371,6 @@ template<class Impl>
 inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() )
 {
   IMPL_IS_LATP;
-  assert(Has_Approximations<Impl>::value);
   DEBUG_TRACEGENERIC("Generically getting number of bits for bitapprox" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
@@ -497,7 +496,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
 
 template<class LatP>
 template<class Impl>
-inline LatP GeneralLatticePoint<LatP>::make_copy() const
+inline LatP GeneralLatticePoint<LatP>::make_copy() const &
 {
   IMPL_IS_LATP;
   static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point. Did you forget to declare a trait or to overload make_copy()?");

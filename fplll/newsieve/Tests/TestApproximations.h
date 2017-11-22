@@ -11,9 +11,23 @@
 #include <array>
 
 #include "../ApproximatedPoint.h"
+#include "../EMVApproximation.h"
 
 bool test_approximations()
 {
+  using namespace GaussSieve;
+  long x =0L;
+  long y =1L;
+  using LeveledLong = MakeLeveledScalar<long>;
+  LeveledLong z = y;
+  assert(x<z);
+  LeveledLong z2 = 56L;
+  assert(2*z2 == 112);
+  assert(z2*2 == 112);
+  using Approx = AddApproximation<LeveledLong,EMVScalar>;
+  Approx a = 32L;
+  std::cout << a << std::endl;
+
   /*
   int constexpr dimfixed = 25;
 

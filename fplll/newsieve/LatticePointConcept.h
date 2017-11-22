@@ -68,7 +68,8 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_AbsoluteCoos = std::false_type;
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
-  using Trait_Approximations = std::false_type;
+//  using Trait_Approximations = std::false_type;
+  using Trait_Leveled = std::false_type;
   using Trait_BitApprox = std::false_type;
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
 };
@@ -146,7 +147,15 @@ template<class LatticePoint> struct LatticePointTraits
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
-  Approximations: Set to true_type to indicate that the point has approximations.
+// TODO: maybe deprecate this trait.
+//  Approximations: Set to true_type to indicate that the point has approximations.
+
+  Leveled : Set to true_type to indicate that the point is a leveled object.
+            Cf. Lazy.h for a more details on that.
+            For lattice points, leveled objects correspond to lattice points with several layers
+            of approximations.
+            Note that, to simplify things, we always have leveled functions available, but by
+            default, they only work for level 0.
 
   ApproxLevel: Set to std::integral_constant<unsigned int,...> to indicate the approximation level.
                Defaults to std::integral_constant<unsigned int,0>
@@ -198,7 +207,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepIsAbsolute, std::
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type, T_AbsoluteCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_CheapNorm2);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximations);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Leveled, std::true_type, T_Leveled);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_BitApprox, std::true_type, T_BitApprox);
 
@@ -272,8 +281,8 @@ template<class LatP> using Has_CheapNorm2 = mystd::bool_constant<
 template<class LatP> using Has_CheapNegate = mystd::bool_constant<
   T_CheapNegate<LatP>::value>;
 
-template<class LatP> using Has_Approximations = mystd::bool_constant<
-  T_Approximations<LatP>::value>;
+template<class LatP> using Has_Leveled = mystd::bool_constant<
+  T_Leveled<LatP>::value>;
 
 template<class LatP> using Has_AccessNorm2 = mystd::bool_constant<
   T_AccessNorm2<LatP>::value>;
@@ -318,7 +327,7 @@ class GeneralLatticePoint
     using AbsoluteCooType = Get_AbsoluteCooType<LatP>;
     using RepCooType      = Get_RepCooType<LatP>;
     static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::value;
-    static_assert((Has_Approximations<LatP>::value == false) || (ApproxLevel>0 ),"Declares Approximations, but no level");
+    static_assert((Has_Leveled<LatP>::value == true) || (ApproxLevel==0 ),"Has ApproxLevel>0, but does not declare Trait_Leveled.");
 
     private:
     // Empty base class, only callable from its friends (i.e. from LatP)
@@ -458,7 +467,7 @@ class GeneralLatticePoint
   May be overloaded.
 */
 
-    template<class Impl=LatP> inline LatP make_copy() const;
+    template<class Impl=LatP> inline LatP make_copy() const &;
     [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
 
 
@@ -501,11 +510,17 @@ class GeneralLatticePoint
     template<unsigned int level, class Impl=LatP>
     inline ScalarProductStorageType get_norm2_at_level() const
     {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false,"Need to overload");
+      IMPL_IS_LATP;
       static_assert(level==0,"Default only has level 0");
       return CREALTHIS->get_norm2();
     }
-    inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
+
+    template<class Impl=LatP>
+    inline ScalarProductStorageType_Full get_norm2_full() const
+    {
+      static_assert(Has_Leveled<Impl>::value == false, "Need to overload");
+      return CREALTHIS->get_norm2();
+    }
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
@@ -517,14 +532,15 @@ class GeneralLatticePoint
     template<unsigned int level,class Impl=LatP>
     inline ScalarProductStorageType do_compute_sc_product_at_level(LatP const &x2) const
     {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      IMPL_IS_LATP;
       static_assert(level==0,"Default only has level 0");
       return CREALTHIS->do_compute_sc_product(x2);
     }
     template<class Impl=LatP>
     inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
     {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      IMPL_IS_LATP;
+      static_assert(Has_Leveled<Impl>::value==false, "Need to overload");
       return CREALTHIS->do_compute_sc_product(x2);
     }
     public:
@@ -560,7 +576,7 @@ class GeneralLatticePoint
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
       inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const { assert(false); }
     #endif
-    
+
     //FOR SIM-HASH 2nd order
     #if __if_constexpr
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
@@ -728,7 +744,7 @@ template<> struct BitApproximation<-1>
     //assert(false);
 
     std::bitset<sim_hash_len> ret;
-    
+
     uint_fast16_t bound = std::min(static_cast<uint_fast16_t>( point.get_dim()), sim_hash_len);
 
 
@@ -751,16 +767,16 @@ template<> struct BitApproximation<-1>
     //assert(false);
     return ret;
   }
-  
-  
+
+
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline std::bitset<sim_hash2_len> compute_2order_fixed_bitapproximation(LatP const &point)
   {
     std::bitset<sim_hash2_len> ret;
-    
+
     using ET = Get_CoordinateType<LatP>;
     std::array<ET, sim_hash2_len> input_vector;
-    
+
     //assume sim_hash_len=sim_hash2_len
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
@@ -769,17 +785,17 @@ template<> struct BitApproximation<-1>
                         point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
                         point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
     }
-    
+
     std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
       ret[i] = (hadamard[i]>=0) ? 1: 0;
     }
-    
+
     return ret;
   }
-  
-  
+
+
   //assume sim_hash2_len is a power-of-two
   template<class ET>
   static std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
@@ -787,9 +803,9 @@ template<> struct BitApproximation<-1>
     std::array<ET,sim_hash2_len> inp = input;
     std::array<ET,sim_hash2_len> out;
     std::array<ET,sim_hash2_len> tmp;
-    
+
     uint_fast16_t i, j, s;
-    
+
     for (i = sim_hash2_len>>1; i > 0; i>>=1) {
         for (j = 0; j < sim_hash2_len; j++) {
             s = j/i%2;
@@ -797,10 +813,10 @@ template<> struct BitApproximation<-1>
         }
         tmp = inp; inp = out; out = tmp;
     }
-   
+
     return out;
   }
-  
+
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
