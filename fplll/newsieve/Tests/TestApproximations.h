@@ -31,7 +31,7 @@ bool test_approximations()
 
   int constexpr dimfixed = 25;
   using LatP = ExactLatticePoint<mpz_class,dimfixed>;
-  using LeveledLatP = MakeLeveledVector<LatP>;
+  using LeveledLatP = MakeLeveledLatticePoint<LatP>;
   StaticInitializerArg<MaybeFixed<dimfixed>> init_arg{ MaybeFixed<dimfixed>{dimfixed}};
   StaticInitializer<LeveledLatP> init1 (init_arg);
 

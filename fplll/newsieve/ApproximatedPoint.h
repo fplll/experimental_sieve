@@ -15,7 +15,8 @@ namespace GaussSieve{
 
 template<class Scalar> struct MakeLeveledScalar;
 template<class OldLevels, class NextLevel> struct AddApproximation;
-template<class ELP> class MakeLeveledVector;
+template<class ELP> class MakeLeveledLatticePoint;
+template<class ELP, class ApproxLP> class AddApproximationToLatP;
 namespace Helpers
 {
 template<class,class,bool> struct AddApproximation_Helper;
@@ -59,7 +60,7 @@ struct MakeLeveledScalar
 };
 
 /**
-  This adds another level to a leveled object.
+  This adds another level to a leveled (scalar) object.
   Notably, OldLevels has to be a leveled object with n>=0 levels.
   This then results in a new leveled objects with n+1 levels, with NextLevel at the highest level.
 */
@@ -129,13 +130,13 @@ struct AddApproximation_Helper<OldLevels, NextLevel, true>
   static inline constexpr NextLevel const & get(Argument const &ob)
   {
     static_assert(level==Argument::ApproxLevel,"");
-    return ob.approx_scalar;
+    return ob.next_level;
   }
   template<unsigned int level>
   static inline NextLevel       & get(Argument & ob)
   {
     static_assert(level==Argument::ApproxLevel,"");
-    return ob.approx_scalar;
+    return ob.next_level;
   }
 };
 
@@ -158,9 +159,14 @@ struct AddApproximation_Helper<OldLevels,NextLevel,false>
 };
 } // end namespace Helpers
 
+/******************
+ This turns a lattice vector into a leveled lattice point.
+*******************/
+
+
 // Forward traits:
 template<class ELP>
-class LatticePointTraits< MakeLeveledVector<ELP> >
+class LatticePointTraits< MakeLeveledLatticePoint<ELP> >
 {
 static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
@@ -189,12 +195,12 @@ public:
 };
 
 template<class ELP>
-class MakeLeveledVector
-: public GeneralLatticePoint<MakeLeveledVector<ELP>>
+class MakeLeveledLatticePoint
+: public GeneralLatticePoint<MakeLeveledLatticePoint<ELP>>
 {
   public:
   using LatticePointTag         = std::true_type;
-  using Myself = MakeLeveledVector<ELP>;
+  using Myself = MakeLeveledLatticePoint<ELP>;
 
   using PlainCooType  = Get_CoordinateType<ELP>; // may be void
   using RepCooType    = Get_RepCooType<ELP>;
@@ -211,8 +217,8 @@ class MakeLeveledVector
   private:
   ELP elp;
   public:
-  constexpr       MakeLeveledVector (ELP const &v) : elp(v)            {}
-  CPP14CONSTEXPR  MakeLeveledVector (ELP      &&v) : elp(std::move(v)) {}
+  constexpr       MakeLeveledLatticePoint (ELP const &v) : elp(v)            {}
+  CPP14CONSTEXPR  MakeLeveledLatticePoint (ELP      &&v) : elp(std::move(v)) {}
   constexpr       operator ELP() const & {return elp;}
   CPP14CONSTEXPR  operator ELP()      && {return std::move(elp);}
 
@@ -227,7 +233,7 @@ class MakeLeveledVector
   template<unsigned int level>
             ELP       & get_value_at_level()       { static_assert(level==0,""); return elp;}
 // forward functionality of ELP. Note that the this is *not* captured by the conversion operators,
-// because MakeLeveledVector<ELP> is derived from GeneralLatticePoint, and those defaults will have
+// because MakeLeveledLatticePoint<ELP> is derived from GeneralLatticePoint, and those defaults will have
 // precendence over any potential conversions.
 
   static std::string class_name() { return ELP::class_name() + " L"; }
@@ -282,7 +288,7 @@ class MakeLeveledVector
   void make_negative()  { elp.make_negative(); }
   bool is_zero() const { return elp.is_zero(); }
 
-  MakeLeveledVector make_copy() const & { return static_cast<MakeLeveledVector>(elp.make_copy()); }
+  MakeLeveledLatticePoint make_copy() const & { return static_cast<MakeLeveledLatticePoint>(elp.make_copy()); }
 
 // TODO: More overloads?
   void sanitize() { elp.sanitize(); }
@@ -340,8 +346,8 @@ TODO: Sanitize interface
 
 // static initializer
 template<class ELP>
-class StaticInitializer<MakeLeveledVector<ELP>>
-final : public DefaultStaticInitializer<MakeLeveledVector<ELP>>
+class StaticInitializer<MakeLeveledLatticePoint<ELP>>
+final : public DefaultStaticInitializer<MakeLeveledLatticePoint<ELP>>
 {
   StaticInitializer<ELP>  const init_elp;
   public:
@@ -349,9 +355,92 @@ final : public DefaultStaticInitializer<MakeLeveledVector<ELP>>
   explicit StaticInitializer(X &&init_arg) : init_elp(std::forward<X>(init_arg)){}
 };
 
+/*********************************
+This adds new levels to a lattice point, retaining the functionality.
+**********************************/
+
+// Forward traits. We add the ScalarProduct of the Approximation to the Full Scalar product type.
+template<class ELP, class ApproxLP>
+class LatticePointTraits< AddApproximationToLatP<ELP,ApproxLP> >
+{
+  static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
+  static_assert(Has_Leveled<ELP>::value == true,"");
+private:
+  using ApproxScalar = typename ApproxLP::ScalarProductType;
+public:
+// forwarding traits from ELP
+  using Trait_ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
+  using Trait_ScalarProductStorageType_Full  = AddApproximation<Get_ScalarProductStorageType_Full<ELP>,ApproxScalar>;
+  using Trait_CoordinateType          = Get_CoordinateType<ELP>;
+  using Trait_AbsoluteCoos            = Get_AbsoluteCooType<ELP>;
+  using Trait_RepCooType              = Get_RepCooType<ELP>;
+  using Trait_ExposesCoos             = NormalizeTrait<Has_ExposesCoos<ELP>>;
+  using Trait_Coos_RW                 = NormalizeTrait<Has_Coos_RW<ELP>>;
+  using Trait_ExposesInternalRep      = NormalizeTrait<Has_ExposesInternalRep<ELP>>;
+  using Trait_InternalRepLinear       = NormalizeTrait<Has_InternalRepLinear<ELP>>;
+  using Trait_InternalRep_RW          = NormalizeTrait<Has_InternalRep_RW<ELP>>;
+  using Trait_InternalRepByCoos       = NormalizeTrait<Has_InternalRepByCoos<ELP>>;
+  using Trait_InternalRepIsAbsolute   = NormalizeTrait<Has_InternalRepIsAbsolute<ELP>>;
+  using Trait_CheapNorm2              = NormalizeTrait<Has_CheapNorm2<ELP>>;
+  using Trait_CheapNegate             = NormalizeTrait<Has_CheapNegate<ELP>>;
+  using Trait_BitApprox               = NormalizeTrait<Has_BitApprox<ELP>>;
+  using Trait_Leveled                 = std::true_type; // we assert it's true for ELP.
+  using Trait_ApproxLevel          = std::integral_constant<unsigned int, ApproxLevelOf<ELP>::value +1>;
+};
+
+template<class ELP, class ApproxLP> class AddApproximationToLatP
+: public GeneralLatticePoint<AddApproximationToLatP<ELP,ApproxLP>>
+{
+  public:
+  using LatticePointTag         = std::true_type;
+  using Myself                  = AddApproximationToLatP<ELP,ApproxLP>;
+  static_assert(Has_LeveledObject<ELP>::value == true,"");
+  using LeveledComparison = std::false_type;
+  using LeveledObject     = std::true_type;
+  using LeveledObject_Base= std::true_type;
+  static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
+  static_assert(std::is_same<typename ELP::template ObjectAtLevel<ApproxLevel-1>,ApproxLP>::value == false,"");
+  template<unsigned int level> using ObjectAtLevel =mystd::conditional_t
+    <level == ApproxLevel,ApproxLP, typename ELP::template ObjectAtLevel<level> >;
+//  template<unsigned int level> using Helper = Helpers::AddApproximation_Vector_Helper<ELP,ApproxLP,level==ApproxLevel>;
+//  template<class, class, bool> friend class Helpers::AddApproximation_Vector_Helper;
+
+};
+
+/*
+
+  static_assert(std::is_same<typename OldLevels::template ObjectAtLevel<ApproxLevel-1>,NextLevel >::value==false,"");
+  template<unsigned int level> using ObjectAtLevel = mystd::conditional_t
+    < level==ApproxLevel, NextLevel, typename OldLevels::template ObjectAtLevel<level>  >;
+  using BaseScalar = ObjectAtLevel<0>;
+  template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<OldLevels,NextLevel,level==ApproxLevel>;
+  template<class, class, bool> friend class Helpers::AddApproximation_Helper;
+
+  OldLevels old_levels;
+  NextLevel next_level;
+
+  constexpr      explicit AddApproximation(OldLevels const &olds, NextLevel const &news)
+    :old_levels(olds), next_level(news) {}
+  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds, NextLevel const &news)
+    :old_levels(std::move(olds)),next_level(news) {}
+  CPP14CONSTEXPR explicit AddApproximation(OldLevels const &olds, NextLevel      &&news)
+    :old_levels(olds), next_level(std::move(news)) {}
+  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds, NextLevel      &&news)
+    :old_levels(std::move(olds)),next_level(std::move(news)){}
+  constexpr      explicit AddApproximation(OldLevels const &olds)
+    :old_levels(olds), next_level(static_cast<BaseScalar>(olds)){}
+  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds)
+    :old_levels(std::move(olds)), next_level(static_cast<BaseScalar>(old_levels)) {}
+  constexpr               AddApproximation(BaseScalar const &old_base)
+    :old_levels(old_base), next_level(old_base) {}
+  CPP14CONSTEXPR          AddApproximation(BaseScalar      &&old_base)
+    :old_levels(std::move(old_base)),next_level(static_cast<BaseScalar>(old_levels)) {}
+
+  constexpr      operator BaseScalar() const & { return static_cast<BaseScalar>(old_levels); }
+  CPP14CONSTEXPR operator BaseScalar()      && { return static_cast<BaseScalar>(std::move(old_levels));}
 
 
-
+*/
 } // end namespace GaussSieve
 
 #endif // APPROXIMATED_POINT_H
