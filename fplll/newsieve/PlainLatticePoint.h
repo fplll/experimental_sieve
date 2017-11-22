@@ -41,7 +41,7 @@ public:
   friend ExactLatticePoint<ET,nfixed>;
   friend StaticInitializer<PlainLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-  using ScalarProductStorageType = ET;
+//  using ScalarProductStorageType = ET;
   using Container               = std::array<ET, nfixed>;
   static constexpr MaybeFixed<nfixed> get_dim() { return dim; };
 
@@ -94,7 +94,7 @@ public:
   friend StaticInitializer<PlainLatticePoint<ET,-1>>;
 
   using LatticePointTag         = std::true_type;
-  using ScalarProductStorageType = ET;
+//  using ScalarProductStorageType = ET;
   using Container               = std::vector<ET>;
   using GeneralLatticePoint<PlainLatticePoint<ET, -1>>::get_dim;
 

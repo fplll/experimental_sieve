@@ -158,6 +158,7 @@ struct AddApproximation_Helper<OldLevels,NextLevel,false>
 };
 } // end namespace Helpers
 
+// Forward traits:
 template<class ELP>
 class LatticePointTraits< MakeLeveledVector<ELP> >
 {
@@ -187,6 +188,12 @@ public:
   using Trait_ApproxLevel          = std::integral_constant<unsigned int, 0>;
 };
 
+template<class ELP>
+class MakeLeveledVector
+: public GeneralLatticePoint<MakeLeveledVector<ELP>>
+{
+  using LatticePointTag         = std::true_type;
+};
 
 
 } // end namespace GaussSieve
