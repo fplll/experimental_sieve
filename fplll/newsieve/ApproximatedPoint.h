@@ -166,7 +166,7 @@ static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
   using Trait_ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
-  using Trait_ScalarProductStorageType_Full  = MakeLeveledScalar<Get_ScalarProductStorageType_Full<ELP>>;
+  using Trait_ScalarProductStorageType_Full  = MakeLeveledScalar<Get_ScalarProductStorageType<ELP>>;
   using Trait_CoordinateType          = Get_CoordinateType<ELP>;
   using Trait_AbsoluteCoos            = Get_AbsoluteCooType<ELP>;
   using Trait_RepCooType              = Get_RepCooType<ELP>;
@@ -199,7 +199,7 @@ class MakeLeveledVector
   using PlainCooType  = Get_CoordinateType<ELP>; // may be void
   using RepCooType    = Get_RepCooType<ELP>;
   using ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
-  using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<ELP>;
+  using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<Myself>;
 
   using LeveledComparison = std::false_type; // Unsure about this one...
   static_assert(Has_LeveledObject<ELP>::value == false,"");
@@ -336,9 +336,18 @@ TODO: Sanitize interface
     return exact_point.do_compute_sc_product_bitapprox_2nd_order(x2.exact_point);
   }
 */
-
 };
 
+// static initializer
+template<class ELP>
+class StaticInitializer<MakeLeveledVector<ELP>>
+final : public DefaultStaticInitializer<MakeLeveledVector<ELP>>
+{
+  StaticInitializer<ELP>  const init_elp;
+  public:
+  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<mystd::decay_t<X>>)>
+  explicit StaticInitializer(X &&init_arg) : init_elp(std::forward<X>(init_arg)){}
+};
 
 
 

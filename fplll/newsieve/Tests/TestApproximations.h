@@ -28,9 +28,21 @@ bool test_approximations()
   Approx a = 32L;
   std::cout << a << std::endl;
 
-  /*
-  int constexpr dimfixed = 25;
 
+  int constexpr dimfixed = 25;
+  using LatP = ExactLatticePoint<mpz_class,dimfixed>;
+  using LeveledLatP = MakeLeveledVector<LatP>;
+  StaticInitializerArg<MaybeFixed<dimfixed>> init_arg{ MaybeFixed<dimfixed>{dimfixed}};
+  StaticInitializer<LeveledLatP> init1 (init_arg);
+
+  std::array<mpz_class,dimfixed> arr;
+  for(int i=0;i<dimfixed;++i)
+  {
+    arr[i] = 400 *i * i;
+  }
+  LeveledLatP latp = make_from_any_vector<LatP>(arr,MaybeFixed<dimfixed>{dimfixed});
+
+  /*
   using ExactLP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
   using Approx  = GaussSieve::EMVApproximation<dimfixed>;
   using CombinedLP = GaussSieve::VectorWithApproximation<ExactLP,Approx>;
