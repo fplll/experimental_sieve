@@ -9,6 +9,9 @@
 #include "GlobalStaticData.h"
 #include "PlainLatticePoint.h"
 
+
+#define T_IS_ELP static_assert(std::is_same<T,ELP>::value,"Wrong template argument")
+
 // forward declarations:
 
 namespace GaussSieve{
@@ -254,10 +257,18 @@ class MakeLeveledLatticePoint
 
   static std::string class_name() { return ELP::class_name() + " L"; }
 
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesCoos<T>)>
-  PlainCooType &      operator[](Arg &&arg)       { return elp[std::forward<Arg>(arg)]; }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesCoos<T>)>
-  PlainCooType const& operator[](Arg &&arg) const { return elp[std::forward<Arg>(arg)]; }
+  template<class T=ELP, class Arg>
+  inline PlainCooType &      operator[](Arg &&arg)
+  {
+    T_IS_ELP; static_assert(Has_ExposesCoos<T>::value && Has_Coos_RW<T>::value,"");
+    return elp[std::forward<Arg>(arg)];
+  }
+  template<class T=ELP, class Arg>
+  inline PlainCooType const& operator[](Arg &&arg) const
+  {
+    T_IS_ELP; static_assert(Has_ExposesCoos<T>::value,"");
+    return elp[std::forward<Arg>(arg)];
+  }
 
 // operators<,>,<=, >= : No overloads. Defaults is correct.
 // forward +=,*=,-=,unary-
@@ -273,12 +284,24 @@ class MakeLeveledLatticePoint
   inline bool operator==(ELP const &x2) const { return elp=x2; }
 
   // forward get_internal_rep_size, get_internal_rep
-  template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
-  CPP14CONSTEXPR inline auto get_internal_rep_size() const -> decltype( std::declval<ELP>().get_internal_rep_size() ) { return elp.get_internal_rep_size(); }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>)>
-  inline RepCooType const & get_internal_rep(Arg &&arg) const { return elp.get_internal_rep(std::forward<Arg>(arg)); }
-  template<class T=ELP, class Arg, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<T>, Has_InternalRep_RW<T>)>
-  inline RepCooType & get_internal_rep(Arg &&arg) {return elp.get_internal_rep(std::forward<Arg>(arg));}
+  template<class T=ELP>
+  CPP14CONSTEXPR inline auto get_internal_rep_size() const -> decltype( std::declval<T>().get_internal_rep_size() )
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return elp.get_internal_rep_size();
+  }
+  template<class T=ELP, class Arg>
+  inline RepCooType const & get_internal_rep(Arg &&arg) const
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return elp.get_internal_rep(std::forward<Arg>(arg));
+  }
+  template<class T=ELP, class Arg>
+  inline RepCooType & get_internal_rep(Arg &&arg)
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value && Has_InternalRep_RW<T>::value,"");
+    return elp.get_internal_rep(std::forward<Arg>(arg));
+  }
 
   // forward get_absolute_coo
   template<class Arg> auto inline get_absolute_coo(Arg &&arg) const
@@ -293,8 +316,12 @@ class MakeLeveledLatticePoint
   { return elp.write_lp_to_stream(os, include_norm2,include_approx); }
 
   // forward write_lp_rep_to_stream
-  template<class T=ELP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<ELP>)>
-  inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const { return elp.write_lp_rep_to_stream(os); }
+  template<class T=ELP>
+  inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return elp.write_lp_rep_to_stream(os);
+  }
 
 //
 //  //TODO: read_from_stream
@@ -424,6 +451,13 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
   template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<level==ApproxLevel>;
   template<bool> friend class Helpers::AddApproximation_Helper;
   using BaseVector = ObjectAtLevel<0>;
+
+  using PlainCooType  = Get_CoordinateType<ELP>; // may be void
+  using RepCooType    = Get_RepCooType<ELP>;
+  using ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
+  using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<Myself>;
+
+
   private:
   ELP old_levels;
   ApproxLP next_level;
@@ -471,45 +505,151 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
     static_assert(level<=ApproxLevel,"");
     return Helper<level>::template get<level>(*this);
   }
+// TODO: RValue variants?
+  private:
+  void recompute_approx() { next_level = static_cast<ApproxLP>(old_levels.access<0>() ); }
+  public:
 
+  static std::string class_name() { return ELP::class_name() + " with " << ApproxLevel << " approximations"; }
 
+  template<class T=ELP, class Arg>
+  inline PlainCooType &      operator[](Arg &&arg)
+  {
+    static_assert(std::is_same<T,ELP>::value,"");
+    static_assert(Has_ExposesCoos<T>::value && Has_Coos_RW<T>::value,"");
+    return old_levels[std::forward<Arg>(arg)];
+  }
+  template<class T=ELP, class Arg>
+  inline PlainCooType const& operator[](Arg &&arg) const
+  {
+    static_assert(std::is_same<T,ELP>::value,"");
+    static_assert(Has_ExposesCoos<T>::value,"");
+    return old_levels[std::forward<Arg>(arg)];
+  }
+
+// operators<,>,<=, >= : No overloads. Defaults is correct.
+// forward +=,*=,-=,unary-
+
+// TODO: Consider making those Lazy.
+// Note that these are not level-aware wrt x2 and thus might not work at all.
+
+  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  [[deprecated]] inline Myself& operator+=(LatP2 &&x2)
+  {
+    old_levels+=std::forward<LatP2>(x2); recompute_approx();
+    return *this;
+  }
+  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  [[deprecated]]inline Myself& operator-=(LatP2 &&x2)
+  {
+    old_levels-=std::forward<LatP2>(x2); recompute_approx();
+    return *this;
+  }
+  template<class Multiplier>
+  [[deprecated]] inline Myself& operator*=(Multiplier &&x2)
+  {
+    old_levels*=std::forward<Multiplier>(x2); recompute_approx();
+    return *this;
+  }
+
+  [[deprecated]] inline Myself operator-() &&   { return static_cast<Myself>(-std::move(old_levels)); }
+  inline bool operator==(Myself const &x2) const
+  {
+    return (next_level == x2.next_level) && (old_levels == x2.old_levels) ;
+  }
+  inline bool operator==(ELP const &x2) const { return old_levels==x2; }
+
+  // forward get_internal_rep_size, get_internal_rep
+  template<class T=ELP>
+  CPP14CONSTEXPR inline auto get_internal_rep_size() const -> decltype( std::declval<T>().get_internal_rep_size() )
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return old_levels.get_internal_rep_size();
+  }
+  template<class T=ELP, class Arg>
+  inline RepCooType const & get_internal_rep(Arg &&arg) const
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return old_levels.get_internal_rep(std::forward<Arg>(arg));
+  }
+  template<class T=ELP, class Arg>
+  inline RepCooType & get_internal_rep(Arg &&arg)
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value && Has_InternalRep_RW<T>::value,"");
+    return old_levels.get_internal_rep(std::forward<Arg>(arg));
+  }
+
+  // forward get_absolute_coo
+  template<class Arg> auto inline get_absolute_coo(Arg &&arg) const
+    -> decltype( std::declval<ELP>().get_absolute_coo( std::declval<Arg &&>() ))
+  { return old_levels.get_absolute_coo(std::forward<Arg>(arg));  }
+
+  // forward get_dim
+  CPP14CONSTEXPR auto inline get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return old_levels.get_dim(); }
+
+  // forward write_lp_to_stream
+  inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx =true) const
+  { return old_levels.write_lp_to_stream(os, include_norm2,include_approx); }
+
+  // forward write_lp_rep_to_stream
+  template<class T=ELP>
+  inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const
+  {
+    T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
+    return old_levels.write_lp_rep_to_stream(os);
+  }
+
+//
+//  //TODO: read_from_stream
+//
+
+  [[deprecated]] void fill_with_zero() { old_levels.fill_with_zero();recompute_approx(); }
+  [[deprecated]] void make_negative()  { old_levels.make_negative();recompute_approx(); }
+  bool is_zero() const { return old_levels.is_zero(); }
+
+  Myself make_copy() const & { return static_cast<Myself>(old_levels.access<0>().make_copy() ); }
+  Myself make_copy() && =delete;
+
+// TODO: More overloads?
+  void sanitize() { old_levels.sanitize(); recompute_approx(); }
+  void sanitize( ScalarProductStorageType const &norm2) { old_levels.sanitize(norm2); recompute_approx(); }
+  void sanitize( ScalarProductStorageType_Full const &norm2) { old_levels.sanitize(static_cast<ScalarProductStorageType>(norm2)); recompute_approx(); }
+
+/*
+// forward get_norm2()
+  [[deprecated]] // Note: This function should never be called anyway. Once we add an approximation, we return a delayed object anyway.
+                 // TODO: Maybe return a delayed object already?
+  inline ScalarProductStorageType_Full get_norm2() const { return static_cast<ScalarProductStorageType_Full>(elp.get_norm2());}
+
+  template<unsigned int level>
+  inline auto get_norm2_at_level() const -> decltype (std::declval<ELP>().get_norm2() )
+  {
+    static_assert(level==0,"");
+    return elp.get_norm2();
+  }
+
+  inline ScalarProductStorageType_Full get_norm2_full() const { return static_cast<ScalarProductStorageType_Full>(elp.get_norm2()); }
+
+  // forward scalar products:
+  template<unsigned int level>
+  inline auto do_compute_sc_product_at_level(Myself const &x2) const
+    -> decltype( std::declval<ELP>().do_compute_sc_product(std::declval<ELP>() ) )
+  {
+    static_assert(level==0,"");
+    return elp.do_compute_sc_product(x2.elp);
+  }
+
+  // Lazy???
+  [[deprecated]] inline ScalarProductStorageType_Full do_compute_sc_product(Myself const &x2) const
+  { return static_cast<ScalarProductStorageType_Full>(elp.do_compute_sc_product(x2.elp)); }
+
+  inline ScalarProductStorageType_Full do_compute_sc_product_full(Myself const &x2) const
+  { return static_cast<ScalarProductStorageType_Full>(elp.do_compute_sc_product(x2.elp)); }
+
+*/
 
 };
 
-/*
-
-  static_assert(std::is_same<typename OldLevels::template ObjectAtLevel<ApproxLevel-1>,NextLevel >::value==false,"");
-  template<unsigned int level> using ObjectAtLevel = mystd::conditional_t
-    < level==ApproxLevel, NextLevel, typename OldLevels::template ObjectAtLevel<level>  >;
-  using BaseScalar = ObjectAtLevel<0>;
-  template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<OldLevels,NextLevel,level==ApproxLevel>;
-  template<class, class, bool> friend class Helpers::AddApproximation_Helper;
-
-  OldLevels old_levels;
-  NextLevel next_level;
-
-  constexpr      explicit AddApproximation(OldLevels const &olds, NextLevel const &news)
-    :old_levels(olds), next_level(news) {}
-  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds, NextLevel const &news)
-    :old_levels(std::move(olds)),next_level(news) {}
-  CPP14CONSTEXPR explicit AddApproximation(OldLevels const &olds, NextLevel      &&news)
-    :old_levels(olds), next_level(std::move(news)) {}
-  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds, NextLevel      &&news)
-    :old_levels(std::move(olds)),next_level(std::move(news)){}
-  constexpr      explicit AddApproximation(OldLevels const &olds)
-    :old_levels(olds), next_level(static_cast<BaseScalar>(olds)){}
-  CPP14CONSTEXPR explicit AddApproximation(OldLevels      &&olds)
-    :old_levels(std::move(olds)), next_level(static_cast<BaseScalar>(old_levels)) {}
-  constexpr               AddApproximation(BaseScalar const &old_base)
-    :old_levels(old_base), next_level(old_base) {}
-  CPP14CONSTEXPR          AddApproximation(BaseScalar      &&old_base)
-    :old_levels(std::move(old_base)),next_level(static_cast<BaseScalar>(old_levels)) {}
-
-  constexpr      operator BaseScalar() const & { return static_cast<BaseScalar>(old_levels); }
-  CPP14CONSTEXPR operator BaseScalar()      && { return static_cast<BaseScalar>(std::move(old_levels));}
-
-
-*/
 } // end namespace GaussSieve
 
 #endif // APPROXIMATED_POINT_H
