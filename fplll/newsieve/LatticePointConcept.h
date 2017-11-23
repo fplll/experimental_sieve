@@ -605,19 +605,24 @@ inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
 -> decltype( std::declval<LP1>().do_compute_sc_product(std::declval<LP2>() ) )
 { return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
 
-template<unsigned int level, class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product_at_level(LP const &lp1, LP const &lp2)
-{ return lp1.template do_compute_sc_product_at_level<level>(lp2); }
+template<unsigned int level, class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_at_level(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_at_level<level>(std::declval<LP2>() ))
+{ return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2)); }
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_full(lp2); }
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
+{ return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
 
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox(LP1 const &lp1, LP2 const &lp2)
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_bitapprox(LP1 &&lp1, LP2 &&lp2)
 // C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox(lp2); }
+{ return std::forward<LP1>(lp1).do_compute_sc_product_bitapprox(std::forward<LP2>(lp2)); }
 
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
