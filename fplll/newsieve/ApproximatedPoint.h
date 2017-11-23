@@ -620,33 +620,44 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
   [[deprecated]] // Note: This function should never be called anyway. Once we add an approximation, we return a delayed object anyway.
                  // TODO: Maybe return a delayed object already?
   inline ScalarProductStorageType_Full get_norm2() const { return static_cast<ScalarProductStorageType_Full>(elp.get_norm2());}
+*/
 
   template<unsigned int level>
-  inline auto get_norm2_at_level() const -> decltype (std::declval<ELP>().get_norm2() )
+  inline auto get_norm2_at_level() const -> decltype (std::declval<ObjectAtLevel<level>>().get_norm2() )
   {
-    static_assert(level==0,"");
-    return elp.get_norm2();
+    return access<level>().get_norm2();
   }
 
-  inline ScalarProductStorageType_Full get_norm2_full() const { return static_cast<ScalarProductStorageType_Full>(elp.get_norm2()); }
+  inline ScalarProductStorageType_Full get_norm2_full() const
+  {
+    return ScalarProductStorageType_Full{old_levels.get_norm2_full(),next_level.get_norm2()};
+  }
 
   // forward scalar products:
   template<unsigned int level>
   inline auto do_compute_sc_product_at_level(Myself const &x2) const
-    -> decltype( std::declval<ELP>().do_compute_sc_product(std::declval<ELP>() ) )
+    -> decltype( std::declval<ObjectAtLevel<level>>().do_compute_sc_product(std::declval<ObjectAtLevel<level>>() ) )
   {
-    static_assert(level==0,"");
-    return elp.do_compute_sc_product(x2.elp);
+    return compute_sc_product(access<level>(),x2.access<level>() );
   }
 
-  // Lazy???
-  [[deprecated]] inline ScalarProductStorageType_Full do_compute_sc_product(Myself const &x2) const
-  { return static_cast<ScalarProductStorageType_Full>(elp.do_compute_sc_product(x2.elp)); }
-
   inline ScalarProductStorageType_Full do_compute_sc_product_full(Myself const &x2) const
-  { return static_cast<ScalarProductStorageType_Full>(elp.do_compute_sc_product(x2.elp)); }
+  {
+    return ScalarProductStorageType_Full{old_levels.do_compute_sc_product_full(x2.old_levels),compute_sc_product(next_level,x2.next_level) };
+  }
 
-*/
+  using ArgWrapper = LazyEval::LazyWrapCR<Myself,ApproxLevel>;
+  using LazyFun    = LazyEval::Lazy_ScalarProduct<ApproxLevel,ObjectAtLevel,ObjectAtLevel>;
+  using DelayedScProduct = LazyEval::SieveLazyEval<LazyFun,ArgWrapper,ArgWrapper>;
+
+  inline DelayedScProduct do_compute_sc_product(Myself const &x2) const &
+  {
+    return DelayedScProduct{ ArgWrapper{*this},ArgWrapper{x2}  };
+  }
+  // On rvalues, it would produce a dangling reference.
+  inline DelayedScProduct do_compute_sc_product(Myself &&) const & = delete;
+  inline DelayedScProduct do_compute_sc_product(Myself const &) && = delete;
+  inline DelayedScProduct do_compute_sc_product(Myself &&) && = delete;
 
 };
 

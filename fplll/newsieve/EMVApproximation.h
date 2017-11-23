@@ -32,6 +32,11 @@ class EMVApproximationTraits
   using ApproxNorm2Type = int_fast32_t;
 };
 
+
+/************************
+Approximation of a scalar
+*************************/
+
 class EMVScalar
 {
   public:
@@ -115,14 +120,17 @@ class EMVScalar
   template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
-
-
 };
 
 
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
+
+
+/************************
+Approximation to a vector
+************************/
 
 template<int nfixed>
 class EMVApproximation
@@ -355,6 +363,10 @@ EMVScalar::EMVScalar(mpz_class const & source_mpz)
   mantissa = std::trunc( std::ldexp(source_float, mantissa_digits) );
 }
 
+/*************************************
+Non-member functions:
+*************************************/
+
 // comparison operators
 
 inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
@@ -522,7 +534,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 // actual scalar product
 
 template<int nfixed>
-inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
+inline auto compute_sc_product(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
 -> EMVScalar
 {
   static_assert(std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value,"");
@@ -535,10 +547,7 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
   {
     scp += lhs[i] * rhs[i];
   }
-
-
-  EMVScalar result(lhs.exponent + rhs.exponent, scp);
-  return result;
+  return EMVScalar{lhs.exponent + rhs.exponent, scp};
 }
 
 // output

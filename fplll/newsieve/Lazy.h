@@ -727,6 +727,28 @@ class Lazy_Identity
   inline static Arg call(Arg &&arg) { return std::forward<Arg>(arg); }
 };
 
+template<unsigned int maxlevel, template<unsigned int> class LHS, template<unsigned int> class RHS>
+struct Lazy_ScalarProduct
+{
+  constexpr static unsigned int nargs = 2;
+  using IsLazyFunction = std::true_type;
+  static std::string fun_name() { return "scalar product";}
+  static constexpr unsigned int ApproxLevel = maxlevel;
+  template<unsigned int level> using EvalType=
+  decltype( compute_sc_product( std::declval<LHS<level>>(), std::declval<RHS<level>>())  );
+
+  static_assert(std::is_same<EvalType<0>,mystd::decay_t<EvalType<0>>>::value,"");
+  template<unsigned int level, class Arg1, class Arg2>
+  [[gnu::always_inline]] inline static EvalType<level> call(Arg1 &&arg1, Arg2 &&arg2)
+  {
+    static_assert(level <= maxlevel, "Cannot call at this level");
+    static_assert(std::is_same<mystd::decay_t<Arg1>,LHS<level> >::value,"Invalid lhs");
+    static_assert(std::is_same<mystd::decay_t<Arg2>,RHS<level> >::value,"Invalid rhs");
+    return compute_sc_product(std::forward<Arg1>(arg1),std::forward<Arg2>(arg2));
+  }
+};
+
+
 } //end namespace GaussSieve::LazyEval
 
 
@@ -892,62 +914,4 @@ DEFINE_DEFAULT_LEVELED_COMPARISON(>=,helper_geq)
 #undef GAUSS_SIEVE_LAZY_FUN
 #undef CONSTEXPR_IN_NON_DEBUG_TC
 
-#endif
-
-
-/**
-  Scalar Product function.
-  Delegates to compute_sc_product_exact resp. compute_sc_product_approx
-*/
-
-/*
-
-template<class ELP, class Approximation> class Lazy_ScalarProduct
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  GAUSS_SIEVE_LAZY_FUN(2,"Scalar Product")
-  using ExactEvalType  = ExactScalarType;
-  using ApproxEvalType = ApproxScalarType;
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  template<class LHS, class RHS>
-  inline static auto call_exact(LHS &&lhs, RHS &&rhs)
-  -> decltype( compute_sc_product_exact( std::declval<LHS &&>(), std::declval<RHS &&>()   )  )
-  {
-    static_assert(std::is_same<mystd::decay_t<LHS>,ExactVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<mystd::decay_t<RHS>,ExactVectorType>::value,"RHS wrong type.");
-    return compute_sc_product_exact(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
-  }
-  template<class LHS, class RHS>
-  inline static ApproxScalarType call_approx(LHS &&lhs, RHS &&rhs)
-  {
-    static_assert(std::is_same<mystd::decay_t<LHS>, ApproxVectorType>::value,"LHS wrong type.");
-    static_assert(std::is_same<mystd::decay_t<RHS>, ApproxVectorType>::value,"RHS wrong type.");
-    return compute_sc_product_approx(std::forward<LHS>(lhs),std::forward<RHS>(rhs));
-  }
-};
-
-*/
-
-
-/*
-template<class ELP, class Approximation> class Lazy_Norm2
-{
-  public:
-  BRING_TYPES_INTO_SCOPE_Lazy_GetTypes(ELP,Approximation);
-  GAUSS_SIEVE_LAZY_FUN(1,"Get Norm2")
-  constexpr static unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
-  using ExactEvalType  = ExactScalarType;
-  using ApproxEvalType = ApproxScalarType;
-
-  inline static auto call_exact(ExactVectorType const &arg)
-  -> decltype( std::declval<ExactVectorType const>().get_norm2_exact()  )
-  {
-    return arg.get_norm2_exact();
-  }
-  inline static ApproxScalarType call_approx(ApproxVectorType const &arg)
-  {
-    return arg.get_approx_norm2();
-  }
-};
-*/
+#endif // of include guard

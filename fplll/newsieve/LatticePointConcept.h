@@ -599,9 +599,11 @@ class GeneralLatticePoint
 // The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
 // The _at_level<level> variant computes the approximation at the given level (0 for exact)
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product(lp2); }
+template<class LP1,class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product(std::declval<LP2>() ) )
+{ return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
 
 template<unsigned int level, class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 inline typename LP::ScalarProductStorageType compute_sc_product_at_level(LP const &lp1, LP const &lp2)

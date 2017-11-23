@@ -13,7 +13,7 @@ namespace GaussSieve{
  */
 template<class SieveTraits, class Integer, typename std::enable_if<
   std::is_integral<Integer>::value
-  ,int>::type =0 > 
+  ,int>::type =0 >
 bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
@@ -46,12 +46,12 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 //
 //  return true;
 //#else
-  
+
   using std::abs;
   /*
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p1, p2);
-  
+
   //If approx_scprod_res is only margin-away from the expected value of approx_scprod_res for two random vectors, return false
   //TODO: check why abs fails
     uint_fast32_t margin = 5;
@@ -59,20 +59,20 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
       return false;
   #endif
 */
-  
+
 
   using EntryType = typename SieveTraits::EntryType;
-  
+
   EntryType sc_prod = compute_sc_product(p1,p2);
-  
+
 
   EntryType abs_2scprod =abs(sc_prod * 2);
   if (abs_2scprod <= p2.get_norm2())
   {
     return false;
   }
-  
-  
+
+
   double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
   //std::cout << sc_prod << " " << sc_prod << std::endl;
 
@@ -101,8 +101,9 @@ template<class SieveTraits, class Integer, typename std::enable_if<
                     Integer & scalar, bool& p_is_max)
 {
   #ifdef USE_APPROXPOINT
-    using EntryType = typename GaussSieve::EMVScalar;
-    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
+//    using EntryType = typename GaussSieve::EMVScalar;
+    static_assert(false,""); // This code no longer works.
+//    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
   #else
     using EntryType = typename SieveTraits::EntryType;
     EntryType  sc_prod = compute_sc_product(p1,p2);
@@ -177,12 +178,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       if ( check2red<SieveTraits>(p, *it, scalar) )
       {
         assert(scalar!=0);
-        
+
         /*
          #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
             BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
             red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-            
+
             #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
             BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
             red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
@@ -192,16 +193,16 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-          
-          
+
+
           BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
           red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
         #endif
-        
+
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
         //std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
-        
+
         break;
       }
       else
@@ -210,7 +211,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
             BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
             no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-            
+
             #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
             BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
             no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
@@ -221,7 +222,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
         #endif
-          
+
       }
 
     }
@@ -269,11 +270,11 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 // This requires the sampler to never output 0.
 
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
-        
+
         /*
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
             BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-            
+
             red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
             #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
               BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
@@ -284,11 +285,11 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
         red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-        
+
         BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
         red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
 #endif
-            
+
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
 
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
@@ -311,9 +312,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         /*
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
             BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-            
+
             no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-            
+
             #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
             BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
             no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
@@ -324,7 +325,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
         no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 #endif
-         
+
         ++it;
       }
     }
