@@ -192,11 +192,11 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         */
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-          red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+          statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 
 
           BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
-          red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
+          statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
         #endif
 
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
@@ -220,7 +220,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
        */
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-          no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+          statistics.no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
         #endif
 
       }
@@ -284,10 +284,10 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
      */
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-        red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+        statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 
         BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
-        red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
+        statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
 #endif
 
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
@@ -323,7 +323,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          */
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-        no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
+        statistics.no_red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 #endif
 
         ++it;

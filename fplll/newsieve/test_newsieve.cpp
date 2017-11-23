@@ -140,7 +140,9 @@ int main(int argc, char **argv)
         //termcond = new LengthTerminationCondition<Traits, multithreaded> (target_norm_conv);
     }
     else
+    {
         termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+    }
 
 	Test_3Sieve.set_termination_condition(termcond);
 

@@ -134,6 +134,7 @@ public:
   using FilteredListType = typename SieveTraits::FilteredListType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  template<class,bool> friend class GaussSieveStatistics;
 
 #ifdef USE_LSH
   using HashTablesType   = HashTableS<SieveTraits, EntryType>;
@@ -230,11 +231,6 @@ public:
   //computes some stats to determine good sim-hash
   // here because I'm tired of copy-pasting into spread-sheets. to be deleted
 
-  // STAT_MARK
-
-  void compute_statistics(std::ostream &of);
-  void compute_statistics_2nd_order(std::ostream &of);
-
 //getter / setter functions
 
   int get_verbosity() const                                   {return verbosity;};                //non-thread-safe
@@ -271,7 +267,6 @@ public:
   bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
 
   // STAT_MARK
-  unsigned long int get_current_queue_size()                  {return main_queue.size();}; //TODO : fix const-correctness
 
 #ifdef USE_LSH
   unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
@@ -334,26 +329,6 @@ private:
     //SamplerType sampler; //TODO: Thread-safety. Move control to queue.
   int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
 
-    // STAT_MARK
-
-    // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    std::vector<int> no_red_stat;
-    std::vector<int> red_stat;
-
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-      std::vector<int> no_red_stat2;
-      std::vector<int> red_stat2;
-    #endif
-
-  #endif
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    std::vector<int> no_red_stat_sim_hash;
-    std::vector<int> red_stat_sim_hash;
-
-    std::vector<int> no_red_stat_sim_hash2;
-    std::vector<int> red_stat_sim_hash2;
-  #endif
 
 
 //public:  //made public to avoid complicated (due to template hack) friend - declaration.

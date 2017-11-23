@@ -10,13 +10,16 @@
 
 namespace GaussSieve{
 
+template<class SieveTraits,bool MT> class Sieve;
+
 template<class SieveTraits, bool MT> struct GaussSieveStatistics;
 template<class SieveTraits>
 struct GaussSieveStatistics<SieveTraits,false>
 {
 
-  GaussSieveStatistics()
-  : number_of_collisions(0),
+  GaussSieveStatistics(Sieve<SieveTraits,false>* backptr)
+  : sieveptr(backptr),
+    number_of_collisions(0),
     number_of_points_sampled(0),
     number_of_points_constructed(0),
     current_list_size(0),
@@ -31,6 +34,8 @@ struct GaussSieveStatistics<SieveTraits,false>
 // TODO: Move parts of these statistics into the actual object they relate to.
 // e.g. there is no reason to maintain list sizes...
 // Only the getters should remain.
+
+  Sieve<SieveTraits,false>* sieveptr;
 
   inline unsigned long int get_number_of_collisions() const {return number_of_collisions;};
   unsigned long int number_of_collisions;
@@ -55,6 +60,8 @@ struct GaussSieveStatistics<SieveTraits,false>
   inline void set_filtered_list_size(unsigned long int const to) { filtered_list_size = to;}
   inline void increment_filtered_list_size() {++filtered_list_size;}
 
+  unsigned long int get_current_queue_size()                  {return sieveptr->main_queue.size();}; //TODO : fix const-correctness
+
 
 
   unsigned long long int number_of_scprods_level1; //for k=2 case
@@ -68,15 +75,38 @@ struct GaussSieveStatistics<SieveTraits,false>
   unsigned long long int number_of_scprods_level3; //for k=2,3,4 cases
   inline unsigned long long get_number_of_scprods_level3() const {return number_of_scprods_level3;}
 
-
-
-
   unsigned long long int number_of_exact_scprods;
   unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
 
+  inline void dump_status_to_stream(std::ostream &of, int howverb);
+
+  // Temporary code, to be removed
+  inline void compute_statistics(std::ostream &of);
+  inline void compute_statistics_2nd_order(std::ostream &of);
+    // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    std::vector<int> no_red_stat;
+    std::vector<int> red_stat;
+
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+      std::vector<int> no_red_stat2;
+      std::vector<int> red_stat2;
+    #endif
+
+  #endif
+  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    std::vector<int> no_red_stat_sim_hash;
+    std::vector<int> red_stat_sim_hash;
+
+    std::vector<int> no_red_stat_sim_hash2;
+    std::vector<int> red_stat_sim_hash2;
+  #endif
+
+
+
 //TODO: total time spent?
 
-/* Old MT Variant
+/* Old MT Variant : Do not delete
 //note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
     atomic_ulong number_of_collisions;
     atomic_ulong number_of_points_sampled;
@@ -87,19 +117,183 @@ struct GaussSieveStatistics<SieveTraits,false>
     atomic_ullong number_of_exact_scprods;
     atomic_ullong number_of_mispredictions;
 */
-
-
-
-
 };
 
+/**
+ To be deleted
+*/
+
+/*
+ Computes statistics for sim-hash
+ */
+template<class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits,false>::compute_statistics(std::ostream &of)
+{
+  using std::endl;
+
+  std::ofstream myfile;
+  myfile.open ("newsieve/Statistics/Statistics.txt");
+
+  unsigned long long sum_no_red = 0;
+  unsigned long long sum_red = 0;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+    sum_no_red+=no_red_stat_sim_hash[i];
+    sum_red+=red_stat_sim_hash[i];
+  }
+
+  float pdf_no_red[no_red_stat_sim_hash.size()];
+  float pdf_red[no_red_stat_sim_hash.size()];
+
+  float cdf_no_red[no_red_stat_sim_hash.size()];
+  float cdf_red[no_red_stat_sim_hash.size()];
+
+  float accum_cdf_no_red = 0;
+  float accum_cdf_red = 0;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+      pdf_no_red[i] = (float)no_red_stat_sim_hash[i]/ (float)sum_no_red;
+      pdf_red[i] = (float)red_stat_sim_hash[i] / (float) sum_red;
+
+      accum_cdf_no_red+=no_red_stat_sim_hash[i];
+      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
+
+      accum_cdf_red+=red_stat_sim_hash[i];
+      cdf_red[i] = accum_cdf_red/sum_red;
+
+  }
+
+  myfile << "Statistics for dim = " << sieveptr->lattice_rank << endl;
+  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+  {
+    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash[i] << " | " <<
+                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" <<
+                     std::setw(7) << red_stat_sim_hash[i] << " | " <<
+                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
+  }
+
+  myfile.close();
+
+}
 
 
+template<class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits,false>::compute_statistics_2nd_order(std::ostream &of)
+{
+  using std::endl;
+
+  std::ofstream myfile;
+  myfile.open ("newsieve/Statistics/Statistics_2.txt");
+
+  unsigned long long sum_no_red = 0;
+  unsigned long long sum_red = 0;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+    sum_no_red+=no_red_stat_sim_hash2[i];
+    sum_red+=red_stat_sim_hash2[i];
+  }
+
+  float pdf_no_red[no_red_stat_sim_hash2.size()];
+  float pdf_red[no_red_stat_sim_hash2.size()];
+
+  float cdf_no_red[no_red_stat_sim_hash2.size()];
+  float cdf_red[no_red_stat_sim_hash2.size()];
+
+  float accum_cdf_no_red = 0;
+  float accum_cdf_red = 0;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+      pdf_no_red[i] = (float)no_red_stat_sim_hash2[i]/ (float)sum_no_red;
+      pdf_red[i] = (float)red_stat_sim_hash2[i] / (float) sum_red;
+
+      accum_cdf_no_red+=no_red_stat_sim_hash2[i];
+      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
+
+      accum_cdf_red+=red_stat_sim_hash2[i];
+      cdf_red[i] = accum_cdf_red/sum_red;
+
+  }
+
+  myfile << "2nd order Statistics for dim = " << sieveptr->lattice_rank << endl;
+  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+
+  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
+  {
+    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash2[i] << " | " <<
+                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" <<
+                     std::setw(7) << red_stat_sim_hash2[i] << " | " <<
+                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
+  }
+
+  myfile.close();
+
+}
+
+template<class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::ostream &of, int howverb)
+{
+  using std::endl;
+  if(howverb>=1) of << "Number of collisions=" << number_of_collisions << endl;
+  if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
+  if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
+  //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
+
+  if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
+  if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
+  if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
+  if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
+
+  if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
+  if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
+  if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
 
 
+  //ONLY TO TEST BITAPPROX. TO BE DELETED
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+    if(howverb>=1)
+    {
+                   of << "No reduction: ";
+                   for (unsigned int i=0; i!=no_red_stat.size(); ++i) of <<no_red_stat[i] << " ";
+                   of << endl;
+                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+                   of << "2nd order: ";
+                   for (unsigned int i=0; i!=no_red_stat2.size(); ++i) of <<no_red_stat2[i] << " ";
+                   #endif
+                   of << endl;
+    }
+    if(howverb>=1)
+    {
+                   of << "Reduction: ";
+                   for (unsigned int i=0; i!=red_stat.size(); ++i) of <<red_stat[i] << " ";
+                   of << endl;
+                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+                   of << "2nd order: ";
+                   for (unsigned int i=0; i!=red_stat2.size(); ++i) of <<red_stat2[i] << " ";
+                   #endif
+                   of << endl;
+    }
+    #endif
+    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    if(howverb>=1)
+    {
+      of << "SIM-HASH No reduction: ";
+      for (unsigned int i=0; i!=no_red_stat_sim_hash.size(); ++i) of <<no_red_stat_sim_hash[i] << " ";
+      of << endl;
+      of << "SIM-HASH Reduction: ";
+      for (unsigned int i=0; i!=red_stat_sim_hash.size(); ++i) of <<red_stat_sim_hash[i] << " ";
+      of << endl;
+    }
+    compute_statistics(of);
+    compute_statistics_2nd_order(of);
+    #endif
 
-
-
+}
 
 
 

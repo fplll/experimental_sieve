@@ -80,119 +80,6 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_file(std::
     }
 }
 
-
-/*
- Computes statistics for sim-hash
- */
-template<class SieveTraits>
-void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics(std::ostream &of)
-{
-  using std::endl;
-
-  std::ofstream myfile;
-  myfile.open ("newsieve/Statistics/Statistics.txt");
-
-  unsigned long long sum_no_red = 0;
-  unsigned long long sum_red = 0;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
-  {
-    sum_no_red+=no_red_stat_sim_hash[i];
-    sum_red+=red_stat_sim_hash[i];
-  }
-
-  float pdf_no_red[no_red_stat_sim_hash.size()];
-  float pdf_red[no_red_stat_sim_hash.size()];
-
-  float cdf_no_red[no_red_stat_sim_hash.size()];
-  float cdf_red[no_red_stat_sim_hash.size()];
-
-  float accum_cdf_no_red = 0;
-  float accum_cdf_red = 0;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
-  {
-      pdf_no_red[i] = (float)no_red_stat_sim_hash[i]/ (float)sum_no_red;
-      pdf_red[i] = (float)red_stat_sim_hash[i] / (float) sum_red;
-
-      accum_cdf_no_red+=no_red_stat_sim_hash[i];
-      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
-
-      accum_cdf_red+=red_stat_sim_hash[i];
-      cdf_red[i] = accum_cdf_red/sum_red;
-
-  }
-
-  myfile << "Statistics for dim = " << lattice_rank << endl;
-  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
-  {
-    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash[i] << " | " <<
-                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" <<
-                     std::setw(7) << red_stat_sim_hash[i] << " | " <<
-                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
-  }
-
-  myfile.close();
-
-}
-
-
-template<class SieveTraits>
-void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::compute_statistics_2nd_order(std::ostream &of)
-{
-  using std::endl;
-
-  std::ofstream myfile;
-  myfile.open ("newsieve/Statistics/Statistics_2.txt");
-
-  unsigned long long sum_no_red = 0;
-  unsigned long long sum_red = 0;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
-  {
-    sum_no_red+=no_red_stat_sim_hash2[i];
-    sum_red+=red_stat_sim_hash2[i];
-  }
-
-  float pdf_no_red[no_red_stat_sim_hash2.size()];
-  float pdf_red[no_red_stat_sim_hash2.size()];
-
-  float cdf_no_red[no_red_stat_sim_hash2.size()];
-  float cdf_red[no_red_stat_sim_hash2.size()];
-
-  float accum_cdf_no_red = 0;
-  float accum_cdf_red = 0;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
-  {
-      pdf_no_red[i] = (float)no_red_stat_sim_hash2[i]/ (float)sum_no_red;
-      pdf_red[i] = (float)red_stat_sim_hash2[i] / (float) sum_red;
-
-      accum_cdf_no_red+=no_red_stat_sim_hash2[i];
-      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
-
-      accum_cdf_red+=red_stat_sim_hash2[i];
-      cdf_red[i] = accum_cdf_red/sum_red;
-
-  }
-
-  myfile << "2nd order Statistics for dim = " << lattice_rank << endl;
-  myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
-
-  for (unsigned int i=0; i<no_red_stat_sim_hash2.size(); ++i)
-  {
-    myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat_sim_hash2[i] << " | " <<
-                     std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" <<
-                     std::setw(7) << red_stat_sim_hash2[i] << " | " <<
-                     std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
-  }
-
-  myfile.close();
-
-}
-
 template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std::ostream &of, int verb)
 {
@@ -226,68 +113,15 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
 
     // STAT_MARK
 
-    /*
-
     if(howverb>=1) of << "--Statistics--" << endl;
-    if(howverb>=1) of << "Number of collisions=" << number_of_collisions << endl;
-    if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
-    if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
-    //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
-
-    if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
-    if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
-    if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
-    if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
-
-    if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
-    if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
-    if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
-
-    */
+    statistics.dump_status_to_stream(of,howverb);
 
     if(howverb>=1) {
         of << "Best vector found so far=";
         shortest_vector_found->write_lp_to_stream(of,true);
         of << endl;
     }
-    //ONLY TO TEST BITAPPROX. TO BE DELETED
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    if(howverb>=1)
-    {
-                   of << "No reduction: ";
-                   for (unsigned int i=0; i!=no_red_stat.size(); ++i) of <<no_red_stat[i] << " ";
-                   of << endl;
-                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-                   of << "2nd order: ";
-                   for (unsigned int i=0; i!=no_red_stat2.size(); ++i) of <<no_red_stat2[i] << " ";
-                   #endif
-                   of << endl;
-    }
-    if(howverb>=1)
-    {
-                   of << "Reduction: ";
-                   for (unsigned int i=0; i!=red_stat.size(); ++i) of <<red_stat[i] << " ";
-                   of << endl;
-                   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-                   of << "2nd order: ";
-                   for (unsigned int i=0; i!=red_stat2.size(); ++i) of <<red_stat2[i] << " ";
-                   #endif
-                   of << endl;
-    }
-    #endif
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    if(howverb>=1)
-    {
-      of << "SIM-HASH No reduction: ";
-      for (unsigned int i=0; i!=no_red_stat_sim_hash.size(); ++i) of <<no_red_stat_sim_hash[i] << " ";
-      of << endl;
-      of << "SIM-HASH Reduction: ";
-      for (unsigned int i=0; i!=red_stat_sim_hash.size(); ++i) of <<red_stat_sim_hash[i] << " ";
-      of << endl;
-    }
-    compute_statistics(of);
-    compute_statistics_2nd_order(of);
-    #endif
+
 
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
 
@@ -359,7 +193,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     term_cond(termcond),
     sieve_status(SieveStatus::sieve_status_init),
     shortest_vector_found(nullptr), // NOTE: Static data in class not initialized!
-    statistics()
+    statistics(this)
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     ,garbage_bins(nullptr)
@@ -412,43 +246,43 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   progressive_rank = ((lattice_rank+1) / 2); //TODO: to adjust
   std::cout << "set progressive_rank to " <<progressive_rank << std::endl;
 #endif
-    if(verbosity>=2)    {std::cout << "Sorting ...";}
-        main_list.sort();
+  if(verbosity>=2)    {std::cout << "Sorting ...";}
+  main_list.sort();
     //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
-    if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
+  if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
 
     //FIXME: Initialize shortest vector
 
-    shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
-    std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
+  shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
+  std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
 
 //    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //TODO : enable sorting for multithreaded case.
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-    garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
+  garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
 #endif
-    assert(main_queue.sampler!=nullptr);
-    main_queue.sampler->init(this, lattice_basis);
+  assert(main_queue.sampler!=nullptr);
+  main_queue.sampler->init(this, lattice_basis);
 
-    std::cout << "sampler is initialized " << std::endl << std::flush;
+  std::cout << "sampler is initialized " << std::endl << std::flush;
 
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
-    no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  statistics.red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
 
-    red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
-    no_red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
-  #endif
+  statistics.red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+#endif
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    no_red_stat.resize(this->ambient_dimension+1);
-    red_stat.resize(this->ambient_dimension+1);
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-      no_red_stat2.resize(2*this->ambient_dimension+1);
-      red_stat2.resize(2*this->ambient_dimension+1);
-    #endif
+  statistics.no_red_stat.resize(this->ambient_dimension+1);
+  statistisc.red_stat.resize(this->ambient_dimension+1);
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  statistisc.no_red_stat2.resize(2*this->ambient_dimension+1);
+  statistisc.red_stat2.resize(2*this->ambient_dimension+1);
+#endif
 #endif
 };
 
@@ -468,7 +302,6 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 };
 
 #ifdef PROGRESSIVE
-
 //for progressive sieving
 //TODO: currently the function checks only for the size of the list
 //      theoretically, it should check whether we have enough *short* vectors
@@ -480,12 +313,9 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   //TODO:
   double log_bound = 1.1* double(this->get_progressive_rank())*(this->get_target_list_size());
   unsigned long int bound = pow(2, log_bound);
-
-  if (this->statistics.get_current_list_size() > bound)
-    return true;
-  return false;
-};
-#endif
+  return (this->statistics.get_current_list_size() > bound);
+}
+#endif // PROGRESSIVE
 
 #ifdef PROGRESSIVE
 template<class SieveTraits>
@@ -498,8 +328,8 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::increase_progressive_rank
     std::cout << "From now on we are full-rank" << std::endl;
   }
   main_queue.sampler->set_progressive_rank(progressive_rank);
-};
-#endif
+}
+#endif // PROGRESSIVE
 
 } // end namespace
 
