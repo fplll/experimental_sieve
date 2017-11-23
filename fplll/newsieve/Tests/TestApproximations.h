@@ -21,12 +21,15 @@ bool test_approximations()
   using LeveledLong = MakeLeveledScalar<long>;
   LeveledLong z = y;
   assert(x<z);
+  assert(z.access<0>() == 1);
   LeveledLong z2 = 56L;
   assert(2*z2 == 112);
   assert(z2*2 == 112);
   using Approx = AddApproximation<LeveledLong,EMVScalar>;
   Approx a = 32L;
-  std::cout << a << std::endl;
+  Approx b = 34L;
+  assert(a==32L);
+  assert(a<b);
 
 
   int constexpr dimfixed = 25;

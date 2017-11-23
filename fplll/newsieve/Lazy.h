@@ -80,7 +80,7 @@ template<unsigned int level, class ExactClass, class Approximation> class Object
   - static constexpr unsigned int ApproxLevel to denote the maximal level.
 
   - a template ObjectAtLevel<level> to denote the (std::decay'ed) object encapsulated at the desired
-    level. This specifies (up to const- and reference- ness the return types of the functions below)
+    level. This specifies (up to const- and reference- ness) the return types of the functions below
 
   - using LeveledObject_Base = std::true_type / false_type.
     Query with Has_LeveledObject_Base<Obj>;
@@ -423,27 +423,27 @@ template<class LazyFunction, class... Args> class SieveLazyEval
 // (This is the least roundabout way of doing it and corresponds to the implementation of std::apply)
 
   template<unsigned int level>
-  inline ObjectAtLevel<level> eval()
+  [[gnu::always_inline]] inline ObjectAtLevel<level> eval()
   {
     static_assert(level <= ApproxLevel, "");
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
-  inline ObjectAtLevel<level> eval() const
+  [[gnu::always_inline]] inline ObjectAtLevel<level> eval() const
   {
     static_assert(level <= ApproxLevel, "");
     return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level()
+  [[gnu::always_inline]] inline ObjectAtLevel<level> get_value_at_level()
   {
     static_assert(level <= ApproxLevel, "");
     return eval<level>();
   }
   template<unsigned int level>
-  inline ObjectAtLevel<level> get_value_at_level() const
+  [[gnu::always_inline]] inline ObjectAtLevel<level> get_value_at_level() const
   {
     static_assert(level <= ApproxLevel, "");
     return eval<level>();

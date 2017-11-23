@@ -15,6 +15,7 @@
 		</Build>
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
+		<Unit filename="ApproximatedPoint_old.h" />
 		<Unit filename="BitApproximation.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />

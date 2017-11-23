@@ -19,7 +19,7 @@ template<class ELP> class MakeLeveledLatticePoint;
 template<class ELP, class ApproxLP> class AddApproximationToLatP;
 namespace Helpers
 {
-template<class,class,bool> struct AddApproximation_Helper;
+template<bool> struct AddApproximation_Helper;
 }
 }
 namespace GaussSieve{
@@ -78,7 +78,7 @@ struct AddApproximation
   template<unsigned int level> using ObjectAtLevel = mystd::conditional_t
     < level==ApproxLevel, NextLevel, typename OldLevels::template ObjectAtLevel<level>  >;
   using BaseScalar = ObjectAtLevel<0>;
-  template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<OldLevels,NextLevel,level==ApproxLevel>;
+  template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<level==ApproxLevel>;
   template<class, class, bool> friend class Helpers::AddApproximation_Helper;
 
   OldLevels old_levels;
@@ -116,45 +116,61 @@ struct AddApproximation
     static_assert(level<=ApproxLevel,"");
     return Helper<level>::template get<level>(*this);
   }
+  template<unsigned int level>
+  constexpr ObjectAtLevel<level> const & get_value_at_level() const
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+  template<unsigned int level>
+  CPP14CONSTEXPR ObjectAtLevel<level> &  get_value_at_level()
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+
+
   // TODO: Rvalue variants.
 };
 
 namespace Helpers{
-template<class OldLevels, class NextLevel, bool AtMaxLevel> struct AddApproximation_Helper;
+template<bool AtMaxLevel> struct AddApproximation_Helper;
 
-template<class OldLevels, class NextLevel>
-struct AddApproximation_Helper<OldLevels, NextLevel, true>
+template<>
+struct AddApproximation_Helper<true>
 {
-  using Argument = AddApproximation<OldLevels,NextLevel>;
-  template<unsigned int level>
-  static inline constexpr NextLevel const & get(Argument const &ob)
+  template<unsigned int level, class Argument>
+  static inline constexpr auto get(Argument const &ob)
+  -> decltype(std::declval<Argument>().next_level) const &
   {
     static_assert(level==Argument::ApproxLevel,"");
     return ob.next_level;
   }
-  template<unsigned int level>
-  static inline NextLevel       & get(Argument & ob)
+  template<unsigned int level, class Argument>
+  static inline auto get(Argument & ob)
+  -> decltype(std::declval<Argument>().next_level) &
   {
     static_assert(level==Argument::ApproxLevel,"");
     return ob.next_level;
   }
 };
 
-template<class OldLevels,class NextLevel>
-struct AddApproximation_Helper<OldLevels,NextLevel,false>
+template<>
+struct AddApproximation_Helper<false>
 {
-  using Argument = AddApproximation<OldLevels,NextLevel>;
-  template<unsigned int level>
-  static inline constexpr typename OldLevels::template ObjectAtLevel<level> const & get(Argument const &ob)
+  template<unsigned int level, class Argument>
+  static inline constexpr auto get(Argument const &ob)
+  -> typename decltype(std::declval<Argument>().old_levels)::template ObjectAtLevel<level> const &
   {
     static_assert(level < Argument::ApproxLevel,"");
-    return ob.old_scalar.template access<level>();
+    return ob.old_levels.template access<level>();
   }
-  template<unsigned int level>
-  static inline typename OldLevels::template ObjectAtLevel<level> &       get(Argument       &ob)
+  template<unsigned int level, class Argument>
+  static inline auto get(Argument &ob)
+  -> typename decltype(std::declval<Argument>().old_levels)::template ObjectAtLevel<level> &
   {
     static_assert(level < Argument::ApproxLevel,"");
-    return ob.old_scalar.template access<level>();
+    return ob.old_levels.template access<level>();
   }
 };
 } // end namespace Helpers
