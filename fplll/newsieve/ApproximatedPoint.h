@@ -79,10 +79,12 @@ struct AddApproximation
     < level==ApproxLevel, NextLevel, typename OldLevels::template ObjectAtLevel<level>  >;
   using BaseScalar = ObjectAtLevel<0>;
   template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<level==ApproxLevel>;
-  template<class, class, bool> friend class Helpers::AddApproximation_Helper;
+  template<bool> friend class Helpers::AddApproximation_Helper;
 
+  private:
   OldLevels old_levels;
   NextLevel next_level;
+  public:
 
   constexpr      explicit AddApproximation(OldLevels const &olds, NextLevel const &news)
     :old_levels(olds), next_level(news) {}
@@ -231,7 +233,7 @@ class MakeLeveledLatticePoint
   private:
   ELP elp;
   public:
-  constexpr       MakeLeveledLatticePoint (ELP const &v) : elp(v)            {}
+  constexpr       MakeLeveledLatticePoint (ELP const &v) = delete;
   CPP14CONSTEXPR  MakeLeveledLatticePoint (ELP      &&v) : elp(std::move(v)) {}
   constexpr       operator ELP() const & {return elp;}
   CPP14CONSTEXPR  operator ELP()      && {return std::move(elp);}
@@ -401,7 +403,7 @@ public:
   using Trait_CheapNorm2              = NormalizeTrait<Has_CheapNorm2<ELP>>;
   using Trait_CheapNegate             = NormalizeTrait<Has_CheapNegate<ELP>>;
   using Trait_BitApprox               = NormalizeTrait<Has_BitApprox<ELP>>;
-  using Trait_Leveled                 = std::true_type; // we assert it's true for ELP.
+  using Trait_Leveled                 = std::true_type; // we static_assert above it's true for ELP.
   using Trait_ApproxLevel          = std::integral_constant<unsigned int, ApproxLevelOf<ELP>::value +1>;
 };
 
@@ -417,10 +419,60 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
   using LeveledObject_Base= std::true_type;
   static constexpr unsigned int ApproxLevel = ApproxLevelOf<ELP>::value + 1;
   static_assert(std::is_same<typename ELP::template ObjectAtLevel<ApproxLevel-1>,ApproxLP>::value == false,"");
-  template<unsigned int level> using ObjectAtLevel =mystd::conditional_t
+  template<unsigned int level> using ObjectAtLevel = mystd::conditional_t
     <level == ApproxLevel,ApproxLP, typename ELP::template ObjectAtLevel<level> >;
-//  template<unsigned int level> using Helper = Helpers::AddApproximation_Vector_Helper<ELP,ApproxLP,level==ApproxLevel>;
-//  template<class, class, bool> friend class Helpers::AddApproximation_Vector_Helper;
+  template<unsigned int level> using Helper = Helpers::AddApproximation_Helper<level==ApproxLevel>;
+  template<bool> friend class Helpers::AddApproximation_Helper;
+  using BaseVector = ObjectAtLevel<0>;
+  private:
+  ELP old_levels;
+  ApproxLP next_level;
+  public:
+
+  // leveled object functionality, with deleted copy constructor at level 0 (which implies others
+  // need to be deleted as well).
+                 explicit AddApproximationToLatP(ELP const &olds, ApproxLP const &news) = delete;
+  CPP14CONSTEXPR explicit AddApproximationToLatP(ELP      &&olds, ApproxLP const &news)
+    :old_levels(std::move(olds)),next_level(news) {}
+  CPP14CONSTEXPR explicit AddApproximationToLatP(ELP const &olds, ApproxLP      &&news) = delete;
+  CPP14CONSTEXPR explicit AddApproximationToLatP(ELP      &&olds, ApproxLP      &&news)
+    :old_levels(std::move(olds)),next_level(std::move(news)){}
+                 explicit AddApproximationToLatP(ELP const &olds) = delete;
+  CPP14CONSTEXPR explicit AddApproximationToLatP(ELP      &&olds)
+    :old_levels(std::move(olds)), next_level(static_cast<BaseVector>(old_levels)) {}
+                          AddApproximationToLatP(BaseVector const &old_base) = delete;
+  CPP14CONSTEXPR          AddApproximationToLatP(BaseVector      &&old_base)
+    :old_levels(std::move(old_base)),next_level(static_cast<BaseVector>(old_levels)) {}
+
+  constexpr      operator BaseVector() const & { return static_cast<BaseVector>(old_levels); }
+  CPP14CONSTEXPR operator BaseVector()      && { return static_cast<BaseVector>(std::move(old_levels));}
+
+  template<unsigned int level>
+  constexpr ObjectAtLevel<level> const & access() const
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+  template<unsigned int level>
+  CPP14CONSTEXPR ObjectAtLevel<level> &  access()
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+  template<unsigned int level>
+  constexpr ObjectAtLevel<level> const & get_value_at_level() const
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+  template<unsigned int level>
+  CPP14CONSTEXPR ObjectAtLevel<level> &  get_value_at_level()
+  {
+    static_assert(level<=ApproxLevel,"");
+    return Helper<level>::template get<level>(*this);
+  }
+
+
 
 };
 
