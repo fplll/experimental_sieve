@@ -27,9 +27,11 @@ bool test_approximations()
   assert(z2*2 == 112);
   using Approx = AddApproximation<LeveledLong,EMVScalar>;
   Approx a = 32L;
-  Approx b = 34L;
+  Approx const b= 34L;
   assert(a==32L);
   assert(a<b);
+  assert(a.access<0>() < b.access<0>() );
+  assert(a.access<1>() < b.access<1>() );
 
 
   int constexpr dimfixed = 25;

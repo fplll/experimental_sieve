@@ -128,8 +128,6 @@ struct AddApproximation
     static_assert(level<=ApproxLevel,"");
     return Helper<level>::template get<level>(*this);
   }
-
-
   // TODO: Rvalue variants.
 };
 
@@ -367,13 +365,16 @@ final : public DefaultStaticInitializer<MakeLeveledLatticePoint<ELP>>
 {
   StaticInitializer<ELP>  const init_elp;
   public:
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<mystd::decay_t<X>>)>
-  explicit StaticInitializer(X &&init_arg) : init_elp(std::forward<X>(init_arg)){}
+  template<class X>
+  explicit StaticInitializer(X &&init_arg) : init_elp(std::forward<X>(init_arg))
+  {
+    static_assert(IsArgForStaticInitializer<mystd::decay_t<X>>::value,"");
+  }
 };
 
-/*********************************
-This adds new levels to a lattice point, retaining the functionality.
-**********************************/
+/*********************************************************************************************
+This adds new levels to a lattice point, retaining the functionality of being a lattice point.
+**********************************************************************************************/
 
 // Forward traits. We add the ScalarProduct of the Approximation to the Full Scalar product type.
 template<class ELP, class ApproxLP>
