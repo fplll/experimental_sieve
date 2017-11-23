@@ -1,8 +1,8 @@
 #define filtered_list_size_max  1000
 
 namespace GaussSieve{
-    
-    
+
+
     //The function checks if ||x1 + scalar* x2|| < ||x1||
     // the value <x1,x2> is provided as input
     // scalar is modified
@@ -15,21 +15,21 @@ bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
 {
     using std::abs;
     using std::round;
-    
+
     typename SieveTraits::EntryType const abs_2scprod = abs(x1x2 * 2);
-    
+
     // check if |2 * <x1, x2>| <= |x2|^2. If yes, no reduction
     if (abs_2scprod <= x2.get_norm2())
         return false;
-    
+
     //compute the multiple mult s.t. res = x1 \pm mult* x2;
-    
+
     double const mult = convert_to_double( x1x2 ) / convert_to_double( x2.get_norm2() );
     // TODO: Check over- / underflows.
     scalar =  round (mult);
     return true;
 
-    
+
 }
 
     // The function checks if
@@ -56,10 +56,10 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
     typename SieveTraits::EntryType x3x1;
     typename SieveTraits::EntryType x3x2;
     using std::abs;
-    
+
     if (x1x2 * x3_X * x3.get_sc_prod() >0)
         return false;
-    
+
 
     if (!p_is_max) {
         x3x1 = x3_X;
@@ -82,7 +82,7 @@ bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
         //std::cout << "sgns: case 1" << std::endl;
         return true;
     }
-  
+
     /* bool f = ((x ^ y) < 0); // true iff x and y have opposite signs*/
 
     //if (x3x1 <0 && !((x1x2^x3x2) <0) &&
@@ -136,7 +136,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
 
     // ! targets are squared
-    
+
     //double px1_target = 0.1024;
     //double px1_target  = .1111; // TO ADJUST
     double px1_target = 0.123;
@@ -158,8 +158,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         }
 
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
-        ++number_of_scprods_level1;
-        
+        statistics.increment_number_of_scprods_level1();
+
         //
         //check for 2-reduction
         //
@@ -170,7 +170,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
             if (p.is_zero() )
             {
-                number_of_collisions++;
+                statistics.increment_number_of_collisions();
             }
             else
             {
@@ -179,7 +179,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             return;
         }
 
-        filtered_list_size = 0;
+        statistics.set_filtered_list_size(0);
 
         filtered_list.reserve(filtered_list_size_max);
 
@@ -187,7 +187,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         //compare <p, x1> with px1
         //
         //TODO: Change the computations below to smth. faster/better/cleverer/etc.
-        
+
         double sc_prod_px1_norm = convert_to_double( sc_prod_px1)*convert_to_double(sc_prod_px1 ) /
                         ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
         if (abs(sc_prod_px1_norm) > px1_target)
@@ -199,7 +199,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
 
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, filtered_list_point.get_point());
-                ++number_of_scprods_level2;
+                statistics.increment_number_of_scprods_level2();
 
                 int sgn2, sgn3;
 
@@ -211,7 +211,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     //TODO:  RETRIEVE ||p|| from the sc_prods
 
                     //EntryType pnorm_old = p.get_norm2();
-                    
+
                     p += (*it)*sgn2 + (filtered_list_point).get_point() * sgn3;
                     //p +=  (*it)*sgn2 + *(filtered_list_point).get_point() * sgn3;
 
@@ -227,7 +227,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     if (p.is_zero() )
                     {
-                        number_of_collisions++;
+                        statistics.increment_number_of_collisions();
                     }
                     else
                     {
@@ -240,7 +240,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
             typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
             filtered_list.push_back(std::move(new_filtered_point));
-          
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
@@ -259,7 +259,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     } //while-loop
 
     main_list.insert_before(it_comparison_flip,p.make_copy());
-    ++current_list_size;
+    statistics.increment_current_list_size();
     //std::cout << "list_size = " <<current_list_size << std::endl;
     if(update_shortest_vector_found(p))
     {
@@ -282,8 +282,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         bool x1_reduced = false;
 
         EntryType sc_prod_px1 = compute_sc_product(p,*it);
-        ++number_of_scprods_level2;
-        
+        statistics.increment_number_of_scprods_level2();
+
         //
         //check for 2-reduction
         //
@@ -296,14 +296,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
             if (v_new.is_zero() )
             {
-                number_of_collisions++;
+                statistics.increment_number_of_collisions();
             }
-            
+
             main_queue.push(std::move(v_new));
 
             it = main_list.erase(it);
-            --current_list_size;
-            
+            statistics.decrement_current_list_size();
+
             x1_reduced = true;
 
 
@@ -318,15 +318,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         // 3-rediction
         //
         // Now x1 is the largest
-      
-      
+
+
       //x1 can be modified during the check_2_red, hence the computed sc_prod there is no longer valid
         if (x1_reduced) {
             sc_prod_px1 = compute_sc_product(p,*it);
-            ++number_of_scprods_level1;
+            statistics.increment_number_of_scprods_level1();
             x1_reduced = false;
         }
-        
+
         double sc_prod_px1_norm = convert_to_double( sc_prod_px1 )* convert_to_double( sc_prod_px1 )  /
         ( convert_to_double ( p.get_norm2()) * convert_to_double( (*it).get_norm2() )) ;
 
@@ -337,8 +337,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             {
 
                 EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_point).get_point());
-                ++number_of_scprods_level2;
-                
+                statistics.increment_number_of_scprods_level2();
+
                 int  sgn2, sgn3;
 
                 // ! check_3red assumes that the first argument has the largest norm
@@ -350,7 +350,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
                     if (v_new.is_zero() )
                     {
-                        number_of_collisions++;
+                        statistics.increment_number_of_collisions();
                     }
 
                     //FOR DEBUG
@@ -365,7 +365,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                     main_queue.push(std::move(v_new));
                     it = main_list.erase(it);
 
-                    --current_list_size;
+                    statistics.decrement_current_list_size();
 
                     x1_reduced = true;
 
@@ -380,7 +380,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
                 typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
                 filtered_list.push_back(std::move(new_filtered_point));
             }
-          
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
           red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
@@ -407,7 +407,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
          */
     } // 'lower' while-loop
 
-    filtered_list_size = filtered_list.size();
+    statistics.set_filtered_list_size(filtered_list.size());
     filtered_list.clear();
 
 }

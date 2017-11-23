@@ -173,7 +173,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         break;
       }
 
-      ++number_of_scprods_level1;
+      statistics.increment_number_of_scprods_level1();
       int scalar;
       if ( check2red<SieveTraits>(p, *it, scalar) )
       {
@@ -234,7 +234,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     if (p.is_zero() )
     {
       //std::cout << "collision is found " << std::endl;
-        number_of_collisions++;
+        statistics.increment_number_of_collisions();
         return;
     }
 
@@ -249,7 +249,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 */
 
     main_list.insert_before(it_comparison_flip, p.make_copy() );
-    ++current_list_size; // TODO: Manage by list and / or guard by DEBUGS.
+    statistics.increment_current_list_size();
 
 //    it = it_comparison_flip;
 
@@ -257,7 +257,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     for(auto it = it_comparison_flip; it!=main_list.cend(); ) //++it done in body of loop
     {
 
-      ++number_of_scprods_level1;
+      statistics.increment_number_of_scprods_level1();
 
       int scalar;
       if ( check2red<SieveTraits>(*it, p, scalar) )
@@ -295,7 +295,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
           //std::cout << "collision on v_new is found " << std::endl;
-          number_of_collisions++;
+          statistics.increment_number_of_collisions();
 //          ++it;
 //          continue;
         }
@@ -304,7 +304,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         // This increments the iterator in the sense that its point to the next element now,
         // effectively doubling as a ++it;
         it = main_list.erase(it);
-        --current_list_size;
+        statistics.decrement_current_list_size();
 
       }
       else // no reduction.
@@ -349,7 +349,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         start_of_function:
         if (p.is_zero() )
         {
-          ++number_of_collisions;
+          statistics.increment_number_of_collisions();
          return; //TODO: Ensure sampler does not output 0 (currently, it happens).
         }
         //std::cout << "p = " << p.get_norm2() << std::endl;
@@ -424,7 +424,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         /*
         if (p.is_zero() )
         {
-            number_of_collisions++;
+            statistics.increment_number_of_collisions();
             return;
         }
         */
@@ -499,7 +499,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
  if (p_exact_norm == 0) //essentially means that p was already inside the list.
 	{
  //cout << "p has norm 2" << endl;
- number_of_collisions++;
+ statistics.increment_number_of_collisions();
  return;
 	}
 
