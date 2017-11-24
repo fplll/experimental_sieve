@@ -11,8 +11,12 @@
 namespace GaussSieve::SimHash
 {
 
-// Checks whether argument is a power of two. Slow, but designed for use in static asserts
-// (This is why it's a recursive one-line function, to be C++11 - constexpr)
+/*****************************************************************************
+is_a_power_of_two(n) checks whether n is a power of 2.
+Slow, but designed for use in static asserts
+(This is why it's a recursive one-line function, to be C++11 - constexpr)
+******************************************************************************/
+
 template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
 constexpr bool is_a_power_of_two(Integer const n)
 {
@@ -20,15 +24,32 @@ constexpr bool is_a_power_of_two(Integer const n)
   return (n>0) &&  ( (n==1) || ( (n%2==0) && is_a_power_of_two(n/2)));
 }
 
+/**********************************************************
+Global constants, accessible as SimHash::sim_hash_len, etc.
+Consider moving (some) of them to SieveTraits
+**********************************************************/
+
 unsigned int constexpr sim_hash_len = 64;
 unsigned int constexpr sim_hash2_len = 64;
 unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
 
-// class holding the data related to bitapproximations.
-// It is inialized via StaticInitializer<CoordinateSelection<...>>
-// This class only contains static data and member functions
-// Note: We may template this by the exact lattice point class as well
-// or store it inside a wrapper around std::bitset
+/********************************************************************
+SimHash::CoordinateSelection<SieveTraits,IsMultithreaded>
+is a class template holding the data related to bitapproximation.
+This class only contains static data and static member functions.
+
+Note: We may template this by the user lattice point class as well or
+store these data inside some other class which uses the data.
+Initializiation is performed by StaticInitializer<CoordinateSelection>.
+This is called by ExactLatticePoint at the moment, but this is subject
+to change.
+
+Note2: Template arguments are subject to change.
+
+TODO: Consider writing a wrapper around either a std::bitset or a std::dynamic_bitset
+that actually has these as static data and initialize it via the main sieve.
+********************************************************************/
+
 template<class SieveTraits, bool MT>
 class CoordinateSelection
 {
@@ -61,7 +82,15 @@ std::array<uint_fast16_t,sim_hash_number_of_coos> CoordinateSelection<SieveTrait
 
 } // end namespace GaussSieve::BitApprox
 
+
 namespace GaussSieve{
+
+/**************************************************************************************
+Initialization of CoordinateSelection is done here.
+
+Note: This is done in namespace GaussSieve rather than GaussSieve::SimHash, because
+      the StaticInitializer template that is specialized is in the GaussSieve namespace.
+***************************************************************************************/
 
 template<class SieveTraits,bool MT>
 class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
@@ -100,10 +129,6 @@ class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
   }
 };
 }
-
-
-
-
 
 
 namespace GaussSieve
@@ -264,53 +289,99 @@ auto compute_coordinate_wise_bitapproximation(LatP const &point)
 namespace GaussSieve::SimHash
 {
 
-  //assume sim_hash2_len is a power-of-two
-  template<class ET>
-  static std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
+//assume sim_hash2_len is a power-of-two.
+
+// deprecated. Use versions below (faster, more flexible)
+template<class ET>
+[[deprecated]] inline std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
+{
+  std::array<ET,sim_hash2_len> inp = input;
+  std::array<ET,sim_hash2_len> out;
+  std::array<ET,sim_hash2_len> tmp;
+  uint_fast16_t i, j, s;
+
+  for (i = sim_hash2_len>>1; i > 0; i>>=1)
   {
-    std::array<ET,sim_hash2_len> inp = input;
-    std::array<ET,sim_hash2_len> out;
-    std::array<ET,sim_hash2_len> tmp;
-
-    uint_fast16_t i, j, s;
-
-    for (i = sim_hash2_len>>1; i > 0; i>>=1) {
-        for (j = 0; j < sim_hash2_len; j++) {
-            s = j/i%2;
-            out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
-        }
-        tmp = inp; inp = out; out = tmp;
+    for (j = 0; j < sim_hash2_len; j++)
+    {
+      s = (j/i)%2;
+      out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
     }
-
-    return out;
+    tmp = inp; inp = out; out = tmp;
   }
 
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
+  return out;
+}
+
+
+/**
+ fast_partial_walsh_hadamard<len>(input) performs (fast) Walsh-Hadamard Transform on the first
+ len coordinates of its input. len is enforced to be a power of two and input must be either
+ a std::vector or a std::array. The entries of the vector / array must support arithmentic (+,-) and
+ be default-constructible and swappable.
+*/
+template< unsigned int len, class T>
+inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input) // Note: Pass by value is intentional. We modify the local copy.
+{
+  static_assert(is_a_power_of_two(len), "len must be a power of two");
+  assert(len >= input.size() ); //maybe static
+  std::vector<T> output(input.size() );
+  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
   {
-    //using RelevantCoords = GaussSieve::RelevantCoordinates;
-    using ET = Get_CoordinateType<LatP>;
-
-    //std::cout << "rel_coo_matrix used: " <<std::endl;
-    //RelevantCoordinates::print();
-    //assert(false);
-
-    std::bitset<sim_hash_len> ret;
-
-    uint_fast16_t bound = mystd::constexpr_min(static_cast<uint_fast16_t>(point.get_dim()), static_cast<uint_fast16_t>(sim_hash_len));
-
-    for(uint_fast16_t i=0;i<bound;++i)
+    for(uint_fast16_t j = 0; j < len ; j++)
     {
-        ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+      output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j];
     }
+    std::swap(input,output);
+  }
+  return output;
+}
 
-    //for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    for(uint_fast16_t i=point.get_dim();i<sim_hash_len;++i)
+template< unsigned int len, class T, std::size_t arraylen>
+inline std::array<T,arraylen>  fast_partial_walsh_hadamard(std::array<T,arraylen> input) // Note: Pass by value is intentional. We modify the local copy.
+{
+  static_assert(is_a_power_of_two(len), "len must be a power of two");
+  static_assert(arraylen >= len, "Cannot perfor WH-Transform on array of smaller size");
+  std::array<T,arraylen> output(); // assumes that entries are default-constructible.
+  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
+  {
+    for(uint_fast16_t j = 0; j < len ; j++)
     {
-      ET res = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) +
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
+      output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j];
+    }
+    std::swap(input,output);
+  }
+  return output;
+}
+
+
+template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
+{
+  //using RelevantCoords = GaussSieve::RelevantCoordinates;
+  using ET = Get_CoordinateType<LatP>;
+
+  //std::cout << "rel_coo_matrix used: " <<std::endl;
+  //RelevantCoordinates::print();
+  //assert(false);
+
+  std::bitset<sim_hash_len> ret;
+
+  uint_fast16_t bound = mystd::constexpr_min(static_cast<uint_fast16_t>(point.get_dim()), static_cast<uint_fast16_t>(sim_hash_len));
+
+  for(uint_fast16_t i=0;i<bound;++i)
+  {
+    ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+  }
+
+  //for(uint_fast16_t i=0;i<sim_hash_len;++i)
+  for(uint_fast16_t i=point.get_dim();i<sim_hash_len;++i)
+  {
+  // Gotti: 3x + and 1x - seems strange to me.
+    ET res =  point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) +
+              point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
+              point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
+              point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
       //std::cout << "i = " << i << " res =" << res << " ";
       ret[i] = (res>=0) ? 1: 0;
     }
@@ -336,7 +407,8 @@ namespace GaussSieve::SimHash
                         point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
                         point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
     }
-
+    assert(false); // TODO: This looks wrong. Please check! - -Gotti
+    // (applying WH-Trafo *after* selecting relevant coos seems an error)
     std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
