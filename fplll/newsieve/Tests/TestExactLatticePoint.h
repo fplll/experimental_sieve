@@ -123,15 +123,22 @@ bool test_exact_LP()
   int constexpr dim = 20;
   int constexpr dimfixed=20;
 
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  using RelevantCoords = GaussSieve::RelevantCoordinates;
+  GaussSieve::StaticInitializer<RelevantCoords> init_matrix(dim);
+#endif
+
   using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
   using GaussSieve::MaybeFixed;
 
   std::array<mpz_class,dim> test_vec1;
   std::array<mpz_class,dim> test_vec2;
+  std::array<mpz_class,dim> test_vec3;
   for(int i=0;i<dim;++i)
   {
     test_vec1[i] = std::pow(-1, i+1) * i;
-    test_vec2[i] = std::pow(-1, i) * (i-1);
+    test_vec2[i] = 10*std::pow(-1, i) * (i-1);
+    test_vec3[i] = 5*std::pow(-1, i+1) ;
   }
 
 
@@ -139,17 +146,30 @@ bool test_exact_LP()
 
   LP latp = GaussSieve::make_from_any_vector<LP>(test_vec1,MaybeFixed<dimfixed>{dim});
   LP latp2 = GaussSieve::make_from_any_vector<LP>(test_vec2,MaybeFixed<dimfixed>{dim});
+  LP latp3 = GaussSieve::make_from_any_vector<LP>(test_vec3,MaybeFixed<dimfixed>{dim});
 
-  std::cout << latp << std::endl;
-  std::cout << latp2 << std::endl;
+  std::cout << "p1 = " <<  latp << std::endl;
+  std::cout << "p2 = " << latp2 << std::endl;
+  std::cout << "p3 = " << latp3 << std::endl;
 
 
   //using ApproxScProdType = GaussSieve::BitApproxScalarProduct;
 
   std::cout << compute_sc_product(latp, latp2) << std::endl;
-  std::cout << static_cast<uint_fast32_t>(compute_sc_product_bitapprox(latp, latp2)) << std::endl; //<-THIS FAILS
-  // FIXED, Gotti -- Note that the static cast is there because the return type of the scalar product does not support stream output.
 
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  std::cout << static_cast<uint_fast32_t>(compute_sc_product_bitapprox(latp, latp2)) << std::endl;
+#endif
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  std::cout <<"<p1, p2> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_2nd_order(latp, latp2)) << std::endl;
+  std::cout <<"<p2, p3> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_2nd_order(latp2, latp3)) << std::endl;
+#endif
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  std::cout <<"<p1, p2> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_fixed(latp, latp2)) << std::endl;
+  std::cout <<"<p2, p3> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_fixed(latp2, latp3)) << std::endl;
+#endif
 
   return true;
 };

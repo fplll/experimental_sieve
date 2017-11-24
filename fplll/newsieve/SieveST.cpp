@@ -61,197 +61,99 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 
     switch (sieve_k)
     {
-//      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
         case 2: run_2_sieve(); break;
         case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
         default: assert(false);
     }
     sieve_status = SieveStatus::sieve_status_finished;
-
-     //Diagnostic and use of the information moved up to the caller.
-
-    /*
-    cout << "sv is " << endl;
-    main_list.cbegin().access_details()->printLatticePoint();
-    print_status();
-    */
 }
 
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 {
 //    typename SieveTraits::GaussQueue_ReturnType p;
-    int i=0;
+  int i=0;
 
-    std::cout << "start 2-sieve " << std::endl;
+  std::cout << "start 2-sieve " << std::endl;
 
-    //set target list-size for progressive sieving
+  //set target list-size for progressive sieving
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k2);
 #endif
 
-    while (!check_if_done() )
-    {
+  while (!check_if_done() )
+  {
 
 #ifdef PROGRESSIVE
-      if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
-      {
-        increase_progressive_rank();
-      }
+    if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
+    {
+      increase_progressive_rank();
+    }
 #endif
-        //convert here???
+  //convert here???
 
 //        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
-        typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
-      //typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
+    typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
+  //typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
 //        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
 //        std::cout << p << std::endl << std::flush;
 
 #ifdef USE_LSH
-        hash_sieve_2_iteration(p);
+    hash_sieve_2_iteration(p);
 #else
-        sieve_2_iteration(p);
+    sieve_2_iteration(p);
 #endif
 
-        ++i;
-        if (( i % 1000 == 0) && (verbosity >=2))
-        {
-            std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
-        }
+    ++i;
+    if (( i % 1000 == 0) && (verbosity >=2))
+    {
+    // STAT_MARK
+      std::cout << "[" << i << "]"
+      << " |L|=" << statistics.get_current_list_size()
+      << " |Q|=" << main_queue.size()
+      << " #samples = " << statistics.get_number_of_points_sampled()
+      << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
     }
+  }
 }
 
 
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
-    int i=0;
+  int i=0;
 
-    std::cout << "start 3-sieve " << std::endl;
+  std::cout << "start 3-sieve " << std::endl;
 
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k3);
 #endif
 
-    while (!check_if_done() )
-    {
+  while (!check_if_done() )
+  {
 #ifdef PROGRESSIVE
-      if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
-      {
-        increase_progressive_rank();
-      }
-#endif
-        //typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); //comment out for now to text the approximation class
-
-        //sieve_3_iteration(p);
-        ++i;
-        if (( i % 1000 == 0) && (verbosity >=2))
-        {
-             std::cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |FL|= " << filtered_list_size << " |sv|= " <<  get_best_length2() <<  std::endl;
-        }
-    }
-}
-
-/*
-template<class ET>
-void Sieve<ET,false>::run_k_sieve()
-{
-    LatticePoint<ET> p;
-    int i=0;
-    while (!check_if_done() )
+    if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
     {
-        p=main_queue.true_pop();
-        sieve_k_iteration(p);
-        ++i;
-        if (( i % 1000 == 0) && (verbosity >=2))
-        {
-            cout << "[" << i << "]"  << "  |L|=" << current_list_size  << " |Q|=" << main_queue.size() << " #samples = " << number_of_points_sampled << " |sv|= " <<  get_best_length2() << endl;
-        }
+      increase_progressive_rank();
     }
+#endif
+    typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+    sieve_3_iteration(p);
+    ++i;
+    if (( i % 1000 == 0) && (verbosity >=2))
+    {
+      std::cout << "[" << i << "]"
+      << " |L|=" << statistics.get_current_list_size()
+      << " |Q|=" << main_queue.size() // STAT_MARK
+      << " #samples = " << statistics.get_number_of_points_sampled()
+      << " |FL|= " << statistics.get_filtered_list_size()
+      << " |sv|= " << get_best_length2() <<  std::endl;
+    }
+  }
 }
-*/
 
+} // end namespace
 
-//currently unused diagnostic code.
-/*
-template<class ET>
-void PredictionDiagnosis (Sieve<ET,false> * gs, ApproxLatticePoint<ET,false> const & v1, LatticePoint<ET> const &d1, ApproxLatticePoint<ET,false> const &v2, LatticePoint<ET> const &d2, int dim);
-template<class ET>
-void PredictionDiagnosis (Sieve<ET,false> * gs, ApproxLatticePoint<ET,false> const & v1, LatticePoint<ET> const &d1, ApproxLatticePoint<ET,false> const &v2, LatticePoint<ET> const &d2, int dim)
-{
-	static int count =0;
-	LatticePoint<ET> c1 = d1;
-	LatticePoint<ET> c2 = d2;
-	bool actual_red = GaussSieve::check2red(c1,c2);
-	//cout << (actual_red?"Red:yes" : "Red:no");
-	bool predict_red = LatticeApproximations::Compare_Sc_Prod(v1,v2,v2.get_approx_norm2(),2*v2.get_length_exponent() -2,dim);
-	//cout << (predict_red?"Predict:yes" : "Predict:no");
-
-	ET sc_prod, abs_scprod, scalar;
-	sc_product(sc_prod, d1, d2);
-    	abs_scprod.mul_ui(sc_prod,2);
-    	abs_scprod.abs(abs_scprod);
-	ET n1true = d1.get_norm2();
-
-	int32_t approxSP = abs(LatticeApproximations::compute_sc_prod(v1.get_approx(),v2.get_approx(),dim));
-	int approxExp1 = v1.get_length_exponent();
-	int approxExp2 = v2.get_length_exponent();
-	int approxExpScP = approxExp1 + approxExp2;
-	int32_t n1approx = v1.get_approx_norm2();
-	int n1exp = 2*v1.get_length_exponent();
-
-	ET approxSP_real;
-	ET n1_real;
-	LatticePoint<ET> approxv1_real(dim);
-	LatticePoint<ET> approxv2_real(dim);
-	approxSP_real = static_cast<long>(approxSP);
-	n1_real = static_cast<long>(n1approx);
-	for(int i=0;i<dim;++i) approxv1_real[i] = static_cast<long>( (v1.get_approx()) [i]);
-	for(int i=0;i<dim;++i) approxv2_real[i] = static_cast<long>( (v2.get_approx()) [i]);
-	//stupid:
-	for(int i=0;i < approxExp1 ;    ++i) approxv1_real = approxv1_real + approxv1_real;
-	for(int i=0;i < approxExp2 ;    ++i) approxv2_real = approxv2_real + approxv2_real;
-	for(int i=0;i < approxExpScP ;    ++i) approxSP_real.mul_si(approxSP_real,2);
-	for(int i=0;i < n1exp;    ++i) n1_real.mul_si(n1_real,2);
-
-	if(actual_red == true && predict_red ==false)
-{
-	//misprediction.
-	cout << "Misprediction" << endl;
-	cout << "v1 =" << v1 << endl;
-	cout << "meaning of approx1 = " << approxv1_real << endl;
-	cout << "v2 =" << v2 << endl;
-	cout << "meaning of approx2 = " << approxv2_real << endl;
-	cout << "true absscalar product= " << abs_scprod << endl;
-	cout << "approx abssc product = " << approxSP << endl;
-	cout << "meaning " << approxSP_real << endl;
-	cout << "sqNorm1 = " << n1true << endl;
-	cout << "Approx Norm1 = " << n1approx << endl;
-	cout << "meaning " << n1_real << endl;
-
-}
-else if(count % 100 == 80)
-	{
-	cout <<"Prediction: ";
-	cout << (actual_red?"Red:yes" : "Red: no") << " , ";
-	cout << (predict_red?"Predict:yes" : "Predict: no") << endl;
-	cout << "v1 =" << v1 << endl;
-	cout << "meaning of approx1 = " << approxv1_real << endl;
-	cout << "v2 =" << v2 << endl;
-	cout << "meaning of approx2 = " << approxv2_real << endl;
-	cout << "true absscalar product= " << abs_scprod << endl;
-	cout << "approx abssc product = " << approxSP << endl;
-	cout << "meaning " << approxSP_real << endl;
-	cout << "sqNorm1 = " << n1true << endl;
-	cout << "Approx Norm1 = " << n1approx << endl;
-	cout << "meaning " << n1_real << endl;
-	}
-	++count;
-
-	//cout << endl;
-}
-*/
-
-}
+// TODO: #include placement
 
 #include "HyperplaneLSH.h"
 #include "SieveST2.cpp"

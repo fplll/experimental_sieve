@@ -110,25 +110,19 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=3) of << "Original Basis:" << endl;
     if(howverb>=3) of << original_basis;
     if(howverb>=2) of << "--End of Params--" << endl << endl;
+
+    // STAT_MARK
+
     if(howverb>=1) of << "--Statistics--" << endl;
-    if(howverb>=1) of << "Number of collisions=" << number_of_collisions << endl;
-    if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
-    if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
-    //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
+    statistics.dump_status_to_stream(of,howverb);
 
-    if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
-    if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
-    if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
-    if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
-
-    if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
-    if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
-    if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
     if(howverb>=1) {
         of << "Best vector found so far=";
         shortest_vector_found->write_lp_to_stream(of,true);
         of << endl;
     }
+
+
     //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
 
     //TODO: Check output
@@ -199,21 +193,12 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     term_cond(termcond),
     sieve_status(SieveStatus::sieve_status_init),
     shortest_vector_found(nullptr), // NOTE: Static data in class not initialized!
-    number_of_collisions(0),
-    number_of_points_sampled(0),
-    number_of_points_constructed(0),
-    current_list_size(0),
-    number_of_scprods_level1(0),
-    number_of_scprods_level2(0),
-    number_of_scprods_level3(0),
-    number_of_exact_scprods(0),
-    number_of_mispredictions(0)
+    statistics(this)
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     ,garbage_bins(nullptr)
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 {
-
 // BIG TODO: Move these into their respective classes!
 
     if (SieveTraits::get_nfixed!=-1)
@@ -235,23 +220,12 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
-//        FastAccess_Point tmppoint(original_basis[i]);
-
         it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
                                      lattice_basis.get_basis_vector(i).make_copy() ) );
-
-        /*
-        it = main_list.insert_before(it, static_cast<typename SieveTraits::HashedGaussList_Stored> (
-                                     lattice_basis.get_basis_vector(i).make_copy() ) );
-        */
-
         ++it;
-
-//        ExactLatticePoint<ET,nfixed> * new_basis_vector = new ExactLatticePoint<ET,nfixed> ( conv_matrixrow_to_lattice_point<ET,nfixed> (original_basis[i]));
-//        main_list.insert_before(it,  static_cast<CompressedPoint<ET,GAUSS_SIEVE_IS_MULTI_THREADED,nfixed> >(new_basis_vector) );
     }
 
-    current_list_size+=lattice_rank;
+    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
 
 #ifdef USE_LSH
     if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}
@@ -272,27 +246,44 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   progressive_rank = ((lattice_rank+1) / 2); //TODO: to adjust
   std::cout << "set progressive_rank to " <<progressive_rank << std::endl;
 #endif
-    if(verbosity>=2)    {std::cout << "Sorting ...";}
-        main_list.sort();
+  if(verbosity>=2)    {std::cout << "Sorting ...";}
+  main_list.sort();
     //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
-    if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
+  if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
 
     //FIXME: Initialize shortest vector
 
-    shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
-    std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
+  shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
+  std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
 
 //    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
     //TODO : enable sorting for multithreaded case.
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
-    garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
+  garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
 #endif
-    assert(main_queue.sampler!=nullptr);
-    main_queue.sampler->init(this, lattice_basis);
+  assert(main_queue.sampler!=nullptr);
+  main_queue.sampler->init(this, lattice_basis);
 
-    std::cout << "sampler is initialized " << std::endl << std::flush;
+  std::cout << "sampler is initialized " << std::endl << std::flush;
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  statistics.red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+
+  statistics.red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+#endif
+
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+  statistics.no_red_stat.resize(this->ambient_dimension+1);
+  statistisc.red_stat.resize(this->ambient_dimension+1);
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
+  statistisc.no_red_stat2.resize(2*this->ambient_dimension+1);
+  statistisc.red_stat2.resize(2*this->ambient_dimension+1);
+#endif
+#endif
 };
 
 template<class SieveTraits>
@@ -311,7 +302,6 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 };
 
 #ifdef PROGRESSIVE
-
 //for progressive sieving
 //TODO: currently the function checks only for the size of the list
 //      theoretically, it should check whether we have enough *short* vectors
@@ -321,14 +311,11 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   // check if the current list is long enough and contains enough short vectors
 
   //TODO:
-  double log_bound = 1.5* double(this->get_progressive_rank())*(this->get_target_list_size());
+  double log_bound = 1.1* double(this->get_progressive_rank())*(this->get_target_list_size());
   unsigned long int bound = pow(2, log_bound);
-  
-  if (this->get_current_list_size() > bound)
-    return true;
-  return false;
-};
-#endif
+  return (this->statistics.get_current_list_size() > bound);
+}
+#endif // PROGRESSIVE
 
 #ifdef PROGRESSIVE
 template<class SieveTraits>
@@ -341,8 +328,8 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::increase_progressive_rank
     std::cout << "From now on we are full-rank" << std::endl;
   }
   main_queue.sampler->set_progressive_rank(progressive_rank);
-};
-#endif
+}
+#endif // PROGRESSIVE
 
 } // end namespace
 

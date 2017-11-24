@@ -43,10 +43,10 @@ class HashedLatticePoint : public GeneralLatticePoint<HashedLatticePoint<ET, nfi
 public:
   friend StaticInitializer<HashedLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-  using ScalarProductStorageType = ET;
-  using Container = typename std::conditional<nfixed >= 0,
+//  using ScalarProductStorageType = ET;
+  using Container = mystd::conditional_t<nfixed >= 0,
         std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-        std::vector<ET>  >::type;               // if nfixed <0
+        std::vector<ET>  >;               // if nfixed <0
         // Note : The nfixed >=0 ? nfixed:0 is always nfixed;
         // The ?: expression is only needed to silence compiler errors/warnings.
 
@@ -110,7 +110,7 @@ public:
   static std::string class_name() { return "Exact Lattice Point"; };
 
   void sanitize() { norm2 = compute_sc_product(*this, *this); }
-  void sanitize( ScalarProductStorageType const & new_norm2 ) { norm2 = new_norm2; }
+  void sanitize( ET const & new_norm2 ) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
 

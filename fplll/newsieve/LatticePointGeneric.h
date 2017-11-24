@@ -5,6 +5,18 @@
 #ifndef LATTICE_POINT_GENERIC_H
 #define LATTICE_POINT_GENERIC_H
 
+#ifndef LATTICE_POINT_CONCEPT_H
+#error do not include this directly.
+#endif
+
+#define FOR_LATTICE_POINT_LP \
+template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
+
+#define FOR_LATTICE_POINTS_LP1_LP2 \
+template<class LP1, class LP2, typename std::enable_if< \
+         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
+
+
 namespace GaussSieve{
 
 /**********************
@@ -21,7 +33,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same<typename Get_CoordinateType<LatP>::type,typename Get_CoordinateType<LatP2>::type>::value,
+  static_assert(std::is_same< Get_CoordinateType<LatP>,Get_CoordinateType<LatP2> >::value,
   "Different coordinate types. Probably an error.");
   static_assert(Has_ExposesInternalRep<Impl>::value,"Cannot compare using ==. Maybe you forget a trait or overloading == ");
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
@@ -55,28 +67,28 @@ template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() < rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() < rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() > rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() > rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() <= rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() <= rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
 inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
-  return CREALTHIS->get_norm2_exact_recursive() >= rhs.get_norm2_exact_recursive();
+  return CREALTHIS->template get_norm2_at_level<0>() >= rhs.template get_norm2_at_level<0>();
 }
 
 
@@ -155,8 +167,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
   }
   CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
   {
-    // taking _exact_recursive here. This means we recompute all approximations.
-    REALTHIS->sanitize(CREALTHIS->get_norm2_exact_recursive() * multiplier * multiplier );
+    REALTHIS->sanitize(CREALTHIS->template get_norm2_at_level<0>() * multiplier * multiplier );
   }
   else
   {
@@ -238,7 +249,7 @@ LP1 operator-(LP1 && x1, LP2 const &x2)
 FOR_LATTICE_POINT_LP
 LP operator-(LP const &x1, LP &&x2)
 {
-  static_assert(Has_CheapNorm2<LP>::value,"Improve this code");
+  static_assert(Has_CheapNegate<LP>::value,"Improve this code");
   LP tmp = std::move(x2);
   tmp.make_negative();
   tmp+=x1;
@@ -268,7 +279,7 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
 // Note Integer is passed by value, even for mpz_classes. Not optimal...
 template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   IsALatticePoint<LP>,
-  MyDisjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
+  mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
 //  assert(false);
@@ -279,7 +290,7 @@ inline LP operator*(LP const &x1, Integer const multiplier)
 
 template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   IsALatticePoint<LP>,
-  MyDisjunction< std::is_integral<Integer>, std::is_same<Integer,mpz_class> >)>
+  mystd::disjunction< std::is_integral<Integer>, std::is_same<Integer,mpz_class> >)>
 inline LP operator*(LP &&x1, Integer const multiplier)
 {
   LP tmp = std::move(x1);
@@ -330,16 +341,16 @@ inline std::ostream& GeneralLatticePoint<LatP>::write_lp_rep_to_stream(std::ostr
 
 
 FOR_LATTICE_POINT_LP
-std::istream& operator>>(std::istream &is, LP &lp)
+std::istream& operator>>(std::istream &is, LP &LatP)
 {
-  return lp.read_from_stream(is);
+  return LatP.read_from_stream(is);
 }
 
 FOR_LATTICE_POINT_LP
-std::ostream& operator<<(std::ostream &os, LP const &lp)
+std::ostream& operator<<(std::ostream &os, LP const &LatP)
 {
   std::cout << "cout from GeneralLatticePoint" <<std::endl;
-  return lp.write_lp_to_stream(os);
+  return LatP.write_lp_to_stream(os);
 }
 
 
@@ -357,18 +368,13 @@ inline auto GeneralLatticePoint<LatP>::get_internal_rep_size() const -> decltype
   return CREALTHIS->get_dim();
 }
 
-
-
-
 template<class LatP>
-inline typename Get_ScalarProductStorageType<LatP>::type GeneralLatticePoint<LatP>::get_norm2() const
+inline Get_ScalarProductStorageType<LatP> GeneralLatticePoint<LatP>::get_norm2() const
 {
   DEBUG_TRACEGENERIC("Generically computing norm2 for " << LatP::class_name() )
       // This function should not be called if Has_CheapNorm2 is set,
       // since Has_CheapNorm2 basically promises an overload.
   static_assert(Has_CheapNorm2<LatP>::value == false, "");
-  // return type is wrong and point with approximations assume that we store norm2 anyway. This is just to double-check on that.
-  static_assert(Has_Approximations<LatP>::value == false, "");
   return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
 }
 
@@ -377,7 +383,6 @@ template<class Impl>
 inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() )
 {
   IMPL_IS_LATP;
-  assert(Has_Approximations<Impl>::value);
   DEBUG_TRACEGENERIC("Generically getting number of bits for bitapprox" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
@@ -392,7 +397,7 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
   static_assert(Has_InternalRepLinear<Impl>::value,"Default Zero-test requires linear representation. Did you forget a trait or to overload is_zero()?");
   DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name() )
 
-  CPP17CONSTEXPRIF (Has_CheapNorm2<LatP>::value)
+  if (Has_CheapNorm2<LatP>::value) // constexpr if
   {
     return (CREALTHIS->get_norm2() == 0);
   }
@@ -481,7 +486,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
   {
     REALTHIS->get_internal_rep(i) = - CREALTHIS->get_internal_rep(i);
   }
-  CPP17CONSTEXPRIF( Has_CheapNegate<Impl>::value)
+  CPP17CONSTEXPRIF( Has_CheapNegate<Impl>::value) // constexpr if
   {
     return;
   }
@@ -503,7 +508,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
 
 template<class LatP>
 template<class Impl>
-inline LatP GeneralLatticePoint<LatP>::make_copy() const
+inline LatP GeneralLatticePoint<LatP>::make_copy() const &
 {
   IMPL_IS_LATP;
   static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point. Did you forget to declare a trait or to overload make_copy()?");
@@ -515,7 +520,7 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const
   {
     NewLP.get_internal_rep(i) = CREALTHIS->get_internal_rep(i);
   }
-  CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
+  if (Has_CheapNorm2<LatP>::value)
   {
     NewLP.sanitize(CREALTHIS->get_norm2_full() );
   }
@@ -536,26 +541,24 @@ template<class LatP>
 inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
 {
   DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
-#ifdef DEBUG_SIEVE_LP_MATCHDIM
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_dim();
   auto const dim2 = x2.get_dim();
   assert(dim1 == dim2 );
-#endif // DEBUG_SIEVE_LP_MATCHDIM
-  using ET = typename Get_AbsoluteCooType<LatP>::type;
+  #endif // DEBUG_SIEVE_LP_MATCHDIM
+  using ET = Get_AbsoluteCooType<LatP>;
   auto const dim = CREALTHIS->get_dim();
   ET result = 0; // assumes that ET can be initialized from 0...
   for(uint_fast16_t i=0; i<dim; ++i)
   {
     result += CREALTHIS->get_absolute_coo(i) * x2.get_absolute_coo(i);
   }
-  return static_cast<typename LatP::ScalarProductStorageType>(result);
+  return static_cast<Get_ScalarProductStorageType<LatP>>(result);
 }
 
-
-
-
-
-
 } // end namespace
+
+#undef FOR_LATTICE_POINT_LP
+#undef FOR_LATTICE_POINTS_LP1_LP2
 
 #endif

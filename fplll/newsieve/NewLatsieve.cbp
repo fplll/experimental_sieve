@@ -32,9 +32,11 @@
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
 		<Unit filename="Lazy.h" />
+		<Unit filename="Lazy_macros.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
+		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
 		<Unit filename="ShiSampler.h" />
@@ -47,6 +49,7 @@
 		<Unit filename="SieveST2.cpp" />
 		<Unit filename="SieveST3.cpp" />
 		<Unit filename="SieveUtility.h" />
+		<Unit filename="Statistics.h" />
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestApproximations.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />

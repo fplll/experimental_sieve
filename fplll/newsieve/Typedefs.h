@@ -39,35 +39,13 @@ double constexpr list_size_k4 = 0.1723692862;
 
 
 
+
 // forward-declarations:
 template <class ET, int nfixed> class MyLatticePoint;
 template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class HashedLatticePoint;
 template <class ELP, class Approximation> class VectorWithApproximation;
-
-class JustSomeExampleSieveTraitsThatDoNotWork
-{
-  public:
-  using IsSieveTraitsClass = std::true_type;   // set to true to indicate purpose of trait class.
-  using GaussSampler_ReturnType = void;        // What the Sampler has to return
-
-  using GaussList_ReturnType = void;           // What the list has to return.
-  using GaussList_StoredPoint= void;           // What is actually stored inside the list.
-
-  using GaussQueue_ReturnType= void;           // What pop()-ing the queue returns.
-  using GaussQueue_DataType  = void;           // Storage inside queue.
-  using FastAccess_Point     = void;           // For internal use
-  using DimensionType        = unsigned int;   // Type to store the dimension.
-
-  using InputBasisType       = void;           // Input basis type that is used.
-
-  // Indicates whether we need to remove Z_NR from input.
-  // While we don't use Z_NR classes internally (much), the input may be.
-  using UnZNRInput           = std::true_type;
-
-// Note that MT is intentionally missing here. MT is its own template argument.
-};
 
 // Note: ET does *not* include Z_NR<...> here
 
@@ -84,6 +62,7 @@ class DefaultSieveTraits
 
   using IsSieveTraitsClass = std::true_type;
 
+/*
 #ifdef USE_APPROXPOINT
 
   using ExactLP                 = ExactLatticePoint<ET,nfixed>;
@@ -99,13 +78,14 @@ class DefaultSieveTraits
   using GaussQueue_DataType     = VectorWithApproximation<ExactLP,Approx>;;
 
 #else
+*/
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
   using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
-#endif
+//#endif
 
 #ifdef USE_LSH
   using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
@@ -118,11 +98,8 @@ class DefaultSieveTraits
   static constexpr int number_of_hash_functions = 11;
 #endif
 
-
-
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;
-  using ZNREntryType            = typename AddZNR<ET>::type; // should be unused
 
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
   //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
@@ -139,7 +116,6 @@ class DefaultSieveTraits
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
 
 };
-
 
 // clang-format on
 };

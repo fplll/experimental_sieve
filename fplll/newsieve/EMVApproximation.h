@@ -32,6 +32,11 @@ class EMVApproximationTraits
   using ApproxNorm2Type = int_fast32_t;
 };
 
+
+/************************
+Approximation of a scalar
+*************************/
+
 class EMVScalar
 {
   public:
@@ -54,24 +59,47 @@ class EMVScalar
   explicit EMVScalar(FloatType source_float);
   explicit EMVScalar(mpz_class const &source_mpz);
 
-  // unary-
-  // For some reason, this does not compile as member functions:
-  // I can turn each variant into a member function individually, but it complains about overloading
-  friend EMVScalar operator-(EMVScalar const &arg) { return EMVScalar(arg.exponent,-arg.mantissa); }
-  friend EMVScalar operator-(EMVScalar &&arg) { arg.mantissa=-arg.mantissa; return arg;  }
+  EMVScalar operator-() const & { return EMVScalar(exponent,-mantissa); }
+  EMVScalar operator-() &&      { mantissa=-mantissa; return *this;  }
 
   // TODO: Return value of operators
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline void operator>>=(Integer const &shift) { exponent-=shift; }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline void operator<<=(Integer const &shift) { exponent+=shift; }
-  inline void do_abs()
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator>>(Integer const &shift) &
+  {
+    EMVScalar retval; retval>>=shift; return retval;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator>>(Integer const &shift) &&
+  {
+    *this>>=shift; return *this;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator<<(Integer const &shift) &
+  {
+    EMVScalar retval; retval<<=shift; return retval;
+  }
+  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline EMVScalar operator<<(Integer const &shift) &&
+  {
+    *this<<=shift; return *this;
+  }
+
+
+
+  inline friend EMVScalar abs(EMVScalar const &arg)
   {
     using std::abs;
-    mantissa=abs(mantissa);
+    return EMVScalar {arg.exponent,abs(arg.mantissa)  };
   }
-  inline friend EMVScalar abs(EMVScalar const &arg) { EMVScalar tmp(arg); tmp.do_abs(); return tmp;  }
-  inline friend EMVScalar abs(EMVScalar &&arg) { arg.do_abs(); return arg; }
+  inline friend EMVScalar abs(EMVScalar &&arg)
+  {
+    using std::abs; arg.mantissa=abs(arg.mantissa);
+    return arg;
+  }
 
 
   // helper functions: included as static functions tied to the class:
@@ -92,14 +120,17 @@ class EMVScalar
   template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
-
-
 };
 
 
 
 #define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
 #define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
+
+
+/************************
+Approximation to a vector
+************************/
 
 template<int nfixed>
 class EMVApproximation
@@ -115,10 +146,9 @@ class EMVApproximation
   using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
   using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
-  using Container = typename std::conditional<nfixed >= 0,
+  using Container = mystd::conditional_t<nfixed >= 0,
                       std::array<ApproxEntryType, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                      std::vector<ApproxEntryType> >                       // if nfixed <  0
-                      ::type;
+                      std::vector<ApproxEntryType> >;                      // if nfixed <  0
 
   public:
   template<class LatticePoint, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>)> // TODO : enable_if to select Lattice Points only (having [])
@@ -153,7 +183,7 @@ class EMVApproximation
   signed int exponent; // shared exponent
   Container data; // array or vector of 16-bit ints
   // Note: Might want to avoid storing exponent twice.
-  EMVScalar get_approx_norm2() const { return approx_norm2; }
+  EMVScalar get_norm2() const { return approx_norm2; }
 
   private:
   EMVScalar approx_norm2;
@@ -333,6 +363,10 @@ EMVScalar::EMVScalar(mpz_class const & source_mpz)
   mantissa = std::trunc( std::ldexp(source_float, mantissa_digits) );
 }
 
+/*************************************
+Non-member functions:
+*************************************/
+
 // comparison operators
 
 inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
@@ -361,54 +395,41 @@ inline bool operator<= (EMVScalar const & lhs, EMVScalar const & rhs)
     }
     else
     {
-      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) < rhs.mantissa;
+      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) <= rhs.mantissa;
     }
 }
 
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator< (EMVScalar const & lhs, T && rhs)
 {
   return lhs <  static_cast<EMVScalar>(rhs);
 }
 
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator<= (EMVScalar const & lhs, T && rhs)
 {
   return lhs <=  static_cast<EMVScalar>(rhs);
 }
 
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator< (T && lhs, EMVScalar const & rhs)
 {
   return static_cast<EMVScalar>(lhs) < rhs;
 }
 
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator<= (T && lhs, EMVScalar const & rhs)
 {
   return static_cast<EMVScalar>(lhs) <= rhs;
 }
 
-
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator> (EMVScalar const & lhs, T && rhs)
 {
   return std::forward<T>(rhs) < lhs;
 }
 
-template<class T,
-typename std::enable_if< !std::is_same<typename std::decay<T>::type,EMVScalar>::value, int>::type =0
->
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
 inline bool operator> (T && lhs, EMVScalar const & rhs)
 {
   return rhs < std::forward<T>(lhs);
@@ -417,6 +438,23 @@ inline bool operator> (T && lhs, EMVScalar const & rhs)
 inline bool operator> (EMVScalar const & lhs, EMVScalar const rhs)
 {
   return rhs < lhs;
+}
+
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
+inline bool operator>= (EMVScalar const & lhs, T && rhs)
+{
+  return std::forward<T>(rhs) <= lhs;
+}
+
+template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
+inline bool operator>= (T && lhs, EMVScalar const & rhs)
+{
+  return rhs <= std::forward<T>(lhs);
+}
+
+inline bool operator>= (EMVScalar const & lhs, EMVScalar const rhs)
+{
+  return rhs <= lhs;
 }
 
 
@@ -452,7 +490,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 #ifdef DEBUG_SIEVE_LP_INIT
   assert(is_class_initialized() );
 #endif
-  using AbsoluteCooType = typename Get_AbsoluteCooType<LatticePoint>::type;
+  using AbsoluteCooType = Get_AbsoluteCooType<LatticePoint>;
   using std::abs;
 
   AbsoluteCooType max_entry = 0;
@@ -496,7 +534,7 @@ approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2() ))
 // actual scalar product
 
 template<int nfixed>
-inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
+inline auto compute_sc_product(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
 -> EMVScalar
 {
   static_assert(std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value,"");
@@ -509,10 +547,7 @@ inline auto compute_sc_product_approx(EMVApproximation<nfixed> const &lhs, EMVAp
   {
     scp += lhs[i] * rhs[i];
   }
-
-
-  EMVScalar result(lhs.exponent + rhs.exponent, scp);
-  return result;
+  return EMVScalar{lhs.exponent + rhs.exponent, scp};
 }
 
 // output

@@ -9,10 +9,13 @@
 #include <cmath>
 #include <cstdint>
 #include <gmpxx.h>
+#include <array>
 #include "GlobalStaticData.h"
 
 #include <bitset> //for approximation
 #include <boost/dynamic_bitset.hpp> //for approximation
+
+//#include "RelevantCoords.h"
 
 
 // clang-format off
@@ -65,7 +68,8 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_AbsoluteCoos = std::false_type;
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
-  using Trait_Approximations = std::false_type;
+//  using Trait_Approximations = std::false_type;
+  using Trait_Leveled = std::false_type;
   using Trait_BitApprox = std::false_type;
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
 };
@@ -77,7 +81,7 @@ template<class LatticePoint> struct LatticePointTraits
   Note: In the actual LatticePointTraits class, the traits are actually prefixed with Trait_
   (i.e. LatticePointTraits<LP> contains using Trait_ExposesCoos etc.)
   To retrieve a trait, use Has_TraitName for binary traits.
-  or GetTraitName for non-binary traits
+  or Get_TraitName for non-binary traits
 
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
@@ -143,7 +147,15 @@ template<class LatticePoint> struct LatticePointTraits
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
-  Approximations: Set to true_type to indicate that the point has approximations.
+// TODO: maybe deprecate this trait.
+//  Approximations: Set to true_type to indicate that the point has approximations.
+
+  Leveled : Set to true_type to indicate that the point is a leveled object.
+            Cf. Lazy.h for a more details on that.
+            For lattice points, leveled objects correspond to lattice points with several layers
+            of approximations.
+            Note that, to simplify things, we always have leveled functions available, but by
+            default, they only work for level 0.
 
   ApproxLevel: Set to std::integral_constant<unsigned int,...> to indicate the approximation level.
                Defaults to std::integral_constant<unsigned int,0>
@@ -195,7 +207,7 @@ CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepIsAbsolute, std::
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type, T_AbsoluteCoos);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_CheapNorm2);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Approximations, std::true_type, T_Approximations);
+CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Leveled, std::true_type, T_Leveled);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
 CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_BitApprox, std::true_type, T_BitApprox);
 
@@ -228,58 +240,58 @@ MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, Get_
 // ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
 // default to GetScalarproductStorageType
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
-  typename Get_ScalarProductStorageType<ClassToCheck>::type, Get_ScalarProductStorageType_Full);
+  Get_ScalarProductStorageType<ClassToCheck>, Get_ScalarProductStorageType_Full);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
-  typename Get_CoordinateType<ClassToCheck>::type, Get_AbsoluteCooType);
+  Get_CoordinateType<ClassToCheck>, Get_AbsoluteCooType);
 MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
-  typename Get_CoordinateType<ClassToCheck>::type, Get_RepCooType);
+  Get_CoordinateType<ClassToCheck>, Get_RepCooType);
 
 //{
 //using namespace TraitHelpers;
 // These are what the rest of the code should be actually using:
-template<class LatP> using Has_ExposesCoos = std::integral_constant<bool,
+template<class LatP> using Has_ExposesCoos = mystd::bool_constant<
   T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
-  (!std::is_void<typename Get_CoordinateType<LatP>::type>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
+  (!std::is_void<Get_CoordinateType<LatP>>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
 
-template<class LatP> using Has_Coos_RW = std::integral_constant<bool,
+template<class LatP> using Has_Coos_RW = mystd::bool_constant<
   T_Coos_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRep_RW<LatP>::value)>;
 
-template<class LatP> using Has_ExposesInternalRep = std::integral_constant<bool,
+template<class LatP> using Has_ExposesInternalRep = mystd::bool_constant<
   T_ExposesInternalRep<LatP>::value || T_InternalRepLinear<LatP>::value || T_InternalRep_RW<LatP>::value ||
   T_InternalRepByCoos<LatP>::value || T_InternalRepIsAbsolute<LatP>::value >;
 
-template<class LatP> using Has_InternalRepLinear = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepLinear = mystd::bool_constant<
   T_InternalRepLinear<LatP>::value>;
 
-template<class LatP> using Has_InternalRep_RW = std::integral_constant<bool,
+template<class LatP> using Has_InternalRep_RW = mystd::bool_constant<
   T_InternalRep_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_Coos_RW<LatP>::value)>;
 
-template<class LatP> using Has_InternalRepByCoos = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepByCoos = mystd::bool_constant<
   T_InternalRepByCoos<LatP>::value>;
 
-template<class LatP> using Has_InternalRepIsAbsolute = std::integral_constant<bool,
+template<class LatP> using Has_InternalRepIsAbsolute = mystd::bool_constant<
   T_InternalRepIsAbsolute<LatP>::value || ( T_InternalRepByCoos<LatP>::value && T_AbsoluteCoos<LatP>::value)>;
 
-template<class LatP> using Has_AbsoluteCoos = std::integral_constant<bool,
+template<class LatP> using Has_AbsoluteCoos = mystd::bool_constant<
   T_AbsoluteCoos<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRepIsAbsolute<LatP>::value)>;
 
-template<class LatP> using Has_CheapNorm2 = std::integral_constant<bool,
+template<class LatP> using Has_CheapNorm2 = mystd::bool_constant<
   T_CheapNorm2<LatP>::value>;
 
-template<class LatP> using Has_CheapNegate = std::integral_constant<bool,
+template<class LatP> using Has_CheapNegate = mystd::bool_constant<
   T_CheapNegate<LatP>::value>;
 
-template<class LatP> using Has_Approximations = std::integral_constant<bool,
-  T_Approximations<LatP>::value>;
+template<class LatP> using Has_Leveled = mystd::bool_constant<
+  T_Leveled<LatP>::value>;
 
-template<class LatP> using Has_AccessNorm2 = std::integral_constant<bool,
+template<class LatP> using Has_AccessNorm2 = mystd::bool_constant<
   T_AccessNorm2<LatP>::value>;
 
-template<class LatP> using Has_BitApprox = std::integral_constant<bool,
+template<class LatP> using Has_BitApprox = mystd::bool_constant<
   T_BitApprox<LatP>::value>;
 
 // Deprecated
-template<class LatP> using IsRepLinear_RW = std::integral_constant<bool,
+template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
 Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
 
 //}
@@ -305,17 +317,17 @@ class GeneralLatticePoint
                  // since the constructor is private, this enforces correct usage.
                  // (Note that it may prevent multi-level inheritance)
     public:
-    using ScalarProductStorageType = typename Get_ScalarProductStorageType<LatP>::type;
-    using ScalarProductStorageType_Full = typename Get_ScalarProductStorageType_Full<LatP>::type;
+    using ScalarProductStorageType      = Get_ScalarProductStorageType<LatP>;
+    using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<LatP>;
     // deprecated
-    using CooType = typename Get_CoordinateType<LatP>::type; //may be void
-    using CoordinateType = typename Get_CoordinateType<LatP>::type; //may be void
+    using CooType         = Get_CoordinateType<LatP>; //may be void
+    using CoordinateType  = Get_CoordinateType<LatP>; //may be void
 //    deprecated
-    using AbsCooType = typename Get_AbsoluteCooType<LatP>::type;
-    using AbsoluteCooType = typename Get_AbsoluteCooType<LatP>::type;
-    using RepCooType = typename Get_RepCooType<LatP>::type;
-    static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::type::value;
-    static_assert((Has_Approximations<LatP>::value == false) || (ApproxLevel>0 ),"Declares Approximations, but no level");
+    using AbsCooType      = Get_AbsoluteCooType<LatP>;
+    using AbsoluteCooType = Get_AbsoluteCooType<LatP>;
+    using RepCooType      = Get_RepCooType<LatP>;
+    static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::value;
+    static_assert((Has_Leveled<LatP>::value == true) || (ApproxLevel==0 ),"Has ApproxLevel>0, but does not declare Trait_Leveled.");
 
     private:
     // Empty base class, only callable from its friends (i.e. from LatP)
@@ -376,7 +388,7 @@ class GeneralLatticePoint
     template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
     inline LatP& operator-=(LatP2 const &x2); // default implementation asserts linearity
 
-    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
     template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
@@ -455,8 +467,8 @@ class GeneralLatticePoint
   May be overloaded.
 */
 
-    template<class Impl=LatP> inline LatP make_copy() const;
-    [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
+    template<class Impl=LatP> inline LatP make_copy() const &;
+    [[deprecated]] constexpr inline LatP make_copy() && {return *CREALTHIS;} // Calling this is probably an error.
 
 
 /**
@@ -483,47 +495,52 @@ class GeneralLatticePoint
      By default, we use the scalar product to compute it.
      Usually norm2 will be precomputed, so this function should be overridden by LatP.
      Overload may have different return type, but convertible to ScalarProductStorageType.
+     If Trait_CheapNorm2 is set, this function *must* be overloaded.
 */
 
     inline ScalarProductStorageType get_norm2() const;
 
 /** The functions below are overloaded in ApproximatedPoint.h for points with (non-bit) Approximations.
-    The _exact variant ignores one approximation. The _exact_recursive variant ignores all approximations.
-    The _full variant returns both exact and approximate norms.
-    Note that for the plain and _exact variants, the return types might differ in the overloads, but be convertible
-    to ScalarProductStorageType.
+    The _at_level variant gets the value at the given approximation level.
+    The _full variant gets an object holding all levels.
+    Note that for the plain and _exact variants, the return types might differ in the overloads,
+    but need to be convertible to ScalarProductStorageType.
 */
 
-    inline ScalarProductStorageType get_norm2_exact() const {return CREALTHIS->get_norm2(); }
-    inline ScalarProductStorageType get_norm2_exact_recursive() const { return CREALTHIS->get_norm2(); }
-    inline ScalarProductStorageType_Full get_norm2_full() const { return CREALTHIS->get_norm2(); }
+    template<unsigned int level, class Impl=LatP>
+    inline ScalarProductStorageType get_norm2_at_level() const
+    {
+      IMPL_IS_LATP;
+      static_assert(level==0,"Default only has level 0");
+      return CREALTHIS->get_norm2();
+    }
 
-
+    template<class Impl=LatP>
+    inline ScalarProductStorageType_Full get_norm2_full() const
+    {
+      static_assert(Has_Leveled<Impl>::value == false, "Need to overload");
+      return CREALTHIS->get_norm2();
+    }
 
     // don't call directly. We use compute_sc_product(x1,x2) for a more symmetric syntax.
     // However, out-of-class definitions get messy with overloading.
 
     // TODO: Make protected and befriend compute_* functions
-//    protected
 
     inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
 
-    template<class Impl=LatP>
-    inline ScalarProductStorageType do_compute_sc_product_exact(LatP const &x2) const
+    template<unsigned int level,class Impl=LatP>
+    inline ScalarProductStorageType do_compute_sc_product_at_level(LatP const &x2) const
     {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
-      return CREALTHIS->do_compute_sc_product(x2);
-    }
-    template<class Impl=LatP>
-    inline ScalarProductStorageType do_compute_sc_product_exact_recursive(LatP const &x2) const
-    {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      IMPL_IS_LATP;
+      static_assert(level==0,"Default only has level 0");
       return CREALTHIS->do_compute_sc_product(x2);
     }
     template<class Impl=LatP>
     inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
     {
-      IMPL_IS_LATP; static_assert(Has_Approximations<Impl>::value==false, "Need to overload");
+      IMPL_IS_LATP;
+      static_assert(Has_Leveled<Impl>::value==false, "Need to overload");
       return CREALTHIS->do_compute_sc_product(x2);
     }
     public:
@@ -535,11 +552,38 @@ class GeneralLatticePoint
     // if(templated constexpr resuting in false){ }. Lacking if constexpr, we bail out at runtime.
     // Use CPP17CONSTEXPRIF macro for the if.
     #if __if_constexpr
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const = delete;
     #else
-    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const { assert(false); }
+    #endif
+
+    #if __if_constexpr
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
+    inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const = delete;
+    #else
+    template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
+    inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
+    #endif
+
+
+    //FOR SIM-HASH
+    #if __if_constexpr
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const = delete;
+    #else
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const { assert(false); }
+    #endif
+
+    //FOR SIM-HASH 2nd order
+    #if __if_constexpr
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed2(LatP2 const &) const = delete;
+    #else
+      template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
+      inline int do_compute_sc_product_bitapprox_fixed2(LatP2 const &) const { assert(false); }
     #endif
  };
 
@@ -553,40 +597,52 @@ class GeneralLatticePoint
 // the other variants are only relevant when having approximations:
 // Notably: compute_sc_product may return a Wrapper than encapsulates a lazy evalution.
 // The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
-// The _exact variant computes an exact scalar product.
-// The _exact_recursive variant computes an (recursively) exact scalar product.
-// The difference between the latter versions is if the underlying "exact" type has approximations itself:
-// _exact_recursive ignores all levels of approximations, whereas _exact only one.
+// The _at_level<level> variant computes the approximation at the given level (0 for exact)
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product(lp2); }
+template<class LP1,class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product(std::declval<LP2>() ) )
+{ return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product_exact(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_exact(lp2); }
+template<unsigned int level, class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_at_level(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_at_level<level>(std::declval<LP2>() ))
+{ return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2)); }
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType compute_sc_product_exact_recursive(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_exact_recursive(lp2); }
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
+{ return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
 
-template<class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
-inline typename LP::ScalarProductStorageType_Full compute_sc_product_full(LP const &lp1, LP const &lp2)
-{ return lp1.do_compute_sc_product_full(lp2); }
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
+IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+inline auto compute_sc_product_bitapprox(LP1 &&lp1, LP2 &&lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
+{ return std::forward<LP1>(lp1).do_compute_sc_product_bitapprox(std::forward<LP2>(lp2)); }
 
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox(LP1 const &lp1, LP2 const &lp2)
-// C++14 : -> decltype(auto)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox(lp2); }
+inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
 
 
-#define FOR_LATTICE_POINT_LP \
-template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
+//FOR SIM-HASH
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
+inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox_fixed(lp2); }
 
-#define FOR_LATTICE_POINTS_LP1_LP2 \
-template<class LP1, class LP2, typename std::enable_if< \
-         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
+//FOR SIM-HASH 2nd order
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
+inline auto compute_sc_product_bitapprox_fixed2(LP1 const &lp1, LP2 const &lp2)
+-> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed2(std::declval<LP2>() )  )
+{ return lp1.do_compute_sc_product_bitapprox_fixed2(lp2); }
+
+
+
 
 
 // this function can be used to initialize an LP with container types that allow []-access.
@@ -601,7 +657,7 @@ template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename Get_CoordinateType<LP>::type;
+  using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
@@ -620,7 +676,7 @@ template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
-  using ET = typename Get_CoordinateType<LP>::type;
+  using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
   for(uint_fast16_t i =0; i<dim; ++i)
@@ -630,35 +686,6 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   result.sanitize();
   return result;
 }
-
-// new version, with approximations now inside the specific lattice point classes.
-// This class just collects useful functions related to bitapproximations.
-template<int SizeOfBitSet> struct BitApproximation
-{
-  static_assert(SizeOfBitSet==-1, "Only for dynamic bitsets for now.");
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
-  {
-    auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
-//    ret.resize(dim);
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
-    }
-    return ret;
-  }
-};
-
-// specialize for
-
-/*
-template<class Implementation>
-bool GeneralLatticePoint<Implementation>::operator> (Implementation const & other) const
-{
-    return Implementation::get_norm2(*this) > other.get_norm2();
-}
- */
 
 /*
 
@@ -686,8 +713,7 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 // cleaning up internal macros.
 
 #undef IMPL_IS_LATP
-#undef FOR_LATTICE_POINT_LP
-#undef FOR_LATTICE_POINTS_LP1_LP2
+
 #undef CREALTHIS
 #undef REALTHIS
 
