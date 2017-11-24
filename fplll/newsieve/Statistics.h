@@ -32,10 +32,10 @@ struct GaussSieveStatistics<SieveTraits,false>
     number_of_mispredictions(0)
     {}
 // TODO: Move parts of these statistics into the actual object they relate to.
-// e.g. there is no reason to maintain list sizes...
+// e.g. there is no reason to maintain list sizes outside of the actual list objects...
 // Only the getters should remain.
 
-  Sieve<SieveTraits,false>* sieveptr;
+  Sieve<SieveTraits,false>* const sieveptr;
 
   inline unsigned long int get_number_of_collisions() const {return number_of_collisions;};
   unsigned long int number_of_collisions;
@@ -294,9 +294,6 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     #endif
 
 }
-
-
-
 
 } // end namespace GaussSieve
 

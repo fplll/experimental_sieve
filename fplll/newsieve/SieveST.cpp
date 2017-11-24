@@ -61,21 +61,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 
     switch (sieve_k)
     {
-//      case 2: std::cerr << "2-sieve currently deactivated" << std::endl;
         case 2: run_2_sieve(); break;
         case 3: run_3_sieve(); break;
         //default:run_k_sieve(); break;
         default: assert(false);
     }
     sieve_status = SieveStatus::sieve_status_finished;
-
-     //Diagnostic and use of the information moved up to the caller.
-
-    /*
-    cout << "sv is " << endl;
-    main_list.cbegin().access_details()->printLatticePoint();
-    print_status();
-    */
 }
 
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
@@ -118,7 +109,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
     {
     // STAT_MARK
       std::cout << "[" << i << "]"
-      << "  |L|=" << statistics.get_current_list_size()
+      << " |L|=" << statistics.get_current_list_size()
       << " |Q|=" << main_queue.size()
       << " #samples = " << statistics.get_number_of_points_sampled()
       << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
@@ -150,10 +141,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
     ++i;
     if (( i % 1000 == 0) && (verbosity >=2))
     {
-    // STAT_MARK
       std::cout << "[" << i << "]"
       << " |L|=" << statistics.get_current_list_size()
-      << " |Q|=" << main_queue.size()
+      << " |Q|=" << main_queue.size() // STAT_MARK
       << " #samples = " << statistics.get_number_of_points_sampled()
       << " |FL|= " << statistics.get_filtered_list_size()
       << " |sv|= " << get_best_length2() <<  std::endl;

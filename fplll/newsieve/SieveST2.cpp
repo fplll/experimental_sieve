@@ -1,8 +1,5 @@
 // clang-format off
 
-
-
-
 #define bitapprox_threshold 30
 
 namespace GaussSieve{
@@ -11,9 +8,7 @@ namespace GaussSieve{
  Assume ||p1|| > ||p2||
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
-template<class SieveTraits, class Integer, typename std::enable_if<
-  std::is_integral<Integer>::value
-  ,int>::type =0 >
+template<class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
 bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar)
@@ -85,63 +80,61 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
     scalar =  round (mult);
     return true;
 //#endif
-
 }
+
+
   /**
    Checks whether we can perform a 2-reduction. Modifies scalar.
    Contrary to the above function, it does not assume that p1 is max, but deduces it from p_is_max
    Used in 3-sieve
    */
 
-template<class SieveTraits, class Integer, typename std::enable_if<
-    std::is_integral<Integer>::value
-    ,int>::type =0 >
-    bool check2red (typename SieveTraits::FastAccess_Point const &p1,
-                    typename SieveTraits::FastAccess_Point const &p2,
-                    Integer & scalar, bool& p_is_max)
+template<class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+bool check2red (typename SieveTraits::FastAccess_Point const &p1,
+                typename SieveTraits::FastAccess_Point const &p2,
+                Integer & scalar, bool& p_is_max)
 {
-  #ifdef USE_APPROXPOINT
+#ifdef USE_APPROXPOINT
 //    using EntryType = typename GaussSieve::EMVScalar;
-    static_assert(false,""); // This code no longer works.
+  static_assert(false,""); // This code no longer works.
 //    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
-  #else
-    using EntryType = typename SieveTraits::EntryType;
-    EntryType  sc_prod = compute_sc_product(p1,p2);
-  #endif
+#else
+  using EntryType = typename SieveTraits::EntryType;
+  EntryType  sc_prod = compute_sc_product(p1,p2);
+#endif
 
-    using std::abs;
-    using std::round;
+  using std::abs;
+  using std::round;
 
 
     //EntryType const abs_2scprod = abs(sc_prod << 1);
-    sc_prod >>= 1; //Are you sure you don't want <<= ? -- Gotti
-    EntryType abs_2scprod =abs(sc_prod);
+  sc_prod >>= 1; //Are you sure you don't want <<= ? -- Gotti
+  EntryType abs_2scprod =abs(sc_prod);
 
 
-    if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
-    {
-        p_is_max = true;
-        double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
-        scalar =  round (mult);
-        return true;
-    }
+  if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
+  {
+    p_is_max = true;
+    double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
+    scalar =  round (mult);
+    return true;
+  }
 
 
-    if (p1.get_norm2() < p2.get_norm2() && abs_2scprod > p1.get_norm2() )
-    {
-        p_is_max = false;
-        double const mult = convert_to_double( sc_prod ) / convert_to_double( p1.get_norm2() );
-        scalar =  round (mult);
-        return true;
-    }
+  if (p1.get_norm2() < p2.get_norm2() && abs_2scprod > p1.get_norm2() )
+  {
+    p_is_max = false;
+    double const mult = convert_to_double( sc_prod ) / convert_to_double( p1.get_norm2() );
+    scalar =  round (mult);
+    return true;
+  }
 
-    return false;
+  return false;
 }
 
 // Note: scalar changed from EntryType to int.
-template<class LatticePoint, class Integer, typename std::enable_if<
-  (IsALatticePoint<LatticePoint>::value) && (std::is_integral<Integer>::value)
-  ,int>::type =0 >
+template<class LatticePoint, class Integer,
+        TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>, std::is_integral<Integer>)>
 LatticePoint perform2red (LatticePoint const &p1, LatticePoint const &p2, Integer const scalar)
 {
 //  typename SieveTraits::FastAccess_Point res;

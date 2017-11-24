@@ -15,7 +15,6 @@
 		</Build>
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
-		<Unit filename="ApproximatedPoint_old.h" />
 		<Unit filename="BitApproximation.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
@@ -50,6 +49,7 @@
 		<Unit filename="SieveST2.cpp" />
 		<Unit filename="SieveST3.cpp" />
 		<Unit filename="SieveUtility.h" />
+		<Unit filename="Statistics.h" />
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestApproximations.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
