@@ -8,7 +8,7 @@
 
 #include <boost/dynamic_bitset.hpp> // maybe remove at some point.
 
-namespace GaussSieve::BitApprox
+namespace GaussSieve::SimHash
 {
 
 // Checks whether argument is a power of two. Slow, but designed for use in static asserts
@@ -64,11 +64,11 @@ std::array<uint_fast16_t,sim_hash_number_of_coos> CoordinateSelection<SieveTrait
 namespace GaussSieve{
 
 template<class SieveTraits,bool MT>
-class StaticInitializer<BitApprox::CoordinateSelection<SieveTraits,MT> >
-: public DefaultStaticInitializer< BitApprox::CoordinateSelection<SieveTraits,MT> >
+class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
+: public DefaultStaticInitializer< SimHash::CoordinateSelection<SieveTraits,MT> >
 {
-  using Parent = DefaultStaticInitializer< BitApprox::CoordinateSelection<SieveTraits,MT> >;
-  using Data = BitApprox::CoordinateSelection<SieveTraits,MT>;
+  using Parent = DefaultStaticInitializer< SimHash::CoordinateSelection<SieveTraits,MT> >;
+  using Data = SimHash::CoordinateSelection<SieveTraits,MT>;
   public:
 
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
@@ -86,9 +86,9 @@ class StaticInitializer<BitApprox::CoordinateSelection<SieveTraits,MT> >
       rng.seed(std::random_device()()); // TODO: Make this deterministic?
       std::uniform_int_distribution<std::mt19937::result_type> distr(0,ambient_dimension-1);
 
-      for (uint_fast16_t i=0; i< BitApprox::sim_hash_len; ++i)
+      for (uint_fast16_t i=0; i< SimHash::sim_hash_len; ++i)
       {
-        for(uint_fast16_t j=0; i<BitApprox::sim_hash_number_of_coos; ++j ) Data::rel_coo[i][j] = distr(rng);
+        for(uint_fast16_t j=0; i<SimHash::sim_hash_number_of_coos; ++j ) Data::rel_coo[i][j] = distr(rng);
       }
       Data::print();
     }
@@ -99,7 +99,6 @@ class StaticInitializer<BitApprox::CoordinateSelection<SieveTraits,MT> >
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing CoordinateSelection; Counter is " << Parent::user_count )
   }
 };
-
 }
 
 
@@ -107,7 +106,8 @@ class StaticInitializer<BitApprox::CoordinateSelection<SieveTraits,MT> >
 
 
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 //template<int nfixed>
 class RelevantCoordinates;
@@ -202,15 +202,18 @@ class StaticInitializer<class RelevantCoordinates>
   }
 };
 
+} // end namespace GaussSieve
 
-// Fixed-dim version:
-template<int SizeOfBitSet> struct BitApproximation
+
+// helpers for the function below, do not use.
+namespace GaussSieve::SimHash::Helpers{
+template<int SizeOfBitSet> struct MakeBitApprox_Helper
 {
   static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
   {
-    auto dim = point.get_dim();
+    auto const dim = point.get_dim();
     static_assert(dim == SizeOfBitSet, "Only usable if size of bitset equals fixed ambient dim of vector");
     std::bitset<SizeOfBitSet> ret;
     for(uint_fast16_t i=0; i<dim; ++i )
@@ -222,19 +225,64 @@ template<int SizeOfBitSet> struct BitApproximation
 };
 
 // variable-dim version:
-template<> struct BitApproximation<-1>
+template<> struct MakeBitApprox_Helper<-1>
 {
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
-    auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
+    auto const dim = point.get_dim();
+    boost::dynamic_bitset<> ret{ static_cast<size_t>(dim) };
 //    ret.resize(dim);
     for(uint_fast16_t i=0;i<dim;++i)
     {
       ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
     }
     return ret;
+  }
+};
+} // end namespace GaussSieve::SimHash::Helpers
+
+namespace GaussSieve::SimHash
+{
+
+/**
+  compute_coordinate_wise_bitapproximation<length>(point)
+  computes the coordinate wise 1-bit-approximation of the lattice point point.
+  It returns a std::bitset<length> for lenght>= 0 or boost::dynamic_bitset for length == -1.
+  Currently, the length parameter (if >=0) has to match the (fixed!) dimension of the lattice point.
+  For length==1, the dynamic_bitset that is returned has length equal to the dimension of point.
+*/
+template<int SizeOfBitSet,class LatP>
+auto compute_coordinate_wise_bitapproximation(LatP const &point)
+-> decltype(Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(std::declval<LatP>() ))
+{
+  static_assert(IsALatticePoint<mystd::decay_t<LatP>>::value,"Not a lattice point.");
+  return Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(point);
+}
+}// end namespace GaussSieve::SimHash
+
+namespace GaussSieve::SimHash
+{
+
+  //assume sim_hash2_len is a power-of-two
+  template<class ET>
+  static std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
+  {
+    std::array<ET,sim_hash2_len> inp = input;
+    std::array<ET,sim_hash2_len> out;
+    std::array<ET,sim_hash2_len> tmp;
+
+    uint_fast16_t i, j, s;
+
+    for (i = sim_hash2_len>>1; i > 0; i>>=1) {
+        for (j = 0; j < sim_hash2_len; j++) {
+            s = j/i%2;
+            out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
+        }
+        tmp = inp; inp = out; out = tmp;
+    }
+
+    return out;
   }
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
@@ -249,7 +297,7 @@ template<> struct BitApproximation<-1>
 
     std::bitset<sim_hash_len> ret;
 
-    uint_fast16_t bound = std::min(static_cast<uint_fast16_t>( point.get_dim()), sim_hash_len);
+    uint_fast16_t bound = mystd::constexpr_min(static_cast<uint_fast16_t>(point.get_dim()), static_cast<uint_fast16_t>(sim_hash_len));
 
     for(uint_fast16_t i=0;i<bound;++i)
     {
@@ -298,29 +346,6 @@ template<> struct BitApproximation<-1>
     return ret;
   }
 
-
-  //assume sim_hash2_len is a power-of-two
-  template<class ET>
-  static std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
-  {
-    std::array<ET,sim_hash2_len> inp = input;
-    std::array<ET,sim_hash2_len> out;
-    std::array<ET,sim_hash2_len> tmp;
-
-    uint_fast16_t i, j, s;
-
-    for (i = sim_hash2_len>>1; i > 0; i>>=1) {
-        for (j = 0; j < sim_hash2_len; j++) {
-            s = j/i%2;
-            out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
-        }
-        tmp = inp; inp = out; out = tmp;
-    }
-
-    return out;
-  }
-
-
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
   {
@@ -347,18 +372,6 @@ template<> struct BitApproximation<-1>
     }
     return ret;
   }
-
-  /*
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
-  {
-    boost::dynamic_bitset<> ret{64};
-    using ET = Get_CoordinateType<LatP>;
-
-    return ret;
-  }
-   */
-};
 
 /**
   This class stores the result of computing a scalar product of bitwise
