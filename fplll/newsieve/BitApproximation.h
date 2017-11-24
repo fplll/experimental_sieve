@@ -4,6 +4,108 @@
 #include <random>
 #include "GlobalStaticData.h"
 #include "DefaultIncludes.h"
+#include <bitset>
+
+#include <boost/dynamic_bitset.hpp> // maybe remove at some point.
+
+namespace GaussSieve::BitApprox
+{
+
+// Checks whether argument is a power of two. Slow, but designed for use in static asserts
+// (This is why it's a recursive one-line function, to be C++11 - constexpr)
+template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+constexpr bool is_a_power_of_two(Integer const n)
+{
+  // one-line function to be C++11 - constexpr. Slow, but only used in static_asserts anyway.
+  return (n>0) &&  ( (n==1) || ( (n%2==0) && is_a_power_of_two(n/2)));
+}
+
+unsigned int constexpr sim_hash_len = 64;
+unsigned int constexpr sim_hash2_len = 64;
+unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
+
+// class holding the data related to bitapproximations.
+// It is inialized via StaticInitializer<CoordinateSelection<...>>
+// This class only contains static data and member functions
+// Note: We may template this by the exact lattice point class as well
+// or store it inside a wrapper around std::bitset
+template<class SieveTraits, bool MT>
+class CoordinateSelection
+{
+  public:
+  friend StaticInitializer<CoordinateSelection<SieveTraits,MT>>;
+  CoordinateSelection() = delete; // cannot be instantiated.
+  static inline void print(std::ostream &os = std::cout)
+  {
+    os << "relevant matrix is: " << std::endl;
+    for (uint_fast16_t i=0; i<sim_hash_len; i++)
+    {
+      for (uint_fast16_t j=0; j< sim_hash_number_of_coos; ++j)
+      {
+        os << rel_coo[i][j] << ", ";
+      }
+      os << std::endl;
+    }
+  }
+  static inline uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
+  {
+    return rel_coo[i][j];
+  }
+
+  private:
+  static std::array<uint_fast16_t, sim_hash_number_of_coos> rel_coo[sim_hash_len];
+};
+
+template<class SieveTraits,bool MT>
+std::array<uint_fast16_t,sim_hash_number_of_coos> CoordinateSelection<SieveTraits,MT>::rel_coo[sim_hash_len] = {};
+
+} // end namespace GaussSieve::BitApprox
+
+namespace GaussSieve{
+
+template<class SieveTraits,bool MT>
+class StaticInitializer<BitApprox::CoordinateSelection<SieveTraits,MT> >
+: public DefaultStaticInitializer< BitApprox::CoordinateSelection<SieveTraits,MT> >
+{
+  using Parent = DefaultStaticInitializer< BitApprox::CoordinateSelection<SieveTraits,MT> >;
+  using Data = BitApprox::CoordinateSelection<SieveTraits,MT>;
+  public:
+
+  template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
+  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
+
+  StaticInitializer(int ambient_dimension)
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+    }
+    else
+    {
+      std::mt19937 rng;
+      rng.seed(std::random_device()()); // TODO: Make this deterministic?
+      std::uniform_int_distribution<std::mt19937::result_type> distr(0,ambient_dimension-1);
+
+      for (uint_fast16_t i=0; i< BitApprox::sim_hash_len; ++i)
+      {
+        for(uint_fast16_t j=0; i<BitApprox::sim_hash_number_of_coos; ++j ) Data::rel_coo[i][j] = distr(rng);
+      }
+      Data::print();
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing CoordinateSelection; Counter is " << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing CoordinateSelection; Counter is " << Parent::user_count )
+  }
+};
+
+}
+
+
+
+
+
 
 namespace GaussSieve{
 
@@ -56,12 +158,11 @@ class RelevantCoordinates
   private:
   static std::array<uint_fast16_t, num_of_coord> rel_coo[sim_hash_len];
 };
-
 std::array<uint_fast16_t,num_of_coord> RelevantCoordinates::rel_coo[sim_hash_len] = {};
 
 
 // Static Initializer:
-//template<int nxfixed>
+// template<int nxfixed>
 template<>
 class StaticInitializer<class RelevantCoordinates>
 : public DefaultStaticInitializer<RelevantCoordinates>
@@ -77,7 +178,6 @@ class StaticInitializer<class RelevantCoordinates>
     assert(Parent::user_count > 0);
     if(Parent::user_count>1)
     {
-      //assert(false);
     }
     else
     {
@@ -124,7 +224,6 @@ template<int SizeOfBitSet> struct BitApproximation
 // variable-dim version:
 template<> struct BitApproximation<-1>
 {
-
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
   {
@@ -144,9 +243,6 @@ template<> struct BitApproximation<-1>
     //using RelevantCoords = GaussSieve::RelevantCoordinates;
     using ET = Get_CoordinateType<LatP>;
 
-
-
-
     //std::cout << "rel_coo_matrix used: " <<std::endl;
     //RelevantCoordinates::print();
     //assert(false);
@@ -154,7 +250,6 @@ template<> struct BitApproximation<-1>
     std::bitset<sim_hash_len> ret;
 
     uint_fast16_t bound = std::min(static_cast<uint_fast16_t>( point.get_dim()), sim_hash_len);
-
 
     for(uint_fast16_t i=0;i<bound;++i)
     {
@@ -265,6 +360,48 @@ template<> struct BitApproximation<-1>
    */
 };
 
+/**
+  This class stores the result of computing a scalar product of bitwise
+  approximations.
+  Essentially, just wraps around an int.
+  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
+*/
+
+//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+class BitApproxScalarProduct
+{
+
+  public:
+  using BitApproxScalarProduct_WrappedType       = uint_fast32_t;
+
+
+  BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
+  BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
+
+  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
+  explicit operator BitApproxScalarProduct_WrappedType() { return value; }
+
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
+
+  //TODO: operator >=, <=
+
+  inline bool operator<=(BitApproxScalarProduct_WrappedType && rhs)
+  {
+    return  this->value <= rhs;
+  }
+
+  /*
+  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
+  {
+    os<< value;
+    return os;
+  }
+   */
+  //member
+  BitApproxScalarProduct_WrappedType value;
+};
+//#endif
 
 
 

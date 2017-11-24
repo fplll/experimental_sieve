@@ -37,13 +37,8 @@ namespace GaussSieve
 // dimension is static
 template <class ET, int nfixed> class ExactLatticePoint;
 
-
 // result of bitwise approximate scalar product
 // wraps around int_fast32_t
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  class BitApproxScalarProduct;
-#endif
-
 
 template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
@@ -67,56 +62,12 @@ public:
 // Note: I renamed Approx to BitApprox here. We have two types of Approximations and everything related to Bits should have
 // BitApprox in its name to reduce confusion. -- Gotti
 
-/**
-  This class stores the result of computing a scalar product of bitwise
-  approximations.
-  Essentially, just wraps around an int.
-  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
-*/
-
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-class BitApproxScalarProduct
-{
-
-  public:
-  using BitApproxScalarProduct_WrappedType       = uint_fast32_t;
-
-
-  BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
-  BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
-
-  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
-  explicit operator BitApproxScalarProduct_WrappedType() { return value; }
-
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
-
-  //TODO: operator >=, <=
-
-  inline bool operator<=(BitApproxScalarProduct_WrappedType && rhs)
-  {
-    return  this->value <= rhs;
-  }
-
-  /*
-  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
-  {
-    os<< value;
-    return os;
-  }
-   */
-  //member
-  BitApproxScalarProduct_WrappedType value;
-};
-//#endif
-
 template <class ET, int nfixed>
 class ExactLatticePoint : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
 {
 public:
   friend StaticInitializer<ExactLatticePoint<ET,nfixed>>;
   using LatticePointTag         = std::true_type;
-//  using ScalarProductStorageType = ET;
   using Container = mystd::conditional_t<nfixed >= 0,
         std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
         std::vector<ET>  >;                     // if nfixed <0
@@ -125,21 +76,17 @@ public:
 
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-
-
   using BitApproxContainer = boost::dynamic_bitset<>;
   /*
   using BitApproxContainer = typename std::conditional<nfixed >= 0,
                             std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
                           boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
    */
-
 #endif
 
 #ifdef  EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   using BitApproxContainerFixed   = std::bitset<sim_hash_len>;
 #endif
-
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -382,22 +329,8 @@ inline BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_produ
 template <class ET, int nfixed>
 inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const
 {
-// Note: include_approx is ignored, because classes that have an approximation overload this anyway.
-  DEBUG_TRACEGENERIC("Using generic writer (absolute) for " << LatP::class_name() )
-  //std::cout << "call from ExactLatticePoint" << std::endl;
-  auto const dim = get_dim();
-  //os << "dim = " << dim << std::endl;
-  os << "[ "; // makes spaces symmetric
-  for (uint_fast16_t i =0; i<dim; ++i)
-  {
-    os << data[i] << " ";
-  }
-  os << "]";
 
-  if(include_norm2)
-  {
-    os <<", norm2= " << norm2 << " ";
-  }
+  GeneralLatticePoint<ExactLatticePoint<ET,nfixed>>::write_lp_to_stream(os,include_norm2,include_approx);
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   if (include_approx)
@@ -445,9 +378,6 @@ std::ostream& operator<<(std::ostream &os, ExactLatticePoint<ET, nfixed> const &
 template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
-
-
-
 // Static Initializer:
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
   : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
@@ -478,7 +408,6 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
-
   GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
 };
 
