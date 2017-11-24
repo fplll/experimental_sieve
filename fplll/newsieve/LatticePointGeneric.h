@@ -5,6 +5,18 @@
 #ifndef LATTICE_POINT_GENERIC_H
 #define LATTICE_POINT_GENERIC_H
 
+#ifndef LATTICE_POINT_CONCEPT_H
+#error do not include this directly.
+#endif
+
+#define FOR_LATTICE_POINT_LP \
+template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
+
+#define FOR_LATTICE_POINTS_LP1_LP2 \
+template<class LP1, class LP2, typename std::enable_if< \
+         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
+
+
 namespace GaussSieve{
 
 /**********************
@@ -545,5 +557,8 @@ inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatti
 }
 
 } // end namespace
+
+#undef FOR_LATTICE_POINT_LP
+#undef FOR_LATTICE_POINTS_LP1_LP2
 
 #endif

@@ -3,7 +3,6 @@
 
 #include <type_traits>
 #include "../ExactLatticePoint.h"
-#include "../RelevantCoords.h"
 
 #include "fplll/defs.h"
 #include "fplll/nr/nr.h"
@@ -123,12 +122,12 @@ bool test_exact_LP()
 
   int constexpr dim = 20;
   int constexpr dimfixed=20;
-  
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   using RelevantCoords = GaussSieve::RelevantCoordinates;
   GaussSieve::StaticInitializer<RelevantCoords> init_matrix(dim);
 #endif
-  
+
   using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
   using GaussSieve::MaybeFixed;
 
@@ -157,16 +156,16 @@ bool test_exact_LP()
   //using ApproxScProdType = GaussSieve::BitApproxScalarProduct;
 
   std::cout << compute_sc_product(latp, latp2) << std::endl;
-  
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   std::cout << static_cast<uint_fast32_t>(compute_sc_product_bitapprox(latp, latp2)) << std::endl;
 #endif
-  
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
   std::cout <<"<p1, p2> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_2nd_order(latp, latp2)) << std::endl;
   std::cout <<"<p2, p3> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_2nd_order(latp2, latp3)) << std::endl;
 #endif
-  
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   std::cout <<"<p1, p2> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_fixed(latp, latp2)) << std::endl;
   std::cout <<"<p2, p3> = "<< static_cast<uint_fast32_t>(compute_sc_product_bitapprox_fixed(latp2, latp3)) << std::endl;

@@ -15,7 +15,7 @@
 #include <bitset> //for approximation
 #include <boost/dynamic_bitset.hpp> //for approximation
 
-#include "RelevantCoords.h"
+//#include "RelevantCoords.h"
 
 
 // clang-format off
@@ -620,13 +620,11 @@ inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
 IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_bitapprox(LP1 &&lp1, LP2 &&lp2)
-// C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
 { return std::forward<LP1>(lp1).do_compute_sc_product_bitapprox(std::forward<LP2>(lp2)); }
 
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
-// C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
 
@@ -634,24 +632,17 @@ inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp
 //FOR SIM-HASH
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
-// C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_fixed(lp2); }
 
 //FOR SIM-HASH 2nd order
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_fixed2(LP1 const &lp1, LP2 const &lp2)
-// C++14 : -> decltype(auto)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed2(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_fixed2(lp2); }
 
 
-#define FOR_LATTICE_POINT_LP \
-template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
 
-#define FOR_LATTICE_POINTS_LP1_LP2 \
-template<class LP1, class LP2, typename std::enable_if< \
-         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
 
 
 // this function can be used to initialize an LP with container types that allow []-access.
@@ -696,184 +687,6 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   return result;
 }
 
-
-
-// new version, with approximations now inside the specific lattice point classes.
-// This class just collects useful functions related to bitapproximations.
-
-// Fixed-dim version:
-template<int SizeOfBitSet> struct BitApproximation
-{
-  static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
-  {
-    auto dim = point.get_dim();
-    static_assert(dim == SizeOfBitSet, "Only usable if size of bitset equals fixed ambient dim of vector");
-    std::bitset<SizeOfBitSet> ret;
-    for(uint_fast16_t i=0; i<dim; ++i )
-    {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 :0;
-    }
-    return ret;
-  }
-};
-
-
-// variable-dim version:
-template<> struct BitApproximation<-1>
-{
-
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
-  {
-    auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
-//    ret.resize(dim);
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
-    }
-    return ret;
-  }
-
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
-  {
-    //using RelevantCoords = GaussSieve::RelevantCoordinates;
-    using ET = Get_CoordinateType<LatP>;
-
-
-
-
-    //std::cout << "rel_coo_matrix used: " <<std::endl;
-    //RelevantCoordinates::print();
-    //assert(false);
-
-    std::bitset<sim_hash_len> ret;
-
-    uint_fast16_t bound = std::min(static_cast<uint_fast16_t>( point.get_dim()), sim_hash_len);
-
-
-    for(uint_fast16_t i=0;i<bound;++i)
-    {
-        ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
-    }
-
-    //for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    for(uint_fast16_t i=point.get_dim();i<sim_hash_len;++i)
-    {
-      ET res = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) +
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
-               point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
-      //std::cout << "i = " << i << " res =" << res << " ";
-      ret[i] = (res>=0) ? 1: 0;
-    }
-
-    //assert(false);
-    return ret;
-  }
-
-
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<sim_hash2_len> compute_2order_fixed_bitapproximation(LatP const &point)
-  {
-    std::bitset<sim_hash2_len> ret;
-
-    using ET = Get_CoordinateType<LatP>;
-    std::array<ET, sim_hash2_len> input_vector;
-
-    //assume sim_hash_len=sim_hash2_len
-    for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    {
-      input_vector[i] = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) -
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
-    }
-
-    std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
-    for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    {
-      ret[i] = (hadamard[i]>=0) ? 1: 0;
-    }
-
-    return ret;
-  }
-
-
-  //assume sim_hash2_len is a power-of-two
-  template<class ET>
-  static std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
-  {
-    std::array<ET,sim_hash2_len> inp = input;
-    std::array<ET,sim_hash2_len> out;
-    std::array<ET,sim_hash2_len> tmp;
-
-    uint_fast16_t i, j, s;
-
-    for (i = sim_hash2_len>>1; i > 0; i>>=1) {
-        for (j = 0; j < sim_hash2_len; j++) {
-            s = j/i%2;
-            out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
-        }
-        tmp = inp; inp = out; out = tmp;
-    }
-
-    return out;
-  }
-
-
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
-  {
-    using ET = Get_CoordinateType<LatP>;
-    using std::abs;
-    ET max_coo = 0;
-    auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
-    //find the max fist
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      // equivalent, but has the problem of not working well for all coo types (in particular, mpz_class)
-//         max_coo = max_coo ^ ((max_coo ^ abs(point.get_absolute_coo(i))) & -(max_coo < abs(point.get_absolute_coo(i)) )); //<-works for positive coeffs
-
-      // Note : The static_cast is needed to deactivate lazy evaluation inside mpz_class.
-      using std::max;
-      max_coo = max(max_coo, static_cast<ET>(abs(point.get_absolute_coo(i))));
-    }
-    //std::cout << "max_coo = " << max_coo << std::endl;
-    //compute the 2nd-order approximation
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      ret[i] = (abs(2*point.get_absolute_coo(i))  >= max_coo) ? 1 : 0;
-    }
-    return ret;
-  }
-
-  /*
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
-  {
-    boost::dynamic_bitset<> ret{64};
-    using ET = Get_CoordinateType<LatP>;
-
-    return ret;
-  }
-   */
-};
-
-// specialize for
-
-/*
-template<class Implementation>
-bool GeneralLatticePoint<Implementation>::operator> (Implementation const & other) const
-{
-    return Implementation::get_norm2(*this) > other.get_norm2();
-}
- */
-
 /*
 
 template<class LP>
@@ -900,8 +713,7 @@ std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALattice
 // cleaning up internal macros.
 
 #undef IMPL_IS_LATP
-#undef FOR_LATTICE_POINT_LP
-#undef FOR_LATTICE_POINTS_LP1_LP2
+
 #undef CREALTHIS
 #undef REALTHIS
 
