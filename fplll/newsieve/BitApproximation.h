@@ -8,8 +8,7 @@
 
 #include <boost/dynamic_bitset.hpp> // maybe remove at some point.
 
-namespace GaussSieve::SimHash
-{
+namespace GaussSieve{ namespace SimHash {
 
 /*****************************************************************************
 is_a_power_of_two(n) checks whether n is a power of 2.
@@ -80,7 +79,7 @@ class CoordinateSelection
 template<class SieveTraits,bool MT>
 std::array<uint_fast16_t,sim_hash_number_of_coos> CoordinateSelection<SieveTraits,MT>::rel_coo[sim_hash_len] = {};
 
-} // end namespace GaussSieve::BitApprox
+}} // end namespace GaussSieve::BitApprox
 
 
 namespace GaussSieve{
@@ -231,7 +230,7 @@ class StaticInitializer<class RelevantCoordinates>
 
 
 // helpers for the function below, do not use.
-namespace GaussSieve::SimHash::Helpers{
+namespace GaussSieve{ namespace SimHash { namespace Helpers{
 template<int SizeOfBitSet> struct MakeBitApprox_Helper
 {
   static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
@@ -265,10 +264,9 @@ template<> struct MakeBitApprox_Helper<-1>
     return ret;
   }
 };
-} // end namespace GaussSieve::SimHash::Helpers
+}}} // end namespace GaussSieve::SimHash::Helpers
 
-namespace GaussSieve::SimHash
-{
+namespace GaussSieve{ namespace SimHash{
 
 /**
   compute_coordinate_wise_bitapproximation<length>(point)
@@ -284,10 +282,9 @@ auto compute_coordinate_wise_bitapproximation(LatP const &point)
   static_assert(IsALatticePoint<mystd::decay_t<LatP>>::value,"Not a lattice point.");
   return Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(point);
 }
-}// end namespace GaussSieve::SimHash
+}}// end namespace GaussSieve::SimHash
 
-namespace GaussSieve::SimHash
-{
+namespace GaussSieve{ namespace SimHash{
 
 //assume sim_hash2_len is a power-of-two.
 
@@ -490,7 +487,7 @@ class BitApproxScalarProduct
 
 
 
-}
+}} //end namespace GaussSieve::SimHash
 
 
 #endif // include guards
