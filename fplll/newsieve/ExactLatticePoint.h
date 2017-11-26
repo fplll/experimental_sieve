@@ -75,15 +75,6 @@ public:
         // The ?: expression is only needed to silence compiler errors/warnings.
 
 
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  using BitApproxContainer = boost::dynamic_bitset<>;
-  /*
-  using BitApproxContainer = typename std::conditional<nfixed >= 0,
-                            std::bitset<nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-                          boost::dynamic_bitset<>  >::type;                   // if nfixed <  0
-   */
-#endif
-
 #ifdef  EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   using BitApproxContainerFixed   = std::bitset<sim_hash_len>;
 #endif

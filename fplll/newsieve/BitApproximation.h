@@ -31,6 +31,8 @@ Consider moving (some) of them to SieveTraits
 unsigned int constexpr sim_hash_len = 64;
 unsigned int constexpr sim_hash2_len = 64;
 unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
+unsigned int constexpr approx_levels = 3;
+unsigned int constexpr num_of_transforms = 5;
 
 /********************************************************************
 SimHash::CoordinateSelection<SieveTraits,IsMultithreaded>
@@ -226,6 +228,145 @@ class StaticInitializer<class RelevantCoordinates>
   }
 };
 
+/*
+ stores (approx_levels*num_of_transforms) diagonal matrices of dim=ambient_dim 
+  with {-1, 0, 1} elements on the main diagonal
+  must be instantiated once at the start of the sieve
+ */
+template<int ambient_dim>
+class DMatrix
+{
+  friend StaticInitializer<DMatrix<ambient_dim>>;
+  
+  public:
+  DMatrix() = delete;
+  
+  DMatrix(DMatrix const &) = delete;
+  DMatrix(DMatrix &&obj)   = delete;
+  
+  DMatrix   &operator=(DMatrix const &obj) = delete;
+  DMatrix   &operator=(DMatrix &obj)       = delete;
+  
+  //getter
+  
+  
+  private:
+  static std::array<int_fast16_t,ambient_dim> matrix[SimHash::approx_levels][SimHash::num_of_transforms];
+};
+
+template<int ambient_dim>
+std::array<int_fast16_t,ambient_dim> DMatrix<ambient_dim>::matrix[SimHash::approx_levels][SimHash::num_of_transforms] = {};
+
+template<int ambient_dim>
+class StaticInitializer<class DMatrix<ambient_dim>>
+: public DefaultStaticInitializer<DMatrix<ambient_dim>>
+{
+  using Parent = DefaultStaticInitializer<DMatrix<ambient_dim>>;
+  
+  public:
+  StaticInitializer()
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+    }
+    else
+    {
+      std::mt19937 rng;
+      rng.seed(std::random_device()());
+      std::uniform_int_distribution<std::mt19937::result_type> distr(-1, 1);
+      
+      for (uint_fast16_t i=0; i<SimHash::approx_levels; ++i)
+      {
+        for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
+        {
+          for (uint_fast16_t k=0; k<ambient_dim; ++k)
+          {
+            DMatrix<ambient_dim>::matrix[k][i][j] = distr(rng);
+          }
+        }
+      }
+      
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing PMatrix; Counter is " << Parent::user_count )
+  }
+  
+};
+
+
+
+
+/*
+ stores (approx_levels*num_of_transforms) permutation matrices of dim=ambient_dim
+  ambient_dim is passed via template
+  must be instantiated once at the start of the sieve
+ */
+template<int ambient_dim>
+class PMatrix
+{
+  friend StaticInitializer<PMatrix<ambient_dim>>;
+  
+  public:
+  PMatrix() = delete;
+  
+  PMatrix(PMatrix const &) = delete;
+  PMatrix(PMatrix &&obj)   = delete;
+  
+  PMatrix   &operator=(PMatrix const &obj) = delete;
+  PMatrix   &operator=(PMatrix &obj)       = delete;
+  
+  //getter
+  
+  
+  private:
+  static std::array<int_fast16_t,ambient_dim> matrix[SimHash::approx_levels][SimHash::num_of_transforms];
+};
+
+template<int ambient_dim>
+std::array<int_fast16_t,ambient_dim> PMatrix<ambient_dim>::matrix[SimHash::approx_levels][SimHash::num_of_transforms] = {};
+
+template<int ambient_dim>
+class StaticInitializer<class PMatrix<ambient_dim>>
+: public DefaultStaticInitializer<PMatrix<ambient_dim>>
+{
+  using Parent = DefaultStaticInitializer<PMatrix<ambient_dim>>;
+  public:
+ 
+  StaticInitializer()
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+    }
+    else
+    {
+      std::array <int_fast16_t,ambient_dim> initial;
+      for (uint_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
+      
+      for (uint_fast16_t i=0; i<SimHash::approx_levels; ++i)
+      {
+        for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
+        {
+            //permutes the array
+            std::random_shuffle(initial.begin(), initial.end());
+            PMatrix<ambient_dim>::matrix[i][j] = initial;
+        }
+      }
+      
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing PMatrix; Counter is " << Parent::user_count )
+  }
+};
+
+
 } // end namespace GaussSieve
 
 
@@ -349,6 +490,17 @@ inline std::array<T,arraylen>  fast_partial_walsh_hadamard(std::array<T,arraylen
     std::swap(input,output);
   }
   return output;
+}
+
+template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_t level)
+{
+  
+  std::vector<bool> ret(static_cast<uint_fast16_t>(point.get_dim()));
+  
+  
+  
+  return ret;
 }
 
 
