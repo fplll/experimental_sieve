@@ -18,22 +18,27 @@ bool test_bit_approx()
   /***
   Has to be redone.
   ***/
-
-  /*
   int constexpr dim = 20;
-  int constexpr dimfixed=20;
-
-  using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
-  using GaussSieve::MaybeFixed;
-  using GaussSieve::BitApproximation;
-
-  std::array<mpz_class,dim> arr;
+  td::array<mpz_class,dim> arr;
   std::array<mpz_class,dim> arr2;
   for(int i=0;i<dim;++i)
   {
     arr[i] = std::pow(-1, i+1) * i;
     arr2[i] = std::pow(-1, i) * (i-1);
   }
+  
+  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<dimfixed>{dim});
+  LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<dimfixed>{dim});
+
+  /*
+ 
+  int constexpr dimfixed=20;
+
+  using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
+  using GaussSieve::MaybeFixed;
+  using GaussSieve::BitApproximation;
+
+  s
 
 
 

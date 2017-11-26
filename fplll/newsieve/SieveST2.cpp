@@ -188,8 +188,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 
 
-          SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
-          statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
+          //SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
+          //statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
         #endif
 
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
@@ -279,8 +279,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
         statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
 
-        SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
-        statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
+        //SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
+        //statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
 #endif
 
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;

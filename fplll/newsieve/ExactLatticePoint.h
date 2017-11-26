@@ -76,7 +76,7 @@ public:
 
 
 #ifdef  EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  using BitApproxContainerFixed   = std::bitset<sim_hash_len>;
+  using BitApproxContainerFixed   = std::bitset<SimHash::sim_hash_len>;
 #endif
 
   FOR_FIXED_DIM
@@ -175,9 +175,8 @@ public:
 #endif
  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
-
-    //TODO: compute only if needed
-    fixed_bitapprox_data_2 = SimHash::compute_2order_fixed_bitapproximation(*this);
+    
+    fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
 
 #endif
   }
@@ -196,7 +195,6 @@ public:
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
-    fixed_bitapprox_data_2 = SimHash::compute_2order_fixed_bitapproximation(*this);
 #endif
 
   }
@@ -214,8 +212,6 @@ public:
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed2(ExactLatticePoint const &another) const;
-
-  bool get_is_uptodate() const {return is_uptodate;}
 #endif
 
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
@@ -252,26 +248,27 @@ public:
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
 
+/*
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   BitApproxContainer bitapprox_data;
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
   BitApproxContainer bitapprox2_data;
   #endif
 #endif
+*/
+
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   BitApproxContainerFixed fixed_bitapprox_data;
 
-
-  bool is_uptodate;
-  BitApproxContainerFixed fixed_bitapprox_data_2;
+  std::array<BitApproxContainerFixed, SimHash::num_of_levels> fixed_bitapprox_data_level;
 #endif
 
   Container data;
   ET norm2;
 };
 
-
+/*
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
 // bit-approximate scalar product
 template <class ET, int nfixed>
@@ -298,7 +295,7 @@ inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute
 }
 #endif
 #endif
-
+*/
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
 template <class ET, int nfixed>
 inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const &another) const
@@ -306,13 +303,6 @@ inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute
   //std::cout << "sim-hash1 = " << this->fixed_bitapprox_data << std::endl;
   //std::cout << "sim-hash1 = " << another.fixed_bitapprox_data << std::endl;
   return SimHash::BitApproxScalarProduct {static_cast<size_t>(sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
-}
-
-
-template <class ET, int nfixed>
-inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_fixed2(ExactLatticePoint const &another) const
-{
-  return SimHash::BitApproxScalarProduct {static_cast<size_t>(sim_hash2_len - (this->fixed_bitapprox_data_2 ^ another.fixed_bitapprox_data_2).count()) };
 }
 
 #endif
