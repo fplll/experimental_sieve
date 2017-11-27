@@ -369,7 +369,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
-  StaticInitializer(MaybeFixed<nfixed> const new_dim):  init_relevant_coo_matrix(new_dim)
+  StaticInitializer(MaybeFixed<nfixed> const new_dim):   init_D_matrices(new_dim), init_P_matrices(new_dim)   //init_relevant_coo_matrix(new_dim)
   {
 
     assert(Parent::user_count > 0);
@@ -389,7 +389,11 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
-  GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
+  
+  //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
+  
+  GaussSieve::StaticInitializer<DMatrix> init_D_matrices;
+  GaussSieve::StaticInitializer<PMatrix> init_P_matrices;
 };
 
 }  // end of namespace

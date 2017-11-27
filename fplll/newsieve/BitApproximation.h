@@ -254,6 +254,25 @@ class DMatrix
     return matrix[i][level][ind_of_transforms];
   }
   
+  
+  public:
+  static inline void print()
+  {
+    
+    for (uint_fast16_t i=0; i<SimHash::num_of_levels; i++)
+    {
+      std::cout << "D  [" << i <<"] is: " << std::endl;
+      for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
+      {
+        for (uint_fast16_t k=0; k<dim; ++k)
+          std::cout << matrix[k][i][j] << " ";
+      }
+      std::cout << std::endl;
+      
+    }
+    std::cout << std::endl;
+  }
+  
   private:
   
   static int dim; //the dimension of vector
@@ -295,6 +314,7 @@ class StaticInitializer<class DMatrix>
           }
         }
       }
+      DMatrix::print();
       
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing DMatrix; Counter is " << Parent::user_count )
@@ -331,6 +351,25 @@ class PMatrix
   static inline int_fast16_t get_val (int_fast16_t level, int_fast16_t ind_of_transforms, int_fast16_t i)
   {
     return matrix[i][level][ind_of_transforms];
+  }
+  
+  
+  public:
+  static inline void print()
+  {
+    
+    for (uint_fast16_t i=0; i<SimHash::num_of_levels; i++)
+    {
+      std::cout << "P  [" << i <<"] is: " << std::endl;
+      for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
+      {
+        for (uint_fast16_t k=0; k<dim; ++k)
+          std::cout << matrix[k][i][j] << " ";
+      }
+      std::cout << std::endl;
+      
+    }
+    std::cout << std::endl;
   }
   
   private:
@@ -371,6 +410,8 @@ class StaticInitializer<class PMatrix>
             PMatrix::matrix[i][j] = initial;
         }
       }
+      
+      PMatrix::print();
       
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
@@ -446,11 +487,12 @@ namespace GaussSieve{ namespace SimHash{
 
 // deprecated. Use versions below (faster, more flexible)
 // not for now
-template<class ET>
-inline std::vector<ET> fast_walsh_hadamard(std::vector<ET> input, unsigned int len)
+template<class T>
+inline std::vector<T> fast_walsh_hadamard_ext(std::vector<T> input, unsigned int len)
 {
   
-  std::vector<ET> output (len);
+  std::vector<T> output (input.size());
+  std::vector<T> tmp = input;
   uint_fast16_t i, j, s;
 
   for (i = len>>1; i > 0; i>>=1)
@@ -462,6 +504,12 @@ inline std::vector<ET> fast_walsh_hadamard(std::vector<ET> input, unsigned int l
     }
     //tmp = inp; inp = out; out = tmp;
     std::swap(input, output);
+  }
+  
+  //lower matrix with 1's on the main diag
+  for (i =len; i<output.size(); ++i)
+  {
+    output[i] = tmp[i];
   }
 
   return output;
@@ -489,6 +537,7 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
     }
     std::swap(input,output);
   }
+  
   return output;
 }
 
@@ -545,9 +594,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     
     //apply W-H
     unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
-    
-    vec = fast_partial_walsh_hadamard<ET>(vec, len); //
-    
+    vec = fast_walsh_hadamard_ext<ET>(vec, len);
   }  
   for(uint_fast16_t i=0;i<dim;++i)
   {
@@ -661,6 +708,7 @@ inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &poin
     }
     assert(false); // TODO: This looks wrong. Please check! - -Gotti
     // (applying WH-Trafo *after* selecting relevant coos seems an error)
+    /*
     std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
     for(uint_fast16_t i=0;i<sim_hash_len;++i)
     {
@@ -668,6 +716,7 @@ inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &poin
     }
 
     return ret;
+     */
   }
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>

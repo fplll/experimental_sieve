@@ -29,6 +29,8 @@ bool test_bit_approx()
   
   LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<dimfixed>{dim});
   LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<dimfixed>{dim});
+  
+  std::cout << "exact point: " <<  latp << std::endl;
 
   /*
  
