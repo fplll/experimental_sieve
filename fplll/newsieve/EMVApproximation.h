@@ -72,7 +72,7 @@ class EMVScalar
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator>>(Integer const &shift) &
   {
-    EMVScalar retval; retval>>=shift; return retval;
+    EMVScalar retval(*this); retval>>=shift; return retval;
   }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator>>(Integer const &shift) &&
@@ -82,7 +82,7 @@ class EMVScalar
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator<<(Integer const &shift) &
   {
-    EMVScalar retval; retval<<=shift; return retval;
+    EMVScalar retval(*this); retval<<=shift; return retval;
   }
   template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator<<(Integer const &shift) &&
