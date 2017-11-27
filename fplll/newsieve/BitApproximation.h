@@ -297,11 +297,11 @@ class StaticInitializer<class DMatrix>
       }
       
     }
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing DMatrix; Counter is " << Parent::user_count )
   }
   ~StaticInitializer()
   {
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing PMatrix; Counter is " << Parent::user_count )
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing DMatrix; Counter is " << Parent::user_count )
   }
   
 };
@@ -445,25 +445,26 @@ namespace GaussSieve{ namespace SimHash{
 //assume sim_hash2_len is a power-of-two.
 
 // deprecated. Use versions below (faster, more flexible)
+// not for now
 template<class ET>
-[[deprecated]] inline std::array<ET,sim_hash2_len> fast_walsh_hadamard(std::array<ET,sim_hash2_len> const &input)
+inline std::vector<ET> fast_walsh_hadamard(std::vector<ET> input, unsigned int len)
 {
-  std::array<ET,sim_hash2_len> inp = input;
-  std::array<ET,sim_hash2_len> out;
-  std::array<ET,sim_hash2_len> tmp;
+  
+  std::vector<ET> output (len);
   uint_fast16_t i, j, s;
 
-  for (i = sim_hash2_len>>1; i > 0; i>>=1)
+  for (i = len>>1; i > 0; i>>=1)
   {
-    for (j = 0; j < sim_hash2_len; j++)
+    for (j = 0; j < len; j++)
     {
       s = (j/i)%2;
-      out[j]=inp[(s?-i:0)+j]+(s?-1:1)*inp[(s?0:i)+j];
+      output[j]=input[(s?-i:0)+j]+(s?-1:1)*input[(s?0:i)+j];
     }
-    tmp = inp; inp = out; out = tmp;
+    //tmp = inp; inp = out; out = tmp;
+    std::swap(input, output);
   }
 
-  return out;
+  return output;
 }
 
 
@@ -473,43 +474,40 @@ template<class ET>
  a std::vector or a std::array. The entries of the vector / array must support arithmentic (+,-) and
  be default-constructible and swappable.
 */
-template< unsigned int len, class T>
-inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input) // Note: Pass by value is intentional. We modify the local copy.
+template<class T>
+inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
 {
-  static_assert(is_a_power_of_two(len), "len must be a power of two");
+  //static_assert(is_a_power_of_two(len), "len must be a power of two");
   
-  //EK: WHY DO WE HAVE DIFFERENT ASSERTION IN THE NEXT FUNCTION?
   assert(len >= input.size() ); //maybe static
   std::vector<T> output(input.size() );
   for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
   {
     for(uint_fast16_t j = 0; j < len ; j++)
     {
-      output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j];
+      //output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j]; //THIS DOES NOT COMPILE
     }
     std::swap(input,output);
   }
   return output;
 }
 
-template< unsigned int len, class T, std::size_t arraylen>
-inline std::array<T,arraylen>  fast_partial_walsh_hadamard(std::array<T,arraylen> input) // Note: Pass by value is intentional. We modify the local copy.
+template<class T, std::size_t arraylen>
+inline std::array<T,arraylen> fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
 {
-  static_assert(is_a_power_of_two(len), "len must be a power of two");
-  static_assert(arraylen >= len, "Cannot perfor WH-Transform on array of smaller size");
+  //static_assert(is_a_power_of_two(len), "len must be a power of two");
+  //static_assert(arraylen >= len, "Cannot perfor WH-Transform on array of smaller size");
   std::array<T,arraylen> output(); // assumes that entries are default-constructible.
   for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
   {
     for(uint_fast16_t j = 0; j < len ; j++)
     {
-      output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j];
+      //output[j]= ((j/i)%2!=0) ? input[j-i] - input[j] : input[j] + input[i+j]; //THIS DOES NOT COMPILE
     }
     std::swap(input,output);
   }
   return output;
 }
-
-
 
 
 /*
@@ -546,12 +544,10 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     
     
     //apply W-H
-    int len = floor(log2(dim));
+    unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
     
-    //vec = fast_partial_walsh_hadamard<len, ET>(vec); // WHY is len A TEMPLATE PARAMETER? 
+    vec = fast_partial_walsh_hadamard<ET>(vec, len); //
     
-    
-  
   }  
   for(uint_fast16_t i=0;i<dim;++i)
   {
