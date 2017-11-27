@@ -17,7 +17,7 @@ bool test_bit_approx()
 
   int constexpr dim = 20;
   
-  using LP = GaussSieve::ExactLatticePoint<long, dim>;
+  typedef GaussSieve::ExactLatticePoint<long, -1> LP;
   using GaussSieve::MaybeFixed;
   
   std::array<long,dim> arr;
@@ -28,8 +28,8 @@ bool test_bit_approx()
     arr2[i] = std::pow(-1, i) * (i-1);
   }
   
-  
-  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<dim>{dim});
+  GaussSieve::StaticInitializer<LP> init1 (MaybeFixed<-1>{dim});
+  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<-1>{dim});
   
   //LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<dim>{dim});
   

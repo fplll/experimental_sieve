@@ -174,11 +174,21 @@ public:
     #endif
 #endif
  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
+    //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
     
     
-    //std::cout << "about to call compute_fixed_bitapprox_level" << std::endl;
-    //fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
+    std::cout << "about to call compute_fixed_bitapprox_level" << std::endl;
+    fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
+    std::cout << "finished computing all lvls approx" << std::endl;
+    std::cout <<" fixed_bitapprox_data_level is : " << std::endl;
+    
+    std::cout << "lvl:" << 0 << " bitapprox = [";
+    std::cout << fixed_bitapprox_data_level[0] << std::endl;
+    //for(unsigned int i=0; i<SimHash::sim_hash_len; ++i)
+    //{
+    //  std::cout << fixed_bitapprox_data_level[0][i] << " ";
+    //}
+    
 #endif
   }
   void sanitize( ET const & new_norm2 )
@@ -336,6 +346,7 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
   }
 #endif
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  /*
   if (include_approx)
   {
     os<< "Sim-Hash = [ ";
@@ -344,6 +355,7 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
     }
     os << "] ";
   }
+   */
 #endif
   os << std::endl;
   return os;

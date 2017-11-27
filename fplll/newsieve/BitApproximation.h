@@ -253,7 +253,7 @@ class DMatrix
   //getter
   static inline int_fast16_t get_val (int_fast16_t level, int_fast16_t ind_of_transforms, int_fast16_t i)
   {
-    return matrix[i][level][ind_of_transforms];
+    return matrix[level][ind_of_transforms][i];
   }
   
   
@@ -355,7 +355,7 @@ class PMatrix
   //getter
   static inline int_fast16_t get_val (int_fast16_t level, int_fast16_t ind_of_transforms, int_fast16_t i)
   {
-    return matrix[i][level][ind_of_transforms];
+    return matrix[level][ind_of_transforms][i];
   }
   
   
@@ -574,6 +574,8 @@ template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
 inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_t level)
 {
   
+  //std::cout << "inside transform_and_bitapprox" << std::endl;
+  
   unsigned int dim = static_cast<unsigned int>(point.get_dim());
   std::vector<bool> ret(dim);
   
@@ -590,9 +592,9 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     //apply PMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
-      vec[i] = point[PMatrix::get_val(level, j, i)]; 
+      vec[i] = point[PMatrix::get_val(level, j, i)];
     }
-  
+    
     //apply DMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
@@ -631,8 +633,7 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
   std::vector<bool> current_approx;
   
   std::cout << "received point: " << point << std::endl;
-  //RelevantCoordinates::print();
-
+  
   while (lvl<SimHash::num_of_levels)
   {
     
@@ -643,8 +644,11 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
     
     for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos); ++i) 
     {
-      ret[i][lvl] = current_approx[i+start_ind];
+      ret[lvl][i] = current_approx[i+start_ind];
+      //std::cout << ret[i][lvl] << " ";
     }
+    
+    //std::cout << std::endl;
     
     //compute transformation and concatenate the result until all the coords of lvl will be filled
     while(pos < SimHash::sim_hash_len)
@@ -652,13 +656,21 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
       current_approx = transform_and_bitapprox(point, lvl);
       for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos+dim); ++i) 
       { 
-        ret[i+pos][lvl] = current_approx[i];
+        ret[lvl][i+pos] = current_approx[i];
       }
       pos+=dim;
     }
     
+    std::cout << "lvl:" << lvl << " bitapprox = [";
+    //for(unsigned int i=0; i<SimHash::sim_hash_len; ++i)
+    //{
+      std::cout << ret[lvl] << " ";
+    //}
+    std::cout << "]" << std::endl;
+    
     lvl++;
   }
+  
   return ret;
 }
 
