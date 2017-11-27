@@ -537,6 +537,17 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
 
   assert(len >= input.size() ); //maybe static
   std::vector<T> output(input.size() );
+
+  
+  
+  //lower matrix with 1's on the main diag
+  for (uint_fast16_t i =len; i<output.size(); ++i)
+  {
+    output[i] = input[i];
+  }
+
+  //on [0...len-1] coordinates perform WH
+  
   for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
   {
     for(uint_fast16_t j = 0; j < len ; j++)
@@ -545,6 +556,8 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
     }
     std::swap(input,output);
   }
+  
+  
   return output;
 }
 
@@ -603,7 +616,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
 
     //apply W-H
     unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
-    vec = fast_walsh_hadamard_ext<ET>(vec, len);
+    vec = fast_partial_walsh_hadamard<ET>(vec, len);
   }
   
   for(uint_fast16_t i=0;i<dim;++i)
