@@ -276,17 +276,23 @@ class DMatrix
     
     std::cout << std::endl;
   }
+  
+  static inline void print_ith (unsigned int i)
+  {
+    for (uint_fast16_t k=0; k<dim; ++k)
+        std::cout << matrix[i][k] << " ";
+  }
 
   private:
 
-  static int dim; //dimension of each transformation = ambient_dimension
-  static int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
+  static unsigned int dim; //dimension of each transformation = ambient_dimension
+  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
   static std::vector<OneTransform> matrix;
 };
 
 
-int DMatrix::dim = 0;
-int DMatrix::total_num_of_matrices = 0;
+unsigned int DMatrix::dim = 0;
+unsigned int DMatrix::total_num_of_matrices = 0;
 std::vector < std::vector<int_fast16_t> > DMatrix::matrix = {};
 
 
@@ -310,7 +316,8 @@ class StaticInitializer<class DMatrix>
       DMatrix::dim = ambient_dim;
       
       //TODO: TO CHECK!
-      DMatrix::total_num_of_matrices = static_cast<int>(SimHash::sim_hash_len * SimHash::num_of_levels / ambient_dim + 1);
+      DMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
       
       //std::cout << "about to fill-up the D matrix " << std::endl;
       
@@ -385,15 +392,21 @@ class PMatrix
     
     std::cout << std::endl;
   }
+  
+  static inline void print_ith (unsigned int i)
+  {
+    for (uint_fast16_t k=0; k<dim; ++k)
+        std::cout << matrix[i][k] << " ";
+  }
   private:
 
-  static int dim; //dimension of each transformation = ambient_dimension
-  static int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
+  static unsigned int dim; //dimension of each transformation = ambient_dimension
+  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
   static std::vector<OneTransform> matrix;
 };
 
-int PMatrix::dim = 0;
-int PMatrix::total_num_of_matrices = 0;
+unsigned int PMatrix::dim = 0;
+unsigned int PMatrix::total_num_of_matrices = 0;
 std::vector < std::vector<int_fast16_t> > PMatrix::matrix = {};
 
 template<>
@@ -416,12 +429,13 @@ class StaticInitializer<class PMatrix>
       PMatrix::dim  = ambient_dim;
       
       //TODO: TO CHECK!
-      PMatrix::total_num_of_matrices = static_cast<int>(SimHash::sim_hash_len * SimHash::num_of_levels / ambient_dim + 1);
+      PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
 
       std::cout << "about to fill-up the P matrix " << std::endl;
 
       std::vector <int_fast16_t> initial(ambient_dim);
-      for (uint_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
+      for (int_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
 
       PMatrix::matrix.resize(PMatrix::total_num_of_matrices);
       for (uint_fast16_t j=0; j<PMatrix::total_num_of_matrices; ++j)
@@ -548,7 +562,7 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
 {
   //static_assert(is_a_power_of_two(len), "len must be a power of two");
 
-  assert(len >= input.size() ); //maybe static
+  assert(len <= input.size() ); //maybe static
   std::vector<T> output(input.size() );
 
   
@@ -609,21 +623,29 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
 
 
   // REPEAT num_of_transforms TIMES
-  for(uint_fast16_t j = 0; j<num_of_transforms; ++j)
+  for(uint_fast16_t j = iteration; j<iteration+SimHash::num_of_transforms; ++j)
   {
 
     //TODO:merge the loops
+    
+    std::cout << "PMatrix used: " << std::endl;
+    PMatrix::print_ith(j);
+    
+    
 
     //apply PMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
-      vec[i] = point[PMatrix::get_val(iteration, i)];
+      vec[i] = point[PMatrix::get_val(j, i)];
     }
 
+    std::cout << "DMatrix used: " << std::endl;
+    DMatrix::print_ith(j);
+    
     //apply DMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
-      vec[i] = (DMatrix::get_val(iteration, i) > 0) ? vec[i] : -vec[i];
+      vec[i] = (DMatrix::get_val(j, i) > 0) ? vec[i] : -vec[i];
     }
 
 
@@ -632,6 +654,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     vec = fast_partial_walsh_hadamard<ET>(vec, len);
   }
   
+  std::cout << std::endl;
   for(uint_fast16_t i=0;i<dim;++i)
   {
     ret[i] = (vec[i]>=0) ? 1: 0;
@@ -659,6 +682,8 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
 
   unsigned int pos = 0;
   unsigned int lvl = 0;
+  unsigned int matrix_index = 0;
+  
   std::vector<bool> current_approx;
 
   std::cout << "received point: " << point << std::endl;
@@ -674,33 +699,33 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
     for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos); ++i)
     {
       ret[lvl][i] = current_approx[i+start_ind];
-      //std::cout << ret[i][lvl] << " ";
+      std::cout << ret[i][lvl] << " ";
     }
 
-    //std::cout << std::endl;
+    std::cout << std::endl;
 
     //compute transformation and concatenate the result until all the coords of lvl will be filled
     while(pos < SimHash::sim_hash_len)
     {
-      current_approx = transform_and_bitapprox(point, lvl);
-      for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos+dim); ++i)
+      current_approx = transform_and_bitapprox(point, matrix_index);
+      for(unsigned int i=pos; i<std::min(SimHash::sim_hash_len, pos+dim); ++i)
       {
-        ret[lvl][i+pos] = current_approx[i];
-        std::cout <<ret[lvl][i+pos] << " ";
+        ret[lvl][i] = current_approx[i-pos];
+        std::cout <<ret[lvl][i] << " ";
       }
       pos+=dim;
+      //std::cout << "pos = " << pos << std::endl;
+      matrix_index+=SimHash::num_of_transforms;
+      //std::cout << "matrix_index = " << matrix_index << std::endl;
 
-    std::cout << std::endl;
-
-    std::cout << "lvl:" << lvl << " bitapprox = [";
-    //for(unsigned int i=0; i<SimHash::sim_hash_len; ++i)
-    //{
-      std::cout << ret[lvl] << " ";
-    //}
-    std::cout << "]" << std::endl;
-
-    lvl++;
+      std::cout << std::endl;
     }
+    
+    std::cout << "lvl:" << lvl << " bitapprox = [";
+    std::cout << ret[lvl] << " ";
+    std::cout << "]" << std::endl;
+    lvl++;
+    
   }
 
   return ret;

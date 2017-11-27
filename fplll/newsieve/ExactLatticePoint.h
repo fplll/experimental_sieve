@@ -102,20 +102,6 @@ public:
 
   FOR_VARIABLE_DIM
   explicit ExactLatticePoint() :
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  bitapprox_data(static_cast<size_t>(get_dim())),
-
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-  bitapprox2_data(static_cast<size_t>(get_dim())),
-  #endif
-#endif
-
-/*
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  fixed_bitapprox_data.set();
-#endif
-*/
-
   data(static_cast<unsigned int>(get_dim()))
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
@@ -138,18 +124,6 @@ public:
 
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
   :
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  bitapprox_data(static_cast<size_t>(get_dim())),
-
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-  bitapprox2_data(static_cast<size_t>(get_dim())),
-  #endif
-#endif
-/*
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  fixed_bitapprox_data.set(),
-#endif
-*/
   data(std::move(plain_point.data))
   {
     sanitize();
@@ -166,46 +140,20 @@ public:
   void sanitize()
   {
     norm2 = compute_sc_product(*this, *this);
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    bitapprox_data = SimHash::compute_bitapproximation(*this);
 
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-    bitapprox2_data = SimHash::compute_2nd_order_bitapproximation(*this);
-    #endif
-#endif
  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
-    
-    
-    std::cout << "about to call compute_fixed_bitapprox_level" << std::endl;
     fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
-    std::cout << "finished computing all lvls approx" << std::endl;
-    std::cout <<" fixed_bitapprox_data_level is : " << std::endl;
-    
-    std::cout << "lvl:" << 0 << " bitapprox = [";
-    std::cout << fixed_bitapprox_data_level[0] << std::endl;
-    //for(unsigned int i=0; i<SimHash::sim_hash_len; ++i)
-    //{
-    //  std::cout << fixed_bitapprox_data_level[0][i] << " ";
-    //}
-    
 #endif
   }
   void sanitize( ET const & new_norm2 )
   {
     norm2 = new_norm2;
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-
-//    compute_approximation(*this);
-// Note: The -1 is because we always use dynamic bitsets atm.
-    bitapprox_data = BitApproximation<-1>::compute_bitapproximation(*this);
-    #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-    bitapprox2_data = BitApproximation<-1>::compute_2nd_order_bitapproximation(*this);
-    #endif
-#endif
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
+    //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
+    
+    fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
 #endif
 
   }
@@ -213,16 +161,12 @@ public:
   ET get_norm2() const { return norm2; }
 
   std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  inline BitApproxScalarProduct do_compute_sc_product_bitapprox(ExactLatticePoint const & another) const;
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-  inline BitApproxScalarProduct do_compute_sc_product_bitapprox_2nd_order(ExactLatticePoint const & another) const;
-  #endif
-#endif
+
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
-  inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed2(ExactLatticePoint const &another) const;
+  
+  inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const;
 #endif
 
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
@@ -316,6 +260,14 @@ inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute
   return SimHash::BitApproxScalarProduct {static_cast<size_t>(sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
 }
 
+template <class ET, int nfixed>
+inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const
+{
+  return SimHash::BitApproxScalarProduct {static_cast<size_t>(SimHash::sim_hash_len - (
+                                            this->fixed_bitapprox_data_level[lvl] ^ another.fixed_bitapprox_data_level[lvl]).count())};
+}
+
+
 #endif
 
 template <class ET, int nfixed>
@@ -346,16 +298,21 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
   }
 #endif
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  /*
+  
   if (include_approx)
   {
-    os<< "Sim-Hash = [ ";
-    for (uint_fast16_t i=0; i<sim_hash_len; i++) {
-      os << fixed_bitapprox_data[i] << " ";
+    os << std::endl;
+    for (uint_fast16_t lvl =0; lvl<SimHash::num_of_levels; ++lvl)
+    {
+    os<< "lvl =  " << lvl << " [ ";
+    for (uint_fast16_t i=0; i<SimHash::sim_hash_len; i++) {
+      os << fixed_bitapprox_data_level[lvl][i] << " ";
     }
-    os << "] ";
+    os << "] "<<std::endl;
+    }
+    
   }
-   */
+   
 #endif
   os << std::endl;
   return os;
@@ -382,7 +339,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
-  StaticInitializer(MaybeFixed<nfixed> const new_dim):   init_D_matrices(new_dim), init_P_matrices(new_dim), init_relevant_coo_matrix(new_dim)
+  StaticInitializer(MaybeFixed<nfixed> const new_dim):   init_D_matrices(new_dim), init_P_matrices(new_dim)
   {
 
     assert(Parent::user_count > 0);
@@ -403,9 +360,10 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
   
-  GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
+  
   GaussSieve::StaticInitializer<DMatrix> init_D_matrices;
   GaussSieve::StaticInitializer<PMatrix> init_P_matrices;
+  //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
 };
 
 }  // end of namespace

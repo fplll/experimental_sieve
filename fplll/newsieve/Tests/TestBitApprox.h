@@ -25,11 +25,24 @@ bool test_bit_approx()
   for(int i=0;i<dim;++i)
   {
     arr[i] = std::pow(-1, i+1) * i;
-    arr2[i] = std::pow(-1, i) * (i-1);
+    arr2[i] = std::pow(-1, i) * (i-1)+13;
   }
   
   GaussSieve::StaticInitializer<LP> init1 (MaybeFixed<-1>{dim});
-  //LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<-1>{dim});
+  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<-1>{dim});
+  LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<-1>{dim});
+  
+  std::cout << "latp = " << latp << std::endl;
+  std::cout << "latp2 = " << latp2 << std::endl;
+  
+  
+  for (int i = 0; i<GaussSieve::SimHash::num_of_levels; ++i)
+  {
+    GaussSieve::SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_level(latp, latp2, i);
+    std::cout << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
+  }
+  
+  
   
   //LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<dim>{dim});
   
