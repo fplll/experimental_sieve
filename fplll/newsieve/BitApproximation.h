@@ -240,7 +240,7 @@ class StaticInitializer<class RelevantCoordinates>
 class DMatrix
 {
   friend StaticInitializer<DMatrix>;
-  
+
   using OneTransform = std::vector<int_fast16_t> ; //of dimension dim
 
   public:
@@ -262,18 +262,18 @@ class DMatrix
   public:
   static inline void print()
   {
-    
-    
+
+
     for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
     {
       std::cout << "D  [" << i <<"] is: " << std::endl;
       for (uint_fast16_t k=0; k<dim; ++k)
           std::cout << matrix[i][k] << " ";
-      
+
       std::cout << std::endl;
 
     }
-    
+
     std::cout << std::endl;
   }
   
@@ -301,7 +301,7 @@ class StaticInitializer<class DMatrix>
 : public DefaultStaticInitializer<DMatrix>
 {
   using Parent = DefaultStaticInitializer<DMatrix>;
-  
+
   using OneTransform = std::vector<int_fast16_t> ;
 
   public:
@@ -314,26 +314,26 @@ class StaticInitializer<class DMatrix>
     else
     {
       DMatrix::dim = ambient_dim;
-      
-      //TODO: TO CHECK!
+
       DMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
                                                           SimHash::num_of_levels*SimHash::num_of_transforms );
       
+
       //std::cout << "about to fill-up the D matrix " << std::endl;
-      
+
       std::mt19937 rng;
       rng.seed(std::random_device()());
       std::uniform_int_distribution<std::mt19937::result_type> distr(-1, 1);
-      
+
       for (uint_fast16_t i=0; i<DMatrix::total_num_of_matrices; ++i)
       {
         OneTransform tmp;
         for (uint_fast16_t k=0; k<DMatrix::dim; ++k)
             tmp.push_back( distr(rng) );
-        
+
         DMatrix::matrix.push_back(tmp);
       }
-    
+
       DMatrix::print();
 
     }
@@ -357,7 +357,7 @@ class StaticInitializer<class DMatrix>
 class PMatrix
 {
   friend StaticInitializer<PMatrix>;
-  
+
   using OneTransform = std::vector<int_fast16_t> ; //of dimension dim
 
   public:
@@ -378,18 +378,18 @@ class PMatrix
   public:
   static inline void print()
   {
-    
-    
+
+
     for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
     {
       std::cout << "P  [" << i <<"] is: " << std::endl;
       for (uint_fast16_t k=0; k<dim; ++k)
         std::cout << matrix[i][k] << " ";
-      
+
       std::cout << std::endl;
-      
+
     }
-    
+
     std::cout << std::endl;
   }
   
@@ -414,8 +414,8 @@ class StaticInitializer<class PMatrix>
 : public DefaultStaticInitializer<PMatrix>
 {
   using Parent = DefaultStaticInitializer<PMatrix>;
-  
-  
+
+
   public:
 
   StaticInitializer(int ambient_dim)
@@ -427,7 +427,7 @@ class StaticInitializer<class PMatrix>
     else
     {
       PMatrix::dim  = ambient_dim;
-      
+
       //TODO: TO CHECK!
       PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
                                                           SimHash::num_of_levels*SimHash::num_of_transforms );
@@ -445,7 +445,7 @@ class StaticInitializer<class PMatrix>
             PMatrix::matrix[j].resize(PMatrix::dim);
             PMatrix::matrix[j] = initial;
         }
-      
+
       PMatrix::print();
 
     }
@@ -565,8 +565,8 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
   assert(len <= input.size() ); //maybe static
   std::vector<T> output(input.size() );
 
-  
-  
+
+
   //lower matrix with 1's on the main diag
   for (uint_fast16_t i =len; i<output.size(); ++i)
   {
@@ -574,7 +574,7 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
   }
 
   //on [0...len-1] coordinates perform WH
-  
+
   for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
   {
     for(uint_fast16_t j = 0; j < len ; j++)
@@ -583,8 +583,8 @@ inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigne
     }
     std::swap(input,output);
   }
-  
-  
+
+
   return output;
 }
 
@@ -655,12 +655,13 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
   }
   
   std::cout << std::endl;
+
   for(uint_fast16_t i=0;i<dim;++i)
   {
     ret[i] = (vec[i]>=0) ? 1: 0;
     std::cout << ret[i] << " ";
   }
-  
+
   std::cout << std::endl;
 
   return ret;
