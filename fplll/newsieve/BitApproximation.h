@@ -205,9 +205,11 @@ class StaticInitializer<class RelevantCoordinates>
     assert(Parent::user_count > 0);
     if(Parent::user_count>1)
     {
+      std::cout << "user_cout for  RelevantCoordinates > 1" << std::endl;
     }
     else
     {
+      
       std::mt19937 rng;
       rng.seed(std::random_device()());
       std::uniform_int_distribution<std::mt19937::result_type> distr(0,ambient_dimension-1);
@@ -265,7 +267,7 @@ class DMatrix
       for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
       {
         for (uint_fast16_t k=0; k<dim; ++k)
-          std::cout << matrix[k][i][j] << " ";
+          std::cout << matrix[i][j][k] << " ";
       }
       std::cout << std::endl;
       
@@ -300,6 +302,7 @@ class StaticInitializer<class DMatrix>
     {
       DMatrix::dim = ambient_dim;
       
+      std::cout << "about to fill-up the D matrix " << std::endl;
       std::mt19937 rng;
       rng.seed(std::random_device()());
       std::uniform_int_distribution<std::mt19937::result_type> distr(-1, 1);
@@ -308,12 +311,14 @@ class StaticInitializer<class DMatrix>
       {
         for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
         {
-          for (uint_fast16_t k=0; k<ambient_dim; ++k)
+          //DMatrix::matrix[i][j].resize(dim);
+          for (uint_fast16_t k=0; k<DMatrix::dim; ++k)
           {
-            DMatrix::matrix[k][i][j] = distr(rng);
+            DMatrix::matrix[i][j].push_back( distr(rng) );
           }
         }
       }
+      
       DMatrix::print();
       
     }
@@ -364,7 +369,7 @@ class PMatrix
       for (uint_fast16_t j=0; j<SimHash::num_of_transforms; ++j)
       {
         for (uint_fast16_t k=0; k<dim; ++k)
-          std::cout << matrix[k][i][j] << " ";
+          std::cout << matrix[i][j][k] << " ";
       }
       std::cout << std::endl;
       
@@ -398,6 +403,8 @@ class StaticInitializer<class PMatrix>
     {
       PMatrix::dim  = ambient_dim;
       
+      std::cout << "about to fill-up the P matrix " << std::endl;
+      
       std::vector <int_fast16_t> initial(ambient_dim);
       for (uint_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
       
@@ -407,6 +414,7 @@ class StaticInitializer<class PMatrix>
         {
             //permutes the array
             std::random_shuffle(initial.begin(), initial.end());
+            PMatrix::matrix[i][j].resize(PMatrix::dim);
             PMatrix::matrix[i][j] = initial;
         }
       }
@@ -622,6 +630,9 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
   unsigned int lvl = 0;
   std::vector<bool> current_approx;
   
+  std::cout << "received point: " << point << std::endl;
+  //RelevantCoordinates::print();
+
   while (lvl<SimHash::num_of_levels)
   {
     
@@ -648,9 +659,7 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
     
     lvl++;
   }
-
   return ret;
-  
 }
 
 template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>

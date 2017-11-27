@@ -176,8 +176,9 @@ public:
  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
     
-    fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
-
+    
+    //std::cout << "about to call compute_fixed_bitapprox_level" << std::endl;
+    //fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
 #endif
   }
   void sanitize( ET const & new_norm2 )
@@ -369,7 +370,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
 
-  StaticInitializer(MaybeFixed<nfixed> const new_dim):   init_D_matrices(new_dim), init_P_matrices(new_dim)   //init_relevant_coo_matrix(new_dim)
+  StaticInitializer(MaybeFixed<nfixed> const new_dim):   init_D_matrices(new_dim), init_P_matrices(new_dim), init_relevant_coo_matrix(new_dim)
   {
 
     assert(Parent::user_count > 0);
@@ -390,8 +391,7 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
   
-  //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
-  
+  GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;
   GaussSieve::StaticInitializer<DMatrix> init_D_matrices;
   GaussSieve::StaticInitializer<PMatrix> init_P_matrices;
 };
