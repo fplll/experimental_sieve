@@ -29,11 +29,11 @@ bool test_bit_approx()
   }
   
   GaussSieve::StaticInitializer<LP> init1 (MaybeFixed<-1>{dim});
-  LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<-1>{dim});
+  //LP latp = GaussSieve::make_from_any_vector<LP>(arr,MaybeFixed<-1>{dim});
   
   //LP latp2 = GaussSieve::make_from_any_vector<LP>(arr2,MaybeFixed<dim>{dim});
   
-  std::cout << "exact point with approximations: " <<  latp << std::endl;
+  //std::cout << "exact point with approximations: " <<  latp << std::endl;
 
   /*
  

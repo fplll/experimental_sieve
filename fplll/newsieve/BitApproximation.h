@@ -423,7 +423,7 @@ class StaticInitializer<class PMatrix>
       std::vector <int_fast16_t> initial(ambient_dim);
       for (uint_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
 
-      
+      PMatrix::matrix.resize(PMatrix::total_num_of_matrices);
       for (uint_fast16_t j=0; j<PMatrix::total_num_of_matrices; ++j)
       {
             //permutes the array
@@ -432,7 +432,6 @@ class StaticInitializer<class PMatrix>
             PMatrix::matrix[j] = initial;
         }
       
-
       PMatrix::print();
 
     }
@@ -618,7 +617,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     //apply PMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
-      //vec[i] = point[PMatrix::get_val(iteration, i)];
+      vec[i] = point[PMatrix::get_val(iteration, i)];
     }
 
     //apply DMatrix
