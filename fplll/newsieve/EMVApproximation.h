@@ -51,6 +51,8 @@ class EMVScalar
   // default constructor
   constexpr explicit EMVScalar(int const new_exponent, MantissaType const new_mantissa):
     exponent(new_exponent), mantissa(new_mantissa) {};
+  constexpr EMVScalar(EMVScalar const &) = default;
+  EMVScalar(EMVScalar &&) = default;
 
   // construct from integral or floating type
   template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
