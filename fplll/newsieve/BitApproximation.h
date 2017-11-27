@@ -605,12 +605,16 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     //apply W-H
     unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
     vec = fast_walsh_hadamard_ext<ET>(vec, len);
-  }  
+  }
+  
+  std::cout << "ret: " << std::endl;
   for(uint_fast16_t i=0;i<dim;++i)
   {
     ret[i] = (vec[i]>=0) ? 1: 0;
+    std::cout << ret[i] << " ";
   }
   
+  std::cout << std::endl;
   return ret;
 }
 
@@ -654,12 +658,15 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
     while(pos < SimHash::sim_hash_len)
     {
       current_approx = transform_and_bitapprox(point, lvl);
-      for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos+dim); ++i) 
+      
+      for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos+dim); ++i)
       { 
         ret[lvl][i+pos] = current_approx[i];
+        std::cout <<ret[lvl][i+pos] << " ";
       }
       pos+=dim;
     }
+    std::cout << std::endl;
     
     std::cout << "lvl:" << lvl << " bitapprox = [";
     //for(unsigned int i=0; i<SimHash::sim_hash_len; ++i)
