@@ -152,7 +152,7 @@ public:
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
-    
+
     fixed_bitapprox_data_level = SimHash::compute_fixed_bitapprox_level(*this);
 #endif
 
@@ -165,7 +165,7 @@ public:
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
-  
+
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const;
 #endif
 
@@ -257,7 +257,7 @@ inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute
 {
   //std::cout << "sim-hash1 = " << this->fixed_bitapprox_data << std::endl;
   //std::cout << "sim-hash1 = " << another.fixed_bitapprox_data << std::endl;
-  return SimHash::BitApproxScalarProduct {static_cast<size_t>(sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
+  return SimHash::BitApproxScalarProduct {static_cast<size_t>(SimHash::sim_hash_len - (this->fixed_bitapprox_data ^ another.fixed_bitapprox_data).count()) };
 }
 
 template <class ET, int nfixed>
@@ -298,7 +298,7 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
   }
 #endif
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  
+
   if (include_approx)
   {
     os << std::endl;
@@ -310,9 +310,9 @@ inline std::ostream& ExactLatticePoint<ET, nfixed>::write_lp_to_stream(std::ostr
     }
     os << "] "<<std::endl;
     }
-    
+
   }
-   
+
 #endif
   os << std::endl;
   return os;
@@ -359,8 +359,8 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
   {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count )
   }
-  
-  
+
+
   GaussSieve::StaticInitializer<DMatrix> init_D_matrices;
   GaussSieve::StaticInitializer<PMatrix> init_P_matrices;
   //GaussSieve::StaticInitializer<RelevantCoordinates> init_relevant_coo_matrix;

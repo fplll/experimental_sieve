@@ -269,11 +269,11 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   std::cout << "sampler is initialized " << std::endl << std::flush;
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  statistics.red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
-  statistics.no_red_stat_sim_hash.resize(GaussSieve::sim_hash_len+1);
+  statistics.red_stat_sim_hash.resize(GaussSieve::SimHash::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash.resize(GaussSieve::SimHash::sim_hash_len+1);
 
-  statistics.red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
-  statistics.no_red_stat_sim_hash2.resize(GaussSieve::sim_hash_len+1);
+  statistics.red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
+  statistics.no_red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
 #endif
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX

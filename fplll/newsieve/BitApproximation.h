@@ -136,14 +136,16 @@ class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
 namespace GaussSieve
 {
 
-//template<int nfixed>
+/*
 class RelevantCoordinates;
 
 uint_fast16_t constexpr  sim_hash_len = 64;
 uint_fast16_t constexpr  sim_hash2_len = 64;
 
 uint_fast16_t constexpr  num_of_coord = 4;
+*/
 
+/*
 //TODO: REPLACE rand() by a proper rand
 //template<int nfixed>
 class RelevantCoordinates
@@ -187,8 +189,10 @@ class RelevantCoordinates
   static std::array<uint_fast16_t, num_of_coord> rel_coo[sim_hash_len];
 };
 std::array<uint_fast16_t,num_of_coord> RelevantCoordinates::rel_coo[sim_hash_len] = {};
+*/
 
 
+/*
 // Static Initializer:
 // template<int nxfixed>
 template<>
@@ -231,6 +235,8 @@ class StaticInitializer<class RelevantCoordinates>
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing RelevantCoordinates; Counter is " << Parent::user_count )
   }
 };
+*/
+
 
 /*
  stores (num_of_levels*num_of_transforms) diagonal matrices of dim=ambient_dim
@@ -732,6 +738,7 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
   return ret;
 }
 
+/*
 template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
 inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
 {
@@ -766,64 +773,68 @@ inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &poin
     //assert(false);
     return ret;
 }
+*/
 
+/*
+template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+static inline std::bitset<sim_hash2_len> compute_2order_fixed_bitapproximation(LatP const &point)
+{
+  std::bitset<sim_hash2_len> ret;
 
+  using ET = Get_CoordinateType<LatP>;
+  std::array<ET, sim_hash2_len> input_vector;
 
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<sim_hash2_len> compute_2order_fixed_bitapproximation(LatP const &point)
+  //assume sim_hash_len=sim_hash2_len
+  for(uint_fast16_t i=0;i<sim_hash_len;++i)
   {
-    std::bitset<sim_hash2_len> ret;
-
-    using ET = Get_CoordinateType<LatP>;
-    std::array<ET, sim_hash2_len> input_vector;
-
-    //assume sim_hash_len=sim_hash2_len
-    for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    {
-      input_vector[i] = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) -
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
-                        point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
-    }
-    assert(false); // TODO: This looks wrong. Please check! - -Gotti
-    // (applying WH-Trafo *after* selecting relevant coos seems an error)
-    /*
-    std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
-    for(uint_fast16_t i=0;i<sim_hash_len;++i)
-    {
-      ret[i] = (hadamard[i]>=0) ? 1: 0;
-    }
-
-    return ret;
-     */
+    input_vector[i] = point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,0)) -
+                      point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,1)) +
+                      point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,2)) -
+                      point.get_absolute_coo(RelevantCoordinates::get_ij_value(i,3));
   }
+  assert(false); // TODO: This looks wrong. Please check! - -Gotti
+    // (applying WH-Trafo *after* selecting relevant coos seems an error)
 
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
+//    std::array<ET, sim_hash2_len> hadamard = fast_walsh_hadamard<ET>(input_vector);
+//    for(uint_fast16_t i=0;i<sim_hash_len;++i)
+//    {
+//      ret[i] = (hadamard[i]>=0) ? 1: 0;
+//    }
+//
+//    return ret;
+//
+}
+*/
+
+/*
+template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP const &point)
+{
+  using ET = Get_CoordinateType<LatP>;
+  using std::abs;
+  ET max_coo = 0;
+  auto dim = point.get_dim();
+  boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
+  //find the max fist
+  for(uint_fast16_t i=0;i<dim;++i)
   {
-    using ET = Get_CoordinateType<LatP>;
-    using std::abs;
-    ET max_coo = 0;
-    auto dim = point.get_dim();
-    boost::dynamic_bitset<> ret{static_cast<size_t>(dim) };
-    //find the max fist
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      // equivalent, but has the problem of not working well for all coo types (in particular, mpz_class)
+    // equivalent, but has the problem of not working well for all coo types (in particular, mpz_class)
 //         max_coo = max_coo ^ ((max_coo ^ abs(point.get_absolute_coo(i))) & -(max_coo < abs(point.get_absolute_coo(i)) )); //<-works for positive coeffs
 
       // Note : The static_cast is needed to deactivate lazy evaluation inside mpz_class.
-      using std::max;
-      max_coo = max(max_coo, static_cast<ET>(abs(point.get_absolute_coo(i))));
-    }
+    using std::max;
+    max_coo = max(max_coo, static_cast<ET>(abs(point.get_absolute_coo(i))));
+  }
     //std::cout << "max_coo = " << max_coo << std::endl;
     //compute the 2nd-order approximation
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      ret[i] = (abs(2*point.get_absolute_coo(i))  >= max_coo) ? 1 : 0;
-    }
-    return ret;
+  for(uint_fast16_t i=0;i<dim;++i)
+  {
+    ret[i] = (abs(2*point.get_absolute_coo(i))  >= max_coo) ? 1 : 0;
   }
+  return ret;
+}
+*/
+
 
 /**
   This class stores the result of computing a scalar product of bitwise
