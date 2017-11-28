@@ -30,10 +30,338 @@ Consider moving (some) of them to SieveTraits
 **********************************************************/
 
 unsigned int constexpr sim_hash_len = 64;
-unsigned int constexpr sim_hash2_len = 64;
-unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
+//unsigned int constexpr sim_hash2_len = 64;
+//unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
 unsigned int constexpr num_of_levels = 3; //number of approximation level (bitapprox is of size sim_hash_len*num_of_levels
 unsigned int constexpr num_of_transforms = 5; //per 1 approximation (to get dim-dimensional binary vector)
+
+// Default Parameters are JUST FOR TESTING. Change these!
+template<class SieveTraits = void, bool MT = false> class CoordinateSelection; // forward declare
+
+}}
+
+
+
+namespace GaussSieve{ namespace SimHash {
+
+/*
+ stores (num_of_levels*num_of_transforms) permutation matrices of dim=ambient_dim
+  must be instantiated once at the start of the sieve
+ */
+class PMatrix
+{
+  private:
+  // vector is of size ambient_dimension. The individual permutation[i]'s are different.
+  std::vector<uint_fast16_t> permutation;
+  public:
+  PMatrix() = default;
+  PMatrix(unsigned int dim) //initialize with a random dim-dimensional permutation.
+  {
+    //TODO: TO CHECK!
+//    PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+//                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
+
+  DEBUG_SIEVE_TRACEINITIATLIZATIONS("about to initialize P matrix")
+  permutation.resize(dim);
+  for(uint_fast16_t i=0; i<dim; ++i) permutation[i] = i;
+  std::random_shuffle(permutation.begin(), permutation.end());
+
+//  std::vector <int_fast16_t> initial(ambient_dim);
+//  for (int_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
+//
+//  PMatrix::matrix.resize(PMatrix::total_num_of_matrices);
+//  for (uint_fast16_t j=0; j<PMatrix::total_num_of_matrices; ++j)
+//  {
+//            //permutes the array
+//    std::random_shuffle(initial.begin(), initial.end());
+//    PMatrix::matrix[j].resize(PMatrix::dim);
+//    PMatrix::matrix[j] = initial;
+//  }
+#ifdef DEBUG_SIEVE_TRACEINITIATLIZATIONS
+  print();
+#endif
+}
+
+  public:
+  template<class T> void apply(std::vector<T> &vec)
+  {
+    auto const dim = vec.size();
+    assert(dim == permutation.size());
+    std::vector<T> out(dim);
+    for(unsigned int i=0;i<dim;++i)
+    {
+      out[i] = vec[permutation[i]];
+    }
+    using std::swap;
+    swap(out,vec);
+    return;
+  }
+//
+//  //getter
+//  static inline int_fast16_t get_val (int_fast16_t iteration, int_fast16_t i)
+//  {
+//    return matrix[iteration][i];
+//  }
+
+public:
+//  static inline void print(std::ostream & os = std::cout)
+//  {
+//    for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
+//    {
+//      os << "P  [" << i <<"] is: " << std::endl;
+//      for (uint_fast16_t k=0; k<dim; ++k)
+//      {
+//        os << matrix[i][k] << " ";
+//      }
+//      os << std::endl;
+//    }
+//    os << std::endl;
+//  }
+
+  inline void print(std::ostream & os = std::cout)
+  {
+    // os << "P  [" << i <<"] is: " << std::endl;
+    for (uint_fast16_t k=0; k<permutation.size(); ++k)
+    {
+      os << permutation[k] << " ";
+    }
+    os << std::endl;
+  }
+
+////  static inline void print_ith (unsigned int i)
+////  {
+////    for (uint_fast16_t k=0; k<dim; ++k)
+////    {
+////      std::cout << matrix[i][k] << " ";
+////    }
+////  }
+////  private:
+////
+////  static unsigned int dim; //dimension of each transformation = ambient_dimension
+////  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
+////  static std::vector<OneTransform> matrix;
+};
+
+//unsigned int PMatrix::dim = 0;
+//unsigned int PMatrix::total_num_of_matrices = 0;
+//std::vector < std::vector<int_fast16_t> > PMatrix::matrix = {};
+
+
+/*
+template<>
+class StaticInitializer<class PMatrix>
+: public DefaultStaticInitializer<PMatrix>
+{
+  using Parent = DefaultStaticInitializer<PMatrix>;
+
+
+  public:
+
+  StaticInitializer(int ambient_dim)
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+    }
+    else
+    {
+      PMatrix::dim  = ambient_dim;
+
+      //TODO: TO CHECK!
+      PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
+
+      std::cout << "about to fill-up the P matrix " << std::endl;
+
+      std::vector <int_fast16_t> initial(ambient_dim);
+      for (int_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
+
+      PMatrix::matrix.resize(PMatrix::total_num_of_matrices);
+      for (uint_fast16_t j=0; j<PMatrix::total_num_of_matrices; ++j)
+      {
+            //permutes the array
+            std::random_shuffle(initial.begin(), initial.end());
+            PMatrix::matrix[j].resize(PMatrix::dim);
+            PMatrix::matrix[j] = initial;
+        }
+
+      PMatrix::print();
+
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing PMatrix; Counter is " << Parent::user_count )
+  }
+};
+*/
+
+}} // end namespace GaussSieve::SimHash
+
+namespace GaussSieve { namespace SimHash {
+
+/**
+  A diagonal matrix with +/-1 on the diagonal.
+*/
+
+class DMatrix
+{
+  //friend StaticInitializer<DMatrix>;
+  private:
+  std::vector<uint_fast8_t> diagonal;
+  public:
+  DMatrix() = default;
+  DMatrix(unsigned int const dim)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("about to fill-up the D matrix")
+
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_int_distribution<uint_fast8_t> distr(0, 1); //0 means no sign-flip, 1 means sign-flip.
+    diagonal.resize(dim);
+    for(uint_fast16_t i=0;i<dim;++i)
+    {
+      diagonal[i] = distr(rng);
+    }
+
+//      for (uint_fast16_t i=0; i<DMatrix::total_num_of_matrices; ++i)
+//      {
+//        OneTransform tmp;
+//        for (uint_fast16_t k=0; k<DMatrix::dim; ++k)
+//            tmp.push_back( distr(rng) );
+//
+//        DMatrix::matrix.push_back(tmp);
+//      }
+#ifdef DEBUG_SIEVE_TRACEINITIATLIZATIONS
+    print();
+#endif
+  }
+  template<class T> void apply(std::vector<T> &vec)
+  {
+    auto const dim = vec.size();
+    assert(dim == diagonal.size());
+    for(unsigned int i = 0;i<dim;++i)
+    {
+      if(diagonal[i]!=0) vec[i] = -vec[i]; //otherwise, keep vec[i] as it is.
+    }
+  }
+
+  //using OneTransform = std::vector<int_fast16_t> ; //of dimension dim
+
+//  public:
+//  DMatrix() = delete;
+//
+//  DMatrix(DMatrix const &) = delete;
+//  DMatrix(DMatrix &&obj)   = delete;
+//
+//  DMatrix   &operator=(DMatrix const &obj) = delete;
+//  DMatrix   &operator=(DMatrix &obj)       = delete;
+
+  //getter
+//  static inline int_fast16_t get_val (int_fast16_t iteration, int_fast16_t i)
+//  {
+//    return matrix[iteration][i];
+//  }
+
+  public:
+  inline void print(std::ostream & os = std::cout)
+  {
+//    for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
+//    {
+//      std::cout << "D  [" << i <<"] is: " << std::endl;
+//      for (uint_fast16_t k=0; k<dim; ++k)
+//      {
+//        std::cout << matrix[i][k] << " ";
+//      }
+//      std::cout << std::endl;
+//    }
+//    std::cout << std::endl;
+//    os << "D  [" << i <<"] is: " << std::endl;
+    for (uint_fast16_t k=0;k<diagonal.size(); ++k )
+    {
+      os << diagonal[k] << " ";
+    }
+    os << std::endl;
+  }
+
+//  static inline void print_ith (unsigned int i)
+//  {
+//    for (uint_fast16_t k=0; k<dim; ++k)
+//    {
+//      std::cout << matrix[i][k] << " ";
+//    }
+//  }
+
+//  private:
+
+//  static unsigned int dim; //dimension of each transformation = ambient_dimension
+//  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
+//  static std::vector<OneTransform> matrix;
+};
+
+//unsigned int DMatrix::dim = 0;
+//unsigned int DMatrix::total_num_of_matrices = 0;
+//std::vector < std::vector<int_fast16_t> > DMatrix::matrix = {};
+
+/*
+template<>
+class StaticInitializer<class DMatrix>
+: public DefaultStaticInitializer<DMatrix>
+{
+  using Parent = DefaultStaticInitializer<DMatrix>;
+
+  using OneTransform = std::vector<int_fast16_t> ;
+
+  public:
+  StaticInitializer(int ambient_dim)
+  {
+    assert(Parent::user_count > 0);
+    if(Parent::user_count>1)
+    {
+    }
+    else
+    {
+      DMatrix::dim = ambient_dim;
+
+      DMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
+
+
+      //std::cout << "about to fill-up the D matrix " << std::endl;
+
+      std::mt19937 rng;
+      rng.seed(std::random_device()());
+      std::uniform_int_distribution<std::mt19937::result_type> distr(-1, 1);
+
+      for (uint_fast16_t i=0; i<DMatrix::total_num_of_matrices; ++i)
+      {
+        OneTransform tmp;
+        for (uint_fast16_t k=0; k<DMatrix::dim; ++k)
+            tmp.push_back( distr(rng) );
+
+        DMatrix::matrix.push_back(tmp);
+      }
+
+      DMatrix::print();
+
+    }
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing DMatrix; Counter is " << Parent::user_count )
+  }
+  ~StaticInitializer()
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing DMatrix; Counter is " << Parent::user_count )
+  }
+
+};
+*/
+
+}} // end namespace GaussSieve::SimHash
+
+
+
+
+namespace GaussSieve{ namespace SimHash {
 
 /********************************************************************
 SimHash::CoordinateSelection<SieveTraits,IsMultithreaded>
@@ -58,30 +386,41 @@ class CoordinateSelection
   public:
   friend StaticInitializer<CoordinateSelection<SieveTraits,MT>>;
   CoordinateSelection() = delete; // cannot be instantiated.
-  static inline void print(std::ostream &os = std::cout)
-  {
-    os << "relevant matrix is: " << std::endl;
-    for (uint_fast16_t i=0; i<sim_hash_len; i++)
-    {
-      for (uint_fast16_t j=0; j< sim_hash_number_of_coos; ++j)
-      {
-        os << rel_coo[i][j] << ", ";
-      }
-      os << std::endl;
-    }
-  }
-  static inline uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
-  {
-    return rel_coo[i][j];
-  }
-
+//  static inline void print(std::ostream &os = std::cout)
+//  {
+//    os << "relevant matrix is: " << std::endl;
+//    for (uint_fast16_t i=0; i<sim_hash_len; i++)
+//    {
+//      for (uint_fast16_t j=0; j< sim_hash_number_of_coos; ++j)
+//      {
+//        os << rel_coo[i][j] << ", ";
+//      }
+//      os << std::endl;
+//    }
+//  }
+//  static inline uint_fast16_t get_ij_value(uint_fast16_t i, uint_fast16_t j)
+//  {
+//    return rel_coo[i][j];
+//  }
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  inline static auto transform_and_bitapprox(LatP const &point)
+    -> std::array<std::bitset<sim_hash_len>,num_of_levels>;
+//  static std::array<uint_fast16_t, sim_hash_number_of_coos> rel_coo[sim_hash_len];
   private:
-  static std::array<uint_fast16_t, sim_hash_number_of_coos> rel_coo[sim_hash_len];
+  static unsigned int number_of_blocks;
+  static unsigned int fast_walsh_hadamard_len;
+  static std::vector<std::array<PMatrix,num_of_transforms> > pmatrices;
+  static std::vector<std::array<DMatrix,num_of_transforms> > dmatrices;
 };
 
 template<class SieveTraits,bool MT>
-std::array<uint_fast16_t,sim_hash_number_of_coos> CoordinateSelection<SieveTraits,MT>::rel_coo[sim_hash_len] = {};
-
+unsigned int CoordinateSelection<SieveTraits,MT>::number_of_blocks;
+template<class SieveTraits,bool MT>
+std::vector<std::array<PMatrix,num_of_transforms> > CoordinateSelection<SieveTraits,MT>::pmatrices;
+template<class SieveTraits,bool MT>
+std::vector<std::array<DMatrix,num_of_transforms> > CoordinateSelection<SieveTraits,MT>::dmatrices;
+template<class SieveTraits,bool MT>
+unsigned int CoordinateSelection<SieveTraits,MT>::fast_walsh_hadamard_len;
 }} // end namespace GaussSieve::BitApprox
 
 
@@ -113,15 +452,29 @@ class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
     }
     else
     {
-      std::mt19937 rng;
-      rng.seed(std::random_device()()); // TODO: Make this deterministic?
-      std::uniform_int_distribution<std::mt19937::result_type> distr(0,ambient_dimension-1);
+      // TODO: Check
+//      Data::total_number_of_matrices = static_cast<int>(( (SimHash::sim_hash_len / ambient_dim) + 1)*
+//                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
 
-      for (uint_fast16_t i=0; i< SimHash::sim_hash_len; ++i)
+      Data::number_of_blocks =  (SimHash::num_of_levels * SimHash::sim_hash_len -1) / ambient_dimension + 1;
+      // num_of_levels * sim_hash_len is the total number of required bits in the output simhashes.
+      // We need ceil(total number of required bits / ambient_dimension) blocks (i.e. repetitions of the input
+      // vector) to get at least that many output bits.
+
+      Data::fast_walsh_hadamard_len = static_cast<unsigned int>( pow(2, floor(log2(ambient_dimension)) ) );
+
+      Data::pmatrices.resize(Data::number_of_blocks);
+      Data::dmatrices.resize(Data::number_of_blocks);
+      for(unsigned int i=0;i<Data::number_of_blocks;++i)
       {
-        for(uint_fast16_t j=0; i<SimHash::sim_hash_number_of_coos; ++j ) Data::rel_coo[i][j] = distr(rng);
+        for(unsigned int j=0; j< SimHash::num_of_transforms; ++j)
+        {
+          Data::pmatrices[i][j] = static_cast<SimHash::PMatrix>(ambient_dimension);
+          Data::dmatrices[i][j] = static_cast<SimHash::DMatrix>(ambient_dimension);
+        }
       }
-      Data::print();
+      // TODO
+      //Data::print();
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing CoordinateSelection; Counter is " << Parent::user_count )
   }
@@ -130,11 +483,335 @@ class StaticInitializer<SimHash::CoordinateSelection<SieveTraits,MT> >
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing CoordinateSelection; Counter is " << Parent::user_count )
   }
 };
+} // end namespace GaussSieve
+
+
+
+
+
+
+
+
+namespace GaussSieve{ namespace SimHash{
+
+
+/**
+ fast_partial_walsh_hadamard<len>(input) performs (fast) Walsh-Hadamard Transform on the first
+ len coordinates of its input. len is enforced to be a power of two and input must be either
+ a std::vector or a std::array. The entries of the vector / array must support arithmentic (+,-) and
+ be default-constructible and swappable.
+*/
+template<class T>
+inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
+{
+  //static_assert(is_a_power_of_two(len), "len must be a power of two");
+
+  assert(len <= input.size() ); //maybe static
+  std::vector<T> output(input.size() );
+
+  //lower matrix with 1's on the main diag
+  for (uint_fast16_t i =len; i<output.size(); ++i)
+  {
+    output[i] = input[i];
+  }
+
+  //on [0...len-1] coordinates perform WH
+
+  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
+  {
+    for(uint_fast16_t j = 0; j < len ; j++)
+    {
+      output[j]= ((j/i)%2!=0) ? static_cast<T>(input[j-i] - input[j]) : static_cast<T>(input[j] + input[i+j]);
+    }
+    std::swap(input,output);
+  }
+
+
+  return output;
+}
+
+template<class T, std::size_t arraylen>
+inline std::array<T,arraylen> fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
+{
+  //static_assert(is_a_power_of_two(len), "len must be a power of two");
+  //static_assert(arraylen >= len, "Cannot perfor WH-Transform on array of smaller size");
+  std::array<T,arraylen> output(); // assumes that entries are default-constructible.
+  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
+  {
+    for(uint_fast16_t j = 0; j < len ; j++)
+    {
+      output[j]= ((j/i)%2!=0) ? static_cast<T>(input[j-i] - input[j]) : static_cast<T>(input[j] + input[i+j]);
+    }
+    std::swap(input,output);
+  }
+  return output;
 }
 
 
-namespace GaussSieve
+/*
+ Compute (Walsh_Hadamard * D_level * P_level) * LatP
+ */
+//template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+//inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_t iteration)
+//{
+//
+//  //std::cout << "inside transform_and_bitapprox" << std::endl;
+//
+//  unsigned int dim = static_cast<unsigned int>(point.get_dim());
+//  std::vector<bool> ret(dim);
+//
+//  using ET = Get_CoordinateType<LatP>;
+//  std::vector<ET> vec(dim);
+//
+//
+//  // REPEAT num_of_transforms TIMES
+//  for(uint_fast16_t j = iteration; j<iteration+SimHash::num_of_transforms; ++j)
+//  {
+//
+//    //TODO:merge the loops
+//
+//    std::cout << "PMatrix used: " << std::endl;
+//    PMatrix::print_ith(j);
+//
+//
+//
+//    //apply PMatrix
+//    for (uint_fast16_t i= 0; i<dim; ++i)
+//    {
+//      vec[i] = point[PMatrix::get_val(j, i)];
+//    }
+//
+//    std::cout << "DMatrix used: " << std::endl;
+//    DMatrix::print_ith(j);
+//
+//    //apply DMatrix
+//    for (uint_fast16_t i= 0; i<dim; ++i)
+//    {
+//      vec[i] = (DMatrix::get_val(j, i) > 0) ? vec[i] : -vec[i];
+//    }
+//
+//
+//    //apply W-H
+//    unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
+//    vec = fast_partial_walsh_hadamard<ET>(vec, len);
+//  }
+//
+//  std::cout << std::endl;
+//
+//  for(uint_fast16_t i=0;i<dim;++i)
+//  {
+//    ret[i] = (vec[i]>=0) ? 1: 0;
+//    std::cout << ret[i] << " ";
+//  }
+//
+//  std::cout << std::endl;
+//
+//  return ret;
+//}
+
+template<class SieveTraits, bool MT>
+template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
+inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP const &point) //, uint_fast16_t iteration)
+-> std::array<std::bitset<sim_hash_len>,num_of_levels>
 {
+  unsigned int dim = static_cast<unsigned int>(point.get_dim());
+  using ET = Get_AbsoluteCooType<LatP>;
+  using Block  = std::vector<ET>; // will be of length dim.
+  Block copy_of_point(dim);
+  for(unsigned int i = 0;i<dim;++i)
+  {
+    copy_of_point[i] = point.get_absolute_coo(i);
+  }
+  std::vector<Block> blocks(number_of_blocks,copy_of_point); //holds number_of_blocks many copies of the input point.
+  for(uint_fast16_t i=0; i<number_of_blocks;++i ) // for each block:
+  {
+    for(uint_fast8_t j=0; j<num_of_transforms;++j) // repeat num_of_transforms many times:
+    {
+      pmatrices[i][j].apply(blocks[i]);
+      dmatrices[i][j].apply(blocks[i]);
+      blocks[i] = fast_partial_walsh_hadamard(blocks[i],fast_walsh_hadamard_len);
+    }
+  }
+  // put together the blocks into an array of bitsets.
+  std::array<std::bitset<sim_hash_len>,num_of_levels> ret;
+  for(unsigned int n=0;n<num_of_levels;++n)
+  {
+    for(unsigned int m=0;m<sim_hash_len;++m)
+    {
+      // index of the bit currently considered
+      // if we use only one level of indexing.
+      unsigned int const flat_bit_count = n*sim_hash_len + m;
+
+      ret[n][m] = (blocks[flat_bit_count / dim][flat_bit_count % dim] > 0);
+    }
+  }
+  return ret;
+
+
+//  // REPEAT num_of_transforms TIMES
+//  for(uint_fast16_t j = iteration; j<iteration+SimHash::num_of_transforms; ++j)
+//  {
+//
+//    //TODO:merge the loops
+//
+//    std::cout << "PMatrix used: " << std::endl;
+//    PMatrix::print_ith(j);
+//
+//
+//
+//    //apply PMatrix
+//    for (uint_fast16_t i= 0; i<dim; ++i)
+//    {
+//      vec[i] = point[PMatrix::get_val(j, i)];
+//    }
+//
+//    std::cout << "DMatrix used: " << std::endl;
+//    DMatrix::print_ith(j);
+//
+//    //apply DMatrix
+//    for (uint_fast16_t i= 0; i<dim; ++i)
+//    {
+//      vec[i] = (DMatrix::get_val(j, i) > 0) ? vec[i] : -vec[i];
+//    }
+//
+//
+//    //apply W-H
+//    unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
+//    vec = fast_partial_walsh_hadamard<ET>(vec, len);
+//  }
+//
+//  std::cout << std::endl;
+//
+//  for(uint_fast16_t i=0;i<dim;++i)
+//  {
+//    ret[i] = (vec[i]>=0) ? 1: 0;
+//    std::cout << ret[i] << " ";
+//  }
+//
+//  std::cout << std::endl;
+//
+//  return ret;
+}
+
+
+
+//TODO: not tested
+/*
+ computes all levels of approximation
+ */
+
+ /*
+template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> compute_fixed_bitapprox_level(LatP const &point)
+{
+  std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> ret;
+
+  unsigned int dim = static_cast<unsigned int>(point.get_dim());
+
+  unsigned int pos = 0;
+  unsigned int lvl = 0;
+  unsigned int matrix_index = 0;
+
+  std::vector<bool> current_approx;
+
+  std::cout << "received point: " << point << std::endl;
+
+  while (lvl<SimHash::num_of_levels)
+  {
+
+    //fill the approximation with the remainings from the current_approx computed at the prev. lvl
+
+    unsigned int start_ind = SimHash::sim_hash_len - (pos - dim);
+    pos = pos % SimHash::sim_hash_len;
+
+    for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos); ++i)
+    {
+      ret[lvl][i] = current_approx[i+start_ind];
+      std::cout << ret[i][lvl] << " ";
+    }
+
+    std::cout << std::endl;
+
+    //compute transformation and concatenate the result until all the coords of lvl will be filled
+    while(pos < SimHash::sim_hash_len)
+    {
+      current_approx = transform_and_bitapprox(point, matrix_index);
+      for(unsigned int i=pos; i<std::min(SimHash::sim_hash_len, pos+dim); ++i)
+      {
+        ret[lvl][i] = current_approx[i-pos];
+        std::cout <<ret[lvl][i] << " ";
+      }
+      pos+=dim;
+      //std::cout << "pos = " << pos << std::endl;
+      matrix_index+=SimHash::num_of_transforms;
+      //std::cout << "matrix_index = " << matrix_index << std::endl;
+
+      std::cout << std::endl;
+    }
+
+    std::cout << "lvl:" << lvl << " bitapprox = [";
+    std::cout << ret[lvl] << " ";
+    std::cout << "]" << std::endl;
+    lvl++;
+
+  }
+
+  return ret;
+}
+*/
+
+
+/**
+  This class stores the result of computing a scalar product of bitwise
+  approximations.
+  Essentially, just wraps around an int.
+  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
+*/
+
+//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+class BitApproxScalarProduct
+{
+
+  public:
+  using BitApproxScalarProduct_WrappedType       = uint_fast32_t;
+
+
+  BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
+  BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
+
+  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
+  explicit operator BitApproxScalarProduct_WrappedType() { return value; }
+
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
+  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
+
+  //TODO: operator >=, <=
+
+  inline bool operator<=(BitApproxScalarProduct_WrappedType && rhs)
+  {
+    return  this->value <= rhs;
+  }
+
+  /*
+  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
+  {
+    os<< value;
+    return os;
+  }
+   */
+  //member
+  BitApproxScalarProduct_WrappedType value;
+};
+//#endif
+
+
+
+}} //end namespace GaussSieve::SimHash
+
+
+
+// OLD UNUSED CODE
+
 
 /*
 class RelevantCoordinates;
@@ -244,499 +921,6 @@ class StaticInitializer<class RelevantCoordinates>
   must be instantiated once at the start of the sieve
  */
 
-class DMatrix
-{
-  friend StaticInitializer<DMatrix>;
-
-  using OneTransform = std::vector<int_fast16_t> ; //of dimension dim
-
-  public:
-  DMatrix() = delete;
-
-  DMatrix(DMatrix const &) = delete;
-  DMatrix(DMatrix &&obj)   = delete;
-
-  DMatrix   &operator=(DMatrix const &obj) = delete;
-  DMatrix   &operator=(DMatrix &obj)       = delete;
-
-  //getter
-  static inline int_fast16_t get_val (int_fast16_t iteration, int_fast16_t i)
-  {
-    return matrix[iteration][i];
-  }
-
-  public:
-  static inline void print()
-  {
-    for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
-    {
-      std::cout << "D  [" << i <<"] is: " << std::endl;
-      for (uint_fast16_t k=0; k<dim; ++k)
-      {
-        std::cout << matrix[i][k] << " ";
-      }
-      std::cout << std::endl;
-    }
-
-    std::cout << std::endl;
-  }
-
-  static inline void print_ith (unsigned int i)
-  {
-    for (uint_fast16_t k=0; k<dim; ++k)
-    {
-      std::cout << matrix[i][k] << " ";
-    }
-  }
-
-  private:
-
-  static unsigned int dim; //dimension of each transformation = ambient_dimension
-  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
-  static std::vector<OneTransform> matrix;
-};
-
-
-unsigned int DMatrix::dim = 0;
-unsigned int DMatrix::total_num_of_matrices = 0;
-std::vector < std::vector<int_fast16_t> > DMatrix::matrix = {};
-
-
-template<>
-class StaticInitializer<class DMatrix>
-: public DefaultStaticInitializer<DMatrix>
-{
-  using Parent = DefaultStaticInitializer<DMatrix>;
-
-  using OneTransform = std::vector<int_fast16_t> ;
-
-  public:
-  StaticInitializer(int ambient_dim)
-  {
-    assert(Parent::user_count > 0);
-    if(Parent::user_count>1)
-    {
-    }
-    else
-    {
-      DMatrix::dim = ambient_dim;
-
-      DMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
-                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
-
-
-      //std::cout << "about to fill-up the D matrix " << std::endl;
-
-      std::mt19937 rng;
-      rng.seed(std::random_device()());
-      std::uniform_int_distribution<std::mt19937::result_type> distr(-1, 1);
-
-      for (uint_fast16_t i=0; i<DMatrix::total_num_of_matrices; ++i)
-      {
-        OneTransform tmp;
-        for (uint_fast16_t k=0; k<DMatrix::dim; ++k)
-            tmp.push_back( distr(rng) );
-
-        DMatrix::matrix.push_back(tmp);
-      }
-
-      DMatrix::print();
-
-    }
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing DMatrix; Counter is " << Parent::user_count )
-  }
-  ~StaticInitializer()
-  {
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing DMatrix; Counter is " << Parent::user_count )
-  }
-
-};
-
-
-
-
-/*
- stores (num_of_levels*num_of_transforms) permutation matrices of dim=ambient_dim
-  ambient_dim is passed via template
-  must be instantiated once at the start of the sieve
- */
-class PMatrix
-{
-  friend StaticInitializer<PMatrix>;
-
-  using OneTransform = std::vector<int_fast16_t> ; //of dimension dim
-
-  public:
-  PMatrix() = delete;
-
-  PMatrix(PMatrix const &) = delete;
-  PMatrix(PMatrix &&obj)   = delete;
-
-  PMatrix   &operator=(PMatrix const &obj) = delete;
-  PMatrix   &operator=(PMatrix &obj)       = delete;
-
-  //getter
-  static inline int_fast16_t get_val (int_fast16_t iteration, int_fast16_t i)
-  {
-    return matrix[iteration][i];
-  }
-
-  public:
-  static inline void print()
-  {
-
-
-    for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
-    {
-      std::cout << "P  [" << i <<"] is: " << std::endl;
-      for (uint_fast16_t k=0; k<dim; ++k)
-        std::cout << matrix[i][k] << " ";
-
-      std::cout << std::endl;
-
-    }
-
-    std::cout << std::endl;
-  }
-
-  static inline void print_ith (unsigned int i)
-  {
-    for (uint_fast16_t k=0; k<dim; ++k)
-        std::cout << matrix[i][k] << " ";
-  }
-  private:
-
-  static unsigned int dim; //dimension of each transformation = ambient_dimension
-  static unsigned int total_num_of_matrices; //ceil( (num_of_transforms * num_of_levels)  sim_hash_len   / ambient_dimension)
-  static std::vector<OneTransform> matrix;
-};
-
-unsigned int PMatrix::dim = 0;
-unsigned int PMatrix::total_num_of_matrices = 0;
-std::vector < std::vector<int_fast16_t> > PMatrix::matrix = {};
-
-template<>
-class StaticInitializer<class PMatrix>
-: public DefaultStaticInitializer<PMatrix>
-{
-  using Parent = DefaultStaticInitializer<PMatrix>;
-
-
-  public:
-
-  StaticInitializer(int ambient_dim)
-  {
-    assert(Parent::user_count > 0);
-    if(Parent::user_count>1)
-    {
-    }
-    else
-    {
-      PMatrix::dim  = ambient_dim;
-
-      //TODO: TO CHECK!
-      PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
-                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
-
-      std::cout << "about to fill-up the P matrix " << std::endl;
-
-      std::vector <int_fast16_t> initial(ambient_dim);
-      for (int_fast16_t i =0; i<ambient_dim; ++i) initial[i] = i;
-
-      PMatrix::matrix.resize(PMatrix::total_num_of_matrices);
-      for (uint_fast16_t j=0; j<PMatrix::total_num_of_matrices; ++j)
-      {
-            //permutes the array
-            std::random_shuffle(initial.begin(), initial.end());
-            PMatrix::matrix[j].resize(PMatrix::dim);
-            PMatrix::matrix[j] = initial;
-        }
-
-      PMatrix::print();
-
-    }
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing PMatrix; Counter is " << Parent::user_count )
-  }
-  ~StaticInitializer()
-  {
-    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing PMatrix; Counter is " << Parent::user_count )
-  }
-};
-
-
-} // end namespace GaussSieve
-
-
-// helpers for the function below, do not use.
-namespace GaussSieve{ namespace SimHash { namespace Helpers{
-template<int SizeOfBitSet> struct MakeBitApprox_Helper
-{
-  static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
-  {
-    auto const dim = point.get_dim();
-    static_assert(dim == SizeOfBitSet, "Only usable if size of bitset equals fixed ambient dim of vector");
-    std::bitset<SizeOfBitSet> ret;
-    for(uint_fast16_t i=0; i<dim; ++i )
-    {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 :0;
-    }
-    return ret;
-  }
-};
-
-// variable-dim version:
-template<> struct MakeBitApprox_Helper<-1>
-{
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
-  {
-    auto const dim = point.get_dim();
-    boost::dynamic_bitset<> ret{ static_cast<size_t>(dim) };
-//    ret.resize(dim);
-    for(uint_fast16_t i=0;i<dim;++i)
-    {
-      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
-    }
-    return ret;
-  }
-};
-}}} // end namespace GaussSieve::SimHash::Helpers
-
-namespace GaussSieve{ namespace SimHash{
-
-/**
-  compute_coordinate_wise_bitapproximation<length>(point)
-  computes the coordinate wise 1-bit-approximation of the lattice point point.
-  It returns a std::bitset<length> for lenght>= 0 or boost::dynamic_bitset for length == -1.
-  Currently, the length parameter (if >=0) has to match the (fixed!) dimension of the lattice point.
-  For length==1, the dynamic_bitset that is returned has length equal to the dimension of point.
-*/
-template<int SizeOfBitSet,class LatP>
-auto compute_coordinate_wise_bitapproximation(LatP const &point)
--> decltype(Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(std::declval<LatP>() ))
-{
-  static_assert(IsALatticePoint<mystd::decay_t<LatP>>::value,"Not a lattice point.");
-  return Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(point);
-}
-}}// end namespace GaussSieve::SimHash
-
-namespace GaussSieve{ namespace SimHash{
-
-//assume sim_hash2_len is a power-of-two.
-
-// deprecated. Use versions below (faster, more flexible)
-// not for now
-template<class T>
-inline std::vector<T> fast_walsh_hadamard_ext(std::vector<T> input, unsigned int len)
-{
-
-  std::vector<T> output (input.size());
-  std::vector<T> tmp = input;
-  uint_fast16_t i, j, s;
-
-  for (i = len>>1; i > 0; i>>=1)
-  {
-    for (j = 0; j < len; j++)
-    {
-      s = (j/i)%2;
-      output[j]=input[(s?-i:0)+j]+(s?-1:1)*input[(s?0:i)+j];
-    }
-    //tmp = inp; inp = out; out = tmp;
-    std::swap(input, output);
-  }
-
-  //lower matrix with 1's on the main diag
-  for (i =len; i<output.size(); ++i)
-  {
-    output[i] = tmp[i];
-  }
-
-  return output;
-}
-
-
-/**
- fast_partial_walsh_hadamard<len>(input) performs (fast) Walsh-Hadamard Transform on the first
- len coordinates of its input. len is enforced to be a power of two and input must be either
- a std::vector or a std::array. The entries of the vector / array must support arithmentic (+,-) and
- be default-constructible and swappable.
-*/
-template<class T>
-inline std::vector<T>  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
-{
-  //static_assert(is_a_power_of_two(len), "len must be a power of two");
-
-  assert(len <= input.size() ); //maybe static
-  std::vector<T> output(input.size() );
-
-
-
-  //lower matrix with 1's on the main diag
-  for (uint_fast16_t i =len; i<output.size(); ++i)
-  {
-    output[i] = input[i];
-  }
-
-  //on [0...len-1] coordinates perform WH
-
-  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
-  {
-    for(uint_fast16_t j = 0; j < len ; j++)
-    {
-      output[j]= ((j/i)%2!=0) ? static_cast<T>(input[j-i] - input[j]) : static_cast<T>(input[j] + input[i+j]);
-    }
-    std::swap(input,output);
-  }
-
-
-  return output;
-}
-
-template<class T, std::size_t arraylen>
-inline std::array<T,arraylen> fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned int len) // Note: Pass by value is intentional. We modify the local copy.
-{
-  //static_assert(is_a_power_of_two(len), "len must be a power of two");
-  //static_assert(arraylen >= len, "Cannot perfor WH-Transform on array of smaller size");
-  std::array<T,arraylen> output(); // assumes that entries are default-constructible.
-  for (uint_fast16_t i = len >> 1; i> 0; i>>=1 )
-  {
-    for(uint_fast16_t j = 0; j < len ; j++)
-    {
-      output[j]= ((j/i)%2!=0) ? static_cast<T>(input[j-i] - input[j]) : static_cast<T>(input[j] + input[i+j]);
-    }
-    std::swap(input,output);
-  }
-  return output;
-}
-
-
-/*
- Compute (Walsh_Hadamard * D_level * P_level) * LatP
- */
-template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_t iteration)
-{
-
-  //std::cout << "inside transform_and_bitapprox" << std::endl;
-
-  unsigned int dim = static_cast<unsigned int>(point.get_dim());
-  std::vector<bool> ret(dim);
-
-  using ET = Get_CoordinateType<LatP>;
-  std::vector<ET> vec(dim);
-
-
-  // REPEAT num_of_transforms TIMES
-  for(uint_fast16_t j = iteration; j<iteration+SimHash::num_of_transforms; ++j)
-  {
-
-    //TODO:merge the loops
-
-    //std::cout << "PMatrix used: " << std::endl;
-    //PMatrix::print_ith(j);
-
-
-
-    //apply PMatrix
-    for (uint_fast16_t i= 0; i<dim; ++i)
-    {
-      vec[i] = point[PMatrix::get_val(j, i)];
-    }
-
-    //std::cout << "DMatrix used: " << std::endl;
-    //DMatrix::print_ith(j);
-
-    //apply DMatrix
-    for (uint_fast16_t i= 0; i<dim; ++i)
-    {
-      vec[i] = (DMatrix::get_val(j, i) > 0) ? vec[i] : -vec[i];
-    }
-
-
-    //apply W-H
-    unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
-    vec = fast_partial_walsh_hadamard<ET>(vec, len);
-  }
-
-  //std::cout << std::endl;
-
-  for(uint_fast16_t i=0;i<dim;++i)
-  {
-    ret[i] = (vec[i]>=0) ? 1: 0;
-    //std::cout << ret[i] << " ";
-  }
-
-  //std::cout << std::endl;
-
-  return ret;
-}
-
-
-
-//TODO: not tested
-/*
- computes all levels of approximation
- */
-
-template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> compute_fixed_bitapprox_level(LatP const &point)
-{
-  std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> ret;
-
-  unsigned int dim = static_cast<unsigned int>(point.get_dim());
-
-  unsigned int pos = 0;
-  unsigned int lvl = 0;
-  unsigned int matrix_index = 0;
-
-  std::vector<bool> current_approx;
-
-  //std::cout << "received point: " << point << std::endl;
-
-  while (lvl<SimHash::num_of_levels)
-  {
-
-    //fill the approximation with the remainings from the current_approx computed at the prev. lvl
-
-    unsigned int start_ind = SimHash::sim_hash_len - (pos - dim);
-    pos = pos % SimHash::sim_hash_len;
-
-    for(unsigned int i=0; i<std::min(SimHash::sim_hash_len, pos); ++i)
-    {
-      ret[lvl][i] = current_approx[i+start_ind];
-      //std::cout << ret[i][lvl] << " ";
-    }
-
-
-    //compute transformation and concatenate the result until all the coords of lvl will be filled
-    while(pos < SimHash::sim_hash_len)
-    {
-      current_approx = transform_and_bitapprox(point, matrix_index);
-      for(unsigned int i=pos; i<std::min(SimHash::sim_hash_len, pos+dim); ++i)
-      {
-        ret[lvl][i] = current_approx[i-pos];
-        //std::cout <<ret[lvl][i] << " ";
-      }
-      pos+=dim;
-      //std::cout << "pos = " << pos << std::endl;
-      matrix_index+=SimHash::num_of_transforms;
-      //std::cout << "matrix_index = " << matrix_index << std::endl;
-
-      //std::cout << std::endl;
-    }
-
-    //std::cout << "lvl:" << lvl << " bitapprox = [";
-    //std::cout << ret[lvl] << " ";
-    //std::cout << "]" << std::endl;
-    lvl++;
-
-  }
-
-  return ret;
-}
-
 /*
 template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
 inline std::bitset<sim_hash_len> compute_fixed_bitapproximation(LatP const &point)
@@ -834,53 +1018,99 @@ static inline boost::dynamic_bitset<> compute_2nd_order_bitapproximation(LatP co
 }
 */
 
+// helpers for the function below, do not use.
+namespace GaussSieve{ namespace SimHash { namespace Helpers{
+template<int SizeOfBitSet> struct MakeBitApprox_Helper
+{
+  static_assert(SizeOfBitSet>=0, "Only for fixed-size bit-sets.");
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
+  {
+    auto const dim = point.get_dim();
+    static_assert(dim == SizeOfBitSet, "Only usable if size of bitset equals fixed ambient dim of vector");
+    std::bitset<SizeOfBitSet> ret;
+    for(uint_fast16_t i=0; i<dim; ++i )
+    {
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 :0;
+    }
+    return ret;
+  }
+};
+
+// variable-dim version:
+template<> struct MakeBitApprox_Helper<-1>
+{
+  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
+  {
+    auto const dim = point.get_dim();
+    boost::dynamic_bitset<> ret{ static_cast<size_t>(dim) };
+//    ret.resize(dim);
+    for(uint_fast16_t i=0;i<dim;++i)
+    {
+      ret[i] = (point.get_absolute_coo(i)>=0) ? 1 : 0;
+    }
+    return ret;
+  }
+};
+}}} // end namespace GaussSieve::SimHash::Helpers
+
+namespace GaussSieve{ namespace SimHash{
 
 /**
-  This class stores the result of computing a scalar product of bitwise
-  approximations.
-  Essentially, just wraps around an int.
-  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
+  compute_coordinate_wise_bitapproximation<length>(point)
+  computes the coordinate wise 1-bit-approximation of the lattice point point.
+  It returns a std::bitset<length> for lenght>= 0 or boost::dynamic_bitset for length == -1.
+  Currently, the length parameter (if >=0) has to match the (fixed!) dimension of the lattice point.
+  For length==1, the dynamic_bitset that is returned has length equal to the dimension of point.
 */
+template<int SizeOfBitSet,class LatP>
+auto compute_coordinate_wise_bitapproximation(LatP const &point)
+-> decltype(Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(std::declval<LatP>() ))
+{
+  static_assert(IsALatticePoint<mystd::decay_t<LatP>>::value,"Not a lattice point.");
+  return Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(point);
+}
+}}// end namespace GaussSieve::SimHash
 
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-class BitApproxScalarProduct
+
+
+
+namespace GaussSieve{ namespace SimHash{
+
+//assume sim_hash2_len is a power-of-two.
+
+// deprecated. Use versions below (faster, more flexible)
+// not for now
+template<class T>
+inline std::vector<T> fast_walsh_hadamard_ext(std::vector<T> input, unsigned int len)
 {
 
-  public:
-  using BitApproxScalarProduct_WrappedType       = uint_fast32_t;
+  std::vector<T> output (input.size());
+  std::vector<T> tmp = input;
+  uint_fast16_t i, j, s;
 
-
-  BitApproxScalarProduct(BitApproxScalarProduct const &old) = delete; // why not copy ints?
-  BitApproxScalarProduct(BitApproxScalarProduct &&old)      = default;
-
-  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
-  explicit operator BitApproxScalarProduct_WrappedType() { return value; }
-
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete; // Why?
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
-
-  //TODO: operator >=, <=
-
-  inline bool operator<=(BitApproxScalarProduct_WrappedType && rhs)
+  for (i = len>>1; i > 0; i>>=1)
   {
-    return  this->value <= rhs;
+    for (j = 0; j < len; j++)
+    {
+      s = (j/i)%2;
+      output[j]=input[(s?-i:0)+j]+(s?-1:1)*input[(s?0:i)+j];
+    }
+    //tmp = inp; inp = out; out = tmp;
+    std::swap(input, output);
   }
 
-  /*
-  friend std::ostream& operator<<(std::ostream &os, BitApproxScalarProduct const &value)
+  //lower matrix with 1's on the main diag
+  for (i =len; i<output.size(); ++i)
   {
-    os<< value;
-    return os;
+    output[i] = tmp[i];
   }
-   */
-  //member
-  BitApproxScalarProduct_WrappedType value;
-};
-//#endif
 
+  return output;
+}
 
-
-}} //end namespace GaussSieve::SimHash
+}} // end namespace GaussSieve::SimHash
 
 
 #endif // include guards
