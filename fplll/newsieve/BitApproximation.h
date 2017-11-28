@@ -174,8 +174,9 @@ class RelevantCoordinates
     for (uint_fast16_t i=0; i<sim_hash_len; i++)
     {
       for (uint_fast16_t j=0; j<num_of_coord; ++j)
+      {
         std::cout << rel_coo[i][j] << ", ";
-
+      }
       std::cout << std::endl;
       //std::cout << rel_coo[i][0] << "," << rel_coo[i][1] << "," << rel_coo[i][2] << "," << rel_coo[i][3] <<std::endl;
     }
@@ -258,29 +259,28 @@ class DMatrix
     return matrix[iteration][i];
   }
 
-
   public:
   static inline void print()
   {
-
-
     for (uint_fast16_t i=0; i<total_num_of_matrices; i++)
     {
       std::cout << "D  [" << i <<"] is: " << std::endl;
       for (uint_fast16_t k=0; k<dim; ++k)
-          std::cout << matrix[i][k] << " ";
-
+      {
+        std::cout << matrix[i][k] << " ";
+      }
       std::cout << std::endl;
-
     }
 
     std::cout << std::endl;
   }
-  
+
   static inline void print_ith (unsigned int i)
   {
     for (uint_fast16_t k=0; k<dim; ++k)
-        std::cout << matrix[i][k] << " ";
+    {
+      std::cout << matrix[i][k] << " ";
+    }
   }
 
   private:
@@ -317,7 +317,7 @@ class StaticInitializer<class DMatrix>
 
       DMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
                                                           SimHash::num_of_levels*SimHash::num_of_transforms );
-      
+
 
       //std::cout << "about to fill-up the D matrix " << std::endl;
 
@@ -392,7 +392,7 @@ class PMatrix
 
     std::cout << std::endl;
   }
-  
+
   static inline void print_ith (unsigned int i)
   {
     for (uint_fast16_t k=0; k<dim; ++k)
@@ -627,11 +627,11 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
   {
 
     //TODO:merge the loops
-    
+
     std::cout << "PMatrix used: " << std::endl;
     PMatrix::print_ith(j);
-    
-    
+
+
 
     //apply PMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
@@ -641,7 +641,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
 
     std::cout << "DMatrix used: " << std::endl;
     DMatrix::print_ith(j);
-    
+
     //apply DMatrix
     for (uint_fast16_t i= 0; i<dim; ++i)
     {
@@ -653,7 +653,7 @@ inline std::vector<bool> transform_and_bitapprox(LatP const &point, uint_fast16_
     unsigned int len = static_cast<unsigned int>( pow(2, floor(log2(dim)) ) );
     vec = fast_partial_walsh_hadamard<ET>(vec, len);
   }
-  
+
   std::cout << std::endl;
 
   for(uint_fast16_t i=0;i<dim;++i)
@@ -684,7 +684,7 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
   unsigned int pos = 0;
   unsigned int lvl = 0;
   unsigned int matrix_index = 0;
-  
+
   std::vector<bool> current_approx;
 
   std::cout << "received point: " << point << std::endl;
@@ -721,12 +721,12 @@ inline std::array<std::bitset<SimHash::sim_hash_len>, SimHash::num_of_levels> co
 
       std::cout << std::endl;
     }
-    
+
     std::cout << "lvl:" << lvl << " bitapprox = [";
     std::cout << ret[lvl] << " ";
     std::cout << "]" << std::endl;
     lvl++;
-    
+
   }
 
   return ret;

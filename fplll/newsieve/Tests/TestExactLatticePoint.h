@@ -124,8 +124,9 @@ bool test_exact_LP()
   int constexpr dimfixed=20;
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  using RelevantCoords = GaussSieve::RelevantCoordinates;
-  GaussSieve::StaticInitializer<RelevantCoords> init_matrix(dim);
+// Removed this, because RelevantCoordinates is no longer used -- Gotti
+ // using RelevantCoords = GaussSieve::RelevantCoordinates;
+ // GaussSieve::StaticInitializer<RelevantCoords> init_matrix(dim);
 #endif
 
   using LP = GaussSieve::ExactLatticePoint<mpz_class, dimfixed>;
