@@ -83,7 +83,9 @@ struct GaussSieveStatistics<SieveTraits,false>
   // Temporary code, to be removed
   inline void compute_statistics(std::ostream &of);
   inline void compute_statistics_2nd_order(std::ostream &of);
+  inline void compute_and_print_statistics_lvl(std::ostream &of, int lvl);
     // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
+  /*
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     std::vector<int> no_red_stat;
     std::vector<int> red_stat;
@@ -92,14 +94,19 @@ struct GaussSieveStatistics<SieveTraits,false>
       std::vector<int> no_red_stat2;
       std::vector<int> red_stat2;
     #endif
-
   #endif
+   */
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  
     std::vector<int> no_red_stat_sim_hash;
     std::vector<int> red_stat_sim_hash;
 
     std::vector<int> no_red_stat_sim_hash2;
     std::vector<int> red_stat_sim_hash2;
+     
+  
+  std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat;
+  std::array< std::vector<int>, SimHash::num_of_levels> red_stat;
   #endif
 
 
@@ -126,6 +133,62 @@ struct GaussSieveStatistics<SieveTraits,false>
 /*
  Computes statistics for sim-hash
  */
+  
+template<class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistics_lvl(std::ostream &of, int lvl)
+  {
+    using std::endl;
+    
+    std::ofstream myfile;
+    myfile.open ("newsieve/Statistics/Statistics.txt");
+    
+    unsigned long long sum_no_red = 0;
+    unsigned long long sum_red = 0;
+    
+    for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
+    {
+      sum_no_red+=no_red_stat[lvl][i];
+      sum_red+=red_stat[lvl][i];
+    }
+    
+    float pdf_no_red[no_red_stat[lvl].size()];
+    float pdf_red[red_stat[lvl].size()];
+    
+    float cdf_no_red[no_red_stat[lvl].size()];
+    float cdf_red[red_stat[lvl].size()];
+    
+    float accum_cdf_no_red = 0;
+    float accum_cdf_red = 0;
+    
+    for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
+    {
+      pdf_no_red[i] = (float)no_red_stat[lvl][i]/ (float)sum_no_red;
+      pdf_red[i] = (float)red_stat[lvl][i] / (float) sum_red;
+      
+      accum_cdf_no_red+=no_red_stat[lvl][i];
+      cdf_no_red[i] = accum_cdf_no_red/sum_no_red;
+      
+      accum_cdf_red+=red_stat[lvl][i];
+      cdf_red[i] = accum_cdf_red/sum_red;
+      
+    }
+    
+    myfile << "Statistics for dim = " << sieveptr->lattice_rank << endl;
+    myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+    
+    for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
+    {
+      myfile << " | " <<std::setw(3) << i <<"  | " << std::setw(10) << no_red_stat[lvl][i] << " | " <<
+      std::setw(16) << pdf_no_red[i]  << " | " << std::setw(16) << cdf_no_red[i]  << " ||" <<
+      std::setw(7) << red_stat[lvl][i] << " | " <<
+      std::setw(16) << pdf_red[i]  << " | " << std::setw(16) << cdf_red[i]  << " |" << endl;
+    }
+    
+    myfile.close();
+    
+}
+  
+  
 template<class SieveTraits>
 inline void GaussSieveStatistics<SieveTraits,false>::compute_statistics(std::ostream &of)
 {

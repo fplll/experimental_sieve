@@ -184,12 +184,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         #endif
         */
         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-          statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-
-
+          //SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
+          //statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
           //SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
           //statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
+        
+          //0-lvl approx_check
+          
+        
         #endif
 
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
