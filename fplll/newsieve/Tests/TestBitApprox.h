@@ -15,7 +15,7 @@
 bool test_bit_approx()
 {
 
-  int constexpr dim = 20;
+  int constexpr dim = 67;
   
   typedef GaussSieve::ExactLatticePoint<long, -1> LP;
   using GaussSieve::MaybeFixed;
@@ -41,6 +41,21 @@ bool test_bit_approx()
     GaussSieve::SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_level(latp, latp2, i);
     std::cout << static_cast<uint_fast32_t>(approx_scprod_res) <<std::endl;
   }
+  
+  int constexpr dim_var = 70;
+  std::array<long,dim_var> arr3;
+  
+  for(int i=0;i<dim_var;++i)
+  {
+    arr3[i] = std::pow(-1, i+1) * i - (i/2);
+  }
+  
+  //typedef GaussSieve::ExactLatticePoint<long, 70> LPFixed;
+  //GaussSieve::StaticInitializer<LPFixed> init2 (MaybeFixed<70>{dim_var});
+  
+  //LPFixed latp3 = GaussSieve::make_from_any_vector<LPFixed>(arr3,MaybeFixed<70>{dim_var});
+  //std::cout << "latp3 = " << latp3 << std::endl;
+  
   
   
   
