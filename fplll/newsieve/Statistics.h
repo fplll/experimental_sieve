@@ -417,6 +417,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     }
     #endif
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    /*
     if(howverb>=1)
     {
       of << "SIM-HASH No reduction: ";
@@ -426,8 +427,9 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
       for (unsigned int i=0; i!=red_stat_sim_hash.size(); ++i) of <<red_stat_sim_hash[i] << " ";
       of << endl;
     }
-    //compute_statistics(of);
-    //compute_statistics_2nd_order(of);
+    compute_statistics(of);
+    compute_statistics_2nd_order(of);
+    */
     compute_and_print_statistics_all(of);
     #endif
 
