@@ -34,17 +34,14 @@ unsigned int constexpr sim_hash_len = 64;
 //unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
 unsigned int constexpr num_of_levels = 3; //number of approximation level (bitapprox is of size sim_hash_len*num_of_levels
 unsigned int constexpr num_of_transforms = 2; //per 1 approximation (to get dim-dimensional binary vector)
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls = {2, 2, 2};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls = {2, 3, 3};
 
 // Default Parameters are JUST FOR TESTING. Change these!
 template<class SieveTraits = void, bool MT = false> class CoordinateSelection; // forward declare
 
 }}
 
-
-
 namespace GaussSieve{ namespace SimHash {
-
 /*
  stores (num_of_levels*num_of_transforms) permutation matrices of dim=ambient_dim
   must be instantiated once at the start of the sieve
@@ -58,9 +55,9 @@ class PMatrix
   PMatrix() = default;
   PMatrix(unsigned int dim) //initialize with a random dim-dimensional permutation.
   {
-    //TODO: TO CHECK!
-//    PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
-//                                                          SimHash::num_of_levels*SimHash::num_of_transforms );
+//  TODO: TO CHECK!
+//  PMatrix::total_num_of_matrices = static_cast<int>(( SimHash::sim_hash_len/ ambient_dim + 1)*
+//                                                      SimHash::num_of_levels*SimHash::num_of_transforms );
 
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("about to initialize P matrix")
   permutation.resize(dim);
@@ -410,7 +407,6 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
       // index of the bit currently considered
       // if we use only one level of indexing.
       unsigned int const flat_bit_count = n*sim_hash_len + m;
-
       ret[n][m] = (abs(blocks[flat_bit_count / dim][flat_bit_count % dim])*2 > maxentry);
     }
   }

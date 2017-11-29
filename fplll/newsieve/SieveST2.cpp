@@ -61,7 +61,7 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
   EntryType sc_prod = compute_sc_product(p1,p2);
 
   EntryType abs_2scprod =abs(sc_prod * 2);
-  
+
   if (abs_2scprod <= p2.get_norm2())
   {
     return false;
@@ -99,8 +99,8 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
   using std::abs;
   using std::round;
-  
-  
+
+
   EntryType abs_2scprod =abs(sc_prod*2);
 
 
@@ -138,6 +138,7 @@ LatticePoint perform2red (LatticePoint const &p1, LatticePoint const &p2, Intege
 
 template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
 {
+  using std::abs;
   if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
   bool loop = true;
 
@@ -180,19 +181,17 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           //statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
           //SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
           //statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
-        
 
-        
             unsigned int lvl = 0;
-            SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
-            statistics.red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-            for (unsigned int lvl=1; lvl<SimHash::num_of_levels; ++lvl)
+            uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, lvl));
+            statistics.red_stat[lvl][approx_scprod]++;
+            lvl = 1;
             {
-              if (static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2 <= SimHash::threshold_lvls[lvl-1] ||
-                  static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2>=-SimHash::threshold_lvls[lvl-1] )
+            if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls[lvl-1] ||
+                approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls[lvl-1] )
               {
-                SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
-                statistics.red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
+                approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+                statistics.red_stat[lvl][approx_scprod]++;
               }
             }
         #endif
@@ -220,12 +219,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         unsigned int lvl = 0;
         SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
         statistics.no_red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-        for (unsigned int lvl=1; lvl<SimHash::num_of_levels; ++lvl)
+        lvl = 1;
         {
-          if (static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2 <= SimHash::threshold_lvls[lvl-1] ||
-              static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2>=-SimHash::threshold_lvls[lvl-1] )
+          if (static_cast<uint_fast32_t>(approx_scprod) >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls[lvl-1] ||
+              static_cast<uint_fast32_t>(approx_scprod) <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls[lvl-1] )
           {
-            SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
+            approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
             statistics.no_red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
           }
         }
@@ -294,12 +293,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         unsigned int lvl = 0;
         SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
         statistics.red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-        for (unsigned int lvl=1; lvl<SimHash::num_of_levels; ++lvl)
+        lvl = 1;
         {
-          if (static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2 <= SimHash::threshold_lvls[lvl-1] ||
-              static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2>=-SimHash::threshold_lvls[lvl-1] )
+          if (static_cast<uint_fast32_t>(approx_scprod) >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls[lvl-1] ||
+              static_cast<uint_fast32_t>(approx_scprod) <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls[lvl-1] )
           {
-            SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
+            approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
             statistics.red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
           }
         }
@@ -340,12 +339,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         unsigned int lvl = 0;
         SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
         statistics.no_red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-        for (unsigned int lvl=1; lvl<SimHash::num_of_levels; ++lvl)
+        lvl =1;
         {
-          if (static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2 <= SimHash::threshold_lvls[lvl-1] ||
-              static_cast<uint_fast32_t>(approx_scprod) - SimHash::sim_hash_len/2>=-SimHash::threshold_lvls[lvl-1] )
+          if (static_cast<uint_fast32_t>(approx_scprod) >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls[lvl-1] ||
+              static_cast<uint_fast32_t>(approx_scprod) <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls[lvl-1] )
           {
-            SimHash::BitApproxScalarProduct approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
+            approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
             statistics.no_red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
           }
         }
