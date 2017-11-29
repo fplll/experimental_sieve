@@ -9,6 +9,7 @@
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
 
+// clang-format off
 
 namespace GaussSieve
 {
@@ -140,7 +141,7 @@ public:
   {
     for (uint_fast16_t k = 0; k < diagonal.size(); ++k)
     {
-      os << diagonal[k] << " ";
+      os << static_cast<int>(diagonal[k]) << " ";
     }
     os << std::endl;
   }
@@ -591,3 +592,5 @@ template<class T>
 
 
 #endif // include guards
+
+// clang-format on
