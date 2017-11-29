@@ -42,7 +42,7 @@ unsigned int constexpr num_of_levels = 3;  // number of approximation level
 // per level, we perform a random orthogonal transformation.
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
-unsigned int constexpr num_of_transforms = 6;
+unsigned int constexpr num_of_transforms = 2;
 constexpr std::array<unsigned int, num_of_levels> threshold_lvls = {2, 3, 3};
 
 // Default Parameters are JUST FOR TESTING. Change these!

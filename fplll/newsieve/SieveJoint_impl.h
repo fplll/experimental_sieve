@@ -276,13 +276,15 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 
   statistics.red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
   statistics.no_red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
+  
   for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
   { 
-    statistics.red_stat[lvl].resize(GaussSieve::SimHash::sim_hash_len+1);
-    statistics.no_red_stat[lvl].resize(GaussSieve::SimHash::sim_hash_len+1);
+    statistics.red_stat[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
+    statistics.no_red_stat[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
   }
 #endif
 
+/*
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
   statistics.no_red_stat.resize(this->ambient_dimension+1);
   statistisc.red_stat.resize(this->ambient_dimension+1);
@@ -291,6 +293,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   statistisc.red_stat2.resize(2*this->ambient_dimension+1);
 #endif
 #endif
+ */
 };
 
 template<class SieveTraits>
