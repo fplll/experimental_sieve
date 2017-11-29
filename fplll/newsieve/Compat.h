@@ -1,10 +1,13 @@
 // Definitions for C++ version compatibility
 
+// clang-format off
+// clang-format makes readability worse: It does not like indentation of #if's or {} for empty classes.
+
 #ifndef SIEVE_GAUSS_COMPAT_H
 #define SIEVE_GAUSS_COMPAT_H
 
-#include<type_traits>
-#include<utility>
+#include <type_traits>
+#include <utility>
 
 #if __cpp_constexpr >= 201304
   #define CPP14CONSTEXPR constexpr
@@ -23,11 +26,11 @@ namespace GaussSieve
 #if __cpp_lib_logical_traits >= 201510
 // untested:
 
-  template<class... Bs> using MyConjunction = std::conjunction<Bs...>;    //AND
-  template<class... Bs> using MyDisjunction = std::disjunction<Bs...>;    //OR
-  template<class B>     using MyNegation    = std::negation<B>;           //NOT
-  template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;  //NAND
-  template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;  //NOR
+  template<class... Bs> using MyConjunction = std::conjunction<Bs...>;           //AND
+  template<class... Bs> using MyDisjunction = std::disjunction<Bs...>;           //OR
+  template<class B>     using MyNegation    = std::negation<B>;                  //NOT
+  template<class... Bs> using MyNAND        = MyNegation<MyConjunction<Bs...>>;  //NAND
+  template<class... Bs> using MyNOR         = MyNegation<MyDisjunction<Bs...>>;  //NOR
 #else
 // just implement std::conjunction and friends myself:
   template<class...> struct MyConjunction     : std::true_type{};
@@ -43,21 +46,23 @@ namespace GaussSieve
   template<class B> struct MyNegation : std::integral_constant<bool,!static_cast<bool>(B::value)>{};
   template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;
   template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;
-
 #endif
 
 #if __cpp_lib_integer_sequence >= 201304
-  template<std::size_t... Ints> using MyIndexSeq = std::index_sequence<Ints...>;
-  template<std::size_t N>  using MyMakeIndexSeq = std::make_index_sequence<N>;
-  template<class... T> using MyIndexSequenceFor = std::index_sequence_for<T...>;
+  template<std::size_t... Ints> using MyIndexSeq         = std::index_sequence<Ints...>;
+  template<std::size_t N>       using MyMakeIndexSeq     = std::make_index_sequence<N>;
+  template<class... T>          using MyIndexSequenceFor = std::index_sequence_for<T...>;
 #else
   template<std::size_t... Ints> class MyIndexSeq {}; // not equivalent to the above, lacks size()
   namespace Helpers
   {
   // encapsulates a integer sequence 0,...,N-1, RestArgs
     template<std::size_t N, std::size_t... RestArgs> struct GenIndexSeq
-      :GenIndexSeq <N-1,N-1, RestArgs...> {};
-    template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>{using type = MyIndexSeq<RestArgs...>;};
+      : GenIndexSeq <N-1,N-1, RestArgs...> {};
+    template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>
+    {
+      using type = MyIndexSeq<RestArgs...>;
+    };
   }
   template<std::size_t N> using MyMakeIndexSeq = typename Helpers::GenIndexSeq<N>::type;
   template<class... T> using MyIndexSequenceFor = MyMakeIndexSeq<sizeof...(T)>;
@@ -65,11 +70,12 @@ namespace GaussSieve
 
 namespace mystd
 {
-  template<class T> using decay_t = typename std::decay<T>::type;
-  template<bool b>  using bool_constant = std::integral_constant<bool, b>;
-  template<class... Bs> using conjunction = MyConjunction<Bs...>;    //AND
-  template<class... Bs> using disjunction = MyDisjunction<Bs...>;    //OR
-  template<class B>     using negation    = MyNegation<B>;           //NOT
+  template<class T>     using decay_t       = typename std::decay<T>::type;
+  template<bool b>      using bool_constant = std::integral_constant<bool,b>;
+  template<class... Bs> using conjunction   = MyConjunction<Bs...>;    //AND
+  template<class... Bs> using disjunction   = MyDisjunction<Bs...>;    //OR
+  template<class B>     using negation      = MyNegation<B>;           //NOT
+
   template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
 
   // std::max is not constexpr until C++14. This version is always constexpr, but does not support
@@ -78,7 +84,9 @@ namespace mystd
   { return (x1<x2) ? x2 : x1; }
   template<class T> constexpr const T& constexpr_min(const T& x1, const T& x2)
   { return (x1<x2) ? x1 : x2; }
-}
-} // end namespace
+} // end namespace mystd
+} // end namespace GaussSieve
 
 #endif
+
+// clang-format on

@@ -6,17 +6,17 @@
 #ifndef DEBUG_ALL_H
 #define DEBUG_ALL_H
 
-// clang-format kills the indenting for #defines
+// clang-format kills the indenting for #defines, which does not help here.
 // clang-format off
 
-// This causes generic implementations of lattice points to produce verbos output.
+// This causes generic implementations of lattice points to produce verbose output.
 // Used to track which functions get called.
 // #define DEBUG_SIEVE_LP_TRACEGENERIC
 
 // enables all silent checks
 #define DEBUG_SIEVE_SILENT_ALL
 
-// verbos output for Lazy
+// verbose output for Lazy
 #define DEBUG_SIEVE_LAZY_ALL
 
 
