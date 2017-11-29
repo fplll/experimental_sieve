@@ -201,7 +201,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
   {
     using std::endl;
     std::ofstream myfile;
-    myfile.open ("newsieve/Statistics/Statistics.txt");
+    myfile.open ("newsieve/Statistics/Statistics for dim = "+std::to_string(sieveptr->lattice_rank));
     myfile << "Statistics for dim = " << sieveptr->lattice_rank << endl;
     
     std::array<std::vector<float>, SimHash::num_of_levels> cdf_no_red;
