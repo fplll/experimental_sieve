@@ -243,7 +243,12 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
       
     }
     
-    //myfile <<  std::setw(40) << " NO REDUCTION "<< std::setw(30) << " REDUCTION " << endl;
+    
+    for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
+    {
+      myfile << std::setw(45) << "lvl = " << lvl;
+    }
+    myfile << endl;
     
     for (unsigned int i=0; i<no_red_stat_sim_hash.size(); ++i)
     {
@@ -253,7 +258,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
           myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) << 
           cdf_no_red[lvl][i]  << " ||" <<std::setw(7) << 
           red_stat[lvl][i] << " | " << std::setw(13) << 
-          cdf_red[lvl][i]  << " |";
+          cdf_red[lvl][i]  << " |||";
         }
         myfile << endl;
     }

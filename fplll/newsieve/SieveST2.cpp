@@ -60,8 +60,8 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
   EntryType sc_prod = compute_sc_product(p1,p2);
 
-
   EntryType abs_2scprod =abs(sc_prod * 2);
+  
   if (abs_2scprod <= p2.get_norm2())
   {
     return false;
@@ -94,22 +94,14 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
                 Integer & scalar, bool& p_is_max)
 {
-#ifdef USE_APPROXPOINT
-//    using EntryType = typename GaussSieve::EMVScalar;
-  static_assert(false,""); // This code no longer works.
-//    EntryType  sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
-#else
   using EntryType = typename SieveTraits::EntryType;
   EntryType  sc_prod = compute_sc_product(p1,p2);
-#endif
 
   using std::abs;
   using std::round;
-
-
-    //EntryType const abs_2scprod = abs(sc_prod << 1);
-  sc_prod >>= 1; //Are you sure you don't want <<= ? -- Gotti
-  EntryType abs_2scprod =abs(sc_prod);
+  
+  
+  EntryType abs_2scprod =abs(sc_prod*2);
 
 
   if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2() )
