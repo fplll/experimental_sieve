@@ -7,8 +7,8 @@
 #ifndef DEFAULT_TERM_CONDS_H
 #define DEFAULT_TERM_CONDS_H
 
-#include "TermCondNew.h"  //consider merging with that file
 #include "DefaultIncludes.h"
+#include "TermCondNew.h"  // consider merging with that file
 
 namespace GaussSieve
 {
@@ -27,8 +27,9 @@ template <class SieveTraits, bool MT>
 class NeverTerminationCondition final : public TerminationCondition<SieveTraits, MT>
 {
 public:
+  using EntryType = typename SieveTraits::EntryType;
   virtual int check(Sieve<SieveTraits, MT> *const sieve) override { return 0; };
-  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, typename SieveTraits::EntryType const &length2) override
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
   {
     return 0;
   };
@@ -85,7 +86,7 @@ public:
   };
 
 private:
-  EntryType target_length; // TODO: Make const (requires change to read_from_stream)
+  EntryType target_length;  // TODO: Make const (requires change to read_from_stream)
 };
 
 /**
@@ -97,8 +98,8 @@ private:
 */
 
 template <class SieveTraits, bool MT>
-class MinkowskiTerminationCondition
-  final : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
+class MinkowskiTerminationCondition final
+    : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
 {
 public:
   using EntryType = typename SieveTraits::EntryType;
@@ -124,6 +125,6 @@ private:
   EntryType target_length;
 };
 
-}  // namespace
+}  // namespace GaussSieve
 
 #endif

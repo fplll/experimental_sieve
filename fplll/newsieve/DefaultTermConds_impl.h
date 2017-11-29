@@ -1,8 +1,8 @@
 #ifndef DEFAULT_TERM_CONDS_IMPL_H
 #define DEFAULT_TERM_CONDS_IMPL_H
 
-#include "DefaultTermConds.h"
 #include "DefaultIncludes.h"
+#include "DefaultTermConds.h"
 
 namespace GaussSieve
 {
@@ -61,10 +61,11 @@ inline int LengthTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTraits,
   return (sieve->get_best_length2() <= target_length) ? 1 : 0;
 }
 
+// clang-format off
+
 template <class SieveTraits, bool MT>
 inline int MinkowskiTerminationCondition<SieveTraits, MT>::check(Sieve<SieveTraits, MT> *const sieve)
 {
-  
   return (sieve->get_best_length2() <= target_length) ? 1 : 0;
 }
 
@@ -72,9 +73,10 @@ template <class SieveTraits, bool MT>
 inline void MinkowskiTerminationCondition<SieveTraits, MT>::init(Sieve<SieveTraits, MT> *const sieve)
 {
   target_length = ConvertMaybeMPZ<EntryType>::convert_to_inttype(sieve->get_basis().get_minkowski_bound() );
-  //target_length = sieve->get_basis().get_minkowski_bound();
 }
 
-}  // namespace
+// clang-format on
+
+}  // namespace GaussSieve
 
 #endif
