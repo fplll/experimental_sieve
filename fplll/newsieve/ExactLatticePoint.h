@@ -149,6 +149,7 @@ public:
     //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
 
     fixed_bitapprox_data_level = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox(*this);
+    //fixed_bitapprox_data_layer = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox_2nd_layer(*this);
 #endif
 
   }
@@ -212,6 +213,7 @@ private:
   BitApproxContainerFixed fixed_bitapprox_data;
 
   std::array<BitApproxContainerFixed, SimHash::num_of_levels> fixed_bitapprox_data_level;
+  std::array<BitApproxContainerFixed, SimHash::num_of_levels> fixed_bitapprox_data_layer;
 #endif
 
   Container data;
