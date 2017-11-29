@@ -33,7 +33,8 @@ unsigned int constexpr sim_hash_len = 64;
 //unsigned int constexpr sim_hash2_len = 64;
 //unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
 unsigned int constexpr num_of_levels = 3; //number of approximation level (bitapprox is of size sim_hash_len*num_of_levels
-unsigned int constexpr num_of_transforms = 5; //per 1 approximation (to get dim-dimensional binary vector)
+unsigned int constexpr num_of_transforms = 2; //per 1 approximation (to get dim-dimensional binary vector)
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls = {2, 2, 2};
 
 // Default Parameters are JUST FOR TESTING. Change these!
 template<class SieveTraits = void, bool MT = false> class CoordinateSelection; // forward declare
