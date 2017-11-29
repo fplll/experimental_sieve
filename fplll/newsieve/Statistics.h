@@ -207,6 +207,9 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     std::array<std::vector<float>, SimHash::num_of_levels> cdf_no_red;
     std::array<std::vector<float>, SimHash::num_of_levels> cdf_red;
 
+    std::array<std::vector<float>, SimHash::num_of_levels> pdf_no_red;
+    std::array<std::vector<float>, SimHash::num_of_levels> pdf_red;
+
     for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
     {
 
@@ -219,8 +222,8 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         sum_red+=red_stat[lvl][i];
       }
 
-      //float pdf_no_red[no_red_stat[lvl].size()];
-      //float pdf_red[red_stat[lvl].size()];
+      pdf_no_red[lvl].resize(no_red_stat[lvl].size());
+      pdf_red[lvl].resize(no_red_stat[lvl].size());
 
       cdf_no_red[lvl].resize(no_red_stat[lvl].size());
       cdf_red[lvl].resize(no_red_stat[lvl].size());
@@ -230,8 +233,8 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
 
       for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
       {
-        //pdf_no_red[i] = (float)no_red_stat[lvl][i]/ (float)sum_no_red;
-        //pdf_red[i] = (float)red_stat[lvl][i] / (float) sum_red;
+        pdf_no_red[lvl][i] = (float)no_red_stat[lvl][i]/ (float)sum_no_red;
+        pdf_red[lvl][i] = (float)red_stat[lvl][i] / (float) sum_red;
 
         accum_cdf_no_red+=no_red_stat[lvl][i];
         cdf_no_red[lvl][i] = accum_cdf_no_red/sum_no_red;
@@ -256,9 +259,9 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
         {
           myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
+          pdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
           red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_red[lvl][i]  << " |||";
+          pdf_red[lvl][i]  << " |||";
         }
         myfile << endl;
     }
