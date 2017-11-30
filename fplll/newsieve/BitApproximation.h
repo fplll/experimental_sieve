@@ -295,10 +295,10 @@ inline auto  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int cons
   assert(len <= input.size());  // maybe static
   std::vector<T> output(input.size());
 
-  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the unmodified coos.
+//  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the unmodified coos.
   for (uint_fast16_t i = len; i < output.size(); ++i)
   {
-    input [i] = static_cast<T>(input[i] * lengthfactor);
+//    input [i] = static_cast<T>(input[i] * lengthfactor);
     output[i] = input[i];
   }
 
@@ -314,6 +314,11 @@ inline auto  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int cons
                                   : static_cast<T>(input[j]   + input[i+j]);  // for j/i even
     }
     swap(input, output);
+  }
+  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
+  for(uint_fast16_t i = 0; i < len; ++i)
+  {
+    output[i] /= lengthfactor;
   }
   return output;
 }
@@ -431,20 +436,25 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
     // than the original vector. That's why we do not compare to norm2() currently.
     // TODO : Reconsider the point where we change the sign. Currently, it's at
     // half the maximal entry. This may not be ideal.
+    /*
     ET maxentry = 0;
     for (unsigned int m = 0; m < sim_hash_len; ++m)
     {
       unsigned int const flat_bit_count = n * sim_hash_len + m;
       maxentry = max(maxentry, static_cast<ET>(abs(blocks[flat_bit_count / dim][flat_bit_count % dim])));
     }
+    */
+    ET const norm2 = point.get_norm2();
 
     for (unsigned int m = 0; m < sim_hash_len; ++m)
     {
       // index of the bit currently considered
       // if we use only one level of indexing.
       unsigned int const flat_bit_count = n * sim_hash_len + m;
-      ret[n][m] = (abs(blocks[flat_bit_count / dim][flat_bit_count % dim]) * 2 > maxentry);
+      ret[n][m] = ( blocks[flat_bit_count / dim][flat_bit_count % dim]
+                  * blocks[flat_bit_count / dim][flat_bit_count % dim] * dim * 6 > norm2);
     }
+//    std::cout << ret[0].count() << std::endl << std::flush;
   }
   return ret;
 }
