@@ -302,22 +302,22 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         unsigned int lvl=0;
         {
           myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
+          pdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
           red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_red[lvl][i]  << " |||";
+          pdf_red[lvl][i]  << " |||";
         }
         lvl=1;
         {
           myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
+          pdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
           red_stat[lvl][i] << " | " << std::setw(13) <<
-          cdf_red[lvl][i]  << " |||";
+          pdf_red[lvl][i]  << " |||";
         }
         {
           myfile<< std::setw(10) << no_red_stat_layer[lvl][i] << " | " << std::setw(13) <<
-          cdf_no_red_layer[lvl][i]  << " ||" <<std::setw(7) <<
+          pdf_no_red_layer[lvl][i]  << " ||" <<std::setw(7) <<
           red_stat_layer[lvl][i] << " | " << std::setw(13) <<
-          cdf_red_layer[lvl][i]  << " |||";
+          pdf_red_layer[lvl][i]  << " |||";
         }
         myfile << endl;
     }
