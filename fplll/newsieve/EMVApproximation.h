@@ -12,7 +12,25 @@
 
 /**
   This defines a lattice point approximation, where the approximation consists of
-  a (shared) exponenent and a vector of >= 16-bit mantissas.
+  a (shared) exponenent and a vector of >= 16-bit mantissas, i.e. we approximate by
+  2^exponent * (vector of 16-bit ints)
+  The idea is that in order to test whether a scalar product between two vectors is larger than
+  a certain threshold (that may depend on the lengths of the vectors), it is enough to consider
+  the most significant bits of the invidual vectors.
+  The advantage is that scalar product computations of 16-bit ints are much faster than of, say,
+  mpz_class. Also, 16-bit scalar product computations can make use of vectorized instructions.
+  (provided the architecture has vectorized instructions for ints rather than floats, which is
+  somewhat uncommon at the time of writing, but exists).
+  Essentially, such an approximation makes the length of the input data almost irrevalant and allows
+  to optimize for ONE given data size.
+
+  An alternative would be to simply approximate by a vector of doubles. Note that the difference
+  here is that the exponent is shared and we use fewer bits.
+
+  TODO: Test an alternative with floats. The main downside is that this could be the main
+        contribution to total memory consumption. Ideally, we would like half-precision floats...
+        (which exists either as slow software implementations or compiler && architecture-dependent
+        C++ extensions (e.g. __fp16 with GCC on ARM using the -mfp16-format compiler option)
 */
 
 namespace GaussSieve
@@ -28,14 +46,23 @@ class EMVScalar;
 class EMVApproximationTraits
 {
 public:
-  // Note: This is only about the mantissas; there is an exponent in addition to those data.
+  // Note: ApproxEntryType and ApproxNorm2Type are only about the mantissas;
+  // there is an exponent in addition to those data.
+  // Also note that we use slightly less than 16 bits (depending on the dimension) to avoid over-
+  // flows when computing scalar products.
   using ApproxEntryType = int_least16_t;  // we *do* care about space.
   using ApproxNorm2Type = int_fast32_t;
 };
 
-
 /************************
-Approximation of a scalar
+Approximation of a scalar:
+
+This stores an exponent and a mantissa. Of course, we could just use floating point types here,
+but this is more compatible with the rest of the code. Converts to a double, still.
+
+Usage: EMVScalar can be constructed from any integral or floating type or from mpz_class.
+       It currently supports only limited arithmetic.
+       Can convert to double / float.
 *************************/
 
 class EMVScalar
@@ -47,13 +74,16 @@ public:
 
   int exponent;
   MantissaType mantissa;
-  inline double get_double() const { return std::ldexp(mantissa, exponent); };
+  inline double get_double() const  { return std::ldexp(mantissa, exponent); }
+  explicit operator double()        { return std::ldexp(mantissa, exponent); }
+  explicit operator float()         { return std::ldexp(mantissa, exponent); }
 
-  // default constructor
+  // constructors
   constexpr explicit EMVScalar(int const new_exponent, MantissaType const new_mantissa)
       : exponent(new_exponent), mantissa(new_mantissa) {};
-  constexpr EMVScalar(EMVScalar const &) = default;
-  EMVScalar(EMVScalar &&) = default;
+  // default copy constructors (they are automatic anyway)
+  // constexpr EMVScalar(EMVScalar const &) = default;
+  // EMVScalar(EMVScalar &&) = default;
 
   // construct from integral or floating type
   template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
