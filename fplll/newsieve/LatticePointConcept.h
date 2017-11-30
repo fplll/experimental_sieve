@@ -596,7 +596,8 @@ class GeneralLatticePoint
     inline int do_compute_sc_product_bitapprox_level(LatP2 const &, int lvl) const { assert(false); }
     #endif
   
-    //Levelled bit approx
+    //Layered bit approx
+  /*
   #if __if_constexpr
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_layer(LatP2 const &, int lvl) const = delete;
@@ -604,6 +605,7 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_layer(LatP2 const &, int lvl) const { assert(false); }
   #endif
+   */
  };
 
  /**

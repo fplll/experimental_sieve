@@ -109,8 +109,8 @@ struct GaussSieveStatistics<SieveTraits,false>
   std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat;
   std::array< std::vector<int>, SimHash::num_of_levels> red_stat;
 
-  std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_layer;
-  std::array< std::vector<int>, SimHash::num_of_levels> red_stat_layer;
+  //std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_layer;
+  //std::array< std::vector<int>, SimHash::num_of_levels> red_stat_layer;
   #endif
 
 
@@ -215,21 +215,12 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     std::array<std::vector<float>, SimHash::num_of_levels> pdf_red;
 
 
-    /*for layers */
-    std::array<std::vector<float>, SimHash::num_of_levels> cdf_no_red_layer;
-    std::array<std::vector<float>, SimHash::num_of_levels> cdf_red_layer;
-
-    std::array<std::vector<float>, SimHash::num_of_levels> pdf_no_red_layer;
-    std::array<std::vector<float>, SimHash::num_of_levels> pdf_red_layer;
-
     for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
     {
 
       unsigned long long sum_no_red = 0;
       unsigned long long sum_red = 0;
 
-      unsigned long long sum_no_red_layer = 0;
-      unsigned long long sum_red_layer = 0;
 
 
       for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
@@ -237,8 +228,6 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         sum_no_red+=no_red_stat[lvl][i];
         sum_red+=red_stat[lvl][i];
 
-        sum_no_red_layer+=no_red_stat_layer[lvl][i];
-        sum_red_layer+=red_stat_layer[lvl][i];
       }
 
       /*for levels*/
@@ -248,18 +237,10 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
       cdf_no_red[lvl].resize(no_red_stat[lvl].size());
       cdf_red[lvl].resize(no_red_stat[lvl].size());
 
-      /*for layers */
-      pdf_no_red_layer[lvl].resize(no_red_stat_layer[lvl].size());
-      pdf_red_layer[lvl].resize(no_red_stat_layer[lvl].size());
-
-      cdf_no_red_layer[lvl].resize(no_red_stat_layer[lvl].size());
-      cdf_red_layer[lvl].resize(no_red_stat_layer[lvl].size());
 
       float accum_cdf_no_red = 0;
       float accum_cdf_red = 0;
 
-      float accum_cdf_no_red_layer = 0;
-      float accum_cdf_red_layer = 0;
 
 
       for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
@@ -274,16 +255,6 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         accum_cdf_red+=red_stat[lvl][i];
         cdf_red[lvl][i] = accum_cdf_red/sum_red;
 
-        /*for layers */
-        pdf_no_red_layer[lvl][i] = (float)no_red_stat_layer[lvl][i]/ (float)sum_no_red_layer;
-        pdf_red_layer[lvl][i] = (float)red_stat_layer[lvl][i] / (float) sum_red_layer;
-
-        accum_cdf_no_red_layer+=no_red_stat_layer[lvl][i];
-        cdf_no_red_layer[lvl][i] = accum_cdf_no_red_layer/sum_no_red_layer;
-
-        accum_cdf_red_layer+=red_stat_layer[lvl][i];
-        cdf_red_layer[lvl][i] = accum_cdf_red_layer/sum_red_layer;
-
       }
 
     }
@@ -297,27 +268,12 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     for (unsigned int i=0; i<no_red_stat[0].size(); ++i)
     {
         myfile << " | " <<std::setw(3) << i <<"  | ";
-        //for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
-        //for (unsigned int lvl=0; lvl<2; ++lvl)
-        unsigned int lvl=0;
+        for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
         {
           myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) <<
           pdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
           red_stat[lvl][i] << " | " << std::setw(13) <<
           pdf_red[lvl][i]  << " |||";
-        }
-        lvl=1;
-        {
-          myfile<< std::setw(10) << no_red_stat[lvl][i] << " | " << std::setw(13) <<
-          pdf_no_red[lvl][i]  << " ||" <<std::setw(7) <<
-          red_stat[lvl][i] << " | " << std::setw(13) <<
-          pdf_red[lvl][i]  << " |||";
-        }
-        {
-          myfile<< std::setw(10) << no_red_stat_layer[0][i] << " | " << std::setw(13) <<
-          pdf_no_red_layer[0][i]  << " ||" <<std::setw(7) <<
-          red_stat_layer[0][i] << " | " << std::setw(13) <<
-          pdf_red_layer[0][i]  << " |||";
         }
         myfile << endl;
     }
