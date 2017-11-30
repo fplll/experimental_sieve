@@ -337,7 +337,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
          */
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
         unsigned int lvl = 0;
-        uint_fast32_t approx_scprod = compute_sc_product_bitapprox_level(p, *it, lvl);
+        uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
         statistics.no_red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
         lvl =1;
         {
