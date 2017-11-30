@@ -38,13 +38,13 @@ bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
     // x_new = x1 + sgn1*x2 + x3*sng2
     // p_is_max is true if x1 ==p, in which case x3_X stores <x3,x2>
     // otherwise x3_X stores <x3, x1>
-template<class SieveTraits, bool p_is_max>
+template<class SieveTraits>
 bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
                  typename SieveTraits::FastAccess_Point const &x2,
                  typename SieveTraits::FlilteredPointType const &x3,
                  typename SieveTraits::EntryType const &x1x2,
                  typename SieveTraits::EntryType const &x3_X,
-                 int &sgn2, int &sgn3)
+                 int &sgn2, int &sgn3, bool p_is_max)
 
 
 {
@@ -222,7 +222,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
         //check if || p \pm x1 \pm x2 || < || p ||
         // ! check_3red assumes that the first argument has the largest norm
-        if ( check_3red<SieveTraits, true> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3) )
+        if ( check_3red<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
         {
 
                     //TODO:  RETRIEVE ||p|| from the sc_prods
@@ -358,7 +358,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         int  sgn2, sgn3;
 
                 // ! check_3red assumes that the first argument has the largest norm
-        if ( check_3red<SieveTraits, false> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3) )
+        if ( check_3red<SieveTraits> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, false) )
         {
           typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + filtered_list_point.get_point() * sgn3;
                     //typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_point).get_point() * sgn3;
