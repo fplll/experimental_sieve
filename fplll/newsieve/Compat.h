@@ -60,17 +60,25 @@ namespace GaussSieve
 {
 namespace mystd
 {
-// some often-used shorthands to avoid having to use typename ...
+  // some often-used shorthands to avoid having to use typename ...
   template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
   template<class T>                  using decay_t       = typename std::decay<T>::type;
 
   template<bool b>      using bool_constant = std::integral_constant<bool,b>;
+
+  // std::max is not constexpr until C++14. This version is always constexpr, but does not support
+  // custom comparators or initializer lists.
+  template<class T> constexpr const T& constexpr_max(const T &x1, const T &x2)
+  { return (x1 < x2) ? x2 : x1; }
+  template<class T> constexpr const T& constexpr_min(const T &x1, const T &x2)
+  { return (x1 < x2) ? x1 : x2; }
+
 #if __cpp_lib_logical_traits >= 201510
   template<class... Bs> using conjunction   = std::conjunction<Bs...>;           //AND
   template<class... Bs> using disjunction   = std::disjunction<Bs...>;           //OR
   template<class B>     using negation      = std::negation<B>;                  //NOT
 #else
-// just implement std::conjunction, disjunction and negation myself:
+  // just implement std::conjunction, disjunction and negation myself:
   template<class...> struct conjunction     : std::true_type{};
   template<class B1> struct conjunction<B1> : B1 {};
   template<class B1,class... Bs> struct conjunction<B1,Bs...>
@@ -83,43 +91,31 @@ namespace mystd
 
   template<class B> struct negation : bool_constant<!static_cast<bool>(B::value)>{};
 #endif
-}
-
 
 #if __cpp_lib_integer_sequence >= 201304
-  template<std::size_t... Ints> using MyIndexSeq         = std::index_sequence<Ints...>;
-  template<std::size_t N>       using MyMakeIndexSeq     = std::make_index_sequence<N>;
-  template<class... T>          using MyIndexSequenceFor = std::index_sequence_for<T...>;
+  template<std::size_t... Ints> using index_sequence      = std::index_sequence<Ints...>;
+  template<std::size_t N>       using make_index_sequence = std::make_index_sequence<N>;
+  template<class... T>          using index_sequence_for  = std::index_sequence_for<T...>;
 #else
-  template<std::size_t... Ints> class MyIndexSeq {}; // not equivalent to the above, lacks size()
-  namespace Helpers
+  template<std::size_t... Ints> class index_sequence
+  {
+  public:
+    static constexpr std::size_t size() noexcept { return sizeof...(Ints); }
+    using value_type = std::size_t;
+  };
+  namespace IndexSeqHelper
   {
   // encapsulates a integer sequence 0,...,N-1, RestArgs
     template<std::size_t N, std::size_t... RestArgs> struct GenIndexSeq
-        : GenIndexSeq <N-1,N-1, RestArgs...> {};
+        : GenIndexSeq <N-1,N-1,RestArgs...> {};
     template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>
     {
       using type = MyIndexSeq<RestArgs...>;
     };
   }
-  template<std::size_t N> using MyMakeIndexSeq = typename Helpers::GenIndexSeq<N>::type;
-  template<class... T> using MyIndexSequenceFor = MyMakeIndexSeq<sizeof...(T)>;
+  template<std::size_t N> using make_index_sequence = typename IndexSeqHelper::GenIndexSeq<N>::type;
+  template<class... T>    using index_sequence_for  = make_index_sequence<sizeof...(T)>;
 #endif
-
-namespace mystd
-{
-//  template<class... Bs> using conjunction   = MyConjunction<Bs...>;    //AND
-//  template<class... Bs> using disjunction   = MyDisjunction<Bs...>;    //OR
-//  template<class B>     using negation      = MyNegation<B>;           //NOT
-
-  template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
-
-  // std::max is not constexpr until C++14. This version is always constexpr, but does not support
-  // custom comparators or initializer lists.
-  template<class T> constexpr const T& constexpr_max(const T& x1, const T& x2)
-  { return (x1<x2) ? x2 : x1; }
-  template<class T> constexpr const T& constexpr_min(const T& x1, const T& x2)
-  { return (x1<x2) ? x1 : x2; }
 }  // end namespace mystd
 }  // end namespace GaussSieve
 
