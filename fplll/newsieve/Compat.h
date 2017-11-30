@@ -51,9 +51,6 @@
 /**
   Replacements for C++14 standard library features that are missing in C++11.
   See the C++ - documentation for their meaning.
-
-  TODO: The MyNAME variants rather than mystd::name variants is confusing.
-        Simplify to only use mystd::
 */
 
 namespace GaussSieve
@@ -93,6 +90,9 @@ namespace mystd
 #endif
 
 #if __cpp_lib_integer_sequence >= 201304
+// index_sequence<size_t... Ints> and friends are aliases for integer_sequence<size_t, Ints...>
+// (i.e. integer_sequence with type std::size_t). Look up std::integer_sequence if you cannot
+// find std::index_sequence
   template<std::size_t... Ints> using index_sequence      = std::index_sequence<Ints...>;
   template<std::size_t N>       using make_index_sequence = std::make_index_sequence<N>;
   template<class... T>          using index_sequence_for  = std::index_sequence_for<T...>;
