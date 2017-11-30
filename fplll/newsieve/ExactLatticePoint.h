@@ -163,6 +163,7 @@ public:
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
 
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const;
+  inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_layer(ExactLatticePoint const & another, int lvl) const;
 #endif
 
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
@@ -262,6 +263,13 @@ inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute
 {
   return SimHash::BitApproxScalarProduct {static_cast<size_t>(SimHash::sim_hash_len - (
                                             this->fixed_bitapprox_data_level[lvl] ^ another.fixed_bitapprox_data_level[lvl]).count())};
+}
+  
+template <class ET, int nfixed>
+inline SimHash::BitApproxScalarProduct ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_layer(ExactLatticePoint const & another, int lvl) const
+{
+  return SimHash::BitApproxScalarProduct {static_cast<size_t>(SimHash::sim_hash_len - (
+                                          this->fixed_bitapprox_data_layer[lvl] ^ another.fixed_bitapprox_data_layer[lvl]).count())};
 }
 
 

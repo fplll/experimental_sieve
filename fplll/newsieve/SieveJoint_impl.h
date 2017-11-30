@@ -278,9 +278,12 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   statistics.no_red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
   
   for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
-  { 
+  {
     statistics.red_stat[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
     statistics.no_red_stat[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
+    
+    statistics.red_stat_layer[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
+    statistics.no_red_stat_layer[lvl].resize(GaussSieve::SimHash::num_of_levels*GaussSieve::SimHash::sim_hash_len+1);
   }
 #endif
 
