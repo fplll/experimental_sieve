@@ -73,15 +73,16 @@ public:
     using QueueType = std::queue<DataType*>;
 #endif
     GaussQueue()=delete;
-    explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
+    explicit inline GaussQueue(Sieve<SieveTraits,false>* const caller_sieve,
       GlobalStaticDataInitializer const &static_data); //only constructor
-    GaussQueue(GaussQueue const &old) = delete;
-    GaussQueue(GaussQueue &&old) = delete;
-    GaussQueue& operator= (GaussQueue const &old)=delete;
-    GaussQueue& operator= (GaussQueue &&old) = delete;
+    GaussQueue(GaussQueue const &) = delete;
+    GaussQueue(GaussQueue &&) = delete;
+    GaussQueue& operator= (GaussQueue const &)=delete;
+    GaussQueue& operator= (GaussQueue &&) = delete;
     inline ~GaussQueue();
 
-    //we might as well always return false (or make this private)!
+    // we might as well always return false (or make this private)!
+    // if the internal queue is empty, we just sample a new vector.
     [[deprecated("The queue is never empty from the callers POV.")]]
     inline bool empty() const  {return main_queue.empty();};
 
