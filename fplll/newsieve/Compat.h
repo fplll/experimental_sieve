@@ -110,7 +110,7 @@ namespace mystd
         : GenIndexSeq <N-1,N-1,RestArgs...> {};
     template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>
     {
-      using type = MyIndexSeq<RestArgs...>;
+      using type = index_sequence<RestArgs...>;
     };
   }
   template<std::size_t N> using make_index_sequence = typename IndexSeqHelper::GenIndexSeq<N>::type;
