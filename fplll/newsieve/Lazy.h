@@ -338,7 +338,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // This happens if the leaves of the trees encode pass by rvalue-semantics.
 
   // EvalOnce is either std::true_type or std::false_type, EvalOnce_v is either true or false.
-  using EvalOnce = MyDisjunction< typename Args::EvalOnce...>; //OR of Args
+  using EvalOnce = mystd::disjunction< typename Args::EvalOnce...>; //OR of Args
   static constexpr bool EvalOnce_v = EvalOnce::value;
 
   using TreeType = std::tuple<MaybeConst<!(Args::EvalOnce_v),Args>...>; // const-ness depends on EvalOnce.
@@ -399,7 +399,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   // The parameter itself is then removed via inlining.
 
   template<unsigned int level, std::size_t... iarg>
-  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>)
+  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(mystd::index_sequence<iarg...>)
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -409,7 +409,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   }
 
   template<unsigned int level, std::size_t... iarg>
-  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(MyIndexSeq<iarg...>) const
+  [[gnu::always_inline]] inline ObjectAtLevel<level> do_eval(mystd::index_sequence<iarg...>) const
   {
     static_assert(sizeof...(iarg) == sizeof...(Args),"This cannot happen.");
 #ifdef DEBUG_SIEVE_LAZY_TRACE_EVALS
@@ -418,7 +418,7 @@ template<class LazyFunction, class... Args> class SieveLazyEval
     return LazyFunction::template call<level>( std::get<iarg>(args).eval<level>()... );
   }
 
-// MyMakeIndexSeq generates a(n empty) struct MyIndexSeq<0,1,2,...>. This is used as a dummy paramter
+// make_index_sequence generates a(n empty) struct MyIndexSeq<0,1,2,...>. This is used as a dummy paramter
 // to select the correct version of do_eval_approx and allows to actually un-std::tuple the argument.
 // (This is the least roundabout way of doing it and corresponds to the implementation of std::apply)
 
@@ -426,14 +426,14 @@ template<class LazyFunction, class... Args> class SieveLazyEval
   [[gnu::always_inline]] inline ObjectAtLevel<level> eval()
   {
     static_assert(level <= ApproxLevel, "");
-    return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
+    return do_eval<level>(mystd::make_index_sequence<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>
   [[gnu::always_inline]] inline ObjectAtLevel<level> eval() const
   {
     static_assert(level <= ApproxLevel, "");
-    return do_eval<level>(MyMakeIndexSeq<sizeof...(Args)>{} );
+    return do_eval<level>(mystd::make_index_sequence<sizeof...(Args)>{} );
   }
 
   template<unsigned int level>

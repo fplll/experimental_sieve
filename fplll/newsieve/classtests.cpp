@@ -5,7 +5,7 @@
 #define DEBUG_SIEVE_STANDALONE_MODULES_ALL
 
 //#define TEST_ALL
-#define TEST_EMV
+//#define TEST_EMV
 //#define TEST_LAZY
 //#define TEST_APPROXIMATIONS
 //#define TEST_PLAIN_LATTICE_POINT
