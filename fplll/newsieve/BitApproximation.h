@@ -435,7 +435,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
     for (unsigned int m = 0; m < sim_hash_len; ++m)
     {
       unsigned int const flat_bit_count = n * sim_hash_len + m;
-      maxentry = max(maxentry, abs(blocks[flat_bit_count / dim][flat_bit_count % dim])); //THIS FAILS
+      maxentry = max(maxentry, static_cast<ET>(abs(blocks[flat_bit_count / dim][flat_bit_count % dim])));
     }
 
     for (unsigned int m = 0; m < sim_hash_len; ++m)
