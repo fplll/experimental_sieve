@@ -315,9 +315,9 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
         }
         {
           myfile<< std::setw(10) << no_red_stat_layer[lvl][i] << " | " << std::setw(13) <<
-          pdf_no_red_layer[lvl][i]  << " ||" <<std::setw(7) <<
-          red_stat_layer[lvl][i] << " | " << std::setw(13) <<
-          pdf_red_layer[lvl][i]  << " |||";
+          pdf_no_red_layer[0][i]  << " ||" <<std::setw(7) <<
+          red_stat_layer[0][i] << " | " << std::setw(13) <<
+          pdf_red_layer[0][i]  << " |||";
         }
         myfile << endl;
     }
