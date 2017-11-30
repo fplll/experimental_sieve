@@ -326,7 +326,7 @@ inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned i
   using std::swap;
   assert(std::bitset< std::numeric_limits<unsigned long>::digits>{len}.count() == 1);
   assert(len <= arraylen);
-  std::array<T,arraylen> output(); // assumes that entries are default-constructible.
+  std::array<T,arraylen> output{}; // assumes that entries are default-constructible.
 
   const double lengthfactor = std::sqrt(len);  // we have to properly rescale the unmodified coos.
   for (uint_fast16_t i = len; i < arraylen; ++i)
