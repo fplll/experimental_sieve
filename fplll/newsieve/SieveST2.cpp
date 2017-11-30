@@ -192,6 +192,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
               {
                 uint_fast32_t approx_scprod_2 = approx_scprod+static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
                 statistics.red_stat[lvl][approx_scprod_2]++;
+                
+                uint_fast32_t approx_scprod_layer = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_layer(p, *it, lvl));
+                statistics.red_stat_layer[lvl][approx_scprod+approx_scprod_layer]++;
               }
             }
         #endif
@@ -226,6 +229,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           {
             uint_fast32_t approx_scprod_2 = approx_scprod+static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
             statistics.no_red_stat[lvl][approx_scprod_2]++;
+            
+            uint_fast32_t approx_scprod_layer = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_layer(p, *it, lvl));
+            statistics.no_red_stat_layer[lvl][approx_scprod+approx_scprod_layer]++;
           }
         }
         #endif
@@ -293,6 +299,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         unsigned int lvl = 0;
         uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
         statistics.red_stat[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
+        
         lvl = 1;
         {
           if (static_cast<uint_fast32_t>(approx_scprod) >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls[lvl-1] ||
@@ -300,7 +307,12 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           {
             uint_fast32_t approx_scprod_2 =approx_scprod+static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, lvl));
             statistics.red_stat[lvl][approx_scprod_2]++;
+            
+            uint_fast32_t approx_scprod_layer = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_layer(p, *it, lvl));
+            statistics.red_stat_layer[lvl][approx_scprod+approx_scprod_layer]++;
+            
           }
+          
         }
 #endif
 
@@ -346,6 +358,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
           {
             uint_fast32_t approx_scprod_2 = approx_scprod+static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
             statistics.no_red_stat[lvl][approx_scprod_2]++;
+            
+            uint_fast32_t approx_scprod_layer = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_layer(p, *it, lvl));
+            statistics.no_red_stat_layer[lvl][approx_scprod+approx_scprod_layer]++;
           }
         }
 #endif
