@@ -58,31 +58,9 @@
 
 namespace GaussSieve
 {
-#if __cpp_lib_logical_traits >= 201510
-  template<class... Bs> using MyConjunction = std::conjunction<Bs...>;           //AND
-  template<class... Bs> using MyDisjunction = std::disjunction<Bs...>;           //OR
-  template<class B>     using MyNegation    = std::negation<B>;                  //NOT
-  template<class... Bs> using MyNAND        = MyNegation<MyConjunction<Bs...>>;  //NAND
-  template<class... Bs> using MyNOR         = MyNegation<MyDisjunction<Bs...>>;  //NOR
-#else
-// just implement std::conjunction and friends myself:
-  template<class...> struct MyConjunction     : std::true_type{};
-  template<class B1> struct MyConjunction<B1> : B1 {};
-  template<class B1,class... Bs> struct MyConjunction<B1,Bs...>
-    : std::conditional<static_cast<bool>(B1::value), MyConjunction<Bs...>,B1>::type {};
-
-  template<class...> struct MyDisjunction     : std::false_type{};
-  template<class B1> struct MyDisjunction<B1> : B1 {};
-  template<class B1, class... Bs> struct MyDisjunction<B1,Bs...>
-    : std::conditional<static_cast<bool>(B1::value), B1, MyDisjunction<Bs...> >::type {};
-
-  template<class B> struct MyNegation : std::integral_constant<bool,!static_cast<bool>(B::value)>{};
-  template<class... Bs> using MyNAND = MyNegation<MyConjunction<Bs...>>;
-  template<class... Bs> using MyNOR  = MyNegation<MyDisjunction<Bs...>>;
-#endif
-
 namespace mystd
 {
+// some often-used shorthands to avoid having to use typename ...
   template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
   template<class T>                  using decay_t       = typename std::decay<T>::type;
 
