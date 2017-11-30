@@ -269,8 +269,8 @@ template <class ET, int nfixed>
 inline unsigned int ExactLatticePoint<ET, nfixed>::do_compute_sc_product_bitapprox_layer(ExactLatticePoint const & another, int lvl) const
 {
   unsigned int first_level = static_cast<unsigned int>(this->do_compute_sc_product_bitapprox_level(another, lvl));
-  unsigned int cross_prod1 = static_cast<size_t>( SimHash::sim_hash_len - (this->fixed_bitapprox_data_level[lvl] ^ another.fixed_bitapprox_data_layer[lvl]).count() );
-  unsigned int cross_prod2 = static_cast<size_t>( SimHash::sim_hash_len - (this->fixed_bitapprox_data_layer[lvl] ^ another.fixed_bitapprox_data_level[lvl]).count() );
+  unsigned int cross_prod1 = static_cast<unsigned int>( SimHash::sim_hash_len - (this->fixed_bitapprox_data_level[lvl] ^ another.fixed_bitapprox_data_layer[lvl]).count() );
+  unsigned int cross_prod2 = static_cast<unsigned int>( SimHash::sim_hash_len - (this->fixed_bitapprox_data_layer[lvl] ^ another.fixed_bitapprox_data_level[lvl]).count() );
   return 2*first_level+cross_prod1+cross_prod2;
 }
 #endif
