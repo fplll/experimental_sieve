@@ -85,6 +85,8 @@ struct GaussSieveStatistics<SieveTraits,false>
   inline void compute_statistics_2nd_order(std::ostream &of);
   inline void compute_and_print_statistics_lvl(std::ostream &of, int lvl, bool do_print);
   inline void compute_and_print_statistics_all(std::ostream &of);
+  inline void compute_and_print_statistics_all_innloop(std::ostream &of);
+
     // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
   /*
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
@@ -108,6 +110,9 @@ struct GaussSieveStatistics<SieveTraits,false>
 
   std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat;
   std::array< std::vector<int>, SimHash::num_of_levels> red_stat;
+  
+  std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_innloop;
+  std::array< std::vector<int>, SimHash::num_of_levels> red_stat_innloop;
 
   //std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_layer;
   //std::array< std::vector<int>, SimHash::num_of_levels> red_stat_layer;
@@ -281,6 +286,70 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     myfile.close();
 
 }
+  
+/*only for k>2*/
+template<class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistics_all_innloop(std::ostream &of)
+{
+  using std::endl;
+  std::ofstream myfile;
+  myfile.open ("newsieve/Statistics/Inner loop Statistics for k="+std::to_string(sieveptr->sieve_k) + "_dim="+std::to_string(sieveptr->lattice_rank));
+  myfile << "Statistics for dim = " << sieveptr->lattice_rank << endl;
+  
+  std::array<std::vector<float>, SimHash::num_of_levels> pdf_no_red_innloop;
+  std::array<std::vector<float>, SimHash::num_of_levels> pdf_red_innloop;
+  
+  
+  for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
+  {
+    
+    unsigned long long sum_no_red = 0;
+    unsigned long long sum_red = 0;
+    
+    
+    
+    for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
+    {
+      sum_no_red+=no_red_stat_innloop[lvl][i];
+      sum_red+=red_stat_innloop[lvl][i];
+      
+    }
+    pdf_no_red_innloop[lvl].resize(no_red_stat_innloop[lvl].size());
+    pdf_red_innloop[lvl].resize(no_red_stat_innloop[lvl].size());
+    
+    for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
+    {
+  
+      pdf_no_red_innloop[lvl][i] = (float)no_red_stat_innloop[lvl][i]/ (float)sum_no_red;
+      pdf_red_innloop[lvl][i] = (float)red_stat_innloop[lvl][i] / (float) sum_red;
+      
+    }
+    
+  }
+  
+  for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
+  {
+    myfile << std::setw(45) << "lvl = " << lvl;
+  }
+  myfile << endl;
+  
+  for (unsigned int i=0; i<no_red_stat_innloop[0].size(); ++i)
+  {
+    myfile << " | " <<std::setw(3) << i <<"  | ";
+    for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
+    {
+      myfile<< std::setw(10) << no_red_stat_innloop[lvl][i] << " | " << std::setw(13) <<
+      pdf_no_red_innloop[lvl][i]  << " ||" <<std::setw(7) <<
+      red_stat_innloop[lvl][i] << " | " << std::setw(13) <<
+      pdf_red_innloop[lvl][i]  << " |||";
+    }
+    myfile << endl;
+  }
+  
+  myfile.close();
+  
+}
+
 
 
 template<class SieveTraits>
@@ -451,6 +520,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     compute_statistics_2nd_order(of);
     */
     compute_and_print_statistics_all(of);
+    compute_and_print_statistics_all_innloop(of);
     #endif
 
 }

@@ -284,8 +284,8 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     statistics.red_stat[lvl].resize(size_of_stat_arrays);
     statistics.no_red_stat[lvl].resize(size_of_stat_arrays);
     
-    //statistics.red_stat_layer[lvl].resize(size_of_stat_arrays);
-    //statistics.no_red_stat_layer[lvl].resize(size_of_stat_arrays);
+    statistics.red_stat_innloop[lvl].resize(size_of_stat_arrays);
+    statistics.no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
   }
 #endif
 
