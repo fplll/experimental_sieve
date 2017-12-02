@@ -271,11 +271,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 // This should be moved to Statistics.h -- Gotti
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  statistics.red_stat_sim_hash.resize(GaussSieve::SimHash::sim_hash_len+1);
-  statistics.no_red_stat_sim_hash.resize(GaussSieve::SimHash::sim_hash_len+1);
-
-  statistics.red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
-  statistics.no_red_stat_sim_hash2.resize(GaussSieve::SimHash::sim_hash_len+1);
   
   unsigned int size_of_stat_arrays = GaussSieve::SimHash::num_of_levels * GaussSieve::SimHash::sim_hash_len+1;
   

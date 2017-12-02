@@ -3,6 +3,28 @@
 //#define bitapprox_threshold 30
 
 namespace GaussSieve{
+  
+
+template<class SieveTraits>
+bool check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
+                typename SieveTraits::FastAccess_Point const &p2)
+          
+{
+  uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, 0));
+  for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
+  {
+    if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
+        approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
+        {
+            approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p1, p2, lvl));
+        }
+    else return false;
+  }
+  
+  return true;
+}
+            
+
 
 /**
  Assume ||p1|| > ||p2||
@@ -14,47 +36,13 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
                 Integer & scalar)
 {
   assert(!(p2.is_zero()));
-  using std::round;
-
-//#ifdef USE_APPROXPOINT
-//  using EntryType = typename GaussSieve::EMVScalar;
-//  EntryType sc_prod = compute_sc_product_approx(p1.access_approx(), p2.access_approx());
-//
-//  sc_prod <<= 1; // Note: I had the definition of >>= / <<= wrong, so I changed it here. -- Gotti
-//
-//  EntryType abs_2scprod =abs(sc_prod);
-//
-//  if (abs_2scprod <= p2.access_approx().get_approx_norm2())
-//  {
-//    return false;
-//  }
-//
-//  //std::cout << abs_2scprod << " " << p2.access_approx().get_approx_norm2() << " ";
-//
-//  sc_prod >>= 1;
-//  double const mult = sc_prod.get_double() / convert_to_double( p2.get_norm2() );
-//
-//
-//  scalar =  round (mult);
-//  //std::cout <<mult  << " " << scalar << std::endl;
-//
-//
-//  return true;
-//#else
-
-  using std::abs;
-  /*
+  
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p1, p2);
-
-  //If approx_scprod_res is only margin-away from the expected value of approx_scprod_res for two random vectors, return false
-  //TODO: check why abs fails
-    uint_fast32_t margin = 5;
-    if(static_cast<uint_fast32_t>(approx_scprod_res) - sim_hash_len/2 <= margin || static_cast<uint_fast32_t>(approx_scprod_res) - sim_hash_len/2>=-margin )
-      return false;
+    if(!check2red_approx<SieveTraits>(p1, p2)) return false;
   #endif
-*/
-
+  
+  using std::round;
+  using std::abs;
 
   using EntryType = typename SieveTraits::EntryType;
 
@@ -69,17 +57,9 @@ bool check2red (typename SieveTraits::FastAccess_Point const &p1,
 
 
   double const mult = convert_to_double( sc_prod ) / convert_to_double( p2.get_norm2() );
-  //std::cout << sc_prod << " " << sc_prod << std::endl;
-
-    // check if |2 * <p1, p2>| <= |p2|^2. If yes, no reduction
-
-    //compute the multiple mult s.t. res = p1 \pm mult* p2;
-    //mult = round ( <p1, p2> / ||p2||^2 )
-
-    // TODO: Check over- / underflows.
-    scalar =  round (mult);
-    return true;
-//#endif
+  // TODO: Check over- / underflows.
+  scalar =  round (mult);
+  return true;
 }
 
 
@@ -159,79 +139,18 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         break;
       }
 
-      statistics.increment_number_of_scprods_level1();
+      //statistics.increment_number_of_scprods_level1();
       int scalar;
       if ( check2red<SieveTraits>(p, *it, scalar) )
       {
         assert(scalar!=0);
-
-        /*
-         #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-            red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-
-            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
-            red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
-            #endif
-        #endif
-        */
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          //SimHash::BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox_fixed(p, *it);
-          //statistics.red_stat_sim_hash[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-          //SimHash::BitApproxScalarProduct approx_scprod_res2 = compute_sc_product_bitapprox_fixed2(p, *it);
-          //statistics.red_stat_sim_hash2[static_cast<uint_fast32_t>(approx_scprod_res2)]++;
-
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
-          statistics.red_stat[0][approx_scprod]++;
-          for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
-          {
-            if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
-                approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
-              {
-                approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-                statistics.red_stat[lvl][approx_scprod]++;
-              }
-          }
-        #endif
-
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
         //std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
 
         break;
       }
-      else
-      {
-        /*
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-            no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-
-            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
-            no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
-            #endif
-        #endif
-       */
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-        uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
-        statistics.no_red_stat[0][approx_scprod]++;
-        for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
-        {
-          if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
-              approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
-          {
-            approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-            statistics.no_red_stat[lvl][approx_scprod]++;
-          }
-        }
-        #endif
-
-      }
-
     }
-
   }
 
 //p no longer changes. it_comparison_flip is iterator to first (shortest) element in the list that is longer than p.
@@ -242,23 +161,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
         statistics.increment_number_of_collisions();
         return;
     }
-
-// Changed, conversion done in insert_before.
-/*
-    GaussSieve::FastAccess_Point<ET,false,nfixed> p_copy = p.make_copy();
-
-    //convert FastAccess_Point to GaussList_StoredPoint
-    GaussSieve::GaussList_StoredPoint<ET, false, nfixed> p_converted (std::move(p_copy));
-
-    main_list.insert_before(it_comparison_flip, std::move(p_converted));
-*/
-
     main_list.insert_before(it_comparison_flip, p.make_copy() );
     statistics.increment_current_list_size();
 
-//    it = it_comparison_flip;
-
-//    while( it!=main_list.cend() )
     for(auto it = it_comparison_flip; it!=main_list.cend(); ) //++it done in body of loop
     {
 
@@ -275,40 +180,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
 // This requires the sampler to never output 0.
 
         typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
-
-        /*
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-
-            red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-              BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
-              red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
-            #endif
-        #endif
-     */
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-        uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
-        statistics.red_stat[0][approx_scprod]++;
-        for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
-        {
-          if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
-              approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
-          {
-            approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-            statistics.red_stat[lvl][approx_scprod]++;
-          }
-        }
-#endif
-
         //std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
 
         if (v_new.is_zero() ) // this only happens if the list contains a non-trivial multiple of p.
         {
           //std::cout << "collision on v_new is found " << std::endl;
           statistics.increment_number_of_collisions();
-//          ++it;
-//          continue;
+
         }
         main_queue.push(std::move(v_new));
 
@@ -320,36 +198,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       }
       else // no reduction.
       {
-        /*
-        #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-            BitApproxScalarProduct approx_scprod_res = compute_sc_product_bitapprox(p, *it);
-
-            no_red_stat[static_cast<uint_fast32_t>(approx_scprod_res)]++;
-
-            #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-            BitApproxScalarProduct approx2_scprod_res = compute_sc_product_bitapprox_2nd_order(p, *it);
-            no_red_stat2[static_cast<uint_fast32_t>(approx2_scprod_res)]++;
-            #endif
-        #endif
-         */
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-        uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
-        statistics.no_red_stat[0][approx_scprod]++;
-        for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
-        {
-          if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
-              approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
-          {
-            approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-            statistics.no_red_stat[lvl][approx_scprod]++;
-          }
-        }
-#endif
-
         ++it;
       }
     }
-
 
     if(update_shortest_vector_found(p))
      {

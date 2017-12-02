@@ -37,14 +37,14 @@ Consider moving (some) of them to SieveTraits
 unsigned int constexpr sim_hash_len = 64;
 // unsigned int constexpr sim_hash2_len = 64;
 // unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
-unsigned int constexpr num_of_levels = 3;  // number of approximation level
+unsigned int constexpr num_of_levels = 4;  // number of approximation level
                                            // (bitapprox is of size sim_hash_len*num_of_levels)
 // per level, we perform a random orthogonal transformation.
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
 unsigned int constexpr num_of_transforms = 2;
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{3, 7, 10}};
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{2, 6, 7}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{2, 5, 7, 10}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{2, 5, 7, 10}};
 
 // Default Parameters are JUST FOR TESTING. Change these!
 template<class SieveTraits = void, bool MT = false> class CoordinateSelection;  // forward declare
@@ -380,7 +380,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP co
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
+      //blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
     }
   }
   // put together the blocks into an array of bitsets.
