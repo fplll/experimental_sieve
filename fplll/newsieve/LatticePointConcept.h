@@ -468,7 +468,7 @@ class GeneralLatticePoint
 */
 
     template<class Impl=LatP> inline LatP make_copy() const &;
-    [[deprecated]] constexpr inline LatP make_copy() && {return *CREALTHIS;} // Calling this is probably an error.
+    [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
 
 
 /**
@@ -585,8 +585,8 @@ class GeneralLatticePoint
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
       inline int do_compute_sc_product_bitapprox_fixed2(LatP2 const &) const { assert(false); }
     #endif
-    
-    
+
+
     //Levelled bit approx
     #if __if_constexpr
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
@@ -595,7 +595,7 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_level(LatP2 const &, int lvl) const { assert(false); }
     #endif
-  
+
     //Layered bit approx
   /*
   #if __if_constexpr
@@ -668,7 +668,7 @@ template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatt
 inline auto compute_sc_product_bitapprox_level(LP1 const &lp1, LP2 const &lp2, int lvl)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_level(std::declval<LP2>(), lvl)  )
   { return lp1.do_compute_sc_product_bitapprox_level(lp2, lvl); }
-  
+
 //Layered bit approx (vertical)
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_layer(LP1 const &lp1, LP2 const &lp2, int lvl)
