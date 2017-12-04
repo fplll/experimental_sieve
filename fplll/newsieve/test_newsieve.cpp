@@ -84,9 +84,9 @@ int main(int argc, char **argv)
         }
     }
     else {
-        srand (1);
+        srand (45);
         //generates GM lattice
-        B.gen_qary_prime(1, 10*dim);
+        B.gen_qary_prime(1, 10*dim+1);
     }
 
     if (target_norm_string!=NULL)

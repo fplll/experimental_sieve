@@ -23,7 +23,16 @@
 using namespace fplll;
 using namespace GaussSieve;
 
+template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
+{
+  
+}
+
 int main(int argc, char **argv)
 {
+  
+  /*Generate lattices first*/
+  
+  
 
 }
