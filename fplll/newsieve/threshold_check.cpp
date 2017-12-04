@@ -31,8 +31,66 @@ template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
 int main(int argc, char **argv)
 {
   
-  /*Generate lattices first*/
   
+  const unsigned int bases_per_dim  = 3;
+  unsigned int dim_min = 60;
+  unsigned int dim_max = 60;
   
+  std::array<double, 30> av_time;
+  std::array<int, 30> dims;
+  std::array<unsigned long, 30> av_list_size;
+  
+  bool constexpr multithreaded = false;
+  int k = 2;
+  
+  using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, ZZ_mat< mpz_t > >;
+  TerminationCondition<Traits,multithreaded> * termcond;
+  termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+  
+  ZZ_mat<mpz_t> B;
+ 
+  
+  for (unsigned dim = dim_min; dim<=dim_max;++dim)
+  {
+    B.resize(dim, dim);
+    
+    double time_cnt = 0;
+    unsigned long list_size_cnt = 0;
+    
+    for (unsigned int seed = 1; seed <=bases_per_dim; ++seed)
+    {
+      string input_file_name = "Inputs/dim"+std::to_string(dim)+"_seed"+std::to_string(seed);
+      std::ifstream input_file(input_file_name);
+      std::cout << "reading B from file ..." << std::endl;
+            
+      input_file >> B;
+      input_file.close();
+      
+      lll_reduction(B, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER);
+      
+      Sieve<Traits, multithreaded> Test_2Sieve (B, k, 0);
+      Test_2Sieve.set_termination_condition(termcond);
+      
+      auto start = std::chrono::high_resolution_clock::now();
+      Test_2Sieve.run();
+      
+      auto finish = std::chrono::high_resolution_clock::now();
+      auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+      
+      time_cnt+=microseconds.count()/1000000.0;
+      
+      list_size_cnt+=Test_2Sieve.statistics.get_current_list_size();
+      //list_size_cnt+=Test_2Sieve.get_final_list_size();
+    }
+    
+    dims[dim-dim_min] = dim;
+    av_time[dim-dim_min] = (int)time_cnt/ bases_per_dim;
+    av_list_size[dim-dim_min] = list_size_cnt / bases_per_dim;
+  }
+  
+  for (unsigned int i=0; i<30; ++i)
+  {
+    std::cout << dims[i] <<" " << av_time[i] << " " <<av_list_size[i] << std::endl;
+  }
 
 }
