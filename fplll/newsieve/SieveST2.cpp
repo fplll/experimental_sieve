@@ -5,20 +5,29 @@
 namespace GaussSieve{
   
 
+  
+//WORKS FOR lvl>=2; TODO: make also for lvl=1
 template<class SieveTraits>
 bool check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2)
           
 {
   uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, 0));
+  //std::cout<< approx_scprod << std::endl; 
   for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
   {
+    
     if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
         approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
         {
             approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p1, p2, lvl));
         }
-    else return false;
+    else 
+    { 
+      //std::cout<< approx_scprod << std::endl; 
+      return false;
+      
+    }
   }
   
   return true;

@@ -37,16 +37,19 @@ Consider moving (some) of them to SieveTraits
 unsigned int constexpr sim_hash_len = 64;
 // unsigned int constexpr sim_hash2_len = 64;
 // unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
-unsigned int constexpr num_of_levels = 4;  // number of approximation level
+unsigned int constexpr num_of_levels = 2;  // number of approximation level
                                            // (bitapprox is of size sim_hash_len*num_of_levels)
 // per level, we perform a random orthogonal transformation.
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
-unsigned int constexpr num_of_transforms = 2;
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{2, 5, 7, 10}};
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{2, 5, 7, 10}};
+unsigned int constexpr num_of_transforms = 1;
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{8,10}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{4,8}};
+
+//constexpr int num_of_coos = 4;
 
 // Default Parameters are JUST FOR TESTING. Change these!
+
 template<class SieveTraits = void, bool MT = false> class CoordinateSelection;  // forward declare
 
 /**
@@ -148,6 +151,38 @@ public:
   }
 };
 
+/************************************
+ * OLD RELEVANT COORDITATES (FOR COMPARISON)
+ ************************************/
+/*
+class RMatrix
+{
+  private:
+  std::array<uint_fast16_t,SimHash::num_of_coos> coos [SimHash::sim_hash_len];
+  public:
+  RMatrix() = default;
+  RMatrix(unsigned int const dim)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("about to fill-up the R matrix")
+
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_int_distribution<std::mt19937::result_type> distr(0,dim-1);
+    for (uint_fast16_t i=0; i<SimHash::sim_hash_len; ++i)
+    {
+      for (uint_fast16_t j=0; j<SimHash::num_of_coos; ++j)
+        coos[i][j] = distr(rng);
+    }
+    
+  }
+
+  uint_fast16_t get_value(uint_fast16_t i, uint_fast16_t j) const
+  {
+       return coos[i][j];
+  }
+  
+};
+*/
 /********************************************************************
 SimHash::CoordinateSelection<SieveTraits,IsMultithreaded>
 is a class template holding the data related to bitapproximation.
@@ -184,6 +219,10 @@ public:
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline static auto transform_and_bitapprox(LatP const &point)
       -> std::array< std::bitset<sim_hash_len>, num_of_levels >;
+      
+  //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
+  //inline static auto transform_and_bitapprox_simple(LatP const &point)
+  //    -> std::array< std::bitset<sim_hash_len>, num_of_levels >;
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline static auto transform_and_bitapprox_2nd_layer(LatP const &point)
@@ -194,6 +233,8 @@ private:
   static unsigned int fast_walsh_hadamard_len;
   static std::vector< std::array<PMatrix,num_of_transforms> > pmatrices;
   static std::vector< std::array<DMatrix,num_of_transforms> > dmatrices;
+  
+  //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
 
 template<class SieveTraits, bool MT>
@@ -204,6 +245,10 @@ template<class SieveTraits, bool MT>
 std::vector< std::array<DMatrix,num_of_transforms> > CoordinateSelection<SieveTraits,MT>::dmatrices;
 template<class SieveTraits, bool MT>
 unsigned int CoordinateSelection<SieveTraits,MT>::fast_walsh_hadamard_len;
+
+//template<class SieveTraits, bool MT>
+//std::array<RMatrix,SimHash::num_of_levels> CoordinateSelection<SieveTraits,MT>::rmatrices={};
+
 }  // end namespace (GaussSieve::)BitApprox
    // now in namespace GaussSieve
 
@@ -250,6 +295,8 @@ public:
 
       Data::pmatrices.resize(Data::number_of_blocks);
       Data::dmatrices.resize(Data::number_of_blocks);
+      
+      
       for (unsigned int i = 0; i < Data::number_of_blocks; ++i)
       {
         for (unsigned int j = 0; j < SimHash::num_of_transforms; ++j)
@@ -259,6 +306,9 @@ public:
         }
       }
       // TODO: Print if DEBUG symbol is set.
+      
+      //for (unsigned int j = 0; j < SimHash::num_of_levels; ++j)
+      //  Data::rmatrices[j] = static_cast<SimHash::RMatrix>(ambient_dimension);
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing CoordinateSelection; Counter is " << Parent::user_count )
   }
@@ -267,6 +317,7 @@ public:
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing CoordinateSelection; Counter is " << Parent::user_count )
   }
 };
+
 
 namespace SimHash  // entering GaussSieve::SimHash
 {
@@ -380,7 +431,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP co
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      //blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
+      blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
     }
   }
   // put together the blocks into an array of bitsets.
@@ -399,7 +450,36 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP co
   return ret;
 }
 
+/*
+template<class SieveTraits, bool MT>
+template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
+inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(LatP const &point)
+    -> std::array< std::bitset<sim_hash_len>,num_of_levels >
+{
+  using ET    = Get_AbsoluteCooType<LatP>;
+  ET res;
+  
+  std::array< std::bitset<sim_hash_len>, num_of_levels > ret;
+  for (unsigned int i = 0; i < num_of_levels; ++i)
+  {
+    for (unsigned int j = 0; j < sim_hash_len; ++j)
+    {
+      for (unsigned int k=0; k < SimHash::num_of_coos; ++k)
+      {
+        uint_fast16_t coo = CoordinateSelection<SieveTraits,MT>::rmatrices[i].get_value(i, k); 
+        res+=point[coo];
+      }
+      ret[i][j] = res>0;
+      
+    }
+
+  }
+  return ret;
+  
+}
+ */
 // TODO: Merge this function with the one above to avoid recomputations.
+// NEW TODO: to delete, not sensitive
 
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>

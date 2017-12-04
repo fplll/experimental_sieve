@@ -145,8 +145,12 @@ int main(int argc, char **argv)
 
 	Test_3Sieve.set_termination_condition(termcond);
 
-#ifdef USE_APPROXPOINT
-  std::cout << "sieve uses approximations" <<std::endl;
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  std::cout << "sieve uses approximations with params:" <<std::endl;
+  std::cout << "sim_hash_len = " << GaussSieve::SimHash::sim_hash_len
+            << " num_of_levels = " << GaussSieve::SimHash::num_of_levels <<
+            std::endl;
+  std::cout << "approx_sc_prod bound is: " <<  GaussSieve::SimHash::threshold_lvls_2sieve[0] << std::endl;
 #endif
 
     Test_3Sieve.run();
