@@ -227,14 +227,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 
           /*Collecting stats*/
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
+          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, 0));
           statistics.red_stat_innloop[0][approx_scprod]++;
           for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
           {
             if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_3sieve[lvl-1] ||
                 approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_3sieve[lvl-1] )
             {
-              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, lvl));
               statistics.red_stat_innloop[lvl][approx_scprod]++;
             }
           }
@@ -270,14 +270,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         {
           /*Collecting stats*/
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
+          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, 0));
           statistics.no_red_stat_innloop[0][approx_scprod]++;
           for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
           {
             if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_3sieve[lvl-1] ||
                 approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_3sieve[lvl-1] )
             {
-              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, lvl));
               statistics.no_red_stat_innloop[lvl][approx_scprod]++;
             }
           }
@@ -396,14 +396,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
           
           /*Collecting stats*/
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
+          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, 0));
           statistics.red_stat_innloop[0][approx_scprod]++;
           for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
           {
             if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_3sieve[lvl-1] ||
                 approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_3sieve[lvl-1] )
             {
-              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, lvl));
               statistics.red_stat_innloop[lvl][approx_scprod]++;
             }
           }
@@ -438,14 +438,14 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
           
           /*Collecting stats*/
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p, *it, 0));
+          uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, 0));
           statistics.no_red_stat_innloop[0][approx_scprod]++;
           for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
           {
             if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_3sieve[lvl-1] ||
                 approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_3sieve[lvl-1] )
             {
-              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+              approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(filtered_list_point.get_point(), *it, lvl));
               statistics.no_red_stat_innloop[lvl][approx_scprod]++;
             }
           }
