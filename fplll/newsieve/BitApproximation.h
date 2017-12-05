@@ -173,14 +173,14 @@ class RMatrix
       for (uint_fast16_t j=0; j<SimHash::num_of_coos; ++j)
         coos[i][j] = distr(rng);
     }
-    
+
   }
 
   uint_fast16_t get_value(uint_fast16_t i, uint_fast16_t j) const
   {
        return coos[i][j];
   }
-  
+
 };
 */
 /********************************************************************
@@ -219,7 +219,7 @@ public:
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline static auto transform_and_bitapprox(LatP const &point)
       -> std::array< std::bitset<sim_hash_len>, num_of_levels >;
-      
+
   //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   //inline static auto transform_and_bitapprox_simple(LatP const &point)
   //    -> std::array< std::bitset<sim_hash_len>, num_of_levels >;
@@ -233,7 +233,8 @@ private:
   static unsigned int fast_walsh_hadamard_len;
   static std::vector< std::array<PMatrix,num_of_transforms> > pmatrices;
   static std::vector< std::array<DMatrix,num_of_transforms> > dmatrices;
-  
+  static unsigned int ambient_dimension;  // TODO: Remove this in favor of a static scratch space
+
   //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
 
@@ -245,6 +246,8 @@ template<class SieveTraits, bool MT>
 std::vector< std::array<DMatrix,num_of_transforms> > CoordinateSelection<SieveTraits,MT>::dmatrices;
 template<class SieveTraits, bool MT>
 unsigned int CoordinateSelection<SieveTraits,MT>::fast_walsh_hadamard_len;
+template<class SieveTraits, bool MT>
+unsigned int CoordinateSelection<SieveTraits,MT>::ambient_dimension;
 
 //template<class SieveTraits, bool MT>
 //std::array<RMatrix,SimHash::num_of_levels> CoordinateSelection<SieveTraits,MT>::rmatrices={};
@@ -277,6 +280,7 @@ public:
     {
       // check that the value is what is should be (see below)
       // TODO: Store dimension and verify it was the same as in the last invocation?
+      assert(Data::ambient_dimension == ambient_dimension);
       assert(Data::number_of_blocks ==
              (SimHash::num_of_levels * SimHash::sim_hash_len - 1) / ambient_dimension + 1);
     }
@@ -286,7 +290,7 @@ public:
       // We need ceil(total number of required bits / ambient_dimension) blocks
       // (i.e. repetitions of the input vector) to get at least that many output bits.
       // (X-1)/ Y + 1 is the same as ceil(X/Y)
-
+      Data::ambient_dimension = ambient_dimension;
       Data::number_of_blocks =
           ((SimHash::num_of_levels * SimHash::sim_hash_len - 1) / ambient_dimension) + 1;
 
@@ -295,8 +299,9 @@ public:
 
       Data::pmatrices.resize(Data::number_of_blocks);
       Data::dmatrices.resize(Data::number_of_blocks);
-      
-      
+
+
+
       for (unsigned int i = 0; i < Data::number_of_blocks; ++i)
       {
         for (unsigned int j = 0; j < SimHash::num_of_transforms; ++j)
@@ -306,7 +311,7 @@ public:
         }
       }
       // TODO: Print if DEBUG symbol is set.
-      
+
       //for (unsigned int j = 0; j < SimHash::num_of_levels; ++j)
       //  Data::rmatrices[j] = static_cast<SimHash::RMatrix>(ambient_dimension);
     }
@@ -333,18 +338,21 @@ namespace SimHash  // entering GaussSieve::SimHash
  TODO: Change the scaling?
 */
 
-// Note: Pass by value is intentional. We modify the local copy.
+// TODO: Make part of the CoordinateSelection class
+
 template<class T>
 inline auto  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int const len)
     -> std::vector<T>
 {
+  //static // thread_local
+  //std::vector<T> input=input_arg;  // TODO: Move to other static data.
+  //input = input_arg;
+
   using std::swap;
   // len must be a power of two:
   assert(std::bitset< std::numeric_limits<unsigned long>::digits >{len}.count() == 1);
-
   // static_assert(is_a_power_of_two(len), "len must be a power of two");
-
-  assert(len <= input.size());  // maybe static
+  assert(len <= input .size());  // maybe static
   std::vector<T> output(input.size());
 
 //  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the unmodified coos.
@@ -375,6 +383,8 @@ inline auto  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int cons
   return output;
 }
 
+/*
+// unused, did not incorporate recent changes.
 // (unused) variant of the above function, for arrays instead of vectors.
 template<class T, std::size_t arraylen>
 inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned int const len)
@@ -405,6 +415,7 @@ inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned i
   }
   return output;
 }
+*/
 
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
@@ -458,7 +469,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(
 {
   using ET    = Get_AbsoluteCooType<LatP>;
   ET res;
-  
+
   std::array< std::bitset<sim_hash_len>, num_of_levels > ret;
   for (unsigned int i = 0; i < num_of_levels; ++i)
   {
@@ -466,16 +477,16 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(
     {
       for (unsigned int k=0; k < SimHash::num_of_coos; ++k)
       {
-        uint_fast16_t coo = CoordinateSelection<SieveTraits,MT>::rmatrices[i].get_value(i, k); 
+        uint_fast16_t coo = CoordinateSelection<SieveTraits,MT>::rmatrices[i].get_value(i, k);
         res+=point[coo];
       }
       ret[i][j] = res>0;
-      
+
     }
 
   }
   return ret;
-  
+
 }
  */
 // TODO: Merge this function with the one above to avoid recomputations.
