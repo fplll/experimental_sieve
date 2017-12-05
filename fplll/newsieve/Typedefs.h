@@ -81,8 +81,8 @@ class DefaultSieveTraits
   static constexpr int number_of_hash_functions = 11;
 #endif
 
-  static unsigned int constexpr sim_hash_len = 64;  // number of bits per simhash
-  static unsigned int constexpr sim_hash_num = 2;  // number of simhashes per vector
+  static unsigned int constexpr sim_hash_len = 64;  // number of bits per simhash block
+  static unsigned int constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using DimensionType           = MaybeFixed<nfixed>;

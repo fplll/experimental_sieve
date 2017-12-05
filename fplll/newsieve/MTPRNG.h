@@ -31,7 +31,7 @@ template <class Engine, bool MT, class Sseq> class MTPRNG;
  on (the 1-dimensional lattice given by) the integers Z.
 
  We cutoff the Gaussian at s*cutoff. This means that the distribution is discrete on a subset of
- Z with  output probability for x being proportional to exp(-pi(x-c)^2/s^2). Note the scaling by pi
+ Z with output probability for x being proportional to exp(-pi(x-c)^2/s^2). Note the scaling by pi
  in the exponent.
 
  For reasons of numerical stability, center should not be very large in absolute value (it is

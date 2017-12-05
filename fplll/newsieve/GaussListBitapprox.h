@@ -13,7 +13,7 @@
 #include "Typedefs.h"
 #include <list>
 #include "SieveUtility.h"
-#include "BitApproximation.h"
+#include "BitApproximationNew.h"
 
 namespace GaussSieve{
 

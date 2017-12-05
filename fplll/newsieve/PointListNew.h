@@ -34,24 +34,24 @@ template <class SieveTraits>
 class GaussListNew<SieveTraits, false>
 {
 public:
-    friend GaussIteratorNew<SieveTraits,false>;
-    using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
-    using ReturnType  = typename SieveTraits::GaussList_ReturnType;
+  friend GaussIteratorNew<SieveTraits,false>;
+  using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
+  using ReturnType  = typename SieveTraits::GaussList_ReturnType;
 
-    using UnderlyingContainer = std::list<StoredPoint>;
-    using Iterator = GaussIteratorNew<SieveTraits,false>;
-    using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
+  using UnderlyingContainer = std::list<StoredPoint>;
+  using Iterator = GaussIteratorNew<SieveTraits,false>;
+  using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
 
-    explicit GaussListNew(GlobalStaticDataInitializer const &static_data)
+  explicit GaussListNew(GlobalStaticDataInitializer const &static_data)
       : init_stored_point(static_data), init_return_type(static_data), actual_list() {}
-    GaussListNew(GaussListNew const & old) = delete;
-    GaussListNew(GaussListNew && old) = delete;
-    GaussListNew & operator= (GaussListNew const &other) = delete;
-    GaussListNew & operator= (GaussListNew &&other) = delete;
-    ~GaussListNew() = default; //FIXME: CHECK!!!
+  GaussListNew(GaussListNew const & old) = delete;
+  GaussListNew(GaussListNew && old) = delete;
+  GaussListNew & operator= (GaussListNew const &other) = delete;
+  GaussListNew & operator= (GaussListNew &&other) = delete;
+  ~GaussListNew() = default; //FIXME: CHECK!!!
 
-    Iterator cbegin() { return static_cast<Iterator>(actual_list.begin()); };
-    Iterator cend()   { return static_cast<Iterator>(actual_list.end()); };
+  Iterator cbegin() { return static_cast<Iterator>(actual_list.begin()); };
+  Iterator cend()   { return static_cast<Iterator>(actual_list.end()); };
 
     //These functions insert (possibly a copy of val) into the list.
     //TODO: include ownership transfer semantics to avoid some copying, possibly include refcounts in LatticePoints.
@@ -59,11 +59,11 @@ public:
 
     //no automatic copying: You can use insert_before(point.make_copy() );
     //The issue is that copying should be explicit.
-    Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;
+  Iterator insert_before(Iterator pos, StoredPoint const & val) = delete;
 
-    template<class LatticePoint, TEMPL_RESTRICT_DECL(IsALatticePoint<LatticePoint>::value)>
-    Iterator insert_before(Iterator pos, LatticePoint && val)
-    { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
+  template<class LatticePoint, TEMPL_RESTRICT_DECL(IsALatticePoint<LatticePoint>::value)>
+  Iterator insert_before(Iterator pos, LatticePoint && val)
+  { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
 
     /*Iterator insert_before_give_ownership(Iterator pos, DetailType * const val) = delete;  //TODO
     Iterator insert_before(Iterator pos, DataType const & val) =  delete; //TODO
@@ -72,16 +72,16 @@ public:
     //Iterator insert_before(Iterator pos, DetailType && val)           {return actual_list.insert(pos,std::move(val));};
 
 
-    Iterator erase(Iterator pos) {return static_cast<Iterator> (actual_list.erase(pos.it));}; //only for single-threaded
+  Iterator erase(Iterator pos) {return static_cast<Iterator> (actual_list.erase(pos.it));}; //only for single-threaded
     //void unlink(Iterator pos)=delete;     //MT only                              //{actual_list.erase(pos);};
 
     //TODO: Use aux_data, sort by calling comparison function
-    void sort() {actual_list.sort();};  //only for single-threaded (for now).
+  void sort() {actual_list.sort();};  //only for single-threaded (for now).
 
 private:
-    StaticInitializer<StoredPoint> const init_stored_point;
-    StaticInitializer<ReturnType>  const init_return_type;
-    UnderlyingContainer actual_list;
+  StaticInitializer<StoredPoint> const init_stored_point;
+  StaticInitializer<ReturnType>  const init_return_type;
+  UnderlyingContainer actual_list;
 };
 
 //behaves like a const_iterator to approximate points.

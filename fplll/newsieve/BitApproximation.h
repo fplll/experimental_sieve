@@ -280,7 +280,7 @@ public:
     {
       // check that the value is what is should be (see below)
       // TODO: Store dimension and verify it was the same as in the last invocation?
-      assert(Data::ambient_dimension == ambient_dimension);
+      // assert(Data::ambient_dimension == ambient_dimension);
       assert(Data::number_of_blocks ==
              (SimHash::num_of_levels * SimHash::sim_hash_len - 1) / ambient_dimension + 1);
     }
@@ -592,6 +592,8 @@ public:
   BitApproxScalarProduct_WrappedType value;
 };
 
+template<class SieveTraits, bool MT>
+using SimHashBlock = std::bitset<SieveTraits::sim_hash_len>;
 
 
 

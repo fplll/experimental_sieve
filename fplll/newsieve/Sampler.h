@@ -63,8 +63,6 @@ IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any
             init() / custom_init, which get called after the sampler is associated with the sieve.
             If the macro DEBUG_SIEVE_STANDALONE_SAMPLER is set, we may even use the sampler without
             any associated sieve. (This latter case need not work with user-defined samplers)
-
-
 */
 
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
