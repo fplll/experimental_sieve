@@ -37,14 +37,14 @@ Consider moving (some) of them to SieveTraits
 unsigned int constexpr sim_hash_len = 64;
 // unsigned int constexpr sim_hash2_len = 64;
 // unsigned int constexpr sim_hash_number_of_coos = 4; // probably unused.
-unsigned int constexpr num_of_levels = 2;  // number of approximation level
+unsigned int constexpr num_of_levels = 1;  // number of approximation level
                                            // (bitapprox is of size sim_hash_len*num_of_levels)
 // per level, we perform a random orthogonal transformation.
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
 unsigned int constexpr num_of_transforms = 2;
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{4,8}};
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{0,0}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{8}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{3}};
 
 //constexpr int num_of_coos = 4;
 

@@ -33,8 +33,8 @@ int main(int argc, char **argv)
   
   
   const unsigned int bases_per_dim  = 2;
-  const unsigned int dim_min = 45;
-  const unsigned int dim_max = 49;
+  const unsigned int dim_min = 50;
+  const unsigned int dim_max = 55;
   
   std::array<double, dim_max-dim_min+1> av_time;
   std::array<int, dim_max-dim_min+1> dims;
@@ -101,8 +101,9 @@ int main(int argc, char **argv)
             << std::setw(5) << "time: " <<  std::setw(6)  << "list_size: " << std::endl;
   for (unsigned int i=0; i<av_time.size(); ++i)
   {
-    std::cout << dims[i] <<" " << av_approx_sc_prod[i] << " " << av_exact_sc_prod[i] << " " <<
-                 av_time[i] << " " <<av_list_size[i] << std::endl;
+    std::cout << dims[i] << " " << std::setw(3) << av_approx_sc_prod[i] << " " << std::setw(3) 
+               << av_exact_sc_prod[i] << std::setw(3) << " "<<  av_time[i] << " " << 
+              std::setw(6) << av_list_size[i] << std::endl;
   }
 
 }

@@ -5,10 +5,8 @@
 namespace GaussSieve{
   
 
-  
-//WORKS FOR lvl>=2; TODO: make also for lvl=1
 template<class SieveTraits>
-bool check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
+bool Sieve<SieveTraits,false>::check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2)
           
 {
@@ -50,7 +48,7 @@ bool Sieve<SieveTraits,false>::check2red (typename SieveTraits::FastAccess_Point
   
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     statistics.increment_number_of_approx_scprods_level1();
-    if(!check2red_approx<SieveTraits>(p1, p2)) return false;
+    if(!check2red_approx(p1, p2)) return false;
   #endif
   
   statistics.increment_number_of_scprods_level1();
