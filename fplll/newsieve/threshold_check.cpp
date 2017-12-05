@@ -32,12 +32,14 @@ int main(int argc, char **argv)
 {
   
   
-  const unsigned int bases_per_dim  = 4;
+  const unsigned int bases_per_dim  = 2;
   const unsigned int dim_min = 45;
-  const unsigned int dim_max = 59;
+  const unsigned int dim_max = 49;
   
   std::array<double, dim_max-dim_min+1> av_time;
   std::array<int, dim_max-dim_min+1> dims;
+  std::array<unsigned long, dim_max-dim_min+1> av_approx_sc_prod;
+  std::array<unsigned long, dim_max-dim_min+1> av_exact_sc_prod;
   std::array<unsigned long, dim_max-dim_min+1> av_list_size;
   
   bool constexpr multithreaded = false;
@@ -56,6 +58,8 @@ int main(int argc, char **argv)
     
     double time_cnt = 0;
     unsigned long list_size_cnt = 0;
+    unsigned long exact_sc_prod_cnt = 0;
+    unsigned long approx_sc_prod_cnt = 0;
     
     for (unsigned int seed = 1; seed <=bases_per_dim; ++seed)
     {
@@ -80,17 +84,25 @@ int main(int argc, char **argv)
       time_cnt+=microseconds.count()/1000000.0;
       
       list_size_cnt+=Test_2Sieve.statistics.get_current_list_size();
+      exact_sc_prod_cnt+=Test_2Sieve.statistics.get_number_of_scprods_level1();
+      approx_sc_prod_cnt+=Test_2Sieve.statistics.get_number_of_approx_scprods_level1();
       //list_size_cnt+=Test_2Sieve.get_final_list_size();
     }
     
     dims[dim-dim_min] = dim;
     av_time[dim-dim_min] = time_cnt/ bases_per_dim;
+    av_approx_sc_prod[dim-dim_min] = approx_sc_prod_cnt / bases_per_dim;
+    av_exact_sc_prod[dim-dim_min] = exact_sc_prod_cnt / bases_per_dim;
     av_list_size[dim-dim_min] = list_size_cnt / bases_per_dim;
   }
   
+  
+  std::cout << "dim: " << std::setw(5) << "approx_sc_prod: " << std::setw(6) << "exact_sc_prod"
+            << std::setw(5) << "time: " <<  std::setw(6)  << "list_size: " << std::endl;
   for (unsigned int i=0; i<av_time.size(); ++i)
   {
-    std::cout << dims[i] <<" " << av_time[i] << " " <<av_list_size[i] << std::endl;
+    std::cout << dims[i] <<" " << av_approx_sc_prod[i] << " " << av_exact_sc_prod[i] << " " <<
+                 av_time[i] << " " <<av_list_size[i] << std::endl;
   }
 
 }
