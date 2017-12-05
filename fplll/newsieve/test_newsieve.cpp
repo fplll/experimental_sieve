@@ -84,9 +84,13 @@ int main(int argc, char **argv)
         }
     }
     else {
-        srand (1);
+        srand (0);
         //generates GM lattice
         B.gen_qary_prime(1, 10*dim);
+        
+        std::ofstream outputB;
+        outputB.open("dim="+std::to_string(dim));
+        outputB << B;
     }
 
     if (target_norm_string!=NULL)

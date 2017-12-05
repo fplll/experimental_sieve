@@ -12,15 +12,17 @@ bool check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2)
           
 {
-  uint_fast32_t approx_scprod = static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, 0));
+  uint_fast32_t approx_scprod = 0;
   //std::cout<< approx_scprod << std::endl; 
-  for (unsigned int lvl = 1; lvl<SimHash::num_of_levels; ++lvl)
+  for (unsigned int lvl = 0; lvl<SimHash::num_of_levels; ++lvl)
   {
+    approx_scprod += static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, lvl));
     
-    if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl-1] ||
-        approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl-1] )
+    if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl] ||
+        approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl] )
         {
-            approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p1, p2, lvl));
+          continue;
+            //approx_scprod+=static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p1, p2, lvl));
         }
     else 
     { 

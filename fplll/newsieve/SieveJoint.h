@@ -265,6 +265,7 @@ public:
 //  ET get_best_length2() const                                 {return get_shortest_vector_found().norm2;};
   EntryType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
   bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
+  unsigned long get_final_list_size()                          {return main_list.size();};
 
   // STAT_MARK
 
@@ -351,7 +352,7 @@ private:
   // Note: The latter was actually done...
 
   FastAccess_Point * shortest_vector_found; //including its length //TODO: Thread-safety
-
+public: //switched to public to get list-sizes
   SieveStatistics statistics;
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true

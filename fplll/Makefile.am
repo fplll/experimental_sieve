@@ -38,7 +38,7 @@ nobase_include_fplll_HEADERS=defs.h fplll.h \
 	sieve/sieve_gauss.h sieve/sieve_common.h sieve/sieve_gauss_str.h sieve/sampler_basic.h \
 	pruner.h
 
-bin_PROGRAMS=fplll latticegen latsieve newlatsieve testsieve
+bin_PROGRAMS=fplll latticegen latsieve newlatsieve testsieve thresholdcheck
 check_PROGRAMS=llldiff
 EXTRA_PROGRAMS=fplll_dbg latticegen_dbg classtests
 lib_LTLIBRARIES=libfplll.la
@@ -81,6 +81,10 @@ newlatsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 #testsieve bin
 testsieve_SOURCES=newsieve/test_newsieve.cpp
 testsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
+
+#thresholdcheck bin
+thresholdcheck_SOURCES=newsieve/threshold_check.cpp
+thresholdcheck_LDADD=libfplll.la $(LIBQD_LIBADD)
 
 
 # libfplll
