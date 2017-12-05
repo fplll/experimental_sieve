@@ -63,7 +63,7 @@ struct GaussSieveStatistics<SieveTraits,false>
   unsigned long int get_current_queue_size()                  {return sieveptr->main_queue.size();}; //TODO : fix const-correctness
 
 
-
+  /*Stats for exact scalar products*/
   unsigned long long int number_of_scprods_level1; //for k=2 case
   unsigned long long get_number_of_scprods_level1() const  {return number_of_scprods_level1;}
   inline void increment_number_of_scprods_level1() {++number_of_scprods_level1;}
@@ -75,6 +75,16 @@ struct GaussSieveStatistics<SieveTraits,false>
   unsigned long long int number_of_scprods_level3; //for k=2,3,4 cases
   inline unsigned long long get_number_of_scprods_level3() const {return number_of_scprods_level3;}
 
+  /* Stats for approximate scalar products */
+  unsigned long long int number_of_approx_scprods_level1; //for k=2 case
+  unsigned long long get_number_of_approx_scprods_level1() const  {return number_of_approx_scprods_level1;}
+  inline void increment_number_of_approx_scprods_level1() {++number_of_approx_scprods_level1;}
+  
+  unsigned long long int number_of_approx_scprods_level2; //for k=2,3 cases
+  inline unsigned long long get_number_of_approx_scprods_level2() const {return number_of_approx_scprods_level2;}
+  inline void increment_number_of_approx_scprods_level2() {++number_of_approx_scprods_level2;}
+  
+  
   unsigned long long int number_of_exact_scprods;
   unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
 

@@ -41,16 +41,19 @@ bool check2red_approx(typename SieveTraits::FastAccess_Point const &p1,
  Assume ||p1|| > ||p2||
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
-template<class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-bool check2red (typename SieveTraits::FastAccess_Point const &p1,
+template<class SieveTraits>
+bool Sieve<SieveTraits,false>::check2red (typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2,
-                Integer & scalar)
+                int & scalar)
 {
   assert(!(p2.is_zero()));
   
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    statistics.increment_number_of_approx_scprods_level1();
     if(!check2red_approx<SieveTraits>(p1, p2)) return false;
   #endif
+  
+  statistics.increment_number_of_scprods_level1();
   
   using std::round;
   using std::abs;
@@ -151,8 +154,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       }
 
       //statistics.increment_number_of_scprods_level1();
-      int scalar;
-      if ( check2red<SieveTraits>(p, *it, scalar) )
+      int scalar = 0;
+      if ( check2red(p, *it, scalar) )
       {
         assert(scalar!=0);
         p-= (*it) * scalar; //The efficiency can be improved here, but it does not matter, probably.
@@ -178,10 +181,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     for(auto it = it_comparison_flip; it!=main_list.cend(); ) //++it done in body of loop
     {
 
-      statistics.increment_number_of_scprods_level1();
 
-      int scalar;
-      if ( check2red<SieveTraits>(*it, p, scalar) )
+      int scalar = 0;
+      if ( check2red(*it, p, scalar) )
       {
 //        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
 //        v_new = perform2red(*it, p, scalar );

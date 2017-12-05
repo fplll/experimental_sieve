@@ -217,6 +217,8 @@ public:
 //  void sieve_k_thread(int const thread_id);
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+  
+  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
 
   void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
