@@ -32,13 +32,13 @@ int main(int argc, char **argv)
 {
   
   
-  const unsigned int bases_per_dim  = 3;
-  unsigned int dim_min = 60;
-  unsigned int dim_max = 60;
+  const unsigned int bases_per_dim  = 4;
+  const unsigned int dim_min = 45;
+  const unsigned int dim_max = 59;
   
-  std::array<double, 30> av_time;
-  std::array<int, 30> dims;
-  std::array<unsigned long, 30> av_list_size;
+  std::array<double, dim_max-dim_min+1> av_time;
+  std::array<int, dim_max-dim_min+1> dims;
+  std::array<unsigned long, dim_max-dim_min+1> av_list_size;
   
   bool constexpr multithreaded = false;
   int k = 2;
@@ -84,11 +84,11 @@ int main(int argc, char **argv)
     }
     
     dims[dim-dim_min] = dim;
-    av_time[dim-dim_min] = (int)time_cnt/ bases_per_dim;
+    av_time[dim-dim_min] = time_cnt/ bases_per_dim;
     av_list_size[dim-dim_min] = list_size_cnt / bases_per_dim;
   }
   
-  for (unsigned int i=0; i<30; ++i)
+  for (unsigned int i=0; i<av_time.size(); ++i)
   {
     std::cout << dims[i] <<" " << av_time[i] << " " <<av_list_size[i] << std::endl;
   }
