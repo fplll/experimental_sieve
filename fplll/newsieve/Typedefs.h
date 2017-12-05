@@ -62,23 +62,6 @@ class DefaultSieveTraits
 
   using IsSieveTraitsClass = std::true_type;
 
-/*
-#ifdef USE_APPROXPOINT
-
-  using ExactLP                 = ExactLatticePoint<ET,nfixed>;
-  using Approx                  = EMVApproximation<nfixed>;
-
-  using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
-
-  using GaussList_StoredPoint   = VectorWithApproximation<ExactLP,Approx>;
-  using GaussList_ReturnType    = VectorWithApproximation<ExactLP,Approx>;
-  using FastAccess_Point        = VectorWithApproximation<ExactLP,Approx>;
-
-  using GaussQueue_ReturnType   = VectorWithApproximation<ExactLP,Approx>;;
-  using GaussQueue_DataType     = VectorWithApproximation<ExactLP,Approx>;;
-
-#else
-*/
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
@@ -97,6 +80,10 @@ class DefaultSieveTraits
   static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
   static constexpr int number_of_hash_functions = 11;
 #endif
+
+  static unsigned int constexpr sim_hash_len = 64;  // number of bits per simhash
+  static unsigned int constexpr sim_hash_num = 2;  // number of simhashes per vector
+  // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using DimensionType           = MaybeFixed<nfixed>;
   using EntryType               = ET;

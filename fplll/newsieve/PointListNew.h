@@ -1,13 +1,7 @@
 // clang-format off
 
-//
-// PointList.h
-//
-
 #ifndef POINT_LIST_NEW_H
 #define POINT_LIST_NEW_H
-
-
 
 #include "DefaultIncludes.h"
 

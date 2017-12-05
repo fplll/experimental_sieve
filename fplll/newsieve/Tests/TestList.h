@@ -1,11 +1,12 @@
 #ifndef TEST_LIST_H
 #define TEST_LIST_H
 
-#include "../PointListNew.h"
+//#include "../PointListNew.h"
 #include "fplll.h"
 #include "../Typedefs.h"
 #include "gmpxx.h"
 #include <iostream>
+#include "../GaussListBitapprox.h"
 
 bool test_list()
 {

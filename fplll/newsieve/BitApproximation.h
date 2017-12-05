@@ -341,7 +341,7 @@ namespace SimHash  // entering GaussSieve::SimHash
 // TODO: Make part of the CoordinateSelection class
 
 template<class T>
-inline auto  fast_partial_walsh_hadamard(std::vector<T> input, unsigned int const len)
+inline auto fast_partial_walsh_hadamard(std::vector<T> input, unsigned int const len)
     -> std::vector<T>
 {
   //static // thread_local
@@ -492,6 +492,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(
 // TODO: Merge this function with the one above to avoid recomputations.
 // NEW TODO: to delete, not sensitive
 
+#if 0  // deactivated
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
 inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_layer(LatP const &point)
@@ -550,6 +551,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
   }
   return ret;
 }
+#endif // 0
 
 /**
   This class stores the result of computing a scalar product of bitwise
@@ -557,7 +559,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
   Essentially, just wraps around an int.
   Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
 */
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
+
 class BitApproxScalarProduct
 {
 
@@ -589,7 +591,7 @@ public:
 
   BitApproxScalarProduct_WrappedType value;
 };
-//#endif
+
 
 
 
