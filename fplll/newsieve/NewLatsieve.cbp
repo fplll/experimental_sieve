@@ -16,6 +16,7 @@
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
 		<Unit filename="BitApproximation.h" />
+		<Unit filename="BitApproximationNew.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
@@ -23,6 +24,8 @@
 		<Unit filename="DefaultTermConds_impl.h" />
 		<Unit filename="EMVApproximation.h" />
 		<Unit filename="ExactLatticePoint.h" />
+		<Unit filename="GaussListBitapprox.h" />
+		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
 		<Unit filename="GlobalStaticData.h" />
@@ -58,6 +61,7 @@
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestLazy.h" />
 		<Unit filename="Tests/TestList.h" />
+		<Unit filename="Tests/TestList2.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
 		<Unit filename="Tests/TestPlainLatticePoint.h" />
@@ -68,6 +72,7 @@
 		<Unit filename="classtests.cpp" />
 		<Unit filename="sieve_main.cpp" />
 		<Unit filename="test_newsieve.cpp" />
+		<Unit filename="threshold_check.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
