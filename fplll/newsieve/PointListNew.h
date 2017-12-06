@@ -63,7 +63,7 @@ public:
 
   template<class LatticePoint, TEMPL_RESTRICT_DECL(IsALatticePoint<LatticePoint>::value)>
   Iterator insert_before(Iterator pos, LatticePoint && val)
-  { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); };
+  { return static_cast<Iterator> (actual_list.emplace(pos.it, static_cast<StoredPoint>( std::move(val)))); }
 
     /*Iterator insert_before_give_ownership(Iterator pos, DetailType * const val) = delete;  //TODO
     Iterator insert_before(Iterator pos, DataType const & val) =  delete; //TODO
@@ -72,11 +72,11 @@ public:
     //Iterator insert_before(Iterator pos, DetailType && val)           {return actual_list.insert(pos,std::move(val));};
 
 
-  Iterator erase(Iterator pos) {return static_cast<Iterator> (actual_list.erase(pos.it));}; //only for single-threaded
+  Iterator erase(Iterator pos) {return static_cast<Iterator> (actual_list.erase(pos.it));} //only for single-threaded
     //void unlink(Iterator pos)=delete;     //MT only                              //{actual_list.erase(pos);};
 
     //TODO: Use aux_data, sort by calling comparison function
-  void sort() {actual_list.sort();};  //only for single-threaded (for now).
+  void sort() {actual_list.sort();}  //only for single-threaded (for now).
 
 private:
   StaticInitializer<StoredPoint> const init_stored_point;

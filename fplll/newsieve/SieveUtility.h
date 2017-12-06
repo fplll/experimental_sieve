@@ -21,7 +21,6 @@ class IgnoreAnyArg;
 template<class T> class IsZNRClass;
 template<class Integer> struct ConvertMaybeMPZ;
 template<class T> class UnZNR;
-template<class Integer> struct ConvertMaybeMPZ;
 }
 
 /**
