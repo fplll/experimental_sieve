@@ -62,7 +62,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
     switch (sieve_k)
     {
         case 2: run_2_sieve(); break;
-        case 3: run_3_sieve(); break;
+        case 3: assert(false);break;// run_3_sieve(); break;
         //default:run_k_sieve(); break;
         default: assert(false);
     }
@@ -117,7 +117,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
   }
 }
 
-
+/*
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 {
   int i=0;
@@ -150,14 +150,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
     }
   }
 }
+*/
 
 } // end namespace
 
 // TODO: #include placement
 
-#include "HyperplaneLSH.h"
+//#include "HyperplaneLSH.h"
 #include "SieveST2.cpp"
-#include "SieveST3.cpp"
+//#include "SieveST3.cpp"
 //#include "SieveSTk.cpp"
 
 #endif

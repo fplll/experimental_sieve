@@ -176,7 +176,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     static_init_fast_access_point(global_static_data),
     original_basis(B),
     lattice_basis(B,global_static_data),
-    main_list(global_static_data),
+    main_list(global_static_data, seed_sampler),
     main_queue(this,global_static_data),
     lattice_rank(B.get_rows()),
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
@@ -271,14 +271,14 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 // This should be moved to Statistics.h -- Gotti
 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  
+
   unsigned int size_of_stat_arrays = GaussSieve::SimHash::num_of_levels * GaussSieve::SimHash::sim_hash_len+1;
-  
+
   for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
   {
     statistics.red_stat[lvl].resize(size_of_stat_arrays);
     statistics.no_red_stat[lvl].resize(size_of_stat_arrays);
-    
+
     statistics.red_stat_innloop[lvl].resize(size_of_stat_arrays);
     statistics.no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
   }

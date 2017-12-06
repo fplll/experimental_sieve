@@ -78,6 +78,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 //#include "LatticePointsNew.h"
 //#include "PointList.h"
 #include "PointListNew.h"
+#include "GaussListBitapprox.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "LatticeBases.h"
@@ -125,7 +126,9 @@ public:
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
   using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>; //FIXME
-  using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+//  using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  // CHKMAINLIST
+  using MainListType     = GaussListWithBitApprox<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using LatticeBasisType = SieveLatticeBasis<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
@@ -208,7 +211,7 @@ public:
   void run();                 //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
 
   void run_2_sieve(); //actually runs the Gauss Sieve with k=2
-  void run_3_sieve(); //actually runs the Gauss Sieve with k=3
+  //void run_3_sieve(); //actually runs the Gauss Sieve with k=3
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED == true
@@ -218,17 +221,17 @@ public:
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
   bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
-  
+
   bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
 
-  void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+  //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
-  void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
-  bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
+  //void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
+  //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
   bool check_sc_prod (FastAccess_Point const &x1,FastAccess_Point const &x2, EntryType & sc_prod_x1x2);
 
-  
-  
+
+
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
 
