@@ -47,9 +47,9 @@ bool Sieve<SieveTraits,false>::check2red (typename SieveTraits::FastAccess_Point
 {
   assert(!(p2.is_zero()));
   
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-      if(!check2red_approx(p1, p2)) return false;
-  #endif
+  //#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+  //    if(!check2red_approx(p1, p2)) return false;
+  //#endif
   
   statistics.increment_number_of_scprods_level1();
   
@@ -145,6 +145,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
     for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
     {
       //std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
+      
       if (p  < (*it) )
       {
         it_comparison_flip = it;
@@ -185,6 +186,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (ty
       {
 //        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
 //        v_new = perform2red(*it, p, scalar );
+        
 
 // TODO: We can move the collision counting to the very beginning of the first loop.
 // and steal *it here for the new point.

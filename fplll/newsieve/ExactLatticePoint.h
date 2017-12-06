@@ -149,6 +149,7 @@ public:
     //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
 
     fixed_bitapprox_data_level = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox(*this);
+    //fixed_bitapprox_data_level = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox_simple(*this);
 #endif
 
   }
@@ -162,7 +163,6 @@ public:
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
 
   inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const;
-  //inline unsigned int do_compute_sc_product_bitapprox_layer(ExactLatticePoint const & another, int lvl) const;
 #endif
 
   inline ET do_compute_sc_product(ExactLatticePoint const &lp2) const
