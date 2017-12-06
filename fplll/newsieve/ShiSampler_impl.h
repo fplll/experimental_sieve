@@ -104,12 +104,14 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 
   // shift, expressed in coordinates wrt the Gram-Schmidt basis.
   std::vector<double> shifts(lattice_rank, 0.0);
-
-
+  
+  
 
 
   // Note: This is a while - loop, because --j will cause trouble on unsigned j.
   // (With signed j, the correct for loop would be for(int j = lattice_rank-1 ; j>=0;--j) )
+  //std::cout << vec << std::endl;
+  while ( vec.is_zero())
   {
     #ifdef PROGRESSIVE
     uint_fast16_t j = this->get_progressive_rank();

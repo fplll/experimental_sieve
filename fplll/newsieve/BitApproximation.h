@@ -43,8 +43,8 @@ unsigned int constexpr num_of_levels = 1;  // number of approximation level
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
 unsigned int constexpr num_of_transforms = 1;
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{8}};
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{5}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{5}};
+constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{0}};
 
 constexpr int num_of_coos = 4;
 

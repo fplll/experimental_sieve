@@ -173,10 +173,10 @@ template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAccess_Point &p)
 {
   using std::abs;
-  if (p.is_zero())
-  {
-    return;  // TODO: Ensure sampler does not output 0 (currently, it happens).
-  }
+//  if (p.is_zero())
+//  {
+//    return;  // TODO: Ensure sampler does not output 0 (currently, it happens).
+//  }
   bool loop = true;
   SimHashNew::SimHashes<SieveTraits, false> sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
 
