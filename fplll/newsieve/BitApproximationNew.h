@@ -31,6 +31,7 @@ constexpr bool is_a_power_of_two(Integer const n)
 
 template<class SieveTraits, bool MT> class CoordinateSelection;  // forward declare
 template<class SieveTraits, bool MT> using SimHashBlock = std::bitset<SieveTraits::sim_hash_len>;
+template<class SieveTraits, bool MT> using SimHashes    = std::array< SimHashBlock<SieveTraits,MT>, SieveTraits::sim_hash_num >;
 
 
 /**
@@ -105,7 +106,7 @@ public:
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline auto compute_all_bitapproximations(LatP const &point) const
-      -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >;
+      -> SimHashes<SieveTraits,MT>;
 
   //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   //inline static auto transform_and_bitapprox_simple(LatP const &point)

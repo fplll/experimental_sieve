@@ -44,7 +44,7 @@ struct STNode
 
   ~STNode() noexcept { delete ptr_to_exact; }
 
-  std::array< SimHashNew::SimHashBlock<SieveTraits,false>, SieveTraits::sim_hash_num > bit_approximations;  // or C-Style?
+  SimHashNew::SimHashes<SieveTraits,false> bit_approximations;  // or C-Style?
   SimHashApproxNorm2 approx_norm2;  // consider making it a float
   typename SieveTraits::GaussList_StoredPoint* ptr_to_exact; // owning pointer
   bool operator<(STNode const &other) const {return *ptr_to_exact < *(other.ptr_to_exact); }
@@ -59,6 +59,8 @@ public:
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
   using Iterator     = GaussIteratorBitApprox<SieveTraits,false>;
   using SimHashBlock = SimHashNew::SimHashBlock<SieveTraits,false>;
+  using SimHashes    = SimHashNew::SimHashes<SieveTraits,false>;
+
   friend Iterator;
   using UnderlyingContainer = std::list<STNode< SieveTraits> >;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
@@ -109,8 +111,9 @@ public:
   typename UnderlyingContainer::size_type size() const noexcept { return actual_list.size(); }
   [[nodiscard]] bool empty() const noexcept { return actual_list.empty(); }
 
-  private:
+public:
   SimHashNew::CoordinateSelection<SieveTraits,false> const sim_hash_data;
+private:
   StaticInitializer<StoredPoint> const init_stored_point;
   StaticInitializer<ReturnType>  const init_return_type;
   UnderlyingContainer actual_list;
@@ -129,6 +132,7 @@ private:
   using UnderlyingIterator  = typename ListType::UnderlyingContainer::iterator;
   using CUnderlyingIterator = typename ListType::UnderlyingContainer::const_iterator;
   using SimHashBlock = SimHashNew::SimHashBlock<SieveTraits,false>;
+  using SimHashes    = SimHashNew::SimHashes<SieveTraits,false>;
 
   CUnderlyingIterator it;
 
@@ -151,7 +155,7 @@ public:
   { return it->approx_norm2; }
 
   auto get_all_bitapproximations() const
-      -> std::array< SimHashBlock, SieveTraits::sim_hash_num >
+      -> SimHashes
   { return it->bit_approximations; }
 
   // the distinction between these two is not very significant in the single-threaded case

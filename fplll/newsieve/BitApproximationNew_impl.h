@@ -98,7 +98,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
 inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(LatP const &point) const
-    -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >
+    -> SimHashes<SieveTraits,MT>
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
 
@@ -124,7 +124,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(L
     }
   }
   // put together the blocks into an array of bitsets.
-  std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num > ret;
+  SimHashes<SieveTraits,MT> ret;
   for (unsigned int n = 0; n < sim_hash_num; ++n)
   {
     for (unsigned int m = 0; m < sim_hash_len; ++m)
@@ -268,7 +268,7 @@ inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned i
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
 inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_layer(LatP const &point)
-    -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >
+    -> SimHashes<SieveTraits,MT>
 {
   using std::abs;
   using std::max;
@@ -293,7 +293,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
     }
   }
   // put together the blocks into an array of bitsets.
-  std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num > ret;
+  SimHashes<SieveTraits,MT> ret;
   for (unsigned int n = 0; n < sim_hash_num ; ++n)
   {
     // maximal entry of the outbut block.

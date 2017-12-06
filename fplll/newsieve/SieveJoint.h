@@ -220,10 +220,17 @@ public:
 //  void sieve_k_thread(int const thread_id);
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
-  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
-
-  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
-
+//  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
+//  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
+  bool check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
+  bool check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
+                                             SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+                                             typename MainListType::Iterator            const &p2it,
+                                             int &scalar);
+  bool check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
+                                             SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+                                             typename MainListType::Iterator            const &p2it,
+                                             int &scalar);
   //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
   //void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
@@ -276,7 +283,7 @@ public:
 //  ET get_best_length2() const                                 {return get_shortest_vector_found().norm2;};
   EntryType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
   bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
-  unsigned long get_final_list_size()                          {return main_list.size();};
+  unsigned long get_final_list_size()                         {return main_list.size();};
 
   // STAT_MARK
 
