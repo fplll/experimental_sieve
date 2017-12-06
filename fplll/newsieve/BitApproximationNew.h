@@ -104,7 +104,7 @@ public:
       :CoordinateSelection(dim, std::random_device{}()) {}
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  inline auto transform_and_bitapprox(LatP const &point)
+  inline auto compute_all_bitapproximations(LatP const &point)
       -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >;
 
   //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>

@@ -97,7 +97,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::
 
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP const &point)
+inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(LatP const &point)
     -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
