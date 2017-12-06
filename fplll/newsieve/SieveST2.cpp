@@ -45,7 +45,7 @@ bool Sieve<SieveTraits,false>::check2red (typename SieveTraits::FastAccess_Point
                 typename SieveTraits::FastAccess_Point const &p2,
                 int & scalar)
 {
-  assert(!(p2.is_zero()));
+  //assert(!(p2.is_zero()));
   
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
       if(!check2red_approx(p1, p2)) return false;
@@ -131,7 +131,7 @@ LatticePoint perform2red (LatticePoint const &p1, LatticePoint const &p2, Intege
 template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_2_iteration (typename SieveTraits::FastAccess_Point &p)
 {
   using std::abs;
-  if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
+  //if (p.is_zero() ) return; //TODO: Ensure sampler does not output 0 (currently, it happens).
   bool loop = true;
 
   //std::cout << p.get_norm2 () << std::endl;

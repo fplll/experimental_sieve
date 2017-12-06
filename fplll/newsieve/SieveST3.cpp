@@ -157,10 +157,10 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
 template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
 {
   
-  if (p.is_zero() )
-  {
-    return; //TODO: Ensure sampler does not output 0 (currently, it happens).
-  }
+  //if (p.is_zero() )
+  //{
+  //  return; //TODO: Ensure sampler does not output 0 (currently, it happens).
+  //}
   
   //double px1_target  = .1111; // TO ADJUST
   int scalar=0; //for 2-reduction
@@ -221,13 +221,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         // ! check_triple assumes that the first argument has the largest norm
         if ( check_triple<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
         {
-          /*
+          
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           unsigned int lvl = 0;
           uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
           statistics.red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
 #endif
- */
+ 
           //TODO:  RETRIEVE ||p|| from the sc_prods
           //EntryType pnorm_old = p.get_norm2();
           p += (*it)*sgn2 + (filtered_list_point).get_point() * sgn3;
@@ -257,7 +257,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
       filtered_list.push_back(std::move(new_filtered_point));
       
     } //if (check_sc_prod(p, *it, sc_prod_px1))
-    /*
+    
     else
     {
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
@@ -266,7 +266,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
       statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
 #endif
     }
-    */
+    
     ++it;
   } //while-loop
 
@@ -377,15 +377,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
         filtered_list.push_back(std::move(new_filtered_point));
       }
-      /*
+      
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
       unsigned int lvl = 0;
       uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
       statistics.red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
 #endif
-  */
+  
     } //if (check_sc_prod<SieveTraits>(p, *it, sc_prod_px1))
-    /*
+    
     else
     {
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
@@ -394,7 +394,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
       statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
 #endif
     }
-     */
+     
     if (!x1_reduced)
     {
       ++it;
