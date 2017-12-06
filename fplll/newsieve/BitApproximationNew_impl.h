@@ -51,7 +51,7 @@ CoordinateSelection<SieveTraits,MT>::
 template<class SieveTraits, bool MT>
 template<class T>
 inline auto CoordinateSelection<SieveTraits,MT>::
-    fast_partial_walsh_hadamard(std::vector<T> input)
+    fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>
 {
   unsigned int const len = fast_walsh_hadamard_len;
@@ -97,7 +97,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::
 
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(LatP const &point)
+inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(LatP const &point) const
     -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
@@ -120,7 +120,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(L
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
+      blocks[i] = fast_partial_walsh_hadamard(blocks[i]);
     }
   }
   // put together the blocks into an array of bitsets.
@@ -152,7 +152,7 @@ PMatrix::PMatrix(unsigned int dim, std::mt19937 &rng)
   }
   std::shuffle(permutation.begin(), permutation.end(), rng);
 #ifdef DEBUG_SIEVE_TRACEINITIATLIZATIONS
-  print();
+//  print();
 #endif
 }
 
@@ -192,7 +192,7 @@ DMatrix::DMatrix(unsigned int const dim, std::mt19937 &rng)
     diagonal[i] = distr(rng);
   }
 #ifdef DEBUG_SIEVE_TRACEINITIATLIZATIONS
-  print();
+//  print();
 #endif
 }
 

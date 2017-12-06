@@ -96,15 +96,15 @@ class CoordinateSelection
 {
 public:
   static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
-  static unsigned int constexpr &sim_hash_num = SieveTraits::sim_hash_num;
-  static unsigned int constexpr &sim_hash_len = SieveTraits::sim_hash_len;
+  static unsigned int constexpr sim_hash_num = SieveTraits::sim_hash_num;
+  static unsigned int constexpr sim_hash_len = SieveTraits::sim_hash_len;
   CoordinateSelection() = delete;  // cannot be instantiated.
   CoordinateSelection(typename SieveTraits::DimensionType const dim, unsigned int random_seed);
   CoordinateSelection(typename SieveTraits::DimensionType const dim)
       :CoordinateSelection(dim, std::random_device{}()) {}
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  inline auto compute_all_bitapproximations(LatP const &point)
+  inline auto compute_all_bitapproximations(LatP const &point) const
       -> std::array< SimHashBlock<SieveTraits,MT>, sim_hash_num >;
 
   //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
@@ -118,7 +118,7 @@ public:
   */
 private:
   template<class T>
-  auto inline fast_partial_walsh_hadamard(std::vector<T> input)
+  auto inline fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>;
   unsigned int number_of_blocks;
   unsigned int fast_walsh_hadamard_len;

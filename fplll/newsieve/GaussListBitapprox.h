@@ -50,7 +50,6 @@ struct STNode
   bool operator<(STNode const &other) const {return *ptr_to_exact < *(other.ptr_to_exact); }
 };
 
-
 // single-threaded variant
 template<class SieveTraits>
 class GaussListWithBitApprox<SieveTraits, false>
@@ -58,7 +57,7 @@ class GaussListWithBitApprox<SieveTraits, false>
 public:
   using StoredPoint  = typename SieveTraits::GaussList_StoredPoint;
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
-  using Iterator     = GaussIteratorBitApprox<SieveTraits,true>;
+  using Iterator     = GaussIteratorBitApprox<SieveTraits,false>;
   using SimHashBlock = SimHashNew::SimHashBlock<SieveTraits,false>;
   friend Iterator;
   using UnderlyingContainer = std::list<STNode< SieveTraits> >;
@@ -71,9 +70,14 @@ public:
   explicit GaussListWithBitApprox(GlobalStaticDataInitializer const &static_data) noexcept
       :sim_hash_data(static_data.dim), init_stored_point(static_data),
        init_return_type(static_data), actual_list() {}
+  explicit GaussListWithBitApprox(GlobalStaticDataInitializer const &static_data, unsigned int const random_seed) noexcept
+      :sim_hash_data(static_data.dim, random_seed), init_stored_point(static_data),
+       init_return_type(static_data), actual_list() {}
 
   CPP14CONSTEXPR Iterator cbegin() const noexcept { return actual_list.cbegin(); }
   CPP14CONSTEXPR Iterator cend() const noexcept   { return actual_list.cend(); }
+
+  // insert_before(pos, point) inserts the point just before pos. the return value point to the newly inserted point.
 
   //  Note: LatticePoint && is a forwarding/universal reference, not a rvalue reference.
   //        The function static_asserts that it is called on a rvalue, to be sure.
@@ -90,6 +94,8 @@ public:
     return actual_list.emplace(pos.it, point_ptr, sim_hash_data);
   }
 
+  // removes the element at position pos from the list and returns (and converts) it.
+  // "increments" the iterator passed as argument: it now point to the next element.
   ReturnType true_pop_point(Iterator &pos)
   {
     ReturnType retval = static_cast<ReturnType>(*pos);
@@ -100,6 +106,8 @@ public:
 
   Iterator erase(Iterator pos) { return actual_list.erase(pos.it); }
   void sort() { actual_list.sort(); }
+  typename UnderlyingContainer::size_type size() const noexcept { return actual_list.size(); }
+  [[nodiscard]] bool empty() const noexcept { return actual_list.empty(); }
 
   private:
   SimHashNew::CoordinateSelection<SieveTraits,false> const sim_hash_data;
@@ -131,14 +139,17 @@ public:
   GaussIteratorBitApprox(GaussIteratorBitApprox &&)                 = default;
   GaussIteratorBitApprox& operator=(GaussIteratorBitApprox const &) = default;
   GaussIteratorBitApprox& operator=(GaussIteratorBitApprox &&)      = default;
-  explicit constexpr GaussIteratorBitApprox(UnderlyingIterator const &new_it) : it(new_it) {}
+  constexpr GaussIteratorBitApprox(UnderlyingIterator const &new_it)  noexcept : it(new_it) {}
+  constexpr GaussIteratorBitApprox(CUnderlyingIterator const &new_it) noexcept : it(new_it) {}
   bool operator==(GaussIteratorBitApprox const &other) const { return it==other.it; }
   bool operator!=(GaussIteratorBitApprox const &other) const { return it!=other.it; }
   GaussIteratorBitApprox& operator++()    { ++it; return *this; }  // prefix version
   GaussIteratorBitApprox  operator++(int) { return it++; }         // postfix version
   // is_end
 
-  SimHashApproxNorm2 get_approx_norm2() const;
+  SimHashApproxNorm2 get_approx_norm2() const
+  { return it->approx_norm2; }
+
   auto get_all_bitapproximations() const
       -> std::array< SimHashBlock, SieveTraits::sim_hash_num >
   { return it->bit_approximations; }
@@ -154,13 +165,12 @@ public:
   // a load with a custom memory order
 
   SimHashBlock const & access_bitapproximation(unsigned int level) const
-  { return it->bitapproximations[level]; }
+  { return it->bit_approximations[level]; }
   //SimHashBlock         get_bitapproximation(unsigned int level) const;
   StoredPoint const &  operator*() const    { return *(it->ptr_to_exact); }
   StoredPoint const *  operator->() const   { return it->ptr_to_exact;    }
   explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
 };
-
 
 }  // end namespace GaussSieve
 
