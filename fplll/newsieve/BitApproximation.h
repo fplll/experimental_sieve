@@ -261,8 +261,8 @@ unsigned int CoordinateSelection<SieveTraits,MT>::fast_walsh_hadamard_len;
 template<class SieveTraits, bool MT>
 unsigned int CoordinateSelection<SieveTraits,MT>::ambient_dimension;
 
-template<class SieveTraits, bool MT>
-std::array<RMatrix,SimHash::num_of_levels> CoordinateSelection<SieveTraits,MT>::rmatrices={};
+//template<class SieveTraits, bool MT>
+//std::array<RMatrix,SimHash::num_of_levels> CoordinateSelection<SieveTraits,MT>::rmatrices={};
 
 }  // end namespace (GaussSieve::)BitApprox
    // now in namespace GaussSieve
@@ -323,9 +323,11 @@ public:
         }
       }
       // TODO: Print if DEBUG symbol is set.
-
+      
+      /*
       for (unsigned int j = 0; j < SimHash::num_of_levels; ++j)
         Data::rmatrices[j] = static_cast<SimHash::RMatrix>(ambient_dimension);
+      */
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing CoordinateSelection; Counter is " << Parent::user_count )
   }
@@ -473,7 +475,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox(LatP co
   return ret;
 }
 
-
+/* Uses Rmatrix to approximate; for comparison with WH*D*P*/
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
 inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(LatP const &point)
