@@ -15,7 +15,8 @@ bool Sieve<SieveTraits,false>::check2red_approx(typename SieveTraits::FastAccess
   for (unsigned int lvl = 0; lvl<SimHash::num_of_levels; ++lvl)
   {
     approx_scprod += static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, lvl));
-    
+    statistics.increment_number_of_approx_scprods_level1();
+
     if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_2sieve[lvl] ||
         approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_2sieve[lvl] )
         {
@@ -47,8 +48,7 @@ bool Sieve<SieveTraits,false>::check2red (typename SieveTraits::FastAccess_Point
   assert(!(p2.is_zero()));
   
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    statistics.increment_number_of_approx_scprods_level1();
-    if(!check2red_approx(p1, p2)) return false;
+      if(!check2red_approx(p1, p2)) return false;
   #endif
   
   statistics.increment_number_of_scprods_level1();

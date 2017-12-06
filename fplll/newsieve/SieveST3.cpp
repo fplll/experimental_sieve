@@ -4,7 +4,7 @@ namespace GaussSieve{
   
   
 template<class SieveTraits>
-bool check3red_approx(typename SieveTraits::FastAccess_Point const &p1,
+bool Sieve<SieveTraits,false>::check3red_approx(typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2)
           
 {
@@ -14,6 +14,7 @@ bool check3red_approx(typename SieveTraits::FastAccess_Point const &p1,
   //std::cout<< approx_scprod << std::endl; 
   for (unsigned int lvl = 0; lvl<SimHash::num_of_levels; ++lvl)
   {
+    statistics.increment_number_of_approx_scprods_level1();
     approx_scprod += static_cast<uint_fast32_t> (compute_sc_product_bitapprox_level(p1, p2, lvl));
     if (approx_scprod >= SimHash::sim_hash_len/2 + SimHash::threshold_lvls_3sieve[lvl] ||
         approx_scprod <= SimHash::sim_hash_len/2 - SimHash::threshold_lvls_3sieve[lvl] )
@@ -31,44 +32,16 @@ bool check3red_approx(typename SieveTraits::FastAccess_Point const &p1,
   
   return true;
 }
-            
-
-    //The function checks if ||x1 + scalar* x2|| < ||x1||
-    // the value <x1,x2> is provided as input
-    // scalar is modified
-template<class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
-                             typename SieveTraits::FastAccess_Point const &x2,
-                             typename SieveTraits::EntryType const &x1x2, Integer & scalar)
-{
-  using std::abs;
-  using std::round;
-
-  typename SieveTraits::EntryType const abs_2scprod = abs(x1x2 * 2);
-
-    // check if |2 * <x1, x2>| <= |x2|^2. If yes, no reduction
-  if (abs_2scprod <= x2.get_norm2())
-  {
-    return false;
-  }
-
-    //compute the multiple mult s.t. res = x1 \pm mult* x2;
-  double const mult = convert_to_double( x1x2 ) / convert_to_double( x2.get_norm2() );
-  // TODO: Check over- / underflows.
-  scalar =  round (mult);
-  return true;
-
-
-}
+  
 
 template<class SieveTraits>
-bool check_sc_prod (typename SieveTraits::FastAccess_Point const &x1,
+bool Sieve<SieveTraits,false>::check_sc_prod (typename SieveTraits::FastAccess_Point const &x1,
                     typename SieveTraits::FastAccess_Point const &x2,
                     typename SieveTraits::EntryType & sc_prod_x1x2)
 {
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     //statistics.increment_number_of_approx_scprods_level1();
-    if(!check3red_approx<SieveTraits>(x1, x2)) return false;
+  if(!check3red_approx(x1, x2)) return false;
   #endif
   
   using std::abs;
@@ -79,7 +52,8 @@ bool check_sc_prod (typename SieveTraits::FastAccess_Point const &x1,
   //double px1_target = 0.123;
   
   sc_prod_x1x2 = compute_sc_product(x1, x2);
-      
+  statistics.increment_number_of_scprods_level1();
+  
   double sc_prod_px1_norm = convert_to_double( sc_prod_x1x2)*convert_to_double(sc_prod_x1x2 ) /
                   ( convert_to_double ( x1.get_norm2()) * convert_to_double( x2.get_norm2() )) ;
                   
@@ -97,7 +71,7 @@ bool check_sc_prod (typename SieveTraits::FastAccess_Point const &x1,
     // p_is_max is true if x1 ==p, in which case x3_X stores <x3,x2>
     // otherwise x3_X stores <x3, x1>
 template<class SieveTraits>
-bool check_3red (typename SieveTraits::FastAccess_Point  const &x1,
+bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
                  typename SieveTraits::FastAccess_Point const &x2,
                  typename SieveTraits::FlilteredPointType const &x3,
                  typename SieveTraits::EntryType const &x1x2,
@@ -232,7 +206,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     filtered_list.reserve(filtered_list_size_max);
 
     EntryType sc_prod_px1;
-    if (check_sc_prod<SieveTraits>(p, *it, sc_prod_px1))
+    if (check_sc_prod(p, *it, sc_prod_px1))
     {
         
       for (auto & filtered_list_point: filtered_list)
@@ -245,8 +219,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         int sgn2, sgn3;
 
         //check if || p \pm x1 \pm x2 || < || p ||
-        // ! check_3red assumes that the first argument has the largest norm
-        if ( check_3red<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
+        // ! check_triple assumes that the first argument has the largest norm
+        if ( check_triple<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
         {
           
           //TODO:  RETRIEVE ||p|| from the sc_prods
@@ -271,7 +245,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
             main_queue.push(std::move(p));
           }
           return;
-        } //if(check_3red())
+        } //if(check_triple())
       } 
       //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
       typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
@@ -342,7 +316,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     // Now x1 is the largest      
 
     EntryType sc_prod_px1;
-    if (check_sc_prod<SieveTraits>(p, *it, sc_prod_px1))
+    if (check_sc_prod(p, *it, sc_prod_px1))
     {
       
       for (auto & filtered_list_point: filtered_list)
@@ -353,8 +327,8 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
         
         int  sgn2, sgn3;
 
-        // ! check_3red assumes that the first argument has the largest norm
-        if ( check_3red<SieveTraits> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, false) )
+        // ! check_triple assumes that the first argument has the largest norm
+        if ( check_triple<SieveTraits> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, false) )
         {
           
           typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + filtered_list_point.get_point() * sgn3;
@@ -411,6 +385,34 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
 } //namespace GaussSieve
 
 
+/*Unused*/
+
+
+//The function checks if ||x1 + scalar* x2|| < ||x1||
+// the value <x1,x2> is provided as input
+// scalar is modified
+template<class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
+                             typename SieveTraits::FastAccess_Point const &x2,
+                             typename SieveTraits::EntryType const &x1x2, Integer & scalar)
+{
+  using std::abs;
+  using std::round;
+  
+  typename SieveTraits::EntryType const abs_2scprod = abs(x1x2 * 2);
+  
+  // check if |2 * <x1, x2>| <= |x2|^2. If yes, no reduction
+  if (abs_2scprod <= x2.get_norm2())
+  {
+    return false;
+  }
+  
+  //compute the multiple mult s.t. res = x1 \pm mult* x2;
+  double const mult = convert_to_double( x1x2 ) / convert_to_double( x2.get_norm2() );
+  // TODO: Check over- / underflows.
+  scalar =  round (mult);
+  return true;
+}
 
 /* OLD CODE */
 

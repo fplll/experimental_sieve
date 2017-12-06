@@ -218,11 +218,17 @@ public:
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
   bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
+  
   bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
 
   void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
   void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
+  bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
+  bool check_sc_prod (FastAccess_Point const &x1,FastAccess_Point const &x2, EntryType & sc_prod_x1x2);
+
+  
+  
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
 
