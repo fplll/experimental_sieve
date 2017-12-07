@@ -167,7 +167,7 @@ template<class LatticePoint> struct LatticePointTraits
                       Use ApproxLevelOf<Some_Class>::value to obtain Some_Class::ApproxLevel
                       (with a default of 0 if Some_Class::ApproxLevel does not exist)
 
-    NOTE: Approximations and ApproxLevel do not relate to Bitapproximation.
+    NOTE: Leveled and ApproxLevel do not relate to Bitapproximation.
 */
 
 // forward declaration
@@ -545,12 +545,18 @@ class GeneralLatticePoint
     }
     public:
 
+    void access_bitapproximation(unsigned int level) = delete;  // need to overload
+
+
+    /*
     template<class Impl=LatP>
     inline auto get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
+    */
 
     // This function is only ever called from within a block protected by
     // if(templated constexpr resuting in false){ }. Lacking if constexpr, we bail out at runtime.
     // Use CPP17CONSTEXPRIF macro for the if.
+    /*
     #if __if_constexpr
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox(LatP2 const &) const = delete;
@@ -566,9 +572,10 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_2nd_order(LatP2 const &) const { assert(false); }
     #endif
-
+  */
 
     //FOR SIM-HASH
+    /*
     #if __if_constexpr
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
       inline int do_compute_sc_product_bitapprox_fixed(LatP2 const &) const = delete;
@@ -585,8 +592,9 @@ class GeneralLatticePoint
       template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<typename std::decay<LatP2>::type>)>
       inline int do_compute_sc_product_bitapprox_fixed2(LatP2 const &) const { assert(false); }
     #endif
+*/
 
-
+/*
     //Levelled bit approx
     #if __if_constexpr
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
@@ -595,6 +603,7 @@ class GeneralLatticePoint
     template<class Impl=LatP, class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
     inline int do_compute_sc_product_bitapprox_level(LatP2 const &, int lvl) const { assert(false); }
     #endif
+  */
 
     //Layered bit approx
   /*
@@ -638,6 +647,7 @@ inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
 -> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
 { return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
 
+/*
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
 IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_bitapprox(LP1 &&lp1, LP2 &&lp2)
@@ -648,8 +658,9 @@ template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatt
 inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
 { return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
+*/
 
-
+/*
 //FOR SIM-HASH
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
 inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
@@ -674,7 +685,7 @@ template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatt
 inline auto compute_sc_product_bitapprox_layer(LP1 const &lp1, LP2 const &lp2, int lvl)
 -> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_layer(std::declval<LP2>(), lvl)  )
 { return lp1.do_compute_sc_product_bitapprox_layer(lp2, lvl); }
-
+*/
 
 
 

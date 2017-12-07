@@ -17,6 +17,7 @@
 		<Unit filename="ApproximatedPoint.h" />
 		<Unit filename="BitApproximation.h" />
 		<Unit filename="BitApproximationNew.h" />
+		<Unit filename="BitApproximationNew_impl.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
@@ -61,7 +62,6 @@
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestLazy.h" />
 		<Unit filename="Tests/TestList.h" />
-		<Unit filename="Tests/TestList2.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
 		<Unit filename="Tests/TestPlainLatticePoint.h" />

@@ -30,21 +30,23 @@ using SimHashApproxNorm2 = double;
 template<class SieveTraits>
 struct STNode
 {
+  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
+  using SimHashes = typename SimHashGlobalDataType::SimHashes;
 // The !is_reference<Arg> makes this template only valid for actual rvalues.
   template<class Arg,
       TEMPL_RESTRICT_DECL2(IsALatticePoint< mystd::decay_t<Arg> >, mystd::negation<std::is_reference<Arg>>)>
-  explicit constexpr STNode(Arg &&arg, SimHashNew::CoordinateSelection<SieveTraits,false> const &coo_selection) noexcept
+  explicit constexpr STNode(Arg &&arg, SimHashGlobalDataType const &coo_selection) noexcept
       : bit_approximations(coo_selection.compute_all_bitapproximations(arg)),
         approx_norm2(convert_to_double(arg.get_norm2())),
         ptr_to_exact(new typename SieveTraits::GaussList_StoredPoint(std::move(arg)) ) {}
-  explicit constexpr STNode(typename SieveTraits::GaussList_StoredPoint * const point_ptr, SimHashNew::CoordinateSelection<SieveTraits,false> const &coo_selection) noexcept
+  explicit constexpr STNode(typename SieveTraits::GaussList_StoredPoint * const point_ptr, SimHashGlobalDataType const &coo_selection) noexcept
       : bit_approximations(coo_selection.compute_all_bitapproximations(*point_ptr)),
         approx_norm2(convert_to_double(point_ptr->get_norm2())),
         ptr_to_exact(point_ptr) {}
 
   ~STNode() noexcept { delete ptr_to_exact; }
 
-  SimHashNew::SimHashes<SieveTraits,false> bit_approximations;  // or C-Style?
+  SimHashes bit_approximations;  // or C-Style?
   SimHashApproxNorm2 approx_norm2;  // consider making it a float
   typename SieveTraits::GaussList_StoredPoint* ptr_to_exact; // owning pointer
   bool operator<(STNode const &other) const {return *ptr_to_exact < *(other.ptr_to_exact); }
@@ -58,8 +60,9 @@ public:
   using StoredPoint  = typename SieveTraits::GaussList_StoredPoint;
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
   using Iterator     = GaussIteratorBitApprox<SieveTraits,false>;
-  using SimHashBlock = SimHashNew::SimHashBlock<SieveTraits,false>;
-  using SimHashes    = SimHashNew::SimHashes<SieveTraits,false>;
+  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
+  using SimHashBlock =typename SimHashGlobalDataType::SimHashBlock;
+  using SimHashes = typename SimHashGlobalDataType::SimHashes;
 
   friend Iterator;
   using UnderlyingContainer = std::list<STNode< SieveTraits> >;
@@ -109,10 +112,10 @@ public:
   Iterator erase(Iterator pos) { return actual_list.erase(pos.it); }
   void sort() { actual_list.sort(); }
   typename UnderlyingContainer::size_type size() const noexcept { return actual_list.size(); }
-  [[nodiscard]] bool empty() const noexcept { return actual_list.empty(); }
+  NODISCARD bool empty() const noexcept { return actual_list.empty(); }
 
 public:
-  SimHashNew::CoordinateSelection<SieveTraits,false> const sim_hash_data;
+  SimHashGlobalDataType const sim_hash_data;
 private:
   StaticInitializer<StoredPoint> const init_stored_point;
   StaticInitializer<ReturnType>  const init_return_type;
@@ -131,8 +134,10 @@ private:
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
   using UnderlyingIterator  = typename ListType::UnderlyingContainer::iterator;
   using CUnderlyingIterator = typename ListType::UnderlyingContainer::const_iterator;
-  using SimHashBlock = SimHashNew::SimHashBlock<SieveTraits,false>;
-  using SimHashes    = SimHashNew::SimHashes<SieveTraits,false>;
+
+  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
+  using SimHashBlock =typename SimHashGlobalDataType::SimHashBlock;
+  using SimHashes = typename SimHashGlobalDataType::SimHashes;
 
   CUnderlyingIterator it;
 

@@ -43,7 +43,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
   assert(dim1 == dim2);
   #endif // DEBUG_SIEVE_LP_MATCHDIM
 
-  CPP17CONSTEXPRIF(std::is_same<LatP,LatP2>::value && Has_CheapNorm2<LatP>::value)
+  CPP17CONSTEXPRIF (std::is_same<LatP,LatP2>::value && Has_CheapNorm2<LatP>::value)
   {
     if(CREALTHIS->get_norm2() != x2.get_norm2() )
     {
@@ -282,7 +282,6 @@ template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
-//  assert(false);
   LP tmp = x1.make_copy();
   tmp*=multiplier;
   return tmp;
@@ -378,6 +377,7 @@ inline Get_ScalarProductStorageType<LatP> GeneralLatticePoint<LatP>::get_norm2()
   return compute_sc_product(*(CREALTHIS),*(CREALTHIS) );
 }
 
+/*
 template<class LatP>
 template<class Impl>
 inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() )
@@ -386,7 +386,7 @@ inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( 
   DEBUG_TRACEGENERIC("Generically getting number of bits for bitapprox" << LatP::class_name() )
   return CREALTHIS->get_dim();
 }
-
+*/
 
 
 template<class LatP>

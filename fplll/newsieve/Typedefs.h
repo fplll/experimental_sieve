@@ -19,9 +19,11 @@
 #include "FilteredPoint2.h"
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
-#include "HashedLatticePoint.h"
+//#include "HashedLatticePoint.h"
 //#include "ApproximatedPoint.h"
 #include "EMVApproximation.h"
+#include "BitApproximationNew.h"
+#include "GlobalBitApproxData.h"
 
 
 namespace GaussSieve
@@ -68,6 +70,7 @@ class DefaultSieveTraits
   using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
+
 //#endif
 
 #ifdef USE_LSH
@@ -86,6 +89,12 @@ class DefaultSieveTraits
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using DimensionType           = MaybeFixed<nfixed>;
+
+  using SimHashGlobalDataType   = SimHashNew::CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType>;
+  using SimHashBlock            = typename SimHashGlobalDataType::SimHashBlock;
+  using SimHashes               = typename SimHashGlobalDataType::SimHashes;
+
+
   using EntryType               = ET;
 
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>

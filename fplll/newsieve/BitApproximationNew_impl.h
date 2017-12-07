@@ -8,9 +8,9 @@ namespace GaussSieve
 namespace SimHashNew
 {
 
-template<class SieveTraits, bool MT>
-CoordinateSelection<SieveTraits,MT>::
-    CoordinateSelection(typename SieveTraits::DimensionType const dim, unsigned int random_seed)
+template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
+    CoordinateSelection(DimensionType const dim, unsigned int random_seed)
 {
   std::mt19937 rng;
   rng.seed(random_seed);
@@ -48,9 +48,9 @@ CoordinateSelection<SieveTraits,MT>::
  TODO: Change the scaling?
 */
 
-template<class SieveTraits, bool MT>
+template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
 template<class T>
-inline auto CoordinateSelection<SieveTraits,MT>::
+inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
     fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>
 {
@@ -95,10 +95,10 @@ inline auto CoordinateSelection<SieveTraits,MT>::
 }
 
 
-template<class SieveTraits, bool MT>
+template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(LatP const &point) const
-    -> SimHashes<SieveTraits,MT>
+inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
+    compute_all_bitapproximations(LatP const &point) const -> SimHashes
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
 
@@ -124,7 +124,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::compute_all_bitapproximations(L
     }
   }
   // put together the blocks into an array of bitsets.
-  SimHashes<SieveTraits,MT> ret;
+  SimHashes ret;
   for (unsigned int n = 0; n < sim_hash_num; ++n)
   {
     for (unsigned int m = 0; m < sim_hash_len; ++m)

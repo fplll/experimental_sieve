@@ -1,10 +1,9 @@
 // clang-format off
 
-//#define bitapprox_threshold 30
-
 namespace GaussSieve
 {
 
+/*
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,
                                                 typename MainListType::Iterator              const &rhs)
@@ -29,14 +28,15 @@ bool Sieve<SieveTraits,false>::check2red_approx(SimHashNew::SimHashes<SieveTrait
       return false;
     }
   }
-
   return true;
 }
+*/
 
 /**
  Assume ||p1|| >= ||p2||
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
+ /*
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
                                               SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
@@ -75,7 +75,6 @@ bool Sieve<SieveTraits,false>::check2red_p1max(typename SieveTraits::FastAccess_
   scalar = round(mult);
   return true;
 }
-
 // same, but assumes ||p2|| >= ||p1||
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
@@ -115,9 +114,7 @@ bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_
   scalar = round(mult);
   return true;
 }
-
-
-// assumes
+*/
 
 /**
  Checks whether we can perform a 2-reduction. Modifies scalar.
@@ -159,6 +156,7 @@ bool check2red(typename SieveTraits::FastAccess_Point const &p1,
 }
 */
 
+/*
 template <class LatticePoint, class Integer,
           TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>, std::is_integral<Integer>)>
 LatticePoint perform2red(LatticePoint const &p1, LatticePoint const &p2, Integer const scalar)
@@ -168,17 +166,21 @@ LatticePoint perform2red(LatticePoint const &p1, LatticePoint const &p2, Integer
   //  res = sub(p1, res);
   return p1 - (p2 * scalar);
 }
+*/
 
 template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAccess_Point &p)
 {
   using std::abs;
+  assert(!p.is_zero());  // TODO: Allow that
 //  if (p.is_zero())
 //  {
 //    return;  // TODO: Ensure sampler does not output 0 (currently, it happens).
 //  }
   bool loop = true;
-  SimHashNew::SimHashes<SieveTraits, false> sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
+  LPWithBitapprox<typename SieveTraits::FastAccess_Point, typename SieveTraits::SimHashGlobalDataType>
+    p_with_sim_hash{std::move(p), main_list.sim_hash_data};
+  //typename SieveTraits::SimHashes sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
 
   // std::cout << p.get_norm2 () << std::endl;
 
@@ -193,7 +195,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
     {
       // std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
 
-      if (p < (*it))
+      if (p_with_sim_hash.latp < (*it))
       {
         it_comparison_flip = it;
         break;
@@ -201,12 +203,13 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 
       // statistics.increment_number_of_scprods_level1();
       int scalar = 0;
-      if (check2red_p1max(p, sim_hashes_for_p, it, scalar))
+      //if (check2red_p1max(p, sim_hashes_for_p, it, scalar))
       {
         assert(scalar != 0);
-        p -= (*it) *
-             scalar;  // The efficiency can be improved here, but it does not matter, probably.
-        sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
+        // TODO: fma
+        p_with_sim_hash.latp -= (*it) * scalar;
+//        sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
+        p_with_sim_hash.update_sim_hashes(main_list.sim_hash_data);
         // std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
         break;
@@ -229,7 +232,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
   for (auto it = it_comparison_flip; it != main_list.cend();)  //++it done in body of loop
   {
     int scalar = 0;
-    if (check2red_p2max(p, sim_hashes_for_p, it, scalar))
+    //if (check2red_p2max(p, sim_hashes_for_p, it, scalar))
     {
       //        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
       //        v_new = perform2red(*it, p, scalar );
@@ -253,7 +256,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       it = main_list.erase(it);
       statistics.decrement_current_list_size();
     }
-    else  // no reduction.
+    // else  // no reduction.
     {
       ++it;
     }

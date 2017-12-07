@@ -29,10 +29,10 @@ constexpr bool is_a_power_of_two(Integer const n)
   return (n > 0) && ( (n == 1) || ( (n%2 == 0) && is_a_power_of_two(n/2) ) );
 }
 
-template<class SieveTraits, bool MT> class CoordinateSelection;  // forward declare
-template<class SieveTraits, bool MT> using SimHashBlock = std::bitset<SieveTraits::sim_hash_len>;
-template<class SieveTraits, bool MT> using SimHashes    = std::array< SimHashBlock<SieveTraits,MT>, SieveTraits::sim_hash_num >;
-
+// forward declarations:
+template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+class CoordinateSelection;
+template<class CooSelection> class ObtainSimHashBlock;
 
 /**
  PMatrix creates and stores a random permutation (matrix) in dim dimensions.
@@ -92,40 +92,56 @@ TODO: Consider writing a wrapper around either a std::bitset or a std::dynamic_b
 TODO: Update documentation to reflect refactoring due to inclusion into main list
 ********************************************************************/
 
-template<class SieveTraits, bool MT>
+template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType> // Nfixed?
 class CoordinateSelection
 {
 public:
   static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
-  static unsigned int constexpr sim_hash_num = SieveTraits::sim_hash_num;
-  static unsigned int constexpr sim_hash_len = SieveTraits::sim_hash_len;
-  CoordinateSelection() = delete;  // cannot be instantiated.
-  CoordinateSelection(typename SieveTraits::DimensionType const dim, unsigned int random_seed);
-  CoordinateSelection(typename SieveTraits::DimensionType const dim)
+  static unsigned int constexpr sim_hash_num = sim_hash_num_arg;
+  static unsigned int constexpr sim_hash_len = sim_hash_len_arg;
+  static_assert(is_a_power_of_two(sim_hash_len),"");
+  using SimHashBlock  = std::bitset<sim_hash_len>;
+  using SimHashes     = std::array<SimHashBlock,sim_hash_num>;
+  using Get_DimensionType = DimensionType;
+
+  static_assert(MT==false,""); using SimHashesForList = SimHashes; // TODO!
+
+  CoordinateSelection() = default;
+  CoordinateSelection(DimensionType const dim, unsigned int random_seed);
+  CoordinateSelection(DimensionType const dim)
       :CoordinateSelection(dim, std::random_device{}()) {}
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  inline auto compute_all_bitapproximations(LatP const &point) const
-      -> SimHashes<SieveTraits,MT>;
+  inline SimHashes compute_all_bitapproximations(LatP const &point) const;
 
-  //template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  //inline static auto transform_and_bitapprox_simple(LatP const &point)
-  //    -> std::array< std::bitset<sim_hash_len>, num_of_levels >;
+  template<class LHS, class RHS, class LowerThresholds, class UpperThresholds>
+  FORCE_INLINE static inline bool check_simhash_scalar_product(LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub)
+  {
+    uint_fast32_t approx_scprod = 0;
+    for (unsigned int level = 0; level < sim_hash_num; ++level)
+    {
+      approx_scprod += (ObtainSimHashBlock<CoordinateSelection>::get(lhs) ^ ObtainSimHashBlock<CoordinateSelection>::get(rhs)).count();
+      if (approx_scprod >= ub[level] || approx_scprod <= lb[level])
+      {
+        continue;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
-  /*
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  inline static auto transform_and_bitapprox_2nd_layer(LatP const &point)
-      -> std::array< SimHashBlock<SieveTraits,MT>, num_of_levels >;
-  */
 private:
   template<class T>
   auto inline fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>;
-  unsigned int number_of_blocks;
+
+  unsigned int number_of_blocks;  // TODO: rename
   unsigned int fast_walsh_hadamard_len;
   std::vector< std::array<PMatrix,num_of_transforms> > pmatrices;
   std::vector< std::array<DMatrix,num_of_transforms> > dmatrices;
-  // unsigned int ambient_dimension;  // TODO: Remove this in favor of a static scratch space
 
   //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
@@ -137,6 +153,7 @@ private:
   Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
 */
 
+/*
 class BitApproxScalarProduct
 {
 public:
@@ -161,15 +178,69 @@ public:
 
   BitApproxScalarProduct_WrappedType value;
 };
+*/
 
+/*
 template <class SieveTraits, bool MT>
 [[gnu::always_inline]] inline constexpr BitApproxScalarProduct compute_simhash_scalar_product_block(
     SimHashBlock<SieveTraits,MT> const &lhs, SimHashBlock<SieveTraits,MT> const &rhs)
 {
   return BitApproxScalarProduct {static_cast<uint_fast32_t>(SieveTraits::sim_hash_len - (lhs ^ rhs).count()) };
 }
+*/
+
 
 }  // end namespace (GaussSieve::)SimHash
+}  // end namespace GaussSieve
+
+namespace GaussSieve
+{
+
+template<class CooSelection> class ObtainSimHashBlock
+{
+  template<class Arg>
+  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(Arg const &arg, unsigned int const level)
+  {
+    return arg.access_bitapproximation(level);
+  }
+  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(typename CooSelection::SimHashes const &arg, unsigned int const level)
+  {
+    return arg[level];
+  }
+};
+
+
+template<class LatticePoint, class CooSelect>
+struct LPWithBitapprox
+{
+public:
+  static_assert(IsALatticePoint<LatticePoint>::value, "Wrong template argument");
+
+  using SimHashes = typename CooSelect::SimHashes;
+  using SimHashBlock = typename CooSelect::SimHashBlock;
+
+  LatticePoint latp;
+  SimHashes sim_hashes;
+  explicit LPWithBitapprox(LatticePoint &&new_latp, SimHashes const &new_sim_hashes) noexcept
+      : latp(std::move(new_latp)), sim_hashes(new_sim_hashes) {}
+  explicit LPWithBitapprox(LatticePoint &&new_latp, SimHashes &&new_sim_hashes) noexcept
+      : latp(std::move(new_latp)), sim_hashes(std::move(new_sim_hashes)) {}
+  explicit LPWithBitapprox(LatticePoint &&new_latp, CooSelect const &coo_select) noexcept
+      : latp(std::move(new_latp)), sim_hashes(coo_select.compute_all_bitapproximations(latp)) {}
+  constexpr operator LatticePoint() const & { return latp; }
+            operator LatticePoint() &&      { return std::move(latp); }
+  constexpr operator SimHashes()            { return sim_hashes; }
+  void update_sim_hashes(CooSelect const &coo_select) noexcept
+  {
+    sim_hashes = coo_select.compute_all_bitapproximations(latp);
+  }
+  SimHashBlock const & access_bitapproximation(unsigned int level) const
+  {
+    return sim_hashes[level];
+  }
+};
+
+
 }  // end namespace GaussSieve
 
 #include "BitApproximationNew_impl.h"
