@@ -61,6 +61,9 @@ Z sample_z_gaussian(double s, double const center, Engine &engine, double const 
 template <class Z, class Engine>
 Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                         double const maxdeviation);
+template <class Engine>
+int sample_uniform (int max_val, Engine &engine);
+  
 
 /**
 The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
@@ -310,7 +313,7 @@ inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &e
   
 // Samples uniformly at random from the interval [0, max_val];
 template <class Engine>
-inline int sample_uniform (int max_val, Engine &engine)
+inline int sample_uniform(int max_val, Engine &engine)
 {
   std::uniform_int_distribution<int> uniform_in_range(0, max_val) ;
   return uniform_in_range(engine);

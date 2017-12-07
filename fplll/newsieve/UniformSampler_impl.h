@@ -65,8 +65,8 @@ namespace GaussSieve {
     
     for (int i=0; i<sparcity; ++i)
     {
-      vec+=basis[sample_uniform<Engine>(dim-1)];
-      vec-=basis[sample_uniform<Engine>(dim-1)];
+      vec+=basis[sample_uniform<Engine>(dim-1, engine.rnd())];
+      vec-=basis[sample_uniform<Engine>(dim-1, engine.rnd())];
     }
     
     typename SieveTraits::GaussSampler_ReturnType ret;
