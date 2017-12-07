@@ -19,16 +19,49 @@ namespace GaussSieve
   template <class SieveTraits, bool MT> class Sieve;
   
   
-  template <class SieveTraits, bool MT, class Engine, class Sseq> class UniformSampler;
+  template <class SieveTraits, bool MT, class Engine, class Sseq> class UniformSampler; //declaration
   
   template <class SieveTraits, bool MT, class Engine, class Sseq>
-  class UniformSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
-  
+
+class UniformSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
+{
 public:
   using DimensionType = typename SieveTraits::DimensionType;
   using EntryType     = typename SieveTraits::EntryType;
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
-}
+  
+  explicit UniformSampler(Sseq &seq, unsigned int inp_sparcity):
+Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity), initialized(false), static_init_rettype(nullptr)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.");
+  }
+  
+  virtual SamplerType sampler_type() const override { return SamplerType::uniform_sampler; };
+  
+  //todo: destructor
+  
+  virtual inline RetType sample(int const thread = 0) override;
+  
+private:
+  inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis) override;
+  
+  DimensionType dim;
+  uint_fast16_t lattice_rank;
+  
+  unsigned int sparcity;
+  bool initialized;
+  
+protected:
+  using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
+  using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
+  std::vector<typename SieveTraits::PlainPoint> basis;
+  
+  StaticInitializer<RetType> *static_init_rettype;
+  
+};
+  
+  
+}//namespace GaussSieve
 
 
 #endif
