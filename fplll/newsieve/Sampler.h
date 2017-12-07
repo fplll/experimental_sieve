@@ -45,7 +45,8 @@ enum class SamplerType
   user_defined     = 0,
   elliptic_sampler = 1,
   shi_sampler      = 2,
-  gauss_sampler    = 3
+  gauss_sampler    = 3,
+  uniform_sampler  = 4
 };
 
 /**

@@ -39,6 +39,8 @@
 #include "ShiSampler_impl.h"
 #include "Sampler_impl.h"
 
+#include "UniformSampler_impl.h"
+
 
 #endif
 
