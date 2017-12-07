@@ -27,16 +27,21 @@ namespace GaussSieve {
     assert(sieveptr==nullptr);
 #endif
     
-    if(static_init_rettype!=nullptr)
-    {
-      assert(false);
-    }
+    if(static_init_plainpoint!=nullptr)
+  {
+    assert(false);
+  }
+  if(static_init_rettype!=nullptr)
+  {
+    assert(false);
+  }
     
     dim           = input_basis.ambient_dimension;
     lattice_rank  = input_basis.lattice_rank;
     basis.resize(lattice_rank);
     
     static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
+    static_init_plainpoint= new StaticInitializer<typename SieveTraits::PlainPoint>(MaybeFixed<SieveTraits::get_nfixed>{dim});
     
     
     //copy the basis
@@ -63,7 +68,7 @@ namespace GaussSieve {
     typename SieveTraits::PlainPoint vec;
     vec.fill_with_zero();
     
-    for (int i=0; i<sparcity; ++i)
+    for (unsigned int i=0; i<sparcity; ++i)
     {
       vec+=basis[sample_uniform<Engine>(dim-1, engine.rnd())];
       vec-=basis[sample_uniform<Engine>(dim-1, engine.rnd())];

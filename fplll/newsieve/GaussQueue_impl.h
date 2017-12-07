@@ -31,8 +31,8 @@ sampler(nullptr)
   std::seed_seq seed{1,2,4}; //just some arbitrary numbers
     //sampler = new EllipticSampler<ET,false, std::mt19937_64, std::seed_seq> (seed);
     std::cout << "Initializing Sampler" << std::endl << std::flush;
-  //sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
-  sampler = new UniformSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed, 2);
+  sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
+  //sampler = new UniformSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed, 3);
 //    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
   assert(sampler!=nullptr);
 }

@@ -13,6 +13,11 @@
 #include <vector>
 #include "LatticeBases.h"
 
+/* Sparce uniform sampler
+ * Chooses sparcity-many '1' - coefficients at random from {0,..,dim-1}
+ * and sparcity-many '-1' - coefficients from {0,..., dim-1}
+ *  */
+
 
 namespace GaussSieve
 {
@@ -31,7 +36,8 @@ public:
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
   
   explicit UniformSampler(Sseq &seq, unsigned int inp_sparcity):
-Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity), initialized(false), static_init_rettype(nullptr)
+Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity), 
+initialized(false), static_init_rettype(nullptr), static_init_plainpoint(nullptr)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.");
   }
@@ -39,6 +45,15 @@ Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity), initialized
   virtual SamplerType sampler_type() const override { return SamplerType::uniform_sampler; };
   
   //todo: destructor
+  
+  virtual ~UniformSampler()
+  {
+    if(initialized)
+    {
+      delete static_init_plainpoint;
+      delete static_init_rettype;
+    }
+  }
   
   virtual inline RetType sample(int const thread = 0) override;
   
@@ -57,6 +72,7 @@ protected:
   std::vector<typename SieveTraits::PlainPoint> basis;
   
   StaticInitializer<RetType> *static_init_rettype;
+  StaticInitializer<typename SieveTraits::PlainPoint> *static_init_plainpoint;
   
 };
   
