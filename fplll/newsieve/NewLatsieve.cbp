@@ -29,6 +29,7 @@
 		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
+		<Unit filename="GlobalBitApproxData.h" />
 		<Unit filename="GlobalStaticData.h" />
 		<Unit filename="HashedLatticePoint.h" />
 		<Unit filename="HyperplaneLSH.h" />
@@ -40,6 +41,7 @@
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
+		<Unit filename="PointWithBitapprox.h" />
 		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
