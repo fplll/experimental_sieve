@@ -40,6 +40,7 @@
 #include "Sampler_impl.h"
 
 #include "UniformSampler_impl.h"
+#include "GPVSampler_impl.h"
 
 
 #endif

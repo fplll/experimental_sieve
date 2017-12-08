@@ -5,6 +5,7 @@
 //#include "SieveGauss.cpp"
 #include "ShiSampler.h"
 #include "UniformSampler.h"
+#include "GPVSampler.h"
 #include "Sampler.h"
 #include "DebugAll.h"
 
@@ -32,7 +33,7 @@ sampler(nullptr)
     //sampler = new EllipticSampler<ET,false, std::mt19937_64, std::seed_seq> (seed);
     std::cout << "Initializing Sampler" << std::endl << std::flush;
   sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
-  //sampler = new UniformSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed, 3);
+  //sampler = new GPVSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed);
 //    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
   assert(sampler!=nullptr);
 }
