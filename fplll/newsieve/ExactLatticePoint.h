@@ -42,13 +42,12 @@ public:
   using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
   using Trait_AccessNorm2             = std::true_type;
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-//  using Trait_BitApprox               = std::true_type;
-//#endif
+//  using Trait_BitApprox               = std::false_type;
 };
 
 // Note: I renamed Approx to BitApprox here. We have two types of Approximations and everything related to Bits should have
 // BitApprox in its name to reduce confusion. -- Gotti
+// That, or SimHash
 
 template <class ET, int nfixed>
 class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET,nfixed> >
@@ -127,23 +126,13 @@ public:
   void sanitize( ET const &new_norm2 )
   {
     norm2 = new_norm2;
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-//    //fixed_bitapprox_data = SimHash::compute_fixed_bitapproximation(*this);
-//
-//    fixed_bitapprox_data_level = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox(*this);
-//    //fixed_bitapprox_data_level = SimHash::CoordinateSelection<void,false>::transform_and_bitapprox_simple(*this);
-//#endif
   }
 
   ET get_norm2() const { return norm2; }
 
 //  std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
 
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-//  inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_fixed(ExactLatticePoint const & another) const;
-//
-//  inline SimHash::BitApproxScalarProduct do_compute_sc_product_bitapprox_level(ExactLatticePoint const & another, int lvl) const;
-//#endif
+
 
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ET do_compute_sc_product(LatP2 const &lp2) const
@@ -153,14 +142,14 @@ public:
   ET res3 = 0;
   ET res4 = 0;
   uint_fast16_t dim = get_dim();
-  for(uint_fast16_t i=0; i < (dim/4) * 4;i+=4)
+  for(uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4)
   {
     res1 += (*this)[i+0] * lp2[i+0];
     res2 += (*this)[i+1] * lp2[i+1];
     res3 += (*this)[i+2] * lp2[i+2];
     res4 += (*this)[i+3] * lp2[i+3];
   }
-  for(uint_fast8_t i= (dim/4) * 4; i < dim; ++i)
+  for(uint_fast8_t i= (dim / 4) * 4; i < dim; ++i)
   {
     res1+= (*this)[i] * lp2[i];
   }
