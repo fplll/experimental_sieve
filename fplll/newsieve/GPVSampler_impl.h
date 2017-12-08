@@ -35,6 +35,8 @@ namespace GaussSieve
     typename SieveTraits::PlainPoint vec;
     vec.fill_with_zero();
     
+    
+    
   }
   
 }

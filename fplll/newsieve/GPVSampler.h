@@ -13,7 +13,7 @@
 #include <vector>
 #include "LatticeBases.h"
 
-/* Flexible GPV sampler
+/* Flexible GPV sampler centered at 0 with st. dev. parameter ||b_n^*||
  TODO: describe
  *  */
 
@@ -60,9 +60,11 @@ namespace GaussSieve
     
     // stores standard dev. for each dimension, already squared and divided by pi.
     std::vector<double> s2pi;
-    std::vector<double> maxdeviations;
+    std::vector<double> maxdeviations; //computed from the GS lengths
     DimensionType dim;
+    
     uint_fast16_t lattice_rank;
+    uint_fast16_t 
     
     double cutoff;
     bool initialized;

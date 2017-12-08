@@ -88,6 +88,8 @@ class DefaultSieveTraits
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
   static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
+  
+  //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{64-5,128-8}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{64+5,128+8}};
@@ -122,9 +124,9 @@ class DefaultSieveTraits
 
 };
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, 2> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_lb;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_lb;
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, 2> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_ub;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_ub;
 
 //  template< class ET, bool MT, int nfixed, class InputBT>
 //  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub; = {{64+5,128+8}};
