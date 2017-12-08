@@ -98,7 +98,7 @@ template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, cl
 class CoordinateSelection
 {
 public:
-  static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
+  static unsigned int constexpr num_of_transforms = 1;  // affects the "quality" vs. speed tradeoff
   static std::size_t constexpr sim_hash_num = sim_hash_num_arg;
   static std::size_t constexpr sim_hash_len = sim_hash_len_arg;
   static_assert(is_a_power_of_two(sim_hash_len),"");

@@ -38,7 +38,7 @@ namespace GaussSieve
     
     auto const maxbistar2 = input_basis.get_maxbistar2();
     
-    double st_dev = maxbistar2*2.2; // square of the st.dev guaranteed by GPV
+    double st_dev = maxbistar2*1.0; // square of the st.dev guaranteed by GPV
     
     //std::cout << st_dev << std::endl;
     for (uint_fast16_t i = 0; i < lattice_rank; ++i)
@@ -90,34 +90,43 @@ namespace GaussSieve
     vec.fill_with_zero();
     
     
-    
-    uint_fast16_t i = lattice_rank;
-    
     std::vector<double> shifts(lattice_rank, 0.0);
+    //std::vector<long> coos(lattice_rank, 0);
+    
     
     while ( vec.is_zero())
     {
+      #ifdef PROGRESSIVE
+        uint_fast16_t i = this->get_progressive_rank();
+      #else
+        uint_fast16_t i = lattice_rank;
+      #endif
       while(i>0)
       {
         --i;
-        long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
-        s2pi[i], shifts[i], engine.rnd(), maxdeviations[i]);  // coefficient of b_j in vec.
         
-        //std::cout<< i << " newcoeff = " << newcoeff << std::endl;
+        /* Does the same as below but requires coos-vector
+         *
+        for (uint_fast16_t j = lattice_rank-1; j >i; --j)  // adjust shifts
+        {
+          shifts[i] -= coos[j] * (mu_matrix[j][i]);
+        }
+         */
+        long const newcoeff  = sample_z_gaussian_VMD<long, Engine>(
+        s2pi[i], shifts[i], engine.rnd(), maxdeviations[i]);  // coefficient of b_j in vec.
         
         vec += basis[i] * newcoeff;
         
-        for (uint_fast16_t j = lattice_rank-1; j >i; --j)  // adjust shifts
+        for (uint_fast16_t j = 0; j < i; ++j)  // adjust shifts
         {
-          shifts[i] -= newcoeff * (mu_matrix[j][i]);
-          //std::cout << mu_matrix[j][i] <<std::endl;
+          shifts[j] -= newcoeff * (mu_matrix[i][j]);
         }
+        
       }
     }
    
     typename SieveTraits::GaussSampler_ReturnType ret;
     ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
-    
     return ret;
   }
   

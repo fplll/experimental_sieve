@@ -123,10 +123,13 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
     while(j>0)
     {
       --j;
+      
+      std::cout << "j = " << j << " shifts[j] = " <<  shifts[j] << " ";
       long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
         s2pi[j], shifts[j], engine.rnd(), maxdeviations[j]);  // coefficient of b_j in vec.
 
       vec += basis[j] * newcoeff;
+      std::cout <<"newcoeff = " << newcoeff << std::endl;
 
       for (uint_fast16_t i = 0; i < j; ++i)  // adjust shifts
       {
@@ -140,7 +143,6 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 
   typename SieveTraits::GaussSampler_ReturnType ret;
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
-  //if (ret.is_zero()) std::cout << "sampled 0-vector" <<std::endl;
   return ret;
 }
 } // end namespace
