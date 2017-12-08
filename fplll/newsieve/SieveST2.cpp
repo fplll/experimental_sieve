@@ -233,7 +233,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
   for (auto it = it_comparison_flip; it != main_list.cend();)  // ++it inside body of loop
   {
     int scalar = 0;
-    //if (check2red_p2max(p, sim_hashes_for_p, it, scalar))
+    if (check2red(it, p, scalar))
     {
       //        GaussSieve::FastAccess_Point<ET,false,nfixed> v_new;
       //        v_new = perform2red(*it, p, scalar );
@@ -257,7 +257,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       it = main_list.erase(it);
       statistics.decrement_current_list_size();
     }
-    // else  // no reduction.
+    else  // no reduction.
     {
       ++it;
     }
