@@ -46,7 +46,8 @@ enum class SamplerType
   elliptic_sampler = 1,
   shi_sampler      = 2,
   gauss_sampler    = 3,
-  uniform_sampler  = 4
+  uniform_sampler  = 4,
+  GPV_sampler      = 5
 };
 
 /**
