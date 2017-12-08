@@ -64,28 +64,32 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator<(LatP2 const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() < rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>( LatP2 const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() > rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator<= ( LatP2 const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() <= rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>= ( LatP2 const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() >= rhs.template get_norm2_at_level<0>();

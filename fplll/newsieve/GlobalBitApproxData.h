@@ -1,6 +1,11 @@
 #ifndef GLOBAL_BITAPPROX_DATA_H
 #define GLOBAL_BITAPPROX_DATA_H
 
+#include "DefaultIncludes.h"
+#include "GlobalStaticData.h"
+#include <bitset>
+#include <array>
+
 namespace GaussSieve
 {
 
@@ -24,6 +29,18 @@ template<class CooSelection>
 typename CooSelection::Get_DimensionType GlobalBitApproxData<CooSelection>::dim_used;
 template<class CooSelection>
 unsigned int GlobalBitApproxData<CooSelection>::random_seed_used;
+
+template<std::size_t sim_hash_num, std::size_t sim_hash_len>
+std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
+{
+  for(unsigned int i=0; i < sim_hash_num; ++i)
+  {
+    os << sim_hashes[i] << " ";
+  }
+  return os;
+}
+
+
 
 
 // Static Initializer for run-time initialization:

@@ -8,7 +8,7 @@ namespace GaussSieve
 namespace SimHashNew
 {
 
-template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
     CoordinateSelection(DimensionType const dim, unsigned int random_seed)
 {
@@ -48,7 +48,7 @@ CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
  TODO: Change the scaling?
 */
 
-template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 template<class T>
 inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
     fast_partial_walsh_hadamard(std::vector<T> input) const
@@ -95,7 +95,7 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
 }
 
 
-template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
 inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
     compute_all_bitapproximations(LatP const &point) const -> SimHashes

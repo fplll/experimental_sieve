@@ -30,7 +30,7 @@ constexpr bool is_a_power_of_two(Integer const n)
 }
 
 // forward declarations:
-template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 class CoordinateSelection;
 template<class CooSelection> class ObtainSimHashBlock;
 
@@ -92,13 +92,15 @@ TODO: Consider writing a wrapper around either a std::bitset or a std::dynamic_b
 TODO: Update documentation to reflect refactoring due to inclusion into main list
 ********************************************************************/
 
-template<unsigned int sim_hash_len_arg, unsigned int sim_hash_num_arg, bool MT, class DimensionType> // Nfixed?
+// Note args should be size_t, because that is what std::bitset and std::array expect
+// (Otherwise, certain templates might not work)
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType> // Nfixed?
 class CoordinateSelection
 {
 public:
   static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
-  static unsigned int constexpr sim_hash_num = sim_hash_num_arg;
-  static unsigned int constexpr sim_hash_len = sim_hash_len_arg;
+  static std::size_t constexpr sim_hash_num = sim_hash_num_arg;
+  static std::size_t constexpr sim_hash_len = sim_hash_len_arg;
   static_assert(is_a_power_of_two(sim_hash_len),"");
   using SimHashBlock  = std::bitset<sim_hash_len>;
   using SimHashes     = std::array<SimHashBlock,sim_hash_num>;
@@ -131,7 +133,7 @@ public:
       }
     }
     return true;
-  }
+ }
 
 private:
   template<class T>

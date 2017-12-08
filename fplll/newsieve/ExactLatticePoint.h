@@ -28,7 +28,7 @@ template <class ET, int nfixed> class ExactLatticePoint;
 // result of bitwise approximate scalar product
 // wraps around int_fast32_t
 
-template <class ET, int nfixed> class LatticePointTraits<ExactLatticePoint<ET,nfixed>>
+template <class ET, int nfixed> struct LatticePointTraits<ExactLatticePoint<ET,nfixed>>
 {
 public:
   using Trait_ScalarProductStorageType= ET;

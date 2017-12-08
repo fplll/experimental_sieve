@@ -178,8 +178,6 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 //    return;  // TODO: Ensure sampler does not output 0 (currently, it happens).
 //  }
   bool loop = true;
-  LPWithBitapprox<typename SieveTraits::FastAccess_Point, typename SieveTraits::SimHashGlobalDataType>
-    p_with_sim_hash{std::move(p), main_list.sim_hash_data};
   //typename SieveTraits::SimHashes sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
 
   // std::cout << p.get_norm2 () << std::endl;
@@ -195,7 +193,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
     {
       // std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
 
-      if (p_with_sim_hash.latp < (*it))
+      if (p < *it) // TODO: Might be better to compare with it.get_approx_norm2()
       {
         it_comparison_flip = it;
         break;
@@ -207,9 +205,8 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       {
         assert(scalar != 0);
         // TODO: fma
-        p_with_sim_hash.latp -= (*it) * scalar;
-//        sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
-        p_with_sim_hash.update_sim_hashes(main_list.sim_hash_data);
+        p -= (*it) * scalar;
+        p.update_bitapprox();
         // std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
         break;
@@ -229,7 +226,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
   main_list.insert_before(it_comparison_flip, p.make_copy());
   statistics.increment_current_list_size();
 
-  for (auto it = it_comparison_flip; it != main_list.cend();)  //++it done in body of loop
+  for (auto it = it_comparison_flip; it != main_list.cend();)  // ++it inside body of loop
   {
     int scalar = 0;
     //if (check2red_p2max(p, sim_hashes_for_p, it, scalar))

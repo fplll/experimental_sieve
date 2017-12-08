@@ -24,6 +24,7 @@
 #include "EMVApproximation.h"
 #include "BitApproximationNew.h"
 #include "GlobalBitApproxData.h"
+#include "PointWithBitapprox.h"
 
 
 namespace GaussSieve
@@ -48,6 +49,7 @@ template <class ET, int nfixed> class PlainLatticePoint;
 template <class ET, int nfixed> class ExactLatticePoint;
 template <class ET, int nfixed> class HashedLatticePoint;
 template <class ELP, class Approximation> class VectorWithApproximation;
+template <class ELP, class CooSelection>  class AddBitApproximationToLP;
 
 // Note: ET does *not* include Z_NR<...> here
 
@@ -67,7 +69,6 @@ class DefaultSieveTraits
   using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
   using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
   using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
-  using FastAccess_Point        = ExactLatticePoint<ET,nfixed>;
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
 
@@ -84,8 +85,8 @@ class DefaultSieveTraits
   static constexpr int number_of_hash_functions = 11;
 #endif
 
-  static unsigned int constexpr sim_hash_len = 64;  // number of bits per simhash block
-  static unsigned int constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
+  static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
+  static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using DimensionType           = MaybeFixed<nfixed>;
@@ -102,6 +103,9 @@ class DefaultSieveTraits
   using FlilteredPointType      = FilteredPointPointer<ET, nfixed, EntryType>;
   using FilteredListType        = std::vector<FlilteredPointType>;
   using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
+
+  using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, SimHashGlobalDataType >;
+
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
   // otherwise ET == ZNREntryType::underlying_data_type

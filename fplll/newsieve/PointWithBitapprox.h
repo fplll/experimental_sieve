@@ -5,18 +5,28 @@
 #include "GlobalBitApproxData.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
+#include "BitApproximationNew.h"
 
 #define T_IS_ELP static_assert(std::is_same<T,ELP>::value,"Wrong template argument")
 
+namespace GaussSieve
+{
+
+template<class ELP, class CooSelection> class AddBitApproximationToLP;
+//
+//std::ostream & operator<<(std::ostream &os, std::array<std::bitset<64ul>, 2ul> const &);
+
+
+
 // Forward traits:
 template<class ELP, class CooSelection>
-class LatticePointTraits< AddBitApproximationToLP<ELP,CooSelection> >
+struct LatticePointTraits< AddBitApproximationToLP<ELP,CooSelection> >
 {
 static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP, except for BitApprox
-  using Trait_ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
-  using Trait_ScalarProductStorageType_Full  = MakeLeveledScalar<Get_ScalarProductStorageType<ELP>>;
+  using Trait_ScalarProductStorageType       = Get_ScalarProductStorageType<ELP>;
+  using Trait_ScalarProductStorageType_Full  = Get_ScalarProductStorageType_Full<ELP>;
   using Trait_CoordinateType          = Get_CoordinateType<ELP>;
   using Trait_AbsoluteCoos            = Get_AbsoluteCooType<ELP>;
   using Trait_RepCooType              = Get_RepCooType<ELP>;
@@ -65,7 +75,7 @@ class AddBitApproximationToLP
   constexpr       operator ELP() const & {return elp;}
   CPP14CONSTEXPR  operator ELP()      && {return std::move(elp);}
 
-  void update_bit_approx()
+  void update_bitapprox()
   {
     sim_hashes = GlobalBitApproxData<CooSelection>::coo_selection.compute_all_bitapproximations(*this);
   }
@@ -138,6 +148,7 @@ class AddBitApproximationToLP
   // forward get_dim
   CPP14CONSTEXPR auto inline get_dim() const -> decltype( std::declval<ELP>().get_dim() ) { return elp.get_dim(); }
 
+
   // forward write_lp_to_stream
   inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx =true) const
   {
@@ -177,8 +188,8 @@ class AddBitApproximationToLP
   { return elp.get_norm2(); }
 
   template<unsigned int level>
-  inline auto get_norm2_at_level() const -> decltype (std::declval<ELP>().get_norm2_at_level<level>() )
-  { return elp.get_norm2_at_level<level>(); }
+  inline auto get_norm2_at_level() const -> decltype (std::declval<ELP>().template get_norm2_at_level<level>() )
+  { return elp.template get_norm2_at_level<level>(); }
 
   inline auto get_norm2_full() const -> decltype (std::declval<ELP>().get_norm2_full())
   { return elp.get_norm2_full(); }
@@ -186,21 +197,21 @@ class AddBitApproximationToLP
   // forward scalar products:
   template<class Arg>
   inline auto do_compute_sc_product(Arg &&arg) const
-    -> decltype( std::declval<ELP>().do_compute_sc_product(std::declval<Arg>() ) )
+      -> decltype( std::declval<ELP>().do_compute_sc_product(std::declval<Arg>() ) )
   {
     return elp.do_compute_sc_product(std::forward<Arg>(arg));
   }
 
   template<unsigned int level, class Arg>
   inline auto do_compute_sc_product_at_level(Arg &&arg) const
-    -> decltype( std::declval<ELP>().do_compute_sc_product_at_level<level>(std::declval<Arg>() ) )
+      -> decltype( std::declval<ELP>().template do_compute_sc_product_at_level<level>(std::declval<Arg>() ) )
   {
-    return elp.do_compute_sc_product_at_level<level>(std::forward<Arg>(arg));
+    return elp.template do_compute_sc_product_at_level<level>(std::forward<Arg>(arg));
   }
 
   template<class Arg>
   inline auto do_compute_sc_product_full(Arg &&arg) const
-    -> decltype( std::declval<ELP>().do_compute_sc_product_full(std::declval<Arg>() ) )
+      -> decltype( std::declval<ELP>().do_compute_sc_product_full(std::declval<Arg>() ) )
   {
     return elp.do_compute_sc_product_full(std::forward<Arg>(arg));
   }
@@ -211,14 +222,16 @@ template<class ELP, class CooSelection>
 class StaticInitializer< AddBitApproximationToLP<ELP,CooSelection> >
 final : public DefaultStaticInitializer< AddBitApproximationToLP<ELP,CooSelection> >
 {
-  StaticInitializer<ELP>  const init_elp;
-  public:
+  StaticInitializer<ELP> const init_elp;
+public:
   template<class X>
   explicit StaticInitializer(X &&init_arg) : init_elp(std::forward<X>(init_arg))
   {
     static_assert(IsArgForStaticInitializer<mystd::decay_t<X>>::value,"");
   }
 };
+
+}  // end namespace GaussSieve
 
 #undef T_IS_ELP
 
