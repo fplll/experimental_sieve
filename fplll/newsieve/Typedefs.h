@@ -91,8 +91,8 @@ class DefaultSieveTraits
   
   //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{64-5,128-8}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{64+5,128+8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-5,64-8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+5,64+8}};
 
 //  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
 

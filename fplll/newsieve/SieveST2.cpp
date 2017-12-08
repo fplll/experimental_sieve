@@ -227,8 +227,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
     statistics.increment_number_of_collisions();
     return;
   }
-  main_list.insert_before(it_comparison_flip, p.make_copy());
-  statistics.increment_current_list_size();
+  
 
   for (auto it = it_comparison_flip; it != main_list.cend();)  // ++it inside body of loop
   {
@@ -254,6 +253,11 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 
       // This increments the iterator in the sense that its point to the next element now,
       // effectively doubling as a ++it;
+      if (it == it_comparison_flip)
+      {
+        ++it_comparison_flip;
+      }
+      
       it = main_list.erase(it);
       statistics.decrement_current_list_size();
     }
@@ -270,6 +274,9 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
     }
   }
+  
+  main_list.insert_before(it_comparison_flip, std::move(p));
+  statistics.increment_current_list_size();
 }
 
 #ifdef USE_LSH
