@@ -47,8 +47,6 @@ namespace GaussSieve
       {
         delete static_init_plainpoint;
         delete static_init_rettype;
-        //      RetType::class_uninit();
-        //      SieveTraits::PlainPoint::class_uninit();
       }
     };
     virtual inline RetType sample(int const thread = 0) override;
@@ -57,9 +55,9 @@ namespace GaussSieve
     inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis) override;
     
     
-    std::vector<std::vector<double>> Q_matrix; // copied from basis.
-    std::vector<std::vector<double>> R_matrix;
-    //  fplll::Matrix<fplll::FP_NR<double>> mu;
+    std::vector<std::vector<double>> q_matrix;
+    std::vector<std::vector<double>> r_matrix;
+    
     // stores standard dev. for each dimension, already squared and divided by pi.
     std::vector<double> s2pi;
     std::vector<double> maxdeviations;
@@ -70,7 +68,7 @@ namespace GaussSieve
     bool initialized;
     
   protected:
-    // bring into scope from parent
+    
     using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
     using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
     std::vector<typename SieveTraits::PlainPoint> basis;
