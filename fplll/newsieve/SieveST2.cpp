@@ -50,7 +50,7 @@ bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
 //    return false;
 //#endif
   if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
-                                              std::forward<LHS>(p1), std::forward<RHS>(p2),
+                                              p1, p2,
                                               SieveTraits::threshold_lvls_2sieve_lb,
                                               SieveTraits::threshold_lvls_2sieve_ub))
   {
@@ -241,7 +241,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       // and steal *it here for the new point.
       // This requires the sampler to never output 0.
 
-      typename SieveTraits::FastAccess_Point v_new = (*it) - (p * scalar);
+      typename SieveTraits::GaussQueue_DataType v_new = (*it) - (p * scalar);
       // std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
 
       if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
