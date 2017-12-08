@@ -526,18 +526,20 @@ class GeneralLatticePoint
     // However, out-of-class definitions get messy with overloading.
 
     // TODO: Make protected and befriend compute_* functions
+    // TODO: Better std::forwarding (note const-ness)
 
-    inline ScalarProductStorageType do_compute_sc_product(LatP const &x2) const;
+    template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+    inline ScalarProductStorageType do_compute_sc_product(LatP2 const &x2) const;
 
-    template<unsigned int level,class Impl=LatP>
-    inline ScalarProductStorageType do_compute_sc_product_at_level(LatP const &x2) const
+    template<unsigned int level,class Impl=LatP, class LatP2>
+    inline ScalarProductStorageType do_compute_sc_product_at_level(LatP2 const &x2) const
     {
       IMPL_IS_LATP;
-      static_assert(level==0,"Default only has level 0");
+      static_assert(level==0, "Default only has level 0");
       return CREALTHIS->do_compute_sc_product(x2);
     }
-    template<class Impl=LatP>
-    inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP const &x2) const
+    template<class Impl=LatP, class LatP2>
+    inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP2 const &x2) const
     {
       IMPL_IS_LATP;
       static_assert(Has_Leveled<Impl>::value==false, "Need to overload");
@@ -636,9 +638,9 @@ inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
 { return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
 
 template<unsigned int level, class LP1, class LP2, TEMPL_RESTRICT_DECL2(
-  IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+    IsALatticePoint<mystd::decay_t<LP1>>, IsALatticePoint<mystd::decay_t<LP2>> )>
 inline auto compute_sc_product_at_level(LP1 &&lp1, LP2 &&lp2)
--> decltype( std::declval<LP1>().do_compute_sc_product_at_level<level>(std::declval<LP2>() ))
+-> decltype(   std::declval<LP1>().do_compute_sc_product_at_level<level>( std::declval<LP2>() )   )
 { return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2)); }
 
 template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
@@ -646,49 +648,6 @@ template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
 inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
 -> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
 { return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
-
-/*
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
-IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
-inline auto compute_sc_product_bitapprox(LP1 &&lp1, LP2 &&lp2)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox(std::declval<LP2>() )  )
-{ return std::forward<LP1>(lp1).do_compute_sc_product_bitapprox(std::forward<LP2>(lp2)); }
-
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox_2nd_order(LP1 const &lp1, LP2 const &lp2)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_2nd_order(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox_2nd_order(lp2); }
-*/
-
-/*
-//FOR SIM-HASH
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox_fixed(LP1 const &lp1, LP2 const &lp2)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox_fixed(lp2); }
-
-//FOR SIM-HASH 2nd order
-//TO BE DELETED
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox_fixed2(LP1 const &lp1, LP2 const &lp2)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_fixed2(std::declval<LP2>() )  )
-{ return lp1.do_compute_sc_product_bitapprox_fixed2(lp2); }
-
-//Levelled bit approx (horizonatal)
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox_level(LP1 const &lp1, LP2 const &lp2, int lvl)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_level(std::declval<LP2>(), lvl)  )
-  { return lp1.do_compute_sc_product_bitapprox_level(lp2, lvl); }
-
-//Layered bit approx (vertical)
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>,IsALatticePoint<LP2>)>
-inline auto compute_sc_product_bitapprox_layer(LP1 const &lp1, LP2 const &lp2, int lvl)
--> decltype( std::declval<LP1>().do_compute_sc_product_bitapprox_layer(std::declval<LP2>(), lvl)  )
-{ return lp1.do_compute_sc_product_bitapprox_layer(lp2, lvl); }
-*/
-
-
-
 
 // this function can be used to initialize an LP with container types that allow []-access.
 // Note that there is an explicit static_cast to LP's entry types.
@@ -706,7 +665,7 @@ LP make_from_any_vector(SomeContainer const &container, DimType dim)
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
   LP result(dim);
 //  auto dim = result.get_dim();
-  for(uint_fast16_t i =0; i<dim; ++i)
+  for(uint_fast16_t i = 0; i < dim; ++i)
   {
     result[i] = static_cast<ET>( container[i] );
   }
@@ -724,7 +683,7 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
   LP result(dim);
-  for(uint_fast16_t i =0; i<dim; ++i)
+  for(uint_fast16_t i = 0; i < dim; ++i)
   {
     result[i] = ConvertMaybeMPZ<ET>::convert_to_inttype( container[i].get_data() );
   }
@@ -732,25 +691,7 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
   return result;
 }
 
-/*
-
-template<class LP>
-std::istream & operator>> (std::istream & is, typename std::enable_if<IsALatticePoint<LP>::value, LP>::type &lp)
-{
-    lp.read_from_stream(is, IgnoreAnyArg{});
-    return is;
-}
-
-template<class LP>
-std::ostream & operator<< (std::ostream & os, typename std::enable_if<IsALatticePoint<LP>::value,LP>::type &lp )
-{
-    lp.write_to_stream(os,IgnoreAnyArg{});
-    return os;
-}
-
-*/
-
-} // end namespace
+} // end namespace GaussSieve
 
 #include "LatticePointGeneric.h"
 
