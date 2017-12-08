@@ -3,7 +3,8 @@
 
 #include "DefaultIncludes.h"
 #include "GlobalBitApproxData.h"
-
+#include "SieveUtility.h"
+#include "LatticePointConcept.h"
 
 #define T_IS_ELP static_assert(std::is_same<T,ELP>::value,"Wrong template argument")
 
@@ -28,16 +29,18 @@ public:
   using Trait_InternalRepIsAbsolute   = NormalizeTrait<Has_InternalRepIsAbsolute<ELP>>;
   using Trait_CheapNorm2              = NormalizeTrait<Has_CheapNorm2<ELP>>;
   using Trait_CheapNegate             = NormalizeTrait<Has_CheapNegate<ELP>>;
-  using Trait_BitApprox               = std::true_type;
   using Trait_Leveled                 = NormalizeTrait<Has_Leveled<ELP>>;
   using Trait_ApproxLevel             = Get_ApproxLevel<ELP>;
-  // This would not work as expected:
+
+  // Adding two Bitapproximations would not work as expected:
   static_assert(Has_BitApprox<ELP>::value == false,"Trying to add 2 bitapproximations");
+  using Trait_BitApprox               = std::true_type;
+
 };
 
 template<class ELP, class CooSelection>
 class AddBitApproximationToLP
-: public GeneralLatticePoint<AddBitApproximationToLP<ELP,CooSelection>>
+    final : public GeneralLatticePoint<AddBitApproximationToLP< ELP,CooSelection> >
 {
   public:
   using LatticePointTag         = std::true_type;
@@ -94,16 +97,16 @@ class AddBitApproximationToLP
 
 // operators<,>,<=, >= : No overloads. Defaults is correct.
 // forward +=,*=,-=,unary-
-  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  template<class LatP2>
   inline Myself& operator+=(LatP2 &&x2) { elp+=std::forward<LatP2>(x2); return *this; }
-  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  template<class LatP2>
   inline Myself& operator-=(LatP2 &&x2) { elp-=std::forward<LatP2>(x2); return *this; }
   template<class Multiplier>
   inline Myself& operator*=(Multiplier &&x2) { elp*=std::forward<Multiplier>(x2); return *this; }
 
-  inline Myself operator-() &&   { return static_cast<Myself>(-std::move(elp)); }
+  inline Myself operator-() &&  { elp.make_negative(); return std::move(*this); }
   inline bool operator==(Myself const &x2) const { return elp == x2.elp; }
-  inline bool operator==(ELP const &x2) const { return elp=x2; }
+  inline bool operator==(ELP    const &x2) const { return elp == x2;     }
 
   // forward get_internal_rep_size, get_internal_rep
   template<class T=ELP>
@@ -112,12 +115,14 @@ class AddBitApproximationToLP
     T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
     return elp.get_internal_rep_size();
   }
+
   template<class T=ELP, class Arg>
   inline RepCooType const & get_internal_rep(Arg &&arg) const
   {
     T_IS_ELP; static_assert(Has_ExposesInternalRep<T>::value,"");
     return elp.get_internal_rep(std::forward<Arg>(arg));
   }
+
   template<class T=ELP, class Arg>
   inline RepCooType & get_internal_rep(Arg &&arg)
   {
@@ -203,8 +208,8 @@ class AddBitApproximationToLP
 
 // static initializer
 template<class ELP, class CooSelection>
-class StaticInitializer<AddBitApproximationToLP<ELP,CooSelection>>
-final : public DefaultStaticInitializer<AddBitApproximationToLP<ELP,CooSelection>>
+class StaticInitializer< AddBitApproximationToLP<ELP,CooSelection> >
+final : public DefaultStaticInitializer< AddBitApproximationToLP<ELP,CooSelection> >
 {
   StaticInitializer<ELP>  const init_elp;
   public:

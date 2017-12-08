@@ -53,13 +53,13 @@ template <class ET, int nfixed>
 class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET,nfixed> >
 {
 public:
-  friend StaticInitializer<ExactLatticePoint<ET,nfixed>>;
+  friend StaticInitializer< ExactLatticePoint<ET,nfixed> >;
   using LatticePointTag         = std::true_type;
-  using Container = mystd::conditional_t<nfixed >= 0,
-        std::array<ET, nfixed >=0 ? nfixed:0>,  // if nfixed >= 0
-        std::vector<ET>  >;                     // if nfixed <0
-        // Note : The nfixed >=0 ? nfixed:0 is always nfixed, of course.
-        // The ?: expression is only needed to silence compiler errors/warnings.
+  using Container = mystd::conditional_t< (nfixed >= 0),
+            std::array<ET,(nfixed >=0 ? nfixed:0)>,  // if nfixed >= 0
+            std::vector<ET>  >;                     // if nfixed <0
+            // Note : The nfixed >=0 ? nfixed:0 is always nfixed, of course.
+            // The ?: expression is only needed to silence compiler errors/warnings.
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -181,7 +181,7 @@ std::ostream& operator<<(std::ostream &os, ExactLatticePoint<ET, nfixed> const &
 ***********************/
 
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
-  : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
+    final : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
 {
   using Parent = DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>;
   public:

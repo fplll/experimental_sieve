@@ -663,4 +663,6 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
 
 } // end namespace GaussSieve
 
+#undef T_IS_ELP
+
 #endif // APPROXIMATED_POINT_H
