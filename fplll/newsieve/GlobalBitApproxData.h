@@ -30,6 +30,9 @@ typename CooSelection::Get_DimensionType GlobalBitApproxData<CooSelection>::dim_
 template<class CooSelection>
 unsigned int GlobalBitApproxData<CooSelection>::random_seed_used;
 
+/**
+ Outputs a SimHash (i.e. an array of bitsets)
+*/
 template<std::size_t sim_hash_num, std::size_t sim_hash_len>
 std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
 {
@@ -40,6 +43,48 @@ std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>
   return os;
 }
 
+/**
+  Helper for the function below
+*/
+// TODO: Encapsulation
+template<class CooSelection> struct ObtainSimHashBlock
+{
+  template<class Arg>
+  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(Arg const &arg, unsigned int const level)
+  {
+    return arg.access_bitapproximation(level);
+  }
+  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(typename CooSelection::SimHashes const &arg, unsigned int const level)
+  {
+    return arg[level];
+  }
+};
+
+
+/**
+  Checks whether popcount(lhs XOR rhs) is > ub or < lb for each level.
+  lhs / rhs may be either a SimHash or somthing having an access_bitapproximation function
+  (i.e. either a SimHash, a list iterator or a lattice point with Bitapproximation)
+*/
+template<class CoordinateSelection, class LHS, class RHS, class LowerThresholds, class UpperThresholds>
+FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub)
+{
+  uint_fast32_t approx_scprod = 0;
+  for (unsigned int level = 0; level < CoordinateSelection::sim_hash_num; ++level)
+  {
+    approx_scprod += (   ObtainSimHashBlock<CoordinateSelection>::get(lhs,level)
+                       ^ ObtainSimHashBlock<CoordinateSelection>::get(rhs,level)  ).count();
+    if (approx_scprod >= ub[level] || approx_scprod <= lb[level])
+    {
+      continue;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return true;
+}
 
 
 

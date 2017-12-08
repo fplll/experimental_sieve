@@ -89,6 +89,11 @@ class DefaultSieveTraits
   static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{64-5,128-8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{64+5,128+8}};
+
+//  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
+
   using DimensionType           = MaybeFixed<nfixed>;
 
   using SimHashGlobalDataType   = SimHashNew::CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType>;

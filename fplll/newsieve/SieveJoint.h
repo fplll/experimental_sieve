@@ -222,6 +222,8 @@ public:
 //  void sieve_k_thread(int const thread_id);
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+  template<class LHS, class RHS>
+  bool check2red(LHS &&p1, RHS &&p2, int &scalar);
 //  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
 //  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
   //bool check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);

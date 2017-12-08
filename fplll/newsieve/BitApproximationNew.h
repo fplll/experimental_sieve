@@ -116,24 +116,8 @@ public:
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline SimHashes compute_all_bitapproximations(LatP const &point) const;
 
-  template<class LHS, class RHS, class LowerThresholds, class UpperThresholds>
-  FORCE_INLINE static inline bool check_simhash_scalar_product(LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub)
-  {
-    uint_fast32_t approx_scprod = 0;
-    for (unsigned int level = 0; level < sim_hash_num; ++level)
-    {
-      approx_scprod += (ObtainSimHashBlock<CoordinateSelection>::get(lhs) ^ ObtainSimHashBlock<CoordinateSelection>::get(rhs)).count();
-      if (approx_scprod >= ub[level] || approx_scprod <= lb[level])
-      {
-        continue;
-      }
-      else
-      {
-        return false;
-      }
-    }
-    return true;
- }
+  // LHS, RHS: Either SimHashBlock or an iterator or a lattice point that contains a bitapproximation
+  // TODO: static_assert those conditions.
 
 private:
   template<class T>
@@ -144,9 +128,9 @@ private:
   unsigned int fast_walsh_hadamard_len;
   std::vector< std::array<PMatrix,num_of_transforms> > pmatrices;
   std::vector< std::array<DMatrix,num_of_transforms> > dmatrices;
-
   //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
+
 
 /**
   This class stores the result of computing a scalar product of bitwise
@@ -198,20 +182,8 @@ template <class SieveTraits, bool MT>
 namespace GaussSieve
 {
 
-template<class CooSelection> class ObtainSimHashBlock
-{
-  template<class Arg>
-  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(Arg const &arg, unsigned int const level)
-  {
-    return arg.access_bitapproximation(level);
-  }
-  FORCE_INLINE static typename CooSelection::SimHashBlock const & get(typename CooSelection::SimHashes const &arg, unsigned int const level)
-  {
-    return arg[level];
-  }
-};
 
-
+/*
 template<class LatticePoint, class CooSelect>
 struct LPWithBitapprox
 {
@@ -241,6 +213,7 @@ public:
     return sim_hashes[level];
   }
 };
+*/
 
 
 }  // end namespace GaussSieve

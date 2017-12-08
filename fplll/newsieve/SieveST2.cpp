@@ -36,12 +36,12 @@ bool Sieve<SieveTraits,false>::check2red_approx(SimHashNew::SimHashes<SieveTrait
  Assume ||p1|| >= ||p2||
   Checks whether we can perform a 2-reduction. Modifies scalar.
  */
- /*
+
 template<class SieveTraits>
-bool Sieve<SieveTraits,false>::check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
-                                              SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
-                                              typename MainListType::Iterator            const &p2it,
-                                              int &scalar)
+template<class LHS, class RHS>
+bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
+                                         RHS &&p2,
+                                         int &scalar)
 {
 //  assert(!(p2.is_zero()));
 
@@ -49,7 +49,10 @@ bool Sieve<SieveTraits,false>::check2red_p1max(typename SieveTraits::FastAccess_
 //  if (!check2red_approx(p1, p2))
 //    return false;
 //#endif
-  if (!check2red_approx(p1_bitapprox,p2it))
+  if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+                                              std::forward<LHS>(p1), std::forward<RHS>(p2),
+                                              SieveTraits::threshold_lvls_2sieve_lb,
+                                              SieveTraits::threshold_lvls_2sieve_ub))
   {
     return false;
   }
@@ -61,21 +64,22 @@ bool Sieve<SieveTraits,false>::check2red_p1max(typename SieveTraits::FastAccess_
 
   using EntryType = typename SieveTraits::EntryType;
 
-  EntryType sc_prod = compute_sc_product(p1, *p2it);
+  EntryType sc_prod = compute_sc_product(turn_maybe_iterator_to_point(p1), turn_maybe_iterator_to_point(p2));
 
   EntryType abs_2scprod = abs(sc_prod * 2);
 
-  if (abs_2scprod <= p2it->get_norm2())
+  if (abs_2scprod <= turn_maybe_iterator_to_point(p2).get_norm2())
   {
     return false;
   }
 
-  double const mult = convert_to_double(sc_prod) / convert_to_double(p2it->get_norm2());
+  double const mult = convert_to_double(sc_prod) / convert_to_double(turn_maybe_iterator_to_point(p2).get_norm2());
   // TODO: Check over- / underflows.
   scalar = round(mult);
   return true;
 }
 // same, but assumes ||p2|| >= ||p1||
+/*
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
                                               SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
@@ -201,7 +205,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 
       // statistics.increment_number_of_scprods_level1();
       int scalar = 0;
-      //if (check2red_p1max(p, sim_hashes_for_p, it, scalar))
+      if (check2red(p, it, scalar))
       {
         assert(scalar != 0);
         // TODO: fma

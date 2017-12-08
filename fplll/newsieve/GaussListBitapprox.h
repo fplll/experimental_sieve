@@ -14,6 +14,7 @@
 #include <list>
 #include "SieveUtility.h"
 #include "BitApproximationNew.h"
+#include "LatticePointConcept.h"
 
 namespace GaussSieve{
 
@@ -128,7 +129,7 @@ private:
 template<class SieveTraits>
 class GaussIteratorBitApprox<SieveTraits, false>
 {
-private:
+public:
   using ListType = GaussListWithBitApprox<SieveTraits,false>;
   using StoredPoint  = typename SieveTraits::GaussList_StoredPoint;
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
@@ -138,7 +139,7 @@ private:
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashBlock =typename SimHashGlobalDataType::SimHashBlock;
   using SimHashes = typename SimHashGlobalDataType::SimHashes;
-
+private:
   CUnderlyingIterator it;
 
   friend GaussListWithBitApprox<SieveTraits, false>;
@@ -180,6 +181,29 @@ public:
   StoredPoint const *  operator->() const   { return it->ptr_to_exact;    }
   explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
 };
+
+namespace Helpers
+{
+template<class PointOrIterator> struct ConvertIteratorToPoint_Helper
+{
+  static_assert(IsALatticePoint<PointOrIterator>::value == true,""); // specialized otherwise
+  using RetType = PointOrIterator;
+  FORCE_INLINE static inline constexpr PointOrIterator const & get(PointOrIterator const &arg) { return arg; }
+};
+template<class SieveTraits>
+struct ConvertIteratorToPoint_Helper<GaussIteratorBitApprox<SieveTraits, false>>
+{
+  using RetType = typename GaussIteratorBitApprox<SieveTraits,false>::StoredPoint;
+  FORCE_INLINE static inline RetType const & get(GaussIteratorBitApprox<SieveTraits,false> const &arg) { return *arg; }
+};
+}
+
+template<class PointOrIterator>
+FORCE_INLINE auto CPP14CONSTEXPR turn_maybe_iterator_to_point(PointOrIterator &&arg)
+    -> typename Helpers::ConvertIteratorToPoint_Helper<mystd::decay_t<PointOrIterator>>::RetType const &
+{
+  return Helpers::ConvertIteratorToPoint_Helper<mystd::decay_t<PointOrIterator>>::get(std::forward<PointOrIterator>(arg));
+}
 
 }  // end namespace GaussSieve
 
