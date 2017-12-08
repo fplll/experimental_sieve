@@ -121,6 +121,14 @@ class DefaultSieveTraits
   static int constexpr get_nfixed = nfixed; // TODO: Remove and forward DimensionType throughout...
 
 };
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, 2> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_lb;
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, 2> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_ub;
+
+//  template< class ET, bool MT, int nfixed, class InputBT>
+//  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub; = {{64+5,128+8}};
+
 
 // clang-format on
 };
