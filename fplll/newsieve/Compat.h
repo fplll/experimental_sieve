@@ -36,16 +36,43 @@
   assumption).
 */
 
-#if __cpp_constexpr >= 201304
-  #define CPP14CONSTEXPR constexpr
+#if defined(__cpp_constexpr)
+  #if __cpp_constexpr >= 201304
+    #define CPP14CONSTEXPR constexpr
+  #else
+    #define CPP14CONSTEXPR
+  #endif
 #else
   #define CPP14CONSTEXPR
+  #warning "Your compiler does not support feature testing for constexpr."
 #endif
 
-#if __if_constexpr
-  #define CPP17CONSTEXPRIF if constexpr
+#if defined(__if_constexpr)
+  #if __if_constexpr
+    #define CPP17CONSTEXPRIF if constexpr
+  #else
+    #define CPP17CONSTEXPRIF if
+  #endif
 #else
+  //#warning "Your compiler does not support feature testing for if constexpr."
   #define CPP17CONSTEXPRIF if
+#endif
+
+#if defined(__has_cpp_attribute)
+  #if __has_cpp_attribute(nodiscard)
+    #define NODISCARD [[nodiscard]]
+  #else
+    #define NODISCARD
+  #endif
+  #if __has_cpp_attribute(gnu::always_inline)
+    #define FORCE_INLINE [[gnu::always_inline]]
+  #else
+    #define FORCE_INLINE
+  #endif
+#else
+  #define NODISCARD
+  #define FORCE_INLINE
+  #warning "Your compiler does not have feature testing."
 #endif
 
 /**

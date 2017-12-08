@@ -173,6 +173,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 */
     ambient_dimension(B.get_cols()), //Note : this means that rows of B form the basis.
     global_static_data(ambient_dimension),
+    static_init_sim_hash_global_data(global_static_data, seed_sampler),
     static_init_fast_access_point(global_static_data),
     original_basis(B),
     lattice_basis(B,global_static_data),
@@ -192,7 +193,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     term_cond_owned(termcond==nullptr),
     term_cond(termcond),
     sieve_status(SieveStatus::sieve_status_init),
-    shortest_vector_found(nullptr), // NOTE: Static data in class not initialized!
+    shortest_vector_found(nullptr), // NOTE: Static data in class not initialized! //TODO:True???
     statistics(this)
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
@@ -205,7 +206,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     {
         assert(B.get_cols() == SieveTraits::get_nfixed );
     }
-//    FastAccess_Point::class_init((ambient_dimension));
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
     if(num_threads_wanted==0) //0 means we take a meaningful default, which is given by thread::hardware_concurrency
       num_threads_wanted = std::max(std::thread::hardware_concurrency(),static_cast<unsigned int>(1)); //Note: hardware_concurrency might return 0 for "unknown".

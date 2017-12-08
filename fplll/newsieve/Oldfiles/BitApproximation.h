@@ -1,3 +1,5 @@
+#error unused
+
 #ifndef GAUSS_SIEVE_BITAPPROX_H
 #define GAUSS_SIEVE_BITAPPROX_H
 
@@ -43,8 +45,7 @@ unsigned int constexpr num_of_levels = 2;  // number of approximation level
 // For improved speed, we approximate a uniformly random matrix by applying
 // WH * D * P num_of_transforms many times. (WH = Walsh-Hadamard, D = diagonal, P = permutation)
 unsigned int constexpr num_of_transforms = 2;
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_2sieve = {{5}};
-constexpr std::array<unsigned int, num_of_levels> threshold_lvls_3sieve = {{0}};
+
 
 constexpr int num_of_coos = 4;
 
@@ -181,7 +182,7 @@ class RMatrix
   {
        return coos[i][j];
   }
-  
+
   inline void print(std::ostream &os = std::cout) const
   {
     for (uint_fast16_t i=0; i<SimHash::sim_hash_len; ++i)
@@ -323,7 +324,7 @@ public:
         }
       }
       // TODO: Print if DEBUG symbol is set.
-      
+
       /*
       for (unsigned int j = 0; j < SimHash::num_of_levels; ++j)
         Data::rmatrices[j] = static_cast<SimHash::RMatrix>(ambient_dimension);
@@ -499,11 +500,11 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(
       //std::cout << res << " " << ret[i][j] << " ";
     }
   }
-  
+
   return ret;
 
 }
- 
+
 // TODO: Merge this function with the one above to avoid recomputations.
 // NEW TODO: to delete, not sensitive
 

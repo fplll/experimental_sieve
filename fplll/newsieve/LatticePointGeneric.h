@@ -33,17 +33,17 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same< Get_CoordinateType<LatP>,Get_CoordinateType<LatP2> >::value,
-  "Different coordinate types. Probably an error.");
+  static_assert(std::is_same< Get_CoordinateType<LatP>, Get_CoordinateType<LatP2> >::value,
+      "Different coordinate types. Probably an error.");
   static_assert(Has_ExposesInternalRep<Impl>::value,"Cannot compare using ==. Maybe you forget a trait or overloading == ");
   DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
   assert(dim1 == dim2);
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
+#endif // DEBUG_SIEVE_LP_MATCHDIM
 
-  CPP17CONSTEXPRIF(std::is_same<LatP,LatP2>::value && Has_CheapNorm2<LatP>::value)
+  CPP17CONSTEXPRIF (Has_CheapNorm2<LatP2>::value && Has_CheapNorm2<LatP>::value)
   {
     if(CREALTHIS->get_norm2() != x2.get_norm2() )
     {
@@ -52,7 +52,7 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
   }
 
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i=0;i<dim;++i)
+  for(uint_fast16_t i = 0; i < dim; ++i)
   {
     if (CREALTHIS->get_internal_rep(i) != x2.get_internal_rep(i))
     {
@@ -64,28 +64,32 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator<(LatP const &rhs) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator<(LatP2 const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() < rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator>( LatP const &rhs) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>( LatP2 const &rhs) const
 {
   DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() > rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator<= ( LatP const &rhs ) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator<= ( LatP2 const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() <= rhs.template get_norm2_at_level<0>();
 }
 
 template<class LatP>
-inline bool GeneralLatticePoint<LatP>::operator>= ( LatP const &rhs ) const
+template<class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>= ( LatP2 const &rhs ) const
 {
   DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
   return CREALTHIS->template get_norm2_at_level<0>() >= rhs.template get_norm2_at_level<0>();
@@ -105,6 +109,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
   static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to += invalid: Maybe you forgot a trait or did not overload +=");
   static_assert(Has_InternalRepLinear<Impl>::value,"First argument to += invalid: Maybe you forgot a trait or did not overload +=");
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
+  // Note: We do not check traits for LatP2 here.
+  // TODO: Should we?
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
@@ -114,16 +120,15 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
   assert(real_dim1 == real_dim2);
   #endif
   auto const dim = CREALTHIS->get_internal_rep_size();
-//  auto const real_dim = x1.get_dim();
-//  LP NewLP(real_dim);
   for(uint_fast16_t i = 0; i < dim; ++i )
   {
-    ( REALTHIS->get_internal_rep(i) ) += x2.get_internal_rep(i);
+    REALTHIS->get_internal_rep(i) += x2.get_internal_rep(i);
   }
   REALTHIS->sanitize();
   return *REALTHIS;
 }
 
+// pretty much the same as +=
 template<class LatP>
 template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
 inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
@@ -133,6 +138,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to -= invalid: Maybe you forgot a trait or did not overload -=");
   static_assert(Has_InternalRepLinear<Impl>::value,"First argument to -= invalid: Maybe you forgot a trait or did not overload -=");
   DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
+  // Note: We do not check traits for LatP2 here.
+  // TODO: Should we?
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
@@ -142,9 +149,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   assert(real_dim1 == real_dim2);
   #endif
   auto const dim = CREALTHIS->get_internal_rep_size();
-//  auto const real_dim = x1.get_dim();
-//  LP NewLP(real_dim);
-  for(uint_fast16_t i = 0; i < dim; ++i )
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) -= x2.get_internal_rep(i);
   }
@@ -152,6 +157,7 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   return *REALTHIS;
 }
 
+// Note: *= - multiplication by mpz_class currently not implemented
 template<class LatP>
 template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
@@ -189,6 +195,8 @@ inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
 // for LP a lattice point, but not a lvalue reference type to it.
 // (Note that the FOR_LATTICE_POINT* macros use IsALatticePoint)
 // Consequently, the unversal references behave (almost) like rvalue references.
+
+// TODO: Fix this code to allow a different behaviour of IsALatticePoint<LP>
 
 // binary +
 
@@ -264,13 +272,12 @@ LP1 operator-(LP1 && x1, LP2 && x2)
   return tmp;
 }
 
-
-
 // unary minus
 
 template<class LatP>
 inline LatP GeneralLatticePoint<LatP>::operator-() &&
 {
+  // TODO: Improve!
   LatP tmp = std::move(*REALTHIS);
   tmp.make_negative();
   return tmp;
@@ -282,7 +289,6 @@ template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
   mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
-//  assert(false);
   LP tmp = x1.make_copy();
   tmp*=multiplier;
   return tmp;
@@ -307,6 +313,8 @@ template<class LatP>
 inline std::ostream& GeneralLatticePoint<LatP>::write_lp_to_stream(std::ostream &os, bool const include_norm2, bool const include_approx) const
 {
 // Note: include_approx is ignored, because classes that have an approximation overload this anyway.
+// TODO: Q: assert not having an approximation?
+// Unfortunately, this would prevent calling the generic version from the overload.
   DEBUG_TRACEGENERIC("Using generic writer (absolute) for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_dim();
   os << "[ "; // makes spaces symmetric
@@ -380,17 +388,6 @@ inline Get_ScalarProductStorageType<LatP> GeneralLatticePoint<LatP>::get_norm2()
 
 template<class LatP>
 template<class Impl>
-inline auto GeneralLatticePoint<LatP>::get_bitapprox_norm2() const -> decltype( std::declval<Impl>().get_dim() )
-{
-  IMPL_IS_LATP;
-  DEBUG_TRACEGENERIC("Generically getting number of bits for bitapprox" << LatP::class_name() )
-  return CREALTHIS->get_dim();
-}
-
-
-
-template<class LatP>
-template<class Impl>
 inline bool GeneralLatticePoint<LatP>::is_zero() const
 {
   IMPL_IS_LATP;
@@ -404,7 +401,7 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
   else
   {
     auto const dim = CREALTHIS->get_internal_rep_size();
-    for (uint_fast16_t i=0;i<dim;++i)
+    for (uint_fast16_t i = 0;i < dim; ++i)
     {
       if(CREALTHIS->get_internal_rep(i) != 0)
       {
@@ -445,13 +442,6 @@ inline typename GeneralLatticePoint<LatP>::AbsoluteCooType GeneralLatticePoint<L
   return CREALTHIS->get_internal_rep(std::forward<Arg>(arg));
 }
 
-//    template<class Arg, class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_InternalRepByCoos<Impl>, IsRepLinear_RW<Impl>)>
-//    inline RepCooType & get_internal_rep(Arg &&arg)
-//    {
-//      return REALTHIS->operator[](std::forward<Arg>(arg));
-//    }
-//
-
 
 /**************************
   Initialization functions
@@ -482,7 +472,7 @@ inline void GeneralLatticePoint<LatP>::make_negative()
   static_assert(Has_InternalRepLinear<Impl>::value,"Do not know how to negate vector. Did you forget to declare linearity or overload make_negative?");
   DEBUG_TRACEGENERIC("Using generic negation function for " << LatP::class_name() )
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for (uint_fast16_t i=0; i<dim; ++i)
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) = - CREALTHIS->get_internal_rep(i);
   }
@@ -516,7 +506,7 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const &
   auto const real_dim=CREALTHIS->get_dim(); // means ambient dimension.
   auto const dim = CREALTHIS->get_internal_rep_size(); // number of coordinates stored. May be rank.
   LatP NewLP(real_dim);
-  for (uint_fast16_t i=0; i<dim; ++i)
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     NewLP.get_internal_rep(i) = CREALTHIS->get_internal_rep(i);
   }
@@ -538,18 +528,20 @@ inline LatP GeneralLatticePoint<LatP>::make_copy() const &
 
 
 template<class LatP>
-inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP const &x2) const
+template<class LatP2, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
+inline typename GeneralLatticePoint<LatP>::ScalarProductStorageType GeneralLatticePoint<LatP>::do_compute_sc_product(LatP2 const &x2) const
 {
-  DEBUG_TRACEGENERIC("Generically computing scalar product for" << LP::class_name() )
+  DEBUG_TRACEGENERIC("Generically computing scalar product for " << LatP::class_name() << " with " << LatP2::class_name())
   #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_dim();
   auto const dim2 = x2.get_dim();
-  assert(dim1 == dim2 );
-  #endif // DEBUG_SIEVE_LP_MATCHDIM
+  assert(dim1 == dim2);
+  #endif  // DEBUG_SIEVE_LP_MATCHDIM
   using ET = Get_AbsoluteCooType<LatP>;
+  static_assert(std::is_same< ET, Get_AbsoluteCooType<LatP2> >::value, "different coos");
   auto const dim = CREALTHIS->get_dim();
   ET result = 0; // assumes that ET can be initialized from 0...
-  for(uint_fast16_t i=0; i<dim; ++i)
+  for(uint_fast16_t i = 0; i < dim; ++i)
   {
     result += CREALTHIS->get_absolute_coo(i) * x2.get_absolute_coo(i);
   }

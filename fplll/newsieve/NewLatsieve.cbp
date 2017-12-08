@@ -17,6 +17,7 @@
 		<Unit filename="ApproximatedPoint.h" />
 		<Unit filename="BitApproximation.h" />
 		<Unit filename="BitApproximationNew.h" />
+		<Unit filename="BitApproximationNew_impl.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
@@ -28,6 +29,7 @@
 		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
+		<Unit filename="GlobalBitApproxData.h" />
 		<Unit filename="GlobalStaticData.h" />
 		<Unit filename="HashedLatticePoint.h" />
 		<Unit filename="HyperplaneLSH.h" />
@@ -39,6 +41,7 @@
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
 		<Unit filename="PointListNew.h" />
+		<Unit filename="PointWithBitapprox.h" />
 		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
@@ -61,7 +64,6 @@
 		<Unit filename="Tests/TestExactLatticePoint.h" />
 		<Unit filename="Tests/TestLazy.h" />
 		<Unit filename="Tests/TestList.h" />
-		<Unit filename="Tests/TestList2.h" />
 		<Unit filename="Tests/TestMTPRNG.h" />
 		<Unit filename="Tests/TestMaybeFixedInt.h" />
 		<Unit filename="Tests/TestPlainLatticePoint.h" />

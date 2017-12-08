@@ -86,7 +86,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "HyperplaneLSH.h"
 //#include "RelevantCoords.h"
 #include "Statistics.h"
-
+#include "GlobalBitApproxData.h"
 
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
@@ -133,6 +133,8 @@ public:
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
   using EntryType        = typename SieveTraits::EntryType;
+  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
+  using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
 
   using FilteredListType = typename SieveTraits::FilteredListType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
@@ -220,22 +222,24 @@ public:
 //  void sieve_k_thread(int const thread_id);
 #else
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+  template<class LHS, class RHS>
+  bool check2red(LHS &&p1, RHS &&p2, int &scalar);
 //  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
 //  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
-  bool check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
-  bool check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
-                                             SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
-                                             typename MainListType::Iterator            const &p2it,
-                                             int &scalar);
-  bool check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
-                                             SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
-                                             typename MainListType::Iterator            const &p2it,
-                                             int &scalar);
+  //bool check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
+  //bool check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
+  //                                           SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+  //                                           typename MainListType::Iterator            const &p2it,
+  //                                           int &scalar);
+  //bool check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
+  //                                           SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+  //                                           typename MainListType::Iterator            const &p2it,
+  //                                           int &scalar);
   //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
   //void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
-  bool check_sc_prod (FastAccess_Point const &x1,FastAccess_Point const &x2, EntryType & sc_prod_x1x2);
+  //bool check_sc_prod (FastAccess_Point const &x1,FastAccess_Point const &x2, EntryType & sc_prod_x1x2);
 
 
 
@@ -310,7 +314,9 @@ private:
   DimensionType ambient_dimension; //consider merging these into a latticespec struct.
 
   GlobalStaticDataInitializer global_static_data;
+  StaticInitializer<SimHashGlobalData> static_init_sim_hash_global_data;
   StaticInitializer<FastAccess_Point> static_init_fast_access_point;
+
 
   InputBasisType original_basis;
   LatticeBasisType lattice_basis;
