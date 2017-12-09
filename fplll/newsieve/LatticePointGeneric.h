@@ -157,6 +157,62 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   return *REALTHIS;
 }
 
+template<class LatP>
+template<class LatP2, class Integer, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+inline void GeneralLatticePoint<LatP>::add_multiply(LatP2 const &x2, Integer const multiplier)
+{
+  IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
+  DEBUG_TRACEGENERIC( "generically addmultiplying" << LatP::class_name() << " and " << LatP2::class_name() )
+  // Note: We do not check traits for LatP2 here.
+  // TODO: Should we?
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_internal_rep_size();
+  auto const dim2 = x2.get_internal_rep_size();
+  assert( dim1 == dim2 );
+  auto const real_dim1 = CREALTHIS->get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = CREALTHIS->get_internal_rep_size();
+  for(uint_fast16_t i = 0; i < dim; ++i )
+  {
+    REALTHIS->get_internal_rep(i) += x2.get_internal_rep(i) * multiplier;
+  }
+  REALTHIS->sanitize();
+}
+
+template<class LatP>
+template<class LatP2, class Integer, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+inline void GeneralLatticePoint<LatP>::sub_multiply(LatP2 const &x2, Integer const multiplier)
+{
+  IMPL_IS_LATP;
+  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to submultiply invalid: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to submultiply invalid: Maybe you forgot a trait or did not overload");
+  DEBUG_TRACEGENERIC( "generically addmultiplying" << LatP::class_name() << " and " << LatP2::class_name() )
+  // Note: We do not check traits for LatP2 here.
+  // TODO: Should we?
+  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  auto const dim1 = CREALTHIS->get_internal_rep_size();
+  auto const dim2 = x2.get_internal_rep_size();
+  assert( dim1 == dim2 );
+  auto const real_dim1 = CREALTHIS->get_dim();
+  auto const real_dim2 = x2.get_dim();
+  assert(real_dim1 == real_dim2);
+  #endif
+  auto const dim = CREALTHIS->get_internal_rep_size();
+  for(uint_fast16_t i = 0; i < dim; ++i )
+  {
+    REALTHIS->get_internal_rep(i) -= x2.get_internal_rep(i) * multiplier;
+  }
+  REALTHIS->sanitize();
+}
+
+
+
 // Note: *= - multiplication by mpz_class currently not implemented
 template<class LatP>
 template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>

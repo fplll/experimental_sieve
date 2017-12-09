@@ -19,8 +19,9 @@ CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
 // (i.e. repetitions of the input vector) to get at least that many output bits.
 // (X-1)/ Y + 1 is the same as ceil(X/Y)
   unsigned int const ambient_dimension = dim;
+  assert(ambient_dimension!=0);
   number_of_blocks =((sim_hash_num * sim_hash_len - 1) / ambient_dimension) + 1;
-
+  fast_walsh_hadamard_loglen = static_cast<unsigned int>(floor(log2(ambient_dimension)));
   fast_walsh_hadamard_len =
       static_cast<unsigned int>(    pow(  2,  floor(log2(ambient_dimension))  )    );
 
@@ -94,6 +95,97 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
   return output;
 }
 
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<class T>
+void inline CoordinateSelection<sim_hash_len_arg, sim_hash_num_arg, MT, DimensionType>::
+    faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const
+{
+  unsigned int const len = fast_walsh_hadamard_len;
+  assert(std::bitset< std::numeric_limits<unsigned long>::digits >{len}.count() == 1);
+  assert(len <= input.size());  // maybe static
+
+
+  // on [0...len-1] coordinates perform WH
+  T tmp;
+
+  // The following 3 versions are equivalent, up to permutation and signs
+  // experimentally, the one selected was the fastest on my machine...
+
+  // Version 1:
+
+  // writing the indices in binary, for the WH-Transform, we perform
+  // output[****0*****] = input[*****0*****] + input[*****1*****]
+  // output[****1*****] = input[*****0*****] - input[*****1*****]
+  // and then set input to output, where the affected "special" bit ranges over all possibilites,
+  // starting with the msb.
+
+  // Changing the processing order for the "special bit" and where the -sign appears above does
+  // not matter for our application:
+  // It is equivalent to a fixed permutation of coos and multiplying some coos by +/-1 before/after
+  // the WH transformation; choose a variant that requires slightly less computation.
+
+  // (Note that where the - sign appears here does not matter for our application)
+
+  // i            = 0000010000 in the above notation
+  // higher_bits is *****00000
+  // lower_bits  is 000000****
+
+
+  for (uint_fast16_t i = len >> 1; i > 0; i >>= 1)
+//  for (uint_fast16_t i = 1; i < len; i<<=1) // loop order does not matter...
+  {
+    // this order of the 2 inner loops is 5-10% faster. No idea why.
+    for(uint_fast16_t lower_bits = 0; lower_bits < i; ++lower_bits)
+    {
+      for(uint_fast16_t higher_bits =0; higher_bits < len; higher_bits += (2*i) )
+      {
+        tmp = input[higher_bits+0+lower_bits];
+        input[higher_bits+0+lower_bits]+=input[higher_bits+i+lower_bits];
+//        input[higher_bits+i+lower_bits] =tmp - input[higher_bits+i+lower_bits];  // <- This is WH trafo
+        input[higher_bits+i+lower_bits]-=tmp;// - input[higher_bits+i+lower_bits]; // <- This is just as good, but 5-10% faster.
+      }
+    }
+  }
+
+
+  /*
+  // Version 2 :
+  unsigned int const log_len = fast_walsh_hadamard_loglen;
+  for(uint_fast16_t i=0; i < log_len;++i)
+  {
+    unsigned int const ip = (1<<i);
+
+    for(uint_fast16_t j=0; j < (1 << i); ++j)
+    {
+      for(uint_fast16_t k=0; k < (1 << (log_len-1-i)); ++k)
+      {
+        tmp = input[j+ (k<<(i+1))];
+        input[j+(k<<(i+1))] += input[j+(k<<(i+1))+ip];
+        input[j+(k<<(i+1))+ip]-=tmp;
+      }
+    }
+  }
+  */
+
+  // Version 3:
+  /*
+  for(uint_fast16_t j = 0; j<len; ++j)
+  {
+    if ((j & i) !=0) continue;
+    tmp = input[j];
+    input[j]+=input[j^i];
+    input[j^i]-=tmp;
+  }
+  */
+
+  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
+  for(uint_fast16_t i = 0; i < len; ++i)
+  {
+    input[i] /= lengthfactor;
+  }
+  return;
+}
+
 
 template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
@@ -120,7 +212,8 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      blocks[i] = fast_partial_walsh_hadamard(blocks[i]);
+//      blocks[i] = fast_partial_walsh_hadamard(blocks[i]);
+      faster_almost_partial_walsh_hadamard_inplace(blocks[i]);
     }
   }
   // put together the blocks into an array of bitsets.
