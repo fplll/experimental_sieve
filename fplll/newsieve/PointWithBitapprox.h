@@ -85,6 +85,11 @@ class AddBitApproximationToLP
     return sim_hashes[level];
   }
 
+  SimHashes take_bitapproximations() &&
+  {
+    return std::move(sim_hashes);
+  }
+
 
 // forward functionality of ELP. Note that the this is *not* captured by the conversion operators,
 // because MakeLeveledLatticePoint<ELP> is derived from GeneralLatticePoint, and those defaults will have

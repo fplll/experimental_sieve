@@ -188,6 +188,11 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 
   // used to store the point where the list elements become larger than p.
   auto it_comparison_flip = main_list.cend();
+  double approx_norm2 = convert_to_double(p.get_norm2());
+  // holds a double-approximation to approx-norm2. Note that the main list stores such an approximation
+  // directly inside the nodes. Using these double-approximations should be better in the
+  // multithreaded case. For the single-threaded case, it might lead to better cache usage in higher
+  // dimensions. Please test whether t makes a difference.
   //  auto it = main_list.cbegin();
 
   while (loop)  // while p keeps changing
@@ -197,7 +202,8 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
     {
       // std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
 
-      if (p < *it) // TODO: Might be better to compare with it.get_approx_norm2()
+//      if (p < *it)
+      if (approx_norm2 < it.get_approx_norm2())
       {
         it_comparison_flip = it;
         break;
@@ -208,9 +214,10 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       if (check2red(p, it, scalar))
       {
         assert(scalar != 0);
-        // TODO: fma
-        p -= (*it) * scalar;
+//        p -= (*it) * scalar;
+        p.sub_multiply(*it,scalar);
         p.update_bitapprox();
+        approx_norm2 = convert_to_double(p.get_norm2());
         // std::cout << "new p = " << p.get_norm2 () << std::endl;
         loop = true;
         break;
@@ -227,7 +234,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
     statistics.increment_number_of_collisions();
     return;
   }
-  
+
 
   for (auto it = it_comparison_flip; it != main_list.cend();)  // ++it inside body of loop
   {
@@ -241,7 +248,14 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       // and steal *it here for the new point.
       // This requires the sampler to never output 0.
 
-      typename SieveTraits::GaussQueue_DataType v_new = (*it) - (p * scalar);
+      if (it == it_comparison_flip)
+      {
+        ++it_comparison_flip;
+      }
+
+      auto v_new = main_list.true_pop_point(it);  // implicitly performs ++it.
+      v_new.sub_multiply(p,scalar);
+//      typename SieveTraits::GaussQueue_DataType v_new = (*it) - (p * scalar);
       // std::cout << "new v of norm = " << v_new.get_norm2() << std::endl;
 
       if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
@@ -249,16 +263,15 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
         // std::cout << "collision on v_new is found " << std::endl;
         statistics.increment_number_of_collisions();
       }
-      main_queue.push(std::move(v_new));
+      else
+      {
+        main_queue.push(std::move(v_new));
+      }
 
       // This increments the iterator in the sense that its point to the next element now,
       // effectively doubling as a ++it;
-      if (it == it_comparison_flip)
-      {
-        ++it_comparison_flip;
-      }
-      
-      it = main_list.erase(it);
+
+//      it = main_list.erase(it);
       statistics.decrement_current_list_size();
     }
     else  // no reduction.
@@ -274,7 +287,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
     }
   }
-  
+
   main_list.insert_before(it_comparison_flip, std::move(p));
   statistics.increment_current_list_size();
 }

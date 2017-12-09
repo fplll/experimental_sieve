@@ -15,6 +15,7 @@
 #include "SieveUtility.h"
 #include "BitApproximationNew.h"
 #include "LatticePointConcept.h"
+#include "GlobalBitApproxData.h"
 
 namespace GaussSieve{
 
@@ -33,15 +34,28 @@ struct STNode
 {
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashes = typename SimHashGlobalDataType::SimHashes;
+  using GlobalSimHashClass = GlobalBitApproxData<SimHashGlobalDataType>;
+
 // The !is_reference<Arg> makes this template only valid for actual rvalues.
-  template<class Arg,
-      TEMPL_RESTRICT_DECL2(IsALatticePoint< mystd::decay_t<Arg> >, mystd::negation<std::is_reference<Arg>>)>
-  explicit constexpr STNode(Arg &&arg, SimHashGlobalDataType const &coo_selection) noexcept
-      : bit_approximations(coo_selection.compute_all_bitapproximations(arg)),
+  template<class Arg, TEMPL_RESTRICT_DECL2( IsALatticePoint< mystd::decay_t<Arg> >,
+                                            mystd::negation< std::is_reference<Arg> >,
+                                            mystd::negation< Has_BitApprox<mystd::decay_t<Arg>> >)>
+  explicit constexpr STNode(Arg &&arg) noexcept
+      : bit_approximations(GlobalSimHashClass::coo_selection.compute_all_bitapproximations(arg)),
         approx_norm2(convert_to_double(arg.get_norm2())),
         ptr_to_exact(new typename SieveTraits::GaussList_StoredPoint(std::move(arg)) ) {}
-  explicit constexpr STNode(typename SieveTraits::GaussList_StoredPoint * const point_ptr, SimHashGlobalDataType const &coo_selection) noexcept
-      : bit_approximations(coo_selection.compute_all_bitapproximations(*point_ptr)),
+
+  template<class Arg, TEMPL_RESTRICT_DECL2( IsALatticePoint< mystd::decay_t<Arg> >,
+                                            mystd::negation< std::is_reference<Arg> >,
+                                            Has_BitApprox< mystd::decay_t<Arg> >       )>
+  explicit constexpr STNode(Arg &&arg) noexcept
+      : bit_approximations(std::move(arg).take_bitapproximations() ),
+        approx_norm2(convert_to_double(arg.get_norm2())),
+        ptr_to_exact(new typename SieveTraits::GaussList_StoredPoint(std::move(arg)) ) {}
+
+
+  explicit constexpr STNode(typename SieveTraits::GaussList_StoredPoint * const point_ptr) noexcept
+      : bit_approximations(GlobalSimHashClass::coo_selection.compute_all_bitapproximations(*point_ptr)),
         approx_norm2(convert_to_double(point_ptr->get_norm2())),
         ptr_to_exact(point_ptr) {}
 
@@ -74,11 +88,9 @@ public:
   GaussListWithBitApprox& operator= (GaussListWithBitApprox const&) = delete;
   GaussListWithBitApprox& operator= (GaussListWithBitApprox &&)     = delete;
   explicit GaussListWithBitApprox(GlobalStaticDataInitializer const &static_data) noexcept
-      :sim_hash_data(static_data.dim), init_stored_point(static_data),
-       init_return_type(static_data), actual_list() {}
-  explicit GaussListWithBitApprox(GlobalStaticDataInitializer const &static_data, unsigned int const random_seed) noexcept
-      :sim_hash_data(static_data.dim, random_seed), init_stored_point(static_data),
-       init_return_type(static_data), actual_list() {}
+      :init_stored_point(static_data),
+       init_return_type(static_data),
+       actual_list() {}
 
   CPP14CONSTEXPR Iterator cbegin() const noexcept { return actual_list.cbegin(); }
   CPP14CONSTEXPR Iterator cend() const noexcept   { return actual_list.cend(); }
@@ -92,22 +104,22 @@ public:
   Iterator insert_before(Iterator const &pos, LatticePoint && new_point)
   {
     static_assert(std::is_reference<LatticePoint>::value == false,"Must call on rvalues");
-    return actual_list.emplace(pos.it, std::move(new_point), sim_hash_data);
+//    static_assert(Has_BitApprox<mystd::decay_t<LatticePoint>>::value,"");
+    return actual_list.emplace(pos.it, std::move(new_point));
   }
 
   Iterator insert_before(Iterator const &pos, StoredPoint * const point_ptr)
   {
-    return actual_list.emplace(pos.it, point_ptr, sim_hash_data);
+    return actual_list.emplace(pos.it, point_ptr);
   }
 
   // removes the element at position pos from the list and returns (and converts) it.
   // "increments" the iterator passed as argument: it now point to the next element.
   ReturnType true_pop_point(Iterator &pos)
   {
-    ReturnType retval = static_cast<ReturnType>(*pos);
-    pos.it->ptr_to_exact = nullptr;
-    pos = actual_list.erase(pos);
-    return retval;
+    ReturnType retval = static_cast<ReturnType>( std::move(*(pos.it->ptr_to_exact))) ;
+    pos = erase(pos);
+    return retval;  // (mandatory) named-return-value-optimization to avoid copying.
   }
 
   Iterator erase(Iterator pos) { return actual_list.erase(pos.it); }
@@ -115,8 +127,8 @@ public:
   typename UnderlyingContainer::size_type size() const noexcept { return actual_list.size(); }
   NODISCARD bool empty() const noexcept { return actual_list.empty(); }
 
-public:
-  SimHashGlobalDataType const sim_hash_data;
+//public:
+//  SimHashGlobalDataType const sim_hash_data;
 private:
   StaticInitializer<StoredPoint> const init_stored_point;
   StaticInitializer<ReturnType>  const init_return_type;

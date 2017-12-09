@@ -386,6 +386,17 @@ public:
   template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline LatP& operator-=(LatP2 const &x2); // default implementation asserts linearity
 
+  // add_multiply performs the same as +=(x2*multiplier), but is possibly more efficient.
+  // sub_multiply performs the same as -=(x2*mutliplier), but is possibly more efficient.
+  // The default implementation has the same restrictions as += resp. -=
+  // TODO : may consider variant where the scalar product of *this and x2 is known.
+  template<class LatP2, class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+  inline void add_multiply(LatP2 const &x2, Integer const multiplier);
+
+  template<class LatP2, class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+  inline void sub_multiply(LatP2 const &x2, Integer multiplier);
+
+
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
   inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
@@ -546,6 +557,7 @@ public:
 public:
 
   void access_bitapproximation(unsigned int level) = delete;  // need to overload
+  void take_bitapproximations() && = delete; // need to overload
   void update_bitapprox() = delete;
 };
 
