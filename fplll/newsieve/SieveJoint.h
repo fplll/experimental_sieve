@@ -135,8 +135,9 @@ public:
   using EntryType        = typename SieveTraits::EntryType;
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
-
-  using FilteredListType = typename SieveTraits::FilteredListType;
+  
+  using Filtered_Point   = FilteredPoint<SieveTraits, EntryType>;
+  using FilteredListType = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   template<class,bool> friend class GaussSieveStatistics;
@@ -213,7 +214,7 @@ public:
   void run();                 //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
 
   void run_2_sieve(); //actually runs the Gauss Sieve with k=2
-  //void run_3_sieve(); //actually runs the Gauss Sieve with k=3
+  void run_3_sieve(); //actually runs the Gauss Sieve with k=3
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED == true
@@ -237,10 +238,15 @@ public:
   //                                           int &scalar);
   //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
-  //void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
+  void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
-  //bool check_sc_prod (FastAccess_Point const &x1,FastAccess_Point const &x2, EntryType & sc_prod_x1x2);
-
+  template<class IT>
+  bool check_sc_prod_outer (FastAccess_Point const &x1, IT &&x2, EntryType & sc_prod_x1x2);
+  template<class IT>
+  bool check_sc_prod_inner (Filtered_Point const &x1, IT &&x2, EntryType & sc_prod_x1x2);
+  template<class ARG1, class ARG2>
+  bool check_triple (ARG1 &&x1, ARG2 &&x2, Filtered_Point const &x3, EntryType const &x1x2, EntryType const &x3_X,
+                 int &sgn2, int &sgn3, bool p_is_max);
 
 
   //void sieve_k_iteration (LatticePoint<ET> &p);

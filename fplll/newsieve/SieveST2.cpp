@@ -43,12 +43,6 @@ bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
                                          RHS &&p2,
                                          int &scalar)
 {
-//  assert(!(p2.is_zero()));
-
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-//  if (!check2red_approx(p1, p2))
-//    return false;
-//#endif
   if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
                                               p1, p2,
                                               SieveTraits::threshold_lvls_2sieve_lb,

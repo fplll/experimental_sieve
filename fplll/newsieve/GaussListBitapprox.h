@@ -180,6 +180,9 @@ public:
   StoredPoint const &  operator*() const    { return *(it->ptr_to_exact); }
   StoredPoint const *  operator->() const   { return it->ptr_to_exact;    }
   explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
+  
+  //For FilteredPoint
+  CUnderlyingIterator true_star() const     { return  it;                 }
 };
 
 namespace Helpers

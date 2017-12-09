@@ -2,7 +2,7 @@
 
 namespace GaussSieve{
   
-  
+/*
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::check3red_approx(typename SieveTraits::FastAccess_Point const &p1,
                 typename SieveTraits::FastAccess_Point const &p2)
@@ -32,33 +32,75 @@ bool Sieve<SieveTraits,false>::check3red_approx(typename SieveTraits::FastAccess
   
   return true;
 }
-  
+*/
 
 template<class SieveTraits>
-bool Sieve<SieveTraits,false>::check_sc_prod (typename SieveTraits::FastAccess_Point const &x1,
-                    typename SieveTraits::FastAccess_Point const &x2,
+template<class IT>
+bool Sieve<SieveTraits,false>::check_sc_prod_outer (typename SieveTraits::FastAccess_Point const &x1, IT &&x2,
                     typename SieveTraits::EntryType & sc_prod_x1x2)
 {
-  #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    if(!check3red_approx(x1, x2)) return false;
-  #endif
+  
+  
+  if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+                                            x1, x2,
+                                            SieveTraits::threshold_lvls_3sieve_lb_out,
+                                            SieveTraits::threshold_lvls_3sieve_lb_out))
+  {
+    return false;
+  }
+  
   
   using std::abs;
   
-  // ! targets are squared
-  //double px1_target = 0.1024;
-  double px1_target  = .1111; // TO ADJUST
-  //double px1_target = 0.123;
+  //TODO: DO WE WANT EXACT CHECK HERE?
   
-  sc_prod_x1x2 = compute_sc_product(x1, x2);
+  sc_prod_x1x2 = compute_sc_product(x1, turn_maybe_iterator_to_point(x2));
   statistics.increment_number_of_scprods_level1();
   
+  
   double sc_prod_px1_norm = convert_to_double( sc_prod_x1x2)*convert_to_double(sc_prod_x1x2 ) /
-                  ( convert_to_double ( x1.get_norm2()) * convert_to_double( x2.get_norm2() )) ;
+                  ( convert_to_double (x1.get_norm2()) * 
+                  convert_to_double( turn_maybe_iterator_to_point(x2).get_norm2() )) ;
                   
-  if (abs(sc_prod_px1_norm) >px1_target)
+  if (abs(sc_prod_px1_norm) > SieveTraits::x1x2_target)
     return true;
     
+  return false;
+}
+
+template<class SieveTraits>
+template<class IT>
+bool Sieve<SieveTraits,false>::check_sc_prod_inner (Filtered_Point const &x1, IT &&x2,
+                    typename SieveTraits::EntryType & sc_prod_x1x2)
+{
+  
+  //TODO: make the approx check
+  // currently: type mismatch
+  /*
+  if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+                                            *(x1.get_point()), x2,
+                                            SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                            SieveTraits::threshold_lvls_3sieve_lb_inn))
+  {
+    return false;
+  }
+  */
+  
+  using std::abs;
+  
+  sc_prod_x1x2 = compute_sc_product( *(x1.get_point().ptr_to_exact), turn_maybe_iterator_to_point(x2));
+  statistics.increment_number_of_scprods_level1();
+  
+  double x1_norm2 = convert_to_double( (x1.get_point().ptr_to_exact)->get_norm2() );
+  double x2_norm2 = convert_to_double( turn_maybe_iterator_to_point(x2).get_norm2() );
+  
+  
+  double sc_prod_px1_norm = convert_to_double( sc_prod_x1x2)*convert_to_double(sc_prod_x1x2 ) /
+                  ( x1_norm2 * x2_norm2) ;
+                  
+  if (abs(sc_prod_px1_norm) > SieveTraits::x2x3_target)
+    return true;
+  
   return false;
 }
 
@@ -69,10 +111,11 @@ bool Sieve<SieveTraits,false>::check_sc_prod (typename SieveTraits::FastAccess_P
     // x_new = x1 + sgn1*x2 + x3*sng2
     // p_is_max is true if x1 ==p, in which case x3_X stores <x3,x2>
     // otherwise x3_X stores <x3, x1>
+    //  EXACT CHECKS ONLY
 template<class SieveTraits>
-bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
-                 typename SieveTraits::FastAccess_Point const &x2,
-                 typename SieveTraits::FlilteredPointType const &x3,
+template<class ARG1, class ARG2>
+bool Sieve<SieveTraits,false>::check_triple (ARG1 &&x1, ARG2 &&x2,
+                 Filtered_Point const &x3,
                  typename SieveTraits::EntryType const &x1x2,
                  typename SieveTraits::EntryType const &x3_X,
                  int &sgn2, int &sgn3, bool p_is_max)
@@ -99,11 +142,13 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
     x3x1 = x3.get_sc_prod();
     x3x2 = x3_X;
   }
-
-
+  
+  EntryType x1_norm2 = turn_maybe_iterator_to_point(x1).get_norm2();
+  EntryType x2_norm2 = turn_maybe_iterator_to_point(x2).get_norm2();
+  EntryType x3_norm2 = (x3.get_point().ptr_to_exact)->get_norm2();
+  
   if (x3x1 <0 && x1x2<0 && x3x2<0 &&
-      x2.get_norm2() + (x3.get_point()).get_norm2() <
-      2 * ( abs(x3x1 + x1x2 + x3x2) ) )
+      x2_norm2 + x3_norm2 < 2 * ( abs(x3x1 + x1x2 + x3x2) ) )
   {
 
     sgn2 = 1;
@@ -116,8 +161,7 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
 
     //if (x3x1 <0 && !((x1x2^x3x2) <0) &&
   if (x3x1 <0 && x1x2>0 && x3x2 >0 &&
-      x2.get_norm2() + (x3.get_point()).get_norm2() <
-      2 * ( -x3x1 + x1x2 + x3x2 ) )
+      x2_norm2 + x3_norm2 < 2 * ( -x3x1 + x1x2 + x3x2 ) )
   {
 
     sgn2 = -1;
@@ -128,7 +172,7 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
   }
 
   if (x3x1 >0 && x1x2<0 && x3x2>0 &&
-      x2.get_norm2() + (x3.get_point()).get_norm2() < 2 * ( x3x1 - x1x2 + x3x2 ) )
+      x2_norm2 + x3_norm2 < 2 * ( x3x1 - x1x2 + x3x2 ) )
   {
     sgn2 = 1;
     sgn3 = -1;
@@ -137,7 +181,7 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
   }
 
   if (x3x1 >0 && x1x2>0 && x3x2<0 &&
-      (x2.get_norm2() + (x3.get_point()).get_norm2() < 2 * (  x3x1 + x1x2 - x3x2 )) )
+      x2_norm2 + x3_norm2 < 2 * (  x3x1 + x1x2 - x3x2 ) )
   {
 
     sgn2 = -1;
@@ -149,12 +193,9 @@ bool check_triple (typename SieveTraits::FastAccess_Point  const &x1,
   return false;
 }
 
-    /*
-     runs 3-reduction
-     TODO: input should be GaussQueue_ReturnType (same for sieve_2_iteration)
-     */
 
-template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
+template<class SieveTraits> 
+void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
 {
   
   //if (p.is_zero() )
@@ -163,6 +204,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
   //}
   
   //double px1_target  = .1111; // TO ADJUST
+  
   int scalar=0; //for 2-reduction
 
   auto it_comparison_flip=main_list.cend(); //to store the point where the list elements become larger than p.
@@ -179,16 +221,15 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
       break;
     }
 
-    //EntryType sc_prod_px1 = compute_sc_product(p,*it);
-
     //
     //check for 2-reduction
     //
-    if ( check2red(p, *it, scalar) )
+    if ( check2red(p, it, scalar) )
     {
-      assert(scalar!=0); //should not be 0 in any case
+      assert(scalar!=0); 
       p-= (*it) * scalar;
-
+      p.update_bitapprox();
+      
       if (p.is_zero() )
       {
         statistics.increment_number_of_collisions();
@@ -205,67 +246,56 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     filtered_list.reserve(filtered_list_size_max);
 
     EntryType sc_prod_px1;
-    if (check_sc_prod(p, *it, sc_prod_px1))
+    if (check_sc_prod_outer(p, it, sc_prod_px1))
     {
         
+      
       for (auto & filtered_list_point: filtered_list)
       {
 
-        //compute exact sc_prod right away
-        EntryType sc_prod_x1x2 = compute_sc_product(*it, filtered_list_point.get_point());
-        statistics.increment_number_of_scprods_level2();
         
-        int sgn2, sgn3;
-
-        //check if || p \pm x1 \pm x2 || < || p ||
-        // ! check_triple assumes that the first argument has the largest norm
-        if ( check_triple<SieveTraits> ( p, *it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
+        EntryType sc_prod_x1x2;
+        if (check_sc_prod_inner(filtered_list_point, it, sc_prod_x1x2))
         {
-          
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-          unsigned int lvl = 0;
-          uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-          statistics.red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-#endif
- 
-          //TODO:  RETRIEVE ||p|| from the sc_prods
-          //EntryType pnorm_old = p.get_norm2();
-          p += (*it)*sgn2 + (filtered_list_point).get_point() * sgn3;
-          //p +=  (*it)*sgn2 + *(filtered_list_point).get_point() * sgn3;
+        
+          int sgn2 = 1;
+          int sgn3 = 1;
 
-          //FOR DEBUGGING
-          /*
-          if (p.get_norm2() > pnorm_old)
+          //check if || p \pm x1 \pm x2 || < || p ||
+          // ! check_triple assumes that the first argument has the largest norm
+          if ( check_triple(p, it, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, true) )
           {
-            std::cout << "bug in computing p " << std::endl;
-            assert(false);
-          }
-          */
-          if (p.is_zero() )
-          {
-            statistics.increment_number_of_collisions();
-          }
-          else
-          {
-            main_queue.push(std::move(p));
-          }
-          return;
-        } //if(check_triple())
-      } 
+          
+            //EntryType pnorm_old = p.get_norm2();
+            
+            //TODO:
+            p += (*it)*sgn2 + *(filtered_list_point.get_point().ptr_to_exact)* sgn3;
+      
+            //FOR DEBUGGING
+            /*
+            if (p.get_norm2() > pnorm_old)
+            {
+              std::cout << "bug in computing p " << std::endl;
+              assert(false);
+            }
+            */
+            if (p.is_zero() )
+            {
+              statistics.increment_number_of_collisions();
+            }
+            else
+            {
+              main_queue.push(std::move(p));
+            }
+            return;
+          } //if(check_triple())
+        }
+      }
       //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
-      typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
+      Filtered_Point new_filtered_point( &(*(it.true_star())), sc_prod_px1);
       filtered_list.push_back(std::move(new_filtered_point));
       
     } //if (check_sc_prod(p, *it, sc_prod_px1))
-    
-    else
-    {
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-      unsigned int lvl = 0;
-      uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-      statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-#endif
-    }
     
     ++it;
   } //while-loop
@@ -285,23 +315,19 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
   //now p is not the largest
   //it_comparison_flip points to the next after p list-element
   it = it_comparison_flip;
-  //for(auto it = it_comparison_flip; it!=main_list.cend(); )
+  
   while (it !=main_list.cend())
   {
 
     //if true, do not put into the filtered_list
-    //if true due to 2-reduction, re-compute the sc_product
     bool x1_reduced = false;
-
-    //EntryType sc_prod_px1 = compute_sc_product(p,*it);
-    //statistics.increment_number_of_scprods_level2();
 
         
     //
     //check for 2-reduction
     //
 
-    if ( check2red(*it, p, scalar) )
+    if ( check2red(it, p, scalar) )
     {
       assert(scalar!=0); //should not be 0 in any case
       typename SieveTraits::FastAccess_Point v_new = (*it) - (p*scalar);
@@ -330,70 +356,61 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::sieve_3_iteration (ty
     // Now x1 is the largest      
 
     EntryType sc_prod_px1;
-    if (check_sc_prod(p, *it, sc_prod_px1))
+    if (check_sc_prod_outer(p, it, sc_prod_px1))
     {
       
       for (auto & filtered_list_point: filtered_list)
       {
         
-        EntryType sc_prod_x1x2 = compute_sc_product(*it, (filtered_list_point).get_point());
-        statistics.increment_number_of_scprods_level2();
-        
-        int  sgn2, sgn3;
-
-        // ! check_triple assumes that the first argument has the largest norm
-        if ( check_triple<SieveTraits> ( *it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, false) )
+        EntryType sc_prod_x1x2;
+        if (check_sc_prod_inner(filtered_list_point, it, sc_prod_x1x2))
         {
+        
+          int  sgn2 =1;
+          int  sgn3 =1;
+
+          // ! check_triple assumes that the first argument has the largest norm
+          if ( check_triple( it, p, filtered_list_point, sc_prod_px1, sc_prod_x1x2, sgn2, sgn3, false) )
+          {
           
-          typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + filtered_list_point.get_point() * sgn3;
-                    //typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_point).get_point() * sgn3;
+            typename SieveTraits::FastAccess_Point v_new =(*it) + p*sgn2 + *(filtered_list_point.get_point().ptr_to_exact) * sgn3;
 
-          if (v_new.is_zero() )
-          {
-            statistics.increment_number_of_collisions();
+            if (v_new.is_zero() )
+            {
+              statistics.increment_number_of_collisions();
+            }
+            //FOR DEBUG
+            
+            //if (v_new.get_norm2() > (*it).get_norm2())
+            //{
+            //    std::cout << "bug in computing v_new" << std::endl;
+            //    assert(false);
+            //}
+        
+        
+            main_queue.push(std::move(v_new));
+            it = main_list.erase(it);
+
+            statistics.decrement_current_list_size();
+
+            x1_reduced = true;
+
+            break; //for-loop over the filtered_list
           }
-          //FOR DEBUG
-          /*
-          if (v_new.get_norm2() > (*it).get_norm2())
-          {
-              std::cout << "bug in computing v_new" << std::endl;
-              assert(false);
-          }
-          */
-          main_queue.push(std::move(v_new));
-          it = main_list.erase(it);
-
-          statistics.decrement_current_list_size();
-
-          x1_reduced = true;
-
-          break; //for-loop over the filtered_list
         }
       } //for-loop
 
       if (!x1_reduced)
       {
         //typename SieveTraits::FlilteredPointType new_filtered_point((*it).make_copy(), sc_prod_px1);
-        typename SieveTraits::FlilteredPointType new_filtered_point(&(*it), sc_prod_px1);
+        Filtered_Point new_filtered_point( &(*(it.true_star())), sc_prod_px1);
         filtered_list.push_back(std::move(new_filtered_point));
       }
       
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-      unsigned int lvl = 0;
-      uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-      statistics.red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-#endif
   
     } //if (check_sc_prod<SieveTraits>(p, *it, sc_prod_px1))
     
-    else
-    {
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-      unsigned int lvl = 0;
-      uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
-      statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
-#endif
-    }
+    
      
     if (!x1_reduced)
     {
@@ -443,6 +460,15 @@ bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
   scalar =  round (mult);
   return true;
 }
+
+/*
+ 
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+      unsigned int lvl = 0;
+      uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
+      statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
+#endif 
+ * /
 
 /* OLD CODE */
 

@@ -32,9 +32,9 @@ int main(int argc, char **argv)
 {
   
   
-  const unsigned int bases_per_dim  = 3;
-  const unsigned int dim_min = 50;
-  const unsigned int dim_max = 60;
+  const unsigned int bases_per_dim  = 2;
+  const unsigned int dim_min = 45;
+  const unsigned int dim_max = 58;
   
   std::array<double, dim_max-dim_min+1> av_time;
   std::array<int, dim_max-dim_min+1> dims;
