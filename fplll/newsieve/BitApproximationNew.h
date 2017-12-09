@@ -98,7 +98,7 @@ template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, cl
 class CoordinateSelection
 {
 public:
-  static unsigned int constexpr num_of_transforms = 1;  // affects the "quality" vs. speed tradeoff
+  static unsigned int constexpr num_of_transforms = 100;  // affects the "quality" vs. speed tradeoff
   static std::size_t constexpr sim_hash_num = sim_hash_num_arg;
   static std::size_t constexpr sim_hash_len = sim_hash_len_arg;
   static_assert(is_a_power_of_two(sim_hash_len),"");
@@ -121,8 +121,12 @@ public:
 
 private:
   template<class T>
+  [[deprecated]] // use faster_partial_walsh_hadamard, which performs inplace operation.
   auto inline fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>;
+
+  template<class T>
+  void inline faster_partial_walsh_hadamard(std::vector<T> & input) const;
 
   unsigned int number_of_blocks;  // TODO: rename
   unsigned int fast_walsh_hadamard_len;
@@ -131,92 +135,9 @@ private:
   //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
 
-
-/**
-  This class stores the result of computing a scalar product of bitwise
-  approximations.
-  Essentially, just wraps around an int.
-  Note: We might want to wrap an approximate scalar product of t as value = #bits - t. -- Gotti
-*/
-
-/*
-class BitApproxScalarProduct
-{
-public:
-  using BitApproxScalarProduct_WrappedType = uint_fast32_t;
-
-
-  BitApproxScalarProduct(BitApproxScalarProduct const &) = delete;  // why not copy ints? -- Gotti
-  BitApproxScalarProduct(BitApproxScalarProduct &&)      = default;
-
-  explicit constexpr BitApproxScalarProduct(BitApproxScalarProduct_WrappedType const rhs):value(rhs) {}
-  explicit operator  BitApproxScalarProduct_WrappedType() { return value; }
-
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct const &other) = delete;  // Why? -- Gotti
-  BitApproxScalarProduct &operator=(BitApproxScalarProduct &&other) = default;
-
-  // TODO: operator >=, <=
-
-  inline bool operator<=(BitApproxScalarProduct_WrappedType &&rhs) const
-  {
-    return (this->value <= rhs);
-  }
-
-  BitApproxScalarProduct_WrappedType value;
-};
-*/
-
-/*
-template <class SieveTraits, bool MT>
-[[gnu::always_inline]] inline constexpr BitApproxScalarProduct compute_simhash_scalar_product_block(
-    SimHashBlock<SieveTraits,MT> const &lhs, SimHashBlock<SieveTraits,MT> const &rhs)
-{
-  return BitApproxScalarProduct {static_cast<uint_fast32_t>(SieveTraits::sim_hash_len - (lhs ^ rhs).count()) };
-}
-*/
-
-
 }  // end namespace (GaussSieve::)SimHash
 }  // end namespace GaussSieve
 
-namespace GaussSieve
-{
-
-
-/*
-template<class LatticePoint, class CooSelect>
-struct LPWithBitapprox
-{
-public:
-  static_assert(IsALatticePoint<LatticePoint>::value, "Wrong template argument");
-
-  using SimHashes = typename CooSelect::SimHashes;
-  using SimHashBlock = typename CooSelect::SimHashBlock;
-
-  LatticePoint latp;
-  SimHashes sim_hashes;
-  explicit LPWithBitapprox(LatticePoint &&new_latp, SimHashes const &new_sim_hashes) noexcept
-      : latp(std::move(new_latp)), sim_hashes(new_sim_hashes) {}
-  explicit LPWithBitapprox(LatticePoint &&new_latp, SimHashes &&new_sim_hashes) noexcept
-      : latp(std::move(new_latp)), sim_hashes(std::move(new_sim_hashes)) {}
-  explicit LPWithBitapprox(LatticePoint &&new_latp, CooSelect const &coo_select) noexcept
-      : latp(std::move(new_latp)), sim_hashes(coo_select.compute_all_bitapproximations(latp)) {}
-  constexpr operator LatticePoint() const & { return latp; }
-            operator LatticePoint() &&      { return std::move(latp); }
-  constexpr operator SimHashes()            { return sim_hashes; }
-  void update_sim_hashes(CooSelect const &coo_select) noexcept
-  {
-    sim_hashes = coo_select.compute_all_bitapproximations(latp);
-  }
-  SimHashBlock const & access_bitapproximation(unsigned int level) const
-  {
-    return sim_hashes[level];
-  }
-};
-*/
-
-
-}  // end namespace GaussSieve
 
 #include "BitApproximationNew_impl.h"
 

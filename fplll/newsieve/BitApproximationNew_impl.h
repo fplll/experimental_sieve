@@ -94,6 +94,49 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
   return output;
 }
 
+template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<class T>
+void inline CoordinateSelection<sim_hash_len_arg, sim_hash_num_arg, MT, DimensionType>::
+    faster_partial_walsh_hadamard(std::vector<T> & input) const
+{
+  unsigned int const len = fast_walsh_hadamard_len;
+  assert(std::bitset< std::numeric_limits<unsigned long>::digits >{len}.count() == 1);
+  assert(len <= input.size());  // maybe static
+
+
+  // on [0...len-1] coordinates perform WH
+  T tmp;
+  for (uint_fast16_t i = len >> 1; i > 0; i >>= 1)
+  {
+  // writing the indices in binary, we perform
+  // output[****0*****] = input[*****0*****] + input[*****1*****]
+  // output[****1*****] = input[*****0*****] - input[*****1*****]
+  // and then set input to output.
+  // The position of the affected bit is determined by i.
+  // (Note that where the - sign appears here does not matter for our application)
+
+  // i            = 0000010000 in the above notation
+  // higher_bits is *****00000
+  // lower_bits  is 000000****
+    for(uint_fast16_t higher_bits =0; higher_bits < len; higher_bits += (2*i) )
+    {
+      for(uint_fast16_t lower_bits = 0; lower_bits < i; ++lower_bits)
+      {
+        tmp = input[higher_bits+0+lower_bits];
+        input[higher_bits+0+lower_bits]+=input[higher_bits+i+lower_bits];
+        input[higher_bits+i+lower_bits] =tmp - input[higher_bits+i+lower_bits];
+      }
+    }
+  }
+
+  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
+  for(uint_fast16_t i = 0; i < len; ++i)
+  {
+    input[i] /= lengthfactor;
+  }
+  return;
+}
+
 
 template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
@@ -120,7 +163,8 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      blocks[i] = fast_partial_walsh_hadamard(blocks[i]);
+//      blocks[i] = fast_partial_walsh_hadamard(blocks[i]);
+      faster_partial_walsh_hadamard(blocks[i]);
     }
   }
   // put together the blocks into an array of bitsets.
