@@ -79,7 +79,7 @@ template<class SieveTraits,bool MT> class TerminationCondition
     friend std::istream & operator>> <SieveTraits,MT>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond);
     virtual void init(Sieve<SieveTraits,MT> * const sieve) {};     //TODO: Fix const-correctness. Problem is with cbegin() from main_list, really...
     virtual int check(Sieve<SieveTraits,MT> * const sieve) = 0;
-    virtual int check_vec(Sieve<SieveTraits,MT> * const sieve, typename SieveTraits::EntryType const & length2) = 0;
+    virtual int check_vec(Sieve<SieveTraits,MT> * const sieve, typename SieveTraits::LengthType const & length2) = 0;
     virtual ~TerminationCondition()=0; //needs to be virtual
     virtual bool is_simple() const {return false;};
     virtual TerminationConditionType  termination_condition_type() const {return TerminationConditionType::user_defined;};    //run-time type information.

@@ -132,19 +132,19 @@ public:
   using LatticeBasisType = SieveLatticeBasis<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
-  using EntryType        = typename SieveTraits::EntryType;
+  using LengthType        = typename SieveTraits::LengthType;
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
-  
-  using Filtered_Point   = FilteredPoint<SieveTraits, EntryType>;
+
+  using Filtered_Point   = FilteredPoint<SieveTraits, LengthType>;
   using FilteredListType = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   template<class,bool> friend class GaussSieveStatistics;
 
 #ifdef USE_LSH
-  using HashTablesType   = HashTableS<SieveTraits, EntryType>;
-  using HashTableType    = HashTable<SieveTraits, EntryType>;
+  using HashTablesType   = HashTableS<SieveTraits, LengthType>;
+  using HashTableType    = HashTable<SieveTraits, LengthType>;
 #endif
 
 // using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
@@ -241,11 +241,11 @@ public:
   void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
   template<class IT>
-  bool check_sc_prod_outer (FastAccess_Point const &x1, IT &&x2, EntryType & sc_prod_x1x2);
+  bool check_sc_prod_outer (FastAccess_Point const &x1, IT &&x2, LengthType & sc_prod_x1x2);
   template<class IT>
-  bool check_sc_prod_inner (Filtered_Point const &x1, IT &&x2, EntryType & sc_prod_x1x2);
+  bool check_sc_prod_inner (Filtered_Point const &x1, IT &&x2, LengthType & sc_prod_x1x2);
   template<class ARG1, class ARG2>
-  bool check_triple (ARG1 &&x1, ARG2 &&x2, Filtered_Point const &x3, EntryType const &x1x2, EntryType const &x3_X,
+  bool check_triple (ARG1 &&x1, ARG2 &&x2, Filtered_Point const &x3, LengthType const &x1x2, LengthType const &x3_X,
                  int &sgn2, int &sgn3, bool p_is_max);
 
 
@@ -291,7 +291,7 @@ public:
 //  LPType get_shortest_vector_found() const                    {return shortest_vector_found;}; //TODO: Thread-safety
   FastAccess_Point const & get_shortest_vector_found();
 //  ET get_best_length2() const                                 {return get_shortest_vector_found().norm2;};
-  EntryType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
+  LengthType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
   bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
   unsigned long get_final_list_size()                         {return main_list.size();};
 

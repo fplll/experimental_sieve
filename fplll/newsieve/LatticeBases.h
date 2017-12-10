@@ -67,7 +67,7 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   // Same as ET_NOZNR, but ET_NOZNRFixed may be mpz_class instead of mpz_t
   using InputET_NOZNRFixed = typename UnZNR<InputET>::type;
 
-  using OutputET       = typename SieveTraits::EntryType;
+  using OutputET       = typename SieveTraits::LengthType;
 
   using DimensionType  = typename SieveTraits::DimensionType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;

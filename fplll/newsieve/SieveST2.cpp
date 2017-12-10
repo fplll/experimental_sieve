@@ -56,11 +56,11 @@ bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
   using std::round;
   using std::abs;
 
-  using EntryType = typename SieveTraits::EntryType;
+  using LengthType = typename SieveTraits::LengthType;
 
-  EntryType sc_prod = compute_sc_product(turn_maybe_iterator_to_point(p1), turn_maybe_iterator_to_point(p2));
+  LengthType sc_prod = compute_sc_product(turn_maybe_iterator_to_point(p1), turn_maybe_iterator_to_point(p2));
 
-  EntryType abs_2scprod = abs(sc_prod * 2);
+  LengthType abs_2scprod = abs(sc_prod * 2);
 
   if (abs_2scprod <= turn_maybe_iterator_to_point(p2).get_norm2())
   {
@@ -96,11 +96,11 @@ bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_
   using std::round;
   using std::abs;
 
-  using EntryType = typename SieveTraits::EntryType;
+  using LengthType = typename SieveTraits::LengthType;
 
-  EntryType sc_prod = compute_sc_product(p1, *p2it);
+  LengthType sc_prod = compute_sc_product(p1, *p2it);
 
-  EntryType abs_2scprod = abs(sc_prod * 2);
+  LengthType abs_2scprod = abs(sc_prod * 2);
 
   if (abs_2scprod <= p1.get_norm2())
   {
@@ -126,13 +126,13 @@ template <class SieveTraits, class Integer, TEMPL_RESTRICT_DECL2(std::is_integra
 bool check2red(typename SieveTraits::FastAccess_Point const &p1,
                typename SieveTraits::FastAccess_Point const &p2, Integer &scalar, bool &p_is_max)
 {
-  using EntryType   = typename SieveTraits::EntryType;
-  EntryType sc_prod = compute_sc_product(p1, p2);
+  using LengthType   = typename SieveTraits::LengthType;
+  LengthType sc_prod = compute_sc_product(p1, p2);
 
   using std::abs;
   using std::round;
 
-  EntryType abs_2scprod = abs(sc_prod * 2);
+  LengthType abs_2scprod = abs(sc_prod * 2);
 
   if (p1.get_norm2() > p2.get_norm2() && abs_2scprod > p2.get_norm2())
   {

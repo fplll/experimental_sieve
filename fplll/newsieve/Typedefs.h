@@ -87,7 +87,7 @@ class DefaultSieveTraits
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
   static std::size_t constexpr sim_hash_num = 1;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
-  
+
   //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-8}};
@@ -96,14 +96,14 @@ class DefaultSieveTraits
   //for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-0}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+0}};
-  
+
   //for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-4}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+4}};
 
   // for 3-sieve exact check, squared, normalized
-  constexpr static double x1x2_target = .1111; 
-  constexpr static double x2x3_target = .1111; 
+  constexpr static double x1x2_target = .1111;
+  constexpr static double x2x3_target = .1111;
 
 //  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
 
@@ -114,11 +114,11 @@ class DefaultSieveTraits
   using SimHashes               = typename SimHashGlobalDataType::SimHashes;
 
 
-  using EntryType               = ET;
+  using LengthType               = ET;
 
   //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
-  //using FlilteredPointType      = FilteredPoint<ET, nfixed, EntryType>;
- // using FlilteredPointType      = FilteredPoint<EntryType>;
+  //using FlilteredPointType      = FilteredPoint<ET, nfixed, LengthType>;
+ // using FlilteredPointType      = FilteredPoint<LengthType>;
   //using FilteredListType        = std::vector<FlilteredPointType>;
   using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
 

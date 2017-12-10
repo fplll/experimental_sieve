@@ -113,7 +113,7 @@ template<class ET> //multi-threaded version:
 class GaussQueue<ET,true>
 {
 public:
-    using EntryType = ET; //entries of lattice points
+    using LengthType = ET; //entries of lattice points
     using LPType = LatticePoint<ET>; //Type of Data internally stored
     using RetType= LatticePoint<ET>; //Type of Data returned
     using mutex_guard = std::lock_guard<std::mutex>;

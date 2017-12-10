@@ -150,7 +150,7 @@ class GaussList<ET, true, -1>
 {
 public:
     //friend GaussIterator<ET,true,-1>;
-    using EntryType= ET;
+    using LengthType= ET;
     using DataType = ApproxLatticePoint<ET,false,-1>; //Type of data stored in the list (from caller's POV) //TODO: distinguish MT case in data type.
     using DataPointer=DataType *;
     using AtomicDataPointer = std::atomic<DataType *>;
@@ -321,7 +321,7 @@ private:
 //class MTListIterator
 //{
 //public:
-//    friend GaussList<typename DT::EntryType,true,-1>;
+//    friend GaussList<typename DT::LengthType,true,-1>;
 //    friend ListMultiThreaded<DT>;
 //    friend void swap(MTListIterator &A, MTListIterator &B)      {std::swap(A.p,B.p);};
 //    using Node=ListMTNode<DT>;
@@ -357,7 +357,7 @@ private:
 template <class DT>
 class ListMTNode
 {
-//    friend GaussList<typename DT::EntryType,true,-1>;
+//    friend GaussList<typename DT::LengthType,true,-1>;
 //    friend ListMultiThreaded<DT>;
 //    friend MTListIterator<DT>;
     using DataType    = DT;

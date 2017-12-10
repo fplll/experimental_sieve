@@ -34,7 +34,7 @@ typename Sieve<SieveTraits,false>::FastAccess_Point const & Sieve<SieveTraits,fa
 }
 
 template<class SieveTraits>
-typename Sieve<SieveTraits,false>::EntryType Sieve<SieveTraits,false>::get_best_length2()
+typename Sieve<SieveTraits,false>::LengthType Sieve<SieveTraits,false>::get_best_length2()
 {
     return shortest_vector_found->get_norm2();
 }
@@ -137,9 +137,9 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
     }
 #endif
     typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
-    
+
     sieve_3_iteration(p);
-    
+
     ++i;
     if (( i % 1000 == 0) && (verbosity >=2))
     {

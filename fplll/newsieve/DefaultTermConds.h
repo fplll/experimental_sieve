@@ -27,9 +27,9 @@ template <class SieveTraits, bool MT>
 class NeverTerminationCondition final : public TerminationCondition<SieveTraits, MT>
 {
 public:
-  using EntryType = typename SieveTraits::EntryType;
+  using LengthType = typename SieveTraits::LengthType;
   virtual int check(Sieve<SieveTraits, MT> *const sieve) override { return 0; };
-  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, LengthType const &length2) override
   {
     return 0;
   };
@@ -51,11 +51,11 @@ template <class SieveTraits, bool MT>
 class LengthTerminationCondition : public TerminationCondition<SieveTraits, MT>
 {
 public:
-  using EntryType = typename SieveTraits::EntryType;
-  explicit LengthTerminationCondition(EntryType const &init_target_length)
+  using LengthType = typename SieveTraits::LengthType;
+  explicit LengthTerminationCondition(LengthType const &init_target_length)
       : target_length(init_target_length){};
   virtual inline int check(Sieve<SieveTraits, MT> *const sieve) override;
-  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, LengthType const &length2) override
   {
     return (length2 <= target_length) ? 1 : 0;
   };
@@ -86,7 +86,7 @@ public:
   };
 
 private:
-  EntryType target_length;  // TODO: Make const (requires change to read_from_stream)
+  LengthType target_length;  // TODO: Make const (requires change to read_from_stream)
 };
 
 /**
@@ -102,14 +102,14 @@ class MinkowskiTerminationCondition final
     : public TerminationCondition<SieveTraits, MT>  // Length Termination Condition
 {
 public:
-  using EntryType = typename SieveTraits::EntryType;
+  using LengthType = typename SieveTraits::LengthType;
   // target_length may be unitialised. We are guaranteed that init() is run before use.
   MinkowskiTerminationCondition() : target_length(){};
 
   // returns (sieve -> get_best_length2()<=target_length)?1:0;
   virtual inline int check(Sieve<SieveTraits, MT> *const sieve) override;
 
-  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, EntryType const &length2) override
+  virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, LengthType const &length2) override
   {
     return (length2 <= target_length) ? 1 : 0;
   };
@@ -122,7 +122,7 @@ public:
   inline virtual void init(Sieve<SieveTraits, MT> *const sieve) override;
 
 private:
-  EntryType target_length;
+  LengthType target_length;
 };
 
 }  // namespace GaussSieve
