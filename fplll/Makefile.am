@@ -38,9 +38,9 @@ nobase_include_fplll_HEADERS=defs.h fplll.h \
 	sieve/sieve_gauss.h sieve/sieve_common.h sieve/sieve_gauss_str.h sieve/sampler_basic.h \
 	pruner.h
 
-bin_PROGRAMS=fplll latticegen latsieve newlatsieve testsieve thresholdcheck
+bin_PROGRAMS=fplll latticegen latsieve newlatsieve testsieve
 check_PROGRAMS=llldiff
-EXTRA_PROGRAMS=fplll_dbg latticegen_dbg classtests
+EXTRA_PROGRAMS=fplll_dbg latticegen_dbg classtests thresholdcheck
 lib_LTLIBRARIES=libfplll.la
 EXTRA_LTLIBRARIES=libfplllv.la libfpllld.la
 

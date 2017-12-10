@@ -462,17 +462,15 @@ bool check_2red_with_scprod (typename SieveTraits::FastAccess_Point const &x1,
 }
 
 /*
- 
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
       unsigned int lvl = 0;
       uint_fast32_t approx_scprod = static_cast<uint_fast32_t>(compute_sc_product_bitapprox_level(p, *it, lvl));
       statistics.no_red_stat_innloop[lvl][static_cast<uint_fast32_t>(approx_scprod)]++;
 #endif 
- * /
+ */
 
-/* OLD CODE */
-
-       /*Collecting stats*/
+// OLD CODE 
+       //Collecting stats
           /*
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
           double sc_prod_x1x2_norm = convert_to_double( sc_prod_x1x2 )* convert_to_double( sc_prod_x1x2 )  /
