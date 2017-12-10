@@ -123,19 +123,18 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
     while(j>0)
     {
       --j;
-      
-      std::cout << "j = " << j << " shifts[j] = " <<  shifts[j] << " ";
       long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
         s2pi[j], shifts[j], engine.rnd(), maxdeviations[j]);  // coefficient of b_j in vec.
 
       vec += basis[j] * newcoeff;
-      std::cout <<"newcoeff = " << newcoeff << std::endl;
+      //std::cout << newcoeff << " ";
 
       for (uint_fast16_t i = 0; i < j; ++i)  // adjust shifts
       {
         shifts[i] -= newcoeff * (mu_matrix[j][i]);
       }
     }
+    //std::cout << "|" << std::endl;
   }
 
   //std::cout << "sampled vec = " << vec << std::endl;

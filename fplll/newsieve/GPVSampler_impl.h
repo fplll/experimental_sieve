@@ -26,11 +26,14 @@ namespace GaussSieve
     assert(sieveptr==nullptr);
 #endif
     
+    
+    
     dim           = input_basis.ambient_dimension;
     lattice_rank  = input_basis.lattice_rank;
     
     mu_matrix     = input_basis.get_mu_matrix();
     
+    assert(start_babai<lattice_rank); //use strictly less to prevent outputting 0
     
     s2pi.resize(lattice_rank);
     maxdeviations.resize(lattice_rank);
@@ -38,7 +41,7 @@ namespace GaussSieve
     
     auto const maxbistar2 = input_basis.get_maxbistar2();
     
-    double st_dev = maxbistar2*1.0; // square of the st.dev guaranteed by GPV
+    double st_dev = maxbistar2*1.2; // square of the st.dev guaranteed by GPV
     
     //std::cout << st_dev << std::endl;
     for (uint_fast16_t i = 0; i < lattice_rank; ++i)
@@ -101,7 +104,7 @@ namespace GaussSieve
       #else
         uint_fast16_t i = lattice_rank;
       #endif
-      while(i>0)
+      while(i>start_babai)
       {
         --i;
         
@@ -122,9 +125,23 @@ namespace GaussSieve
           shifts[j] -= newcoeff * (mu_matrix[i][j]);
         }
         
+        //std::cout << newcoeff << " ";
+        
+      }
+      //std::cout << "||";
+      while(i>0) //run Babai
+      {
+        --i;
+        long babai_coeff = std::round(shifts[i]);
+        vec+=basis[i] * babai_coeff;
+        for (uint_fast16_t j = 0; j < i; ++j)  
+        {
+          shifts[j] -= babai_coeff * (mu_matrix[i][j]);
+        }
+        //std::cout << babai_coeff << " ";
       }
     }
-   
+   //std::cout << std::endl;
     typename SieveTraits::GaussSampler_ReturnType ret;
     ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
     return ret;

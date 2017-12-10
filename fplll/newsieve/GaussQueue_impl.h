@@ -33,7 +33,7 @@ sampler(nullptr)
     //sampler = new EllipticSampler<ET,false, std::mt19937_64, std::seed_seq> (seed);
     std::cout << "Initializing Sampler" << std::endl << std::flush;
   //sampler = new ShiSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
-  sampler = new GPVSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed);
+  sampler = new GPVSampler<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed, 10); //run Babai on the last 12 dims
 //    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
   assert(sampler!=nullptr);
 }

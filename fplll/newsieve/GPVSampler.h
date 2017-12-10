@@ -42,9 +42,9 @@ namespace GaussSieve
     using EntryType     = typename SieveTraits::EntryType;
     using RetType       = typename SieveTraits::GaussSampler_ReturnType;
     
-    explicit GPVSampler(Sseq &seq, double const _cutoff = 2.0)
-    : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false),
-    static_init_rettype(nullptr), static_init_plainpoint(nullptr)
+    explicit GPVSampler(Sseq &seq, uint_fast16_t babai, double const _cutoff = 2.0)
+    : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), start_babai(babai),
+    initialized(false), static_init_rettype(nullptr), static_init_plainpoint(nullptr)
     {
       DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing GPVSampler.")
     };
