@@ -87,6 +87,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 //#include "RelevantCoords.h"
 #include "Statistics.h"
 #include "GlobalBitApproxData.h"
+#include "FilteredPoint2.h"
 
 namespace GaussSieve{
 template<class SieveTraits, bool MT> class Sieve;
@@ -136,7 +137,9 @@ public:
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
 
-  using Filtered_Point   = FilteredPoint<SieveTraits, LengthType>;
+  // TODO: Remove this typedef
+  using Filtered_Point   = FilteredPoint2<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+
   using FilteredListType = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;

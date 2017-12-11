@@ -225,7 +225,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
         ++it;
     }
 
-    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
+//    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
 
 #ifdef USE_LSH
     if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}

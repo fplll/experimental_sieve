@@ -39,9 +39,7 @@ bool Sieve<SieveTraits,false>::check2red_approx(SimHashNew::SimHashes<SieveTrait
 
 template<class SieveTraits>
 template<class LHS, class RHS>
-bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
-                                         RHS &&p2,
-                                         int &scalar)
+bool Sieve<SieveTraits,false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
 {
   if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
                                               p1, p2,
@@ -72,47 +70,7 @@ bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
   scalar = round(mult);
   return true;
 }
-// same, but assumes ||p2|| >= ||p1||
-/*
-template<class SieveTraits>
-bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
-                                              SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
-                                              typename MainListType::Iterator            const &p2it,
-                                              int &scalar)
-{
-//  assert(!(p2.is_zero()));
 
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-//  if (!check2red_approx(p1, p2))
-//    return false;
-//#endif
-  if (!check2red_approx(p1_bitapprox,p2it))
-  {
-    return false;
-  }
-
-  statistics.increment_number_of_scprods_level1();
-
-  using std::round;
-  using std::abs;
-
-  using LengthType = typename SieveTraits::LengthType;
-
-  LengthType sc_prod = compute_sc_product(p1, *p2it);
-
-  LengthType abs_2scprod = abs(sc_prod * 2);
-
-  if (abs_2scprod <= p1.get_norm2())
-  {
-    return false;
-  }
-
-  double const mult = convert_to_double(sc_prod) / convert_to_double(p1.get_norm2());
-  // TODO: Check over- / underflows.
-  scalar = round(mult);
-  return true;
-}
-*/
 
 /**
  Checks whether we can perform a 2-reduction. Modifies scalar.
@@ -175,13 +133,15 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 //  {
 //    return;  // TODO: Ensure sampler does not output 0 (currently, it happens).
 //  }
-  bool loop = true;
+
+//  bool loop = true;
   //typename SieveTraits::SimHashes sim_hashes_for_p = main_list.sim_hash_data.compute_all_bitapproximations(p);
 
   // std::cout << p.get_norm2 () << std::endl;
 
   // used to store the point where the list elements become larger than p.
   auto it_comparison_flip = main_list.cend();
+start_over:
   double approx_norm2 = convert_to_double(p.get_norm2());
   // holds a double-approximation to approx-norm2. Note that the main list stores such an approximation
   // directly inside the nodes. Using these double-approximations should be better in the
@@ -189,9 +149,9 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
   // dimensions. Please test whether t makes a difference.
   //  auto it = main_list.cbegin();
 
-  while (loop)  // while p keeps changing
-  {
-    loop = false;
+//  while (loop)  // while p keeps changing
+//  {
+//    loop = false;
     for (auto it = main_list.cbegin(); it != main_list.cend(); ++it)
     {
       // std::cout << "it= " <<  (*it).get_norm2 () << std::endl;
@@ -210,24 +170,25 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
         assert(scalar != 0);
 //        p -= (*it) * scalar;
         p.sub_multiply(*it,scalar);
+        if (p.is_zero())
+        {
+        // std::cout << "collision is found " << std::endl;
+          statistics.increment_number_of_collisions();
+          return;
+        }
         p.update_bitapprox();
-        approx_norm2 = convert_to_double(p.get_norm2());
+        goto start_over;  // alternatively, use a boolean variable to introduce another loop
+                          // or push to queue ("cleanest" variant, but 50% slower)
         // std::cout << "new p = " << p.get_norm2 () << std::endl;
-        loop = true;
-        break;
+//        loop = true;
+//        break;
       }
     }
-  }
+//  }
 
   // p no longer changes. it_comparison_flip is iterator to first (shortest) element in the list
   // that is longer than p.
   // If no such element exists, it_comparison_flip refers to after-the-end.
-  if (p.is_zero())
-  {
-    // std::cout << "collision is found " << std::endl;
-    statistics.increment_number_of_collisions();
-    return;
-  }
 
 
   for (auto it = it_comparison_flip; it != main_list.cend();)  // ++it inside body of loop
@@ -261,12 +222,9 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
       {
         main_queue.push(std::move(v_new));
       }
-
+      continue;  // for clarity.
       // This increments the iterator in the sense that its point to the next element now,
       // effectively doubling as a ++it;
-
-//      it = main_list.erase(it);
-      statistics.decrement_current_list_size();
     }
     else  // no reduction.
     {
@@ -283,7 +241,6 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
   }
 
   main_list.insert_before(it_comparison_flip, std::move(p));
-  statistics.increment_current_list_size();
 }
 
 #ifdef USE_LSH

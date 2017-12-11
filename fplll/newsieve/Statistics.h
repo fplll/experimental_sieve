@@ -22,7 +22,7 @@ struct GaussSieveStatistics<SieveTraits,false>
     number_of_collisions(0),
     number_of_points_sampled(0),
     number_of_points_constructed(0),
-    current_list_size(0),
+//    current_list_size(0),
     filtered_list_size(0),
     number_of_scprods_level1(0),
     number_of_scprods_level2(0),
@@ -49,11 +49,11 @@ struct GaussSieveStatistics<SieveTraits,false>
   inline unsigned long long get_number_of_points_constructed() const {return number_of_points_constructed;};
   inline void increment_number_of_points_constructed() { ++number_of_points_constructed; }
 
-  unsigned long int get_current_list_size() const {return current_list_size;};
-  unsigned long int current_list_size;
-  inline void increment_current_list_size() { ++current_list_size; }
-  inline void increment_current_list_size_by(long int const amount) {current_list_size+=amount;}
-  inline void decrement_current_list_size() { --current_list_size; }
+  unsigned long int get_current_list_size() const {return sieveptr->main_list.size(); };
+//  unsigned long int current_list_size;
+//  inline void increment_current_list_size() {}//  {++current_list_size; }
+//  inline void increment_current_list_size_by(long int const amount){}// {current_list_size+=amount;}
+//  inline void decrement_current_list_size(){}// { --current_list_size; }
 
   inline unsigned long int get_filtered_list_size() const    {return filtered_list_size;};
   unsigned long int filtered_list_size; //size of filtered_list
@@ -79,31 +79,31 @@ struct GaussSieveStatistics<SieveTraits,false>
   unsigned long long int number_of_approx_scprods_level1; //for k=2 case
   unsigned long long get_number_of_approx_scprods_level1() const  {return number_of_approx_scprods_level1;}
   inline void increment_number_of_approx_scprods_level1() {++number_of_approx_scprods_level1;}
-  
+
   unsigned long long int number_of_approx_scprods_level2; //for k=2,3 cases
   inline unsigned long long get_number_of_approx_scprods_level2() const {return number_of_approx_scprods_level2;}
   inline void increment_number_of_approx_scprods_level2() {++number_of_approx_scprods_level2;}
-  
-  
+
+
   unsigned long long int number_of_exact_scprods;
   unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
 
   inline void dump_status_to_stream(std::ostream &of, int howverb);
 
   // Temporary code, to be removed
-  
+
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline void compute_and_print_statistics_lvl(std::ostream &of, int lvl, bool do_print);
   inline void compute_and_print_statistics_all(std::ostream &of);
   inline void compute_and_print_statistics_all_innloop(std::ostream &of);
-  
+
 
     // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
 
   //#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat;
   std::array< std::vector<int>, SimHash::num_of_levels> red_stat;
-  
+
   std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_innloop;
   std::array< std::vector<int>, SimHash::num_of_levels> red_stat_innloop;
 
@@ -135,7 +135,7 @@ struct GaussSieveStatistics<SieveTraits,false>
 /*
  Computes statistics for sim-hash
  */
- 
+
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
 template<class SieveTraits>
 inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistics_lvl(std::ostream &of, int lvl, bool do_print)
@@ -279,7 +279,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     myfile.close();
 
 }
-  
+
 /* only for k>2 */
 template<class SieveTraits>
 inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistics_all_innloop(std::ostream &of)
@@ -288,44 +288,44 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
   std::ofstream myfile;
   myfile.open ("newsieve/Statistics/Inner loop Statistics for k="+std::to_string(sieveptr->sieve_k) + "_dim="+std::to_string(sieveptr->lattice_rank));
   myfile << "Inner loop Statistics for dim = " << sieveptr->lattice_rank << endl;
-  
+
   std::array<std::vector<float>, SimHash::num_of_levels> pdf_no_red_innloop;
   std::array<std::vector<float>, SimHash::num_of_levels> pdf_red_innloop;
-  
-  
+
+
   for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
   {
-    
+
     unsigned long long sum_no_red = 0;
     unsigned long long sum_red = 0;
-    
-    
-    
+
+
+
     for (unsigned int i=0; i<no_red_stat_innloop[lvl].size(); ++i)
     {
       sum_no_red+=no_red_stat_innloop[lvl][i];
       sum_red+=red_stat_innloop[lvl][i];
-      
+
     }
     pdf_no_red_innloop[lvl].resize(no_red_stat_innloop[lvl].size());
     pdf_red_innloop[lvl].resize(red_stat_innloop[lvl].size());
-    
+
     for (unsigned int i=0; i<no_red_stat[lvl].size(); ++i)
     {
-  
+
       pdf_no_red_innloop[lvl][i] = (float)no_red_stat_innloop[lvl][i]/ (float)sum_no_red;
       pdf_red_innloop[lvl][i] = (float)red_stat_innloop[lvl][i] / (float) sum_red;
-      
+
     }
-    
+
   }
-  
+
   for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
   {
     myfile << std::setw(45) << "lvl = " << lvl;
   }
   myfile << endl;
-  
+
   for (unsigned int i=0; i<no_red_stat_innloop[0].size(); ++i)
   {
     myfile << " | " <<std::setw(3) << i <<"  | ";
@@ -338,9 +338,9 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
     }
     myfile << endl;
   }
-  
+
   myfile.close();
-  
+
 }
 
 

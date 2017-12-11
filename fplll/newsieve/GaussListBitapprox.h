@@ -36,6 +36,9 @@ struct STNode
   using SimHashes = typename SimHashGlobalDataType::SimHashes;
   using GlobalSimHashClass = GlobalBitApproxData<SimHashGlobalDataType>;
 
+  STNode( STNode const &) = delete;
+  STNode( STNode &&) noexcept = default;
+
 // The !is_reference<Arg> makes this template only valid for actual rvalues.
   template<class Arg, TEMPL_RESTRICT_DECL2( IsALatticePoint< mystd::decay_t<Arg> >,
                                             mystd::negation< std::is_reference<Arg> >,
@@ -191,10 +194,11 @@ public:
   //SimHashBlock         get_bitapproximation(unsigned int level) const;
   StoredPoint const &  operator*() const    { return *(it->ptr_to_exact); }
   StoredPoint const *  operator->() const   { return it->ptr_to_exact;    }
-  explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
-  
+//  explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
+  explicit operator StoredPoint const *() const { return it->ptr_to_exact; }
+
   //For FilteredPoint
-  CUnderlyingIterator true_star() const     { return  it;                 }
+  [[deprecated]]CUnderlyingIterator true_star() const     { return  it;                 }
 };
 
 namespace Helpers
