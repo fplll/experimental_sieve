@@ -17,14 +17,19 @@
 #include <type_traits>
 #include <utility>
 
+#if __cpp_lib_experimental_detect >= 201505
+#include <experimental/type_traits>
+#endif
+
+
 /**
   CPP14CONSTEXPR is used to declare functions as constexpr, provided the (considerable!) relaxations
   to the constexpr specifier from C++14 are supported.
 
   CPP17CONSTEXPRIF is used to support C++17 if constexpr. If unsupported, falls back to a normal if.
   Note that the main point of if constexpr(expr){ foo() } is that expr might depend on a template
-  argument and if expr is false, foo does not need to even compile. This feature would indeed be
-  extremely useful and simplify a lot of code.
+  argument and if expr is false, foo does not need to even compile (with some caveats).
+  This feature would indeed be extremely useful and simplify a lot of code.
   (The workaround is to define a class template X, templated by a bool b. Specialize X for b==true
   with static member function f that implements foo and specialize X for b==false with a member
   function that does nothing. Then we can call X<epxr>::f(arg), passing required arguments arg.
@@ -79,7 +84,7 @@
 #endif
 
 /**
-  Replacements for C++14 standard library features that are missing in C++11.
+  Replacements for C++14 (and beyond) standard library features that are missing in C++11.
   See the C++ - documentation for their meaning.
 */
 
@@ -93,8 +98,8 @@ namespace mystd
 
   template<bool b>      using bool_constant = std::integral_constant<bool,b>;
 
-  // std::max is not constexpr until C++14. This version is always constexpr, but does not support
-  // custom comparators or initializer lists.
+  // std::max is not (and cannote be) constexpr until C++14 (where the def. of constexpr was relaxed).
+  // This version is *always* constexpr, but does not support custom comparators or initializer lists.
   template<class T> constexpr const T& constexpr_max(const T &x1, const T &x2)
   { return (x1 < x2) ? x2 : x1; }
   template<class T> constexpr const T& constexpr_min(const T &x1, const T &x2)
@@ -148,6 +153,8 @@ namespace mystd
 #endif
 
 #if __cpp_lib_void_t >= 201411
+// takes any number of arguments and ignores them. The point is that arguments have to be valid (to be used in SFINAE contexts)
+// seemingly trivial, but actually extremely useful.
   template<class... Args> using void_t = std::void_t<Args...>;
 #else
   template<class... Args> using void_t = void;
@@ -165,7 +172,7 @@ using nonesuch = std::experimental::nonesuch;
 template<template<class...> class Op, class... Args> using is_detected = std::experimental::is_detected<Op,Args...>;
 template<template<class...> class Op, class... Args> using detected_t  = std::experimental::detected_t <Op,Args...>;
 template<class Default, template<class...> class Op, class... Args> using detected_or   = std::experimental::detected_or<Default,Op,Args...>;
-template<class Default, template<class...> class Op, class... Args> using detected_or_t = std::expreimental::detected_or_t<Default,Op,Args...>;
+template<class Default, template<class...> class Op, class... Args> using detected_or_t = std::experimental::detected_or_t<Default,Op,Args...>;
 
 #else
 

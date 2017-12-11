@@ -185,37 +185,130 @@ template<class Implementation> class GeneralLatticePoint;
   I.e. if a trait is implied by another trait, it is automagically set.
 */
 
-// These check for the existence of the trait in the Trait class:
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS_EQUALS(LatticePointTag, std::true_type, IsALatticePoint);
+// In order to define e.g. Has_CoosRW, we use 3 steps (some traits only require 2):
+// First, we need to give the "map" LatP -> LatticePointTraits<LatP>::Trait_CoosRW a name.
+// I.e. we need to define template<class T> using Predicate_CoosRW = LatticePointTraits<T>::Trait_CoosRW;
+// Second we use (my)std::is_detected to turn this into a "map" T -> true/false. More precisely, we define
+// template<class T> using T_CoosRW = mystd::is_detected<Predicate_CoosRW,T>;
+// (is_detected<Op,Arg1,Arg2,...> equals true_type iff Op<Arg1,Arg2,...> is valid, false_type otherwise).
+// Third, we post-process T_CoosRW into the actual Get_CoosRW by taking dependencies into account
+// Notably, if ExposesCoos && InternalRepByCoos && InternalRep_RW are all true, CoosRW is true as well.
+// The intermediate steps are contained in a helper namespace.
 
-CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, Trait_ScalarProductStorageType, DeclaresScalarProductStorageType);
-CREATE_TRAIT_CHECK_CLASS(LatticePointTraits, Trait_CoordinateType, DoesDeclareCoordinateType);
+namespace TraitHelpers
+{
+// These are "predicates" expressed as templates Predicate<T> depending on a type T,
+// where Predicate<T> is a valid expression iff the predicate holds true. This is used in SFINAE.
+// With (my)std::detected<Predicate,T>, such a predicate is be turned into std::true_type/std::false_type
+template<class T> using IsTrueType = typename std::enable_if< std::is_same<std::true_type,T>::value >::type;
+template<class T> using LatticePointPredicate = IsTrueType<typename T::LatticePointTag>;
 
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Invalid, std::true_type, HasNoLPTraits);
+// Declares alias for LatticePointTraits<T>::Trait_TraitName.
+#define OBTAIN_TRAIT_EXPRESSION(TraitName) \
+template<class T> using Obtain_##TraitName = typename LatticePointTraits<T>::Trait_##TraitName
 
-// should enclose these as static members of struct, declared as friend to Traits classes.
-//namespace TraitHelpers // check whether trait exists and equals std::true_type.
-//{
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesCoos, std::true_type, T_ExposesCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Coos_RW, std::true_type, T_Coos_RW);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_ExposesInternalRep, std::true_type, T_ExposesInternalRep);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepLinear, std::true_type, T_InternalRepLinear);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRep_RW, std::true_type, T_InternalRep_RW);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepByCoos, std::true_type, T_InternalRepByCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_InternalRepIsAbsolute, std::true_type, T_InternalRepIsAbsolute);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AbsoluteCoos, std::true_type, T_AbsoluteCoos);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNorm2, std::true_type, T_CheapNorm2);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_CheapNegate, std::true_type, T_CheapNegate);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_Leveled, std::true_type, T_Leveled);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_AccessNorm2, std::true_type, T_AccessNorm2);
-CREATE_TRAIT_EQUALS_CHECK(LatticePointTraits, Trait_BitApprox, std::true_type, T_BitApprox);
+// Defines Predicate_TraitName as a check whether Trait_TraitName is set to true_type
+#define BINARY_TRAIT_PREDICATE(TraitName) \
+template<class T> using Predicate_##TraitName= IsTrueType<typename LatticePointTraits<T>::Trait_##TraitName>
 
+// uses (my)std::is_detected to turn the latter into a true/false T_TraitName
+#define BINARY_TRAIT_PREDICATE_GET(TraitName) \
+BINARY_TRAIT_PREDICATE(TraitName); \
+template<class T> using T_##TraitName = mystd::is_detected<Predicate_##TraitName,T>
+
+BINARY_TRAIT_PREDICATE_GET(ExposesCoos);
+BINARY_TRAIT_PREDICATE_GET(Coos_RW);
+BINARY_TRAIT_PREDICATE_GET(ExposesInternalRep);
+BINARY_TRAIT_PREDICATE_GET(InternalRepLinear);
+BINARY_TRAIT_PREDICATE_GET(InternalRep_RW);
+BINARY_TRAIT_PREDICATE_GET(InternalRepByCoos);
+BINARY_TRAIT_PREDICATE_GET(InternalRepIsAbsolute);
+BINARY_TRAIT_PREDICATE_GET(AbsoluteCoos);
+BINARY_TRAIT_PREDICATE_GET(CheapNorm2);
+BINARY_TRAIT_PREDICATE_GET(CheapNegate);
+BINARY_TRAIT_PREDICATE_GET(Leveled);
+BINARY_TRAIT_PREDICATE_GET(AccessNorm2);
+BINARY_TRAIT_PREDICATE_GET(BitApprox);
+
+// "Invalid" is set to true_type in the default instantiation of LatticePointTraits. This is used to
+// detect whether we use a specialization.
+template<class T> using Invalid_SieveTrait = IsTrueType<typename LatticePointTraits<T>::Invalid>;
+
+OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType);
+OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType_Full);
+OBTAIN_TRAIT_EXPRESSION(ApproxLevel);
+OBTAIN_TRAIT_EXPRESSION(CoordinateType);
+OBTAIN_TRAIT_EXPRESSION(AbsoluteCooType);
+OBTAIN_TRAIT_EXPRESSION(RepCooType);
+
+#undef BINARY_TRAIT_PREDICATE_GET
+#undef BINARY_TRAIT_PREDICATE
+#undef OBTAIN_TRAIT_PREDICATE
+}
+template<class T> using IsALatticePoint                  = mystd::is_detected<TraitHelpers::LatticePointPredicate,T>;
+template<class T> using DeclaresScalarProductStorageType = mystd::is_detected<TraitHelpers::Obtain_ScalarProductStorageType,T>;
+template<class T> using DoesDeclareCoordinateType        = mystd::is_detected<TraitHelpers::Obtain_CoordinateType,T>;
+template<class T> using HasNoLPTraits                    = mystd::is_detected<TraitHelpers::Invalid_SieveTrait,T>;
+
+// Make actual getter for TraitName with a Default:
+#define GAUSS_SIEVE_MAKE_TRAIT_GETTER(TraitName, Default) \
+template<class T> using Get_##TraitName = mystd::detected_or_t<Default, TraitHelpers::Obtain_##TraitName, T>
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(CoordinateType,void);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType,void);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType_Full,Get_ScalarProductStorageType<T>);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(AbsoluteCooType,Get_CoordinateType<T>);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(RepCooType, Get_CoordinateType<T>);
+
+// "," in macro argument would cause trouble, so we just write it out:
+template<class T> using Get_ApproxLevel = mystd::detected_or_t< std::integral_constant<unsigned int,0>, TraitHelpers::Obtain_ApproxLevel, T >;
+
+#undef GAUSS_SIEVE_MAKE_TRAIT_GETTER
+
+template<class T> using Has_ExposesCoos =
+    mystd::disjunction< TraitHelpers::T_ExposesCoos<T>, TraitHelpers::T_InternalRepByCoos<T>,
+                        mystd::negation<std::is_void<Get_CoordinateType<T>>>,
+                        TraitHelpers::T_Coos_RW<T>, TraitHelpers::T_AbsoluteCoos<T> >;
+
+template<class T> using Has_Coos_RW =
+    mystd::disjunction<  TraitHelpers::T_Coos_RW<T>,
+        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_InternalRep_RW<T> >  >;
+
+template<class T> using Has_ExposesInternalRep =
+    mystd::disjunction< TraitHelpers::T_ExposesInternalRep<T>, TraitHelpers::T_InternalRepLinear<T>,
+                        TraitHelpers::T_InternalRep_RW<T>, TraitHelpers::T_InternalRepByCoos<T>,
+                        TraitHelpers::T_InternalRepIsAbsolute<T> >;
+
+template<class T> using Has_InternalRepLinear = TraitHelpers::T_InternalRepLinear<T>;
+
+template<class T> using Has_InternalRep_RW =
+    mystd::disjunction<  TraitHelpers::T_InternalRep_RW<T>,
+        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_Coos_RW<T> >  >;
+
+template<class T> using Has_InternalRepByCoos = TraitHelpers::T_InternalRepByCoos<T>;
+
+template<class T> using Has_InternalRepIsAbsolute =
+    mystd::disjunction<  TraitHelpers::T_InternalRepIsAbsolute<T>,
+        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_AbsoluteCoos<T> >  >;
+
+template<class T> using Has_AbsoluteCoos =
+    mystd::disjunction< TraitHelpers::T_AbsoluteCoos<T>,
+        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_InternalRepIsAbsolute<T> >  >;
+
+template<class T> using Has_CheapNorm2  = TraitHelpers::T_CheapNorm2<T>;
+template<class T> using Has_CheapNegate = TraitHelpers::T_CheapNegate<T>;
+template<class T> using Has_Leveled     = TraitHelpers::T_Leveled<T>;
+template<class T> using Has_BitApprox   = TraitHelpers::T_BitApprox<T>;
+
+// Deprecated
+template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
+Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
+
+// TODO: Make this one nice
 template<class T,class = int>
 struct T_ApproxLevelOf
 {
 static constexpr unsigned int value = 0;
 };
-
 // the , inside the decltype is the comma operator for void (hence not overloaded)
 // this template specialization is only valid if T::ApproxLevel exists and will be preferred over
 // the general one above.
@@ -227,73 +320,6 @@ static constexpr unsigned int value = T::ApproxLevel;
 
 template<class T>
 using ApproxLevelOf = std::integral_constant<unsigned int,T_ApproxLevelOf<T>::value>;
-
-//}
-// Retrieving Traits with defaults:
-
-// because the macro below does not like commas in arguments...
-using Zero_Constant = std::integral_constant<unsigned int,0>;
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ApproxLevel, Zero_Constant, Get_ApproxLevel);
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_CoordinateType, void, Get_CoordinateType);
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType, void, Get_ScalarProductStorageType);
-// ClassToCheck is the argument of the constructed Traits getter inside the macro def. This makes it
-// default to GetScalarproductStorageType
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_ScalarProductStorageType_Full,
-  Get_ScalarProductStorageType<ClassToCheck>, Get_ScalarProductStorageType_Full);
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_AbsoluteCooType,
-  Get_CoordinateType<ClassToCheck>, Get_AbsoluteCooType);
-MAKE_TRAIT_GETTER(LatticePointTraits, Trait_RepCooType,
-  Get_CoordinateType<ClassToCheck>, Get_RepCooType);
-
-//{
-//using namespace TraitHelpers;
-// These are what the rest of the code should be actually using:
-template<class LatP> using Has_ExposesCoos = mystd::bool_constant<
-  T_ExposesCoos<LatP>::value || T_InternalRepByCoos<LatP>::value ||
-  (!std::is_void<Get_CoordinateType<LatP>>::value) || T_Coos_RW<LatP>::value || T_AbsoluteCoos<LatP>::value >;
-
-template<class LatP> using Has_Coos_RW = mystd::bool_constant<
-  T_Coos_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRep_RW<LatP>::value)>;
-
-template<class LatP> using Has_ExposesInternalRep = mystd::bool_constant<
-  T_ExposesInternalRep<LatP>::value || T_InternalRepLinear<LatP>::value || T_InternalRep_RW<LatP>::value ||
-  T_InternalRepByCoos<LatP>::value || T_InternalRepIsAbsolute<LatP>::value >;
-
-template<class LatP> using Has_InternalRepLinear = mystd::bool_constant<
-  T_InternalRepLinear<LatP>::value>;
-
-template<class LatP> using Has_InternalRep_RW = mystd::bool_constant<
-  T_InternalRep_RW<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_Coos_RW<LatP>::value)>;
-
-template<class LatP> using Has_InternalRepByCoos = mystd::bool_constant<
-  T_InternalRepByCoos<LatP>::value>;
-
-template<class LatP> using Has_InternalRepIsAbsolute = mystd::bool_constant<
-  T_InternalRepIsAbsolute<LatP>::value || ( T_InternalRepByCoos<LatP>::value && T_AbsoluteCoos<LatP>::value)>;
-
-template<class LatP> using Has_AbsoluteCoos = mystd::bool_constant<
-  T_AbsoluteCoos<LatP>::value || (T_InternalRepByCoos<LatP>::value && T_InternalRepIsAbsolute<LatP>::value)>;
-
-template<class LatP> using Has_CheapNorm2 = mystd::bool_constant<
-  T_CheapNorm2<LatP>::value>;
-
-template<class LatP> using Has_CheapNegate = mystd::bool_constant<
-  T_CheapNegate<LatP>::value>;
-
-template<class LatP> using Has_Leveled = mystd::bool_constant<
-  T_Leveled<LatP>::value>;
-
-template<class LatP> using Has_AccessNorm2 = mystd::bool_constant<
-  T_AccessNorm2<LatP>::value>;
-
-template<class LatP> using Has_BitApprox = mystd::bool_constant<
-  T_BitApprox<LatP>::value>;
-
-// Deprecated
-template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
-Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
-
-//}
 
 #define IMPL_IS_LATP \
 static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type.")
