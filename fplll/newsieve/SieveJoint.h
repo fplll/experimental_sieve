@@ -137,7 +137,9 @@ public:
   using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
   using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
 
-  using Filtered_Point   = FilteredPoint<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  // TODO: Remove this typedef
+  using Filtered_Point   = FilteredPoint2<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+
   using FilteredListType = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;

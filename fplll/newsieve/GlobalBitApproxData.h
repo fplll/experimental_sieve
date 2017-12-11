@@ -43,6 +43,18 @@ std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>
   return os;
 }
 
+template<std::size_t sim_hash_num, std::size_t sim_hash_len>
+auto flip_all_bits( std::array< std::bitset<sim_hash_len>, sim_hash_num > const &sim_hashes)
+    -> std::array< std::bitset<sim_hash_len>, sim_hash_num >
+{
+  auto sim_hash_ret = sim_hashes;
+  for(size_t i = 0; i < sim_hash_num; ++i )
+  {
+    sim_hash_ret[i] = ~sim_hashes[i];
+  }
+  return sim_hash_ret;
+}
+
 /**
   Helper for the function below
 */
