@@ -36,11 +36,11 @@
 
 #include "DefaultTermConds_impl.h"
 #include "GaussQueue_impl.h"
-#include "ShiSampler_impl.h"
+#include "GPVSampler_impl.h"
 #include "Sampler_impl.h"
 
 #include "UniformSampler_impl.h"
-#include "GPVSampler_impl.h"
+#include "GPVSamplerExtended_impl.h"
 
 
 #endif
