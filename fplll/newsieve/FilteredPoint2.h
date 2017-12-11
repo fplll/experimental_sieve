@@ -95,7 +95,7 @@ struct FilteredPoint2<SieveTraits,false>
   explicit constexpr FilteredPoint2(GaussIteratorBitApprox<SieveTraits,false> const &list_iterator, bool const flip, LengthType const &precompute) noexcept
       : sim_hashes(flip ? flip_all_bits(list_iterator.get_all_bitapproximations())
                         :               list_iterator.get_all_bitapproximations()  ),
-        sign_flip(flip), ptr_to_exact(static_cast<StoredPoint*>(list_iterator) ),
+        sign_flip(flip), ptr_to_exact(static_cast<StoredPoint const *>(list_iterator) ),
         cond(precompute) {}
 };
 

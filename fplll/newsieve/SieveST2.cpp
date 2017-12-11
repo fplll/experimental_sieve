@@ -222,12 +222,9 @@ start_over:
       {
         main_queue.push(std::move(v_new));
       }
-
+      continue;  // for clarity.
       // This increments the iterator in the sense that its point to the next element now,
       // effectively doubling as a ++it;
-
-//      it = main_list.erase(it);
-//      statistics.decrement_current_list_size();
     }
     else  // no reduction.
     {

@@ -191,7 +191,8 @@ public:
   //SimHashBlock         get_bitapproximation(unsigned int level) const;
   StoredPoint const &  operator*() const    { return *(it->ptr_to_exact); }
   StoredPoint const *  operator->() const   { return it->ptr_to_exact;    }
-  explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
+//  explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
+  explicit operator StoredPoint const *() const { return it->ptr_to_exact; }
 
   //For FilteredPoint
   [[deprecated]]CUnderlyingIterator true_star() const     { return  it;                 }
