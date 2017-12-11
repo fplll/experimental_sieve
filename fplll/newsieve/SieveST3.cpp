@@ -197,7 +197,7 @@ bool Sieve<SieveTraits,false>::check_triple (ARG1 &&x1, ARG2 &&x2,
 template<class SieveTraits>
 void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
 {
-  std::cout << "Starting Iteration" << std::endl << std::flush;
+//  std::cout << "Starting Iteration" << std::endl << std::flush;
   using std::abs;
   using std::round;
 
@@ -208,7 +208,6 @@ void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAcce
   filtered_list.reserve(filtered_list_size_max);
 
 start_over:
-  std::cout << "started over (or began)" << std::endl << std::flush;
   auto it_comparison_flip = main_list.cend(); //to store the point where the list elements become larger than p.
   filtered_list.clear();
 
@@ -218,7 +217,6 @@ start_over:
   // this part of the outer loop is for the case where p is the largest of the triple
   for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
   {
-    std::cout << "Iterating x1 (pmax)" << *it_x1 << std::flush;
     if (p  < (*it_x1) )  // TODO: use approx_norm2_p
     {
       it_comparison_flip = it_x1;
@@ -231,7 +229,6 @@ start_over:
                                                  SieveTraits::threshold_lvls_3sieve_lb_out,
                                                  SieveTraits::threshold_lvls_3sieve_ub_out))
     {
-      std::cout << "No candidate" << std::endl << std::flush;
       continue;
     }
     // TODO: Check whether that computation is actually necessary.
@@ -243,10 +240,8 @@ start_over:
     // cond_x1 = 2*|<p,x_1>| - ||x_1||^2.
     // If >0, we can perform 2-reduction. It is useful to keep this term, since we will re-use it.
     LengthType const cond_x1 = 2*abs_sc_prod_px1 - it_x1->get_norm2();
-    std::cout << "Testing 2-red (pmax)" << std::flush;
     if (cond_x1 > 0 )  // We can perform 2-reduction, changing p:
     {
-      std::cout << "Yes!" << std::endl << std::flush;
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(it_x1->get_norm2());
       int const scalar = round(mult);
       p.sub_multiply(*it_x1, scalar);
@@ -258,7 +253,6 @@ start_over:
       // we changed p and have to start the current iteration all over:
       // Note that this is faster than main_queue.push(std::move(p)); return;
       p.update_bitapprox();
-      std::cout << "Changed p" << std::endl << std::flush;
       goto start_over;
     }
     // could not perform 2-reduction, but possibly 3-reduction:
@@ -269,17 +263,13 @@ start_over:
     // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
     if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
     {
-      std::cout << "No 3-red candidate (pmax)" << std::endl << std::flush;
       continue;  // for loop over it_x1;
     }
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
-    std::cout << "Trying 3-reductions (maybe), p max" << std::flush;
-    std::cout << "FL=" << filtered_list.size() << std::endl << std::flush;
     for (auto & filtp_x2 : filtered_list) // Note that we know ||p|| >= ||*it_x1|| >= ||x2||
     {
-      std::cout << "x2: " << std::flush << (*(filtp_x2.ptr_to_exact)) << std::flush;
       // Note: We do not check approximately, just like the old code below.
       LengthType sc_prod_x1x2 = (filtp_x2.sign_flip==sign_px1)
                                     ?  compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact))
@@ -289,23 +279,19 @@ start_over:
       // iteration. The condition is equivalent to ||p+/-x_1 +/- x_2||^2 < ||p||^2,
       // where we have a minus sign @x1 iff sign_px1 == true
       // and                        @x2 iff filtp_x2.sign_flip == true
-      std::cout << "Testing 3-red (pmax)" << std::flush;
       if (sc_prod_x1x2 < cond_x1 + filtp_x2.cond)  // perform 3-reduction:
       {
-        std::cout << "Yes!" << std::endl << std::flush;
         LengthType const debug_test = p.get_norm2();
         if (sign_px1)           { p-=*it_x1; }
         else                    { p+=*it_x1; }
         if (filtp_x2.sign_flip) { p-=*(filtp_x2.ptr_to_exact); }
         else                    { p+=*(filtp_x2.ptr_to_exact); }
-        std::cout << "modified p" << std::endl << std::flush;
         assert(p.get_norm2() <= debug_test);  // make sure we are making progress.
         if (p.is_zero())  { statistics.increment_number_of_collisions(); return; }
         p.update_bitapprox();
         goto start_over;
       }
     }
-    std::cout << "End of FL (pmax), put x1 into FL" << std::endl << std::flush;
     filtered_list.emplace_back( it_x1, sign_px1, cond_x1 );
   }  // end of first part of for-loop where p is the largest of the triple
 
@@ -313,21 +299,19 @@ start_over:
 
 **********/
 
-  std::cout << "Entering part 2" << std::endl << std::flush;
+//  std::cout << "Entering part 2" << std::endl << std::flush;
 
   // p no longer changes now. it_comparison_flip is iterator to first (shortest) element in the list
   // that is longer than p. If no such element exists, it_comparison_flip refers to after-the-end.
 
   for( auto it_x1 = it_comparison_flip; it_x1 != main_list.cend(); )  // ++it inside loop body.
   {
-    std::cout << "Iterating x1 (pmax)" << *it_x1 << std::flush;
-  // if <p,x1> is bad, don't bother with x1
+    // if <p,x1> is bad, don't bother with x1
     if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
                                                  p, it_x1,
                                                  SieveTraits::threshold_lvls_3sieve_lb_out,
                                                  SieveTraits::threshold_lvls_3sieve_ub_out))
     {
-      std::cout << "No candidate" << std::endl << std::flush;
       ++it_x1;
       continue;
     }
@@ -340,10 +324,8 @@ start_over:
     // cond_x1_store = 2*|<p,x_1>| - ||x_1||^2.
     // cond_x1_p     = 2*|<p,x_1>| - ||p||^2.
     LengthType const cond_x1_p     = twice_abs_sc_prod_px1 - p.get_norm2();
-    std::cout << "Testing 2-red (x1max)" << std::flush;
     if (cond_x1_p > 0)  // In this case, we can perform 2-reduction, changing x1
     {
-      std::cout << "Yes!" << std::endl << std::flush;
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(p.get_norm2());
       int const scalar = round(mult);
       assert(scalar!=0);
@@ -367,18 +349,14 @@ start_over:
     // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
     if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
     {
-      std::cout << "No 3-red candidate (x1max)" << std::endl << std::flush;
       ++it_x1;
       continue;  // for loop over it_x1;
     }
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
-    std::cout << "Trying 3-reductions (maybe), x1 max" << std::flush;
-    std::cout << "FL=" << filtered_list.size() << std::endl << std::flush;
     for (auto const & filtp_x2 : filtered_list)
     {
-      std::cout << "x2:" << std::flush << (*(filtp_x2.ptr_to_exact)) << std::flush;
 
       // Note that we know ||p|| < ||x1|| and ||x1|| >= ||x2||, so x1 is the maximum.
       LengthType sc_prod_x1x2 = (filtp_x2.sign_flip == sign_px1)
@@ -386,31 +364,19 @@ start_over:
                                     : -compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact));
       // Note that the correct condition here has cond_x1_p = 2|<p,x_1>| - ||p||^2.
       // This differs from the case above, because now x_1 is larger than p.
-      std::cout << "Testing 3-red" << std::flush;
       if (sc_prod_x1x2 < cond_x1_p + filtp_x2.cond)  // perform 3-reduction on x1
       {
-        std::cout << "Yes!" << std::endl << std::flush;
         LengthType const debug_test = it_x1->get_norm2();
         if (it_x1 == it_comparison_flip) { ++it_comparison_flip; }
         auto v_new = main_list.true_pop_point(it_x1);  // also performs ++it_x1 !
+        // Note: sign_px1 says whether we need to change x1 (i.e.
+        //       we need to consider p+/- v_new. We instead flip the global sign
+        //       and look at v_new +/- p
         if (sign_px1)           { v_new-=p; }
         else                    { v_new+=p; }
-        if (filtp_x2.sign_flip) { v_new-=*(filtp_x2.ptr_to_exact); }
-        else                    { v_new+=*(filtp_x2.ptr_to_exact); }
-        if (v_new.get_norm2() >= debug_test)
-        {
-          std::cout << sign_px1 << std::endl << std::flush;
-          std::cout << filtp_x2.sign_flip << std::endl << std::flush;
-          std::cout << *(filtp_x2.ptr_to_exact) << std::endl;
-          std::cout << compute_sc_product(p, *(filtp_x2.ptr_to_exact)) << std::endl << std::flush;
-          std::cout << filtp_x2.ptr_to_exact->get_norm2() << std::endl << std::flush;
-          std::cout << filtp_x2.cond << std::endl << std::flush;
-          assert(false);
-        }
-        else
-        {
-          std::cout << "Good" << std::endl << std::flush; assert(false);
-        }
+        // If sign_px1 == true, we need to invert the sign of x2 because of the global sign flip.
+        if (filtp_x2.sign_flip != sign_px1) { v_new-=*(filtp_x2.ptr_to_exact); }
+        else                                { v_new+=*(filtp_x2.ptr_to_exact); }
         assert(v_new.get_norm2() < debug_test);  // make sure we are making progress.
         if (p.is_zero())
         {
@@ -423,10 +389,8 @@ start_over:
         // we need to break the inner loop over filtp_x2 and continue the it_x1-loop here
         goto end_of_x1_loop;
       }
-      std::cout << "No 3-red for this x2 (x1 max)" << std::endl << std::flush;
       // No 3-reduction for this x2
     }
-    std::cout << "End of FL, inserting (x1 max)" << std::endl << std::flush;
     // No 3-reduction for for this x1 for any x2
     twice_abs_sc_prod_px1 -= it_x1 -> get_norm2();
     // twice_abs_sc_prod_px1 now holds 2|<p,x_1> - ||x_1||^2
@@ -435,12 +399,11 @@ start_over:
     end_of_x1_loop: ;
   }  // end of second part of for loop
 
-  std::cout << "End of both loops" << std::endl << std::flush;
+//  std::cout << "End of both loops" << std::endl << std::flush;
 
   // put p into the main_list, delayed until now to use std::move()
 
   assert(!(p.is_zero()));
-  std::cout << "Inserted into main list" << std::endl << std::flush;
   if(update_shortest_vector_found(p))
   {
     if(verbosity>=2)
