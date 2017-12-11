@@ -83,6 +83,60 @@
   #warning "Your compiler does support have feature testing for attributes."
 #endif
 
+
+/**
+  Poor man's "requires" (C++20 / concepts-lite TS):
+  We want a lot of templates to only be instantiatable if the template parameters satify certain
+  boolean constraints (e.g. "Is a lattice Point", "Is an integer", "Is an Iterator"...)
+  Lacking the "requires" keyword, we use std::enable_if and SFINAE.
+  To improve readability and making the intent clearer, we define some macros
+  TEMPL_RESTRICT_DECL, TEMPL_RESTRICT_IMPL
+  Usage:
+  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))> some_declaration;
+  template<class Integer, TEMPL_RESTRCIT_IMPL((std::is_integral<Integer>::value))> some_definition;
+
+  This restricts the template to only be instantiatable if the argument to TEMPL_RESTRICT_DECL/IMPL
+  is convertible to boolean true at compile time. Use as the last template argument.
+  (For variadic templates, you should know what you are doing)
+
+  The variants TEMPL_RESTRICT_DECL2 and TEMPL_RESTRICT_IMPL2 are similar, but takea comma-separated
+  list of *types* T_1,T_2,... encapsulating a boolean value instead.
+  (i.e. types with static constexpr bool T_i::value defined -- This is compatible with all such
+  types and manipulators from std:: ). It restricts to the AND of these types.
+
+  The difference between the DECL and IMPL variants is that you need to use DECL in declarations or
+  declarations + definitions, whereas you need to use IMPL in definitions of previously declared
+  template member functions (i.e. when declaring a member function inside a class, use DECL. If
+  you use a separate file to then define the function, you need to use IMPL -- This is because DECL
+  sets default parameters and IMPL does not)
+
+  NOTE: Since these are macros, be aware of unshielded commas in template parameters. You can use ((arg))
+  for the TEMPL_RESTRICT_DECL/IMPL((arg)) variants. The DECL2/IMPL2 variant automagically work.
+  (The arguments are actually chopped up by the parser, but it still works)
+*/
+
+/**
+  NOTE: If you get an compiler error "no type named "type" in std::enable_if<false,int>,
+        then you are using TEMPL_RESTRICT_* wrongly. Due to some choices in the C++ standard
+        (to ensure backwards compatibility with certain internal workings of compilers),
+        the condition argument(s) to TEMPL_RESTRIC_* must evaluate to true for at least one possible
+        choice of template arguments. In case of template member functions of template classes,
+        this means that for each instantiations of the class (i.e. class template parameters fixed),
+        there has to be a set of template arguments for the function, such that this holds.
+*/
+
+#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
+#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
+
+// same as above, but accepts a type rather than a value. This allows for easier syntax.
+// Limitation: If the argument contains a comma in its arguments (e.g. template<A,B>), it does not
+// work
+
+#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type = 0
+#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type
+
+
+
 /**
   Replacements for C++14 (and beyond) standard library features that are missing in C++11.
   See the C++ - documentation for their meaning.

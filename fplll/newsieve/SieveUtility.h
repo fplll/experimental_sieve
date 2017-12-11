@@ -24,35 +24,6 @@ template<class T> class UnZNR;
 }
 
 
-
-
-/**
-  This is to improve readability of declarations.
-  Usage:
-  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))>
-*/
-
-/**
-  NOTE: If you get an compiler error "no type named "type" in std::enable_if<false,int>,
-        then you are using TEMPL_RESTRICT_* wrongly. Due to some choices in the C++ standard
-        (to ensure backwards compatibility with certain internal workings of compilers),
-        the condition argument(s) to TEMPL_RESTRIC_* must evaluate to true for at least one possible
-        choice of template arguments. In case of template member functions of template classes,
-        this means that for each instantiations of the class (i.e. class template parameters fixed),
-        there has to be a set of template arguments for the function, such that this holds.
-*/
-
-
-#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
-#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
-
-// same as above, but accepts a type rather than a value. This allows for easier syntax.
-// Limitation: If the argument contains a comma in its arguments (e.g. template<A,B>), it does not
-// work
-
-#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type = 0
-#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type
-
 namespace GaussSieve
 {
 
