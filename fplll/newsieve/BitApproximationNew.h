@@ -2,7 +2,7 @@
 #define GAUSS_SIEVE_BITAPPROX_NEW_H
 
 #include <bitset>
-#include <boost/dynamic_bitset.hpp> // maybe remove at some point.
+//#include <boost/dynamic_bitset.hpp> // maybe remove at some point.
 #include <random>
 #include <math.h> //for log2, sqrt
 

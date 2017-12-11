@@ -1,9 +1,10 @@
 #error unused
 
-// clang-format off
-
 // This file is currently unused and has to be revised to be compatible with
 // Lattice points possibly storing bitapproximations.
+
+// clang-format off
+
 
 #ifndef APPROXIMATED_POINT_H
 #define APPROXIMATED_POINT_H
