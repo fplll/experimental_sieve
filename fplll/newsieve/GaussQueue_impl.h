@@ -3,9 +3,9 @@
 
 #include "GaussQueue.h"
 //#include "SieveGauss.cpp"
-#include "ShiSampler.h"
-#include "UniformSampler.h"
 #include "GPVSampler.h"
+#include "UniformSampler.h"
+#include "GPVSamplerExtended.h"
 #include "Sampler.h"
 #include "DebugAll.h"
 

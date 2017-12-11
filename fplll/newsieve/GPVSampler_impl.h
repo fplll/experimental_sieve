@@ -1,5 +1,11 @@
-#ifndef GPV_SAMPLER_IMPL_H
-#define GPV_SAMPLER_IMPL_H
+/**
+Implementation file for ShiSampler.
+
+TODO: Change internal representation of basis.
+*/
+
+#ifndef SHI_SAMPLER_IMPL_H
+#define SHI_SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
 #include "Sampler.h"
@@ -15,138 +21,129 @@
 
 namespace GaussSieve
 {
-  
-  template <class SieveTraits, bool MT, class Engine, class Sseq>
-  void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
-  {
-    assert(!initialized);
+
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
+{
+  assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
-    assert(sieveptr!=nullptr);
+  assert(sieveptr!=nullptr);
 #else
-    assert(sieveptr==nullptr);
+  assert(sieveptr==nullptr);
 #endif
-    
-    
-    
-    dim           = input_basis.ambient_dimension;
-    lattice_rank  = input_basis.lattice_rank;
-    
-    mu_matrix     = input_basis.get_mu_matrix();
-    
-    assert(start_babai<lattice_rank); //use strictly less to prevent outputting 0
-    
-    s2pi.resize(lattice_rank);
-    maxdeviations.resize(lattice_rank);
-    basis.resize(lattice_rank);
-    
-    auto const maxbistar2 = input_basis.get_maxbistar2();
-    
-    double st_dev = maxbistar2*1.2; // square of the st.dev guaranteed by GPV
-    
-    //std::cout << st_dev << std::endl;
-    for (uint_fast16_t i = 0; i < lattice_rank; ++i)
-    {
-      
-      double maxdev_nonsc = st_dev / convert_to_double(input_basis.get_g(i,i)); // g_(i,i) = ||b^*_i||^2
-      
-      s2pi[i] = maxdev_nonsc / GaussSieve::pi;
-      maxdeviations[i] = sqrt(maxdev_nonsc) * cutoff;
-      
-      //std::cout <<"maxdeviations[i] = " << maxdeviations[i] << " ";
-      
-      basis[i] = input_basis.get_basis_vector(i).make_copy();
-    }
-    
-    using RetType = typename SieveTraits::GaussSampler_ReturnType;
-    
-    if(static_init_plainpoint!=nullptr)
-    {
-      assert(false);
-    }
-    if(static_init_rettype!=nullptr)
-    {
-      assert(false);
-    }
-    
-    static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
-    static_init_plainpoint= new StaticInitializer<typename SieveTraits::PlainPoint>(MaybeFixed<SieveTraits::get_nfixed>{dim});
-    
-    initialized = true;
 
+  dim           = input_basis.ambient_dimension;
+  lattice_rank  = input_basis.lattice_rank;
 
-  }
-  
-  
-  //TODO: progressive rank + babai_start
-  template <class SieveTraits, bool MT, class Engine, class Sseq>
-  typename SieveTraits::GaussSampler_ReturnType
-  GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
+  mu_matrix     = input_basis.get_mu_matrix();
+
+  // vectors of length lattice_rank
+  s2pi.resize(lattice_rank);
+  maxdeviations.resize(lattice_rank);
+  basis.resize(lattice_rank);
+
+  auto const maxbistar2 = input_basis.get_maxbistar2();
+
+  for (uint_fast16_t i = 0; i < lattice_rank; ++i)
   {
-    assert(initialized);
+    //
+    // Note: input_basis.get_g(i,i) might be of type mpz_class.
+    // We can not convert after division, because double / mpz_class always gives 0.
+    // (and also, double / mpz_class has an expression template as return type, which screws up
+    // convert_to_double)
+
+    double res = maxbistar2 / convert_to_double(input_basis.get_g(i,i));
+
+    s2pi[i] = 1.0*res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
+    maxdeviations[i] = sqrt(res) * cutoff;
+
+    basis[i] = input_basis.get_basis_vector(i).make_copy();
+    //std::cout << maxdeviations[i] << " ";
+//    tmp.set_z(g(i, i));
+//    tmp2.div(maxbistar2, tmp);  // s'_i^2 = max GS length^2 / lenght^2 of basis vector
+//    s2pi[i] = tmp2.get_d() / GaussSieve::pi;
+//    tmp2.sqrt(tmp2);
+//    maxdeviations[i] = tmp2.get_d() * cutoff;
+  }
+
+
+  using RetType = typename SieveTraits::GaussSampler_ReturnType;
+
+  if(static_init_plainpoint!=nullptr)
+  {
+    assert(false);
+//    delete static_init_plainpoint;
+  }
+  if(static_init_rettype!=nullptr)
+  {
+    assert(false);
+//    delete stat_init_rettype;
+  }
+
+  static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
+  static_init_plainpoint= new StaticInitializer<typename SieveTraits::PlainPoint>(MaybeFixed<SieveTraits::get_nfixed>{dim});
+
+  initialized = true;
+}
+
+
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+typename SieveTraits::GaussSampler_ReturnType
+ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
+{
+  assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
-    assert(sieveptr==nullptr);
+  assert(sieveptr==nullptr);
 #else
-    assert(sieveptr!=nullptr);
+  assert(sieveptr!=nullptr);
 #endif
-    
-    typename SieveTraits::PlainPoint vec;
-    vec.fill_with_zero();
-    
-    
-    std::vector<double> shifts(lattice_rank, 0.0);
-    //std::vector<long> coos(lattice_rank, 0);
-    
-    
-    while ( vec.is_zero())
+
+  typename SieveTraits::PlainPoint vec;
+  vec.fill_with_zero();
+
+
+  // shift, expressed in coordinates wrt the Gram-Schmidt basis.
+  std::vector<double> shifts(lattice_rank, 0.0);
+  
+  
+
+
+  // Note: This is a while - loop, because --j will cause trouble on unsigned j.
+  // (With signed j, the correct for loop would be for(int j = lattice_rank-1 ; j>=0;--j) )
+  //std::cout << vec << std::endl;
+  while ( vec.is_zero())
+  {
+    #ifdef PROGRESSIVE
+    uint_fast16_t j = this->get_progressive_rank();
+    #else
+    uint_fast16_t j = lattice_rank;
+    #endif
+
+    //std::cout << "j = " << j <<std::endl;
+    while(j>0)
     {
-      #ifdef PROGRESSIVE
-        uint_fast16_t i = this->get_progressive_rank();
-      #else
-        uint_fast16_t i = lattice_rank;
-      #endif
-      while(i>start_babai)
+      --j;
+      long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
+        s2pi[j], shifts[j], engine.rnd(), maxdeviations[j]);  // coefficient of b_j in vec.
+
+      vec += basis[j] * newcoeff;
+      //std::cout << newcoeff << " ";
+
+      for (uint_fast16_t i = 0; i < j; ++i)  // adjust shifts
       {
-        --i;
-        
-        /* Does the same as below but requires coos-vector
-         *
-        for (uint_fast16_t j = lattice_rank-1; j >i; --j)  // adjust shifts
-        {
-          shifts[i] -= coos[j] * (mu_matrix[j][i]);
-        }
-         */
-        long const newcoeff  = sample_z_gaussian_VMD<long, Engine>(
-        s2pi[i], shifts[i], engine.rnd(), maxdeviations[i]);  // coefficient of b_j in vec.
-        
-        vec += basis[i] * newcoeff;
-        
-        for (uint_fast16_t j = 0; j < i; ++j)  // adjust shifts
-        {
-          shifts[j] -= newcoeff * (mu_matrix[i][j]);
-        }
-        
-        //std::cout << newcoeff << " ";
-        
-      }
-      //std::cout << "||";
-      while(i>0) //run Babai
-      {
-        --i;
-        long babai_coeff = std::round(shifts[i]);
-        vec+=basis[i] * babai_coeff;
-        for (uint_fast16_t j = 0; j < i; ++j)  
-        {
-          shifts[j] -= babai_coeff * (mu_matrix[i][j]);
-        }
-        //std::cout << babai_coeff << " ";
+        shifts[i] -= newcoeff * (mu_matrix[j][i]);
       }
     }
-   //std::cout << std::endl;
-    typename SieveTraits::GaussSampler_ReturnType ret;
-    ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
-    return ret;
+    //std::cout << "|" << std::endl;
   }
-  
+
+  //std::cout << "sampled vec = " << vec << std::endl;
+
+
+  typename SieveTraits::GaussSampler_ReturnType ret;
+  ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
+  return ret;
 }
+} // end namespace
 
 #endif
