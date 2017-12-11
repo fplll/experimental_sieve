@@ -96,7 +96,7 @@ struct FilteredPoint2<SieveTraits,false>
       : sim_hashes(flip ? flip_all_bits(list_iterator.get_all_bitapproximations())
                         :               list_iterator.get_all_bitapproximations()  ),
         sign_flip(flip), ptr_to_exact(static_cast<StoredPoint const *>(list_iterator) ),
-        cond(precompute) {}
+        cond(precompute) { assert(precompute<0); }
 };
 
 }
