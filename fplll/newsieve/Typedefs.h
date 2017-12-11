@@ -15,7 +15,6 @@
 #include "gmpxx.h"
 #include "ExactLatticePoint.h"
 #include "PlainLatticePoint.h"
-#include "FilteredPoint2.h"
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
 //#include "HashedLatticePoint.h"

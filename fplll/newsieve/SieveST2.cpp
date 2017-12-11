@@ -72,47 +72,6 @@ bool Sieve<SieveTraits,false>::check2red(LHS &&p1,
   scalar = round(mult);
   return true;
 }
-// same, but assumes ||p2|| >= ||p1||
-/*
-template<class SieveTraits>
-bool Sieve<SieveTraits,false>::check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
-                                              SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
-                                              typename MainListType::Iterator            const &p2it,
-                                              int &scalar)
-{
-//  assert(!(p2.is_zero()));
-
-//#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-//  if (!check2red_approx(p1, p2))
-//    return false;
-//#endif
-  if (!check2red_approx(p1_bitapprox,p2it))
-  {
-    return false;
-  }
-
-  statistics.increment_number_of_scprods_level1();
-
-  using std::round;
-  using std::abs;
-
-  using LengthType = typename SieveTraits::LengthType;
-
-  LengthType sc_prod = compute_sc_product(p1, *p2it);
-
-  LengthType abs_2scprod = abs(sc_prod * 2);
-
-  if (abs_2scprod <= p1.get_norm2())
-  {
-    return false;
-  }
-
-  double const mult = convert_to_double(sc_prod) / convert_to_double(p1.get_norm2());
-  // TODO: Check over- / underflows.
-  scalar = round(mult);
-  return true;
-}
-*/
 
 /**
  Checks whether we can perform a 2-reduction. Modifies scalar.

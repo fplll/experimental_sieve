@@ -8,20 +8,22 @@
 //
 //
 
-#ifndef _FilteredPoint2_h
-#define _FilteredPoint2_h
+#ifndef FILTERED_POINT2_H
+#define FILTERED_POINT2_H
 
+#include "DefaultIncludes.h"
 #include "DebugAll.h"
 #include "SieveUtility.h"
 #include "ExactLatticePoint.h"
-#include "HashedLatticePoint.h"
+//#include "HashedLatticePoint.h"
 #include "GaussListBitapprox.h"
 #include "BitApproximationNew.h"
+#include "Typedefs.h"
 
 namespace GaussSieve{
 
-template <class ET, int nfixed> class ExactLatticePoint;
-template <class ET, int nfixed> class HashedLatticePoint;
+//template <class ET, int nfixed> class ExactLatticePoint;
+//template <class ET, int nfixed> class HashedLatticePoint;
 
 template <class SieveTraits, class ET> class FilteredPoint;
 
@@ -34,7 +36,7 @@ template <class SieveTraits, class ET>
 class FilteredPoint
 {
   public:
-    
+
 //#ifndef USE_LSH
     //using SimHashes   = typename SimHashGlobalDataType::SimHashes;
     //using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
@@ -46,12 +48,12 @@ class FilteredPoint
     FilteredPoint()=delete;
     FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
     FilteredPoint(FilteredPoint &&Point) = default ;
-  
-  
+
+
     FilteredPoint(StoredData const * pt, ET sc_pr)
     {
       this->point   = pt;
-      this->sc_prod = sc_pr; 
+      this->sc_prod = sc_pr;
     }
 
     FilteredPoint& operator=(FilteredPoint const &that) =delete;
@@ -70,11 +72,11 @@ private:
     //members
     //SimHashes const* approx_point; //may be copy?
     //StoredPoint* ptr_to_exact;
-    
+
     StoredData const * point;
     ET sc_prod;
-    
-    
+
+
 
 
 

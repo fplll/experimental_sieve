@@ -1,3 +1,4 @@
+// TODO: Remove define
 #define filtered_list_size_max  1000
 
 namespace GaussSieve{
