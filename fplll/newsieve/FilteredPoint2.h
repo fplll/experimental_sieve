@@ -25,61 +25,46 @@ namespace GaussSieve{
 //template <class ET, int nfixed> class ExactLatticePoint;
 //template <class ET, int nfixed> class HashedLatticePoint;
 
-template <class SieveTraits, class ET> class FilteredPoint;
+//template <class SieveTraits, class ET> class FilteredPoint;
+template<class SieveTraits, bool MT> class FilteredPoint;
 
 // Template parameters are:
 //  ET: entry type
 //  nfixed: indicates whether the dimension is fixed or not
 //  SC: scalar-product type
 
-template <class SieveTraits, class ET>
-class FilteredPoint
+template<class SieveTraits>
+class FilteredPoint<SieveTraits, false>
+//template <class SieveTraits, class ET>
+//class FilteredPoint
 {
-  public:
+public:
 
-//#ifndef USE_LSH
-    //using SimHashes   = typename SimHashGlobalDataType::SimHashes;
-    //using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
-    using StoredData    = STNode< SieveTraits>;
-//#else
- //   using StoredPoint = HashedLatticePoint<ET,nfixed>;
-//#endif
+  using LengthType    = typename SieveTraits::LengthType;
+  using StoredData    = STNode<SieveTraits>;
 
-    FilteredPoint()=delete;
-    FilteredPoint(const FilteredPoint &Point) = delete; // : NumVect<ET>::data(Point.data), norm2(Point.norm2) {}
-    FilteredPoint(FilteredPoint &&Point) = default ;
+  FilteredPoint()                       = delete;
+  FilteredPoint(const FilteredPoint &)  = delete;
+  FilteredPoint(FilteredPoint &&)       = default;
 
+  explicit constexpr FilteredPoint(StoredData const * pt, LengthType const & sc_pr) noexcept
+      : point(pt), sc_prod(sc_pr) {}
 
-    FilteredPoint(StoredData const * pt, ET sc_pr)
-    {
-      this->point   = pt;
-      this->sc_prod = sc_pr;
-    }
+  FilteredPoint& operator=(FilteredPoint const &) = delete;
+  FilteredPoint& operator=(FilteredPoint &&     ) = default;
 
-    FilteredPoint& operator=(FilteredPoint const &that) =delete;
-    FilteredPoint& operator=(FilteredPoint && that) =default;
+  ~FilteredPoint()  = default; // Note: Pointer is NOT owning.
 
-
-    ~FilteredPoint() {}
-
-    inline StoredData const& get_point() const {return *point;}
-    inline ET  get_sc_prod() const {return sc_prod;}
-    //inline StoredData& get_ptr_toexact() const {return ptr_to_exact;}
-    //inline bool get_sign() const {return minus;}
-
+  inline StoredData const& get_point()   const {return *point;}
+  inline LengthType        get_sc_prod() const {return sc_prod;}
+  // inline StoredData& get_ptr_toexact() const {return ptr_to_exact;}
+  // inline bool get_sign() const {return minus;}
 
 private:
-    //members
-    //SimHashes const* approx_point; //may be copy?
-    //StoredPoint* ptr_to_exact;
+  // StoredPoint* ptr_to_exact;
 
-    StoredData const * point;
-    ET sc_prod;
-
-
-
-
-
+  StoredData const * point;
+  LengthType sc_prod;
 };
 
 }

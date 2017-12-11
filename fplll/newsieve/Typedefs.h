@@ -115,10 +115,6 @@ class DefaultSieveTraits
 
   using LengthType               = ET;
 
-  //for the class FilteredPoint, the template paremeters are: <Entry type, if_dim_is_fixed, scalar_prod. type>
-  //using FlilteredPointType      = FilteredPoint<ET, nfixed, LengthType>;
- // using FlilteredPointType      = FilteredPoint<LengthType>;
-  //using FilteredListType        = std::vector<FlilteredPointType>;
   using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
 
   using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, SimHashGlobalDataType >;
