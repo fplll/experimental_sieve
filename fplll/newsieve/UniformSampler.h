@@ -24,7 +24,7 @@ namespace GaussSieve
   template <class SieveTraits, bool MT> class Sieve;
   
   
-  template <class SieveTraits, bool MT, class Engine, class Sseq> class UniformSampler; //declaration
+  template <class SieveTraits, bool MT, class Engine, class Sseq> class UniformSampler;  // declaration
   
   template <class SieveTraits, bool MT, class Engine, class Sseq>
 
@@ -35,16 +35,16 @@ public:
   using EntryType     = typename SieveTraits::EntryType;
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
   
-  explicit UniformSampler(Sseq &seq, unsigned int inp_sparcity):
-Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity), 
-initialized(false), static_init_rettype(nullptr), static_init_plainpoint(nullptr)
+  explicit UniformSampler(Sseq &seq, unsigned int inp_sparcity)
+      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), sparcity(inp_sparcity),
+        initialized(false), static_init_rettype(nullptr), static_init_plainpoint(nullptr)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing ShiSampler.");
   }
   
   virtual SamplerType sampler_type() const override { return SamplerType::uniform_sampler; };
   
-  //todo: destructor
+  // todo: destructor
   
   virtual ~UniformSampler()
   {
