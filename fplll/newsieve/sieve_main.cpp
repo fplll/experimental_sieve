@@ -58,9 +58,9 @@ int main(int argc, char **argv)
   bool flag_file = false;
   int opt;
   int dim;
-  fplll::Z_NR<mpz_t> target_norm;
-  target_norm = 0;
-  mpz_class target_norm_conv;
+  //fplll::Z_NR<mpz_t> target_norm;
+  //target_norm = 0;
+  mpz_class target_norm_conv = 0;
   int k=2;
   int beta=0; //beta = 0 means we run LLL
 
@@ -77,6 +77,7 @@ int main(int argc, char **argv)
               break;
           case 'k':
               k=atoi(optarg);
+              break;
           case 't':
               target_norm_string = optarg;
               break;
@@ -129,7 +130,7 @@ int main(int argc, char **argv)
       B.gen_qary_prime(1, 10*dim);
   }
 
-  std::cout << "beta = " << beta << std::endl;
+  std::cout << "target_norm_conv = " << target_norm_conv << std::endl;
 
   /* preprocessing of basis */
   clock_t stime = clock();
