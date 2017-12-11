@@ -43,8 +43,8 @@ public:
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
 
   explicit GPVSampler(Sseq &seq, uint_fast16_t babai, double const _cutoff = 2.0)
-      : Sampler<SieveTraits,MT,Engine,Sseq>(seq), cutoff(_cutoff),
-        initialized(false), start_babai(babai),
+      : Sampler<SieveTraits,MT,Engine,Sseq>(seq),
+        start_babai(babai), cutoff(_cutoff), initialized(false),
         static_init_rettype(nullptr), static_init_plainpoint(nullptr)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing GPVSampler.")
