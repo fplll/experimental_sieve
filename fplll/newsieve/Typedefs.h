@@ -138,6 +138,10 @@ class DefaultSieveTraits
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_lb;
   template< class ET, bool MT, int nfixed, class InputBT>
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_ub;
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_out;
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_out;
 
 //  template< class ET, bool MT, int nfixed, class InputBT>
 //  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub; = {{64+5,128+8}};

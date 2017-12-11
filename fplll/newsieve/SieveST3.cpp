@@ -44,7 +44,7 @@ bool Sieve<SieveTraits,false>::check_sc_prod_outer (typename SieveTraits::FastAc
   if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
                                             x1, x2,
                                             SieveTraits::threshold_lvls_3sieve_lb_out,
-                                            SieveTraits::threshold_lvls_3sieve_lb_out))
+                                            SieveTraits::threshold_lvls_3sieve_ub_out))
   {
     return false;
   }
@@ -52,7 +52,6 @@ bool Sieve<SieveTraits,false>::check_sc_prod_outer (typename SieveTraits::FastAc
 
   using std::abs;
 
-  //TODO: DO WE WANT EXACT CHECK HERE?
 
   sc_prod_x1x2 = compute_sc_product(x1, turn_maybe_iterator_to_point(x2));
   statistics.increment_number_of_scprods_level1();
