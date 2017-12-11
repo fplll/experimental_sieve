@@ -9,8 +9,16 @@
 
 namespace GaussSieve{
 
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS(StaticInitializerArgTag,IsArgForStaticInitializer);
-CREATE_MEMBER_TYPEDEF_CHECK_CLASS(HasDefaultStaticInitializer,IsStaticInitializerDefaulted);
+namespace TraitHelpers
+{
+template<class T> using Predicate_StaticInitializerArg = typename T::StaticInitializerArgTag;
+template<class T> using Predicate_DefaultStaticInitializer = typename T::HasDefaultStaticInitializer;
+}
+template<class T> using IsArgForStaticInitializer =
+    mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg,T>;
+template<class T> using IsStaticInitializerDefaulted =
+    mystd::is_detected<TraitHelpers::Predicate_DefaultStaticInitializer,T>;
+
 
 // forward declarations:
 template<class T> class StaticInitializer;

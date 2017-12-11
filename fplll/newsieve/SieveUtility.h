@@ -12,7 +12,7 @@
 #include "fplll/nr/nr.h"
 #include "gmpxx.h"
 #include "gmp.h"
-#include "TraitChecks.h"
+// #include "TraitChecks.h"  -- No longer needed
 
 namespace GaussSieve
 {

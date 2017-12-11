@@ -264,6 +264,13 @@ template<class T> using Get_ApproxLevel = mystd::detected_or_t< std::integral_co
 
 #undef GAUSS_SIEVE_MAKE_TRAIT_GETTER
 
+// finally, we define the actual Has_TraitName's. These just take T_TraitNames and
+// apply some boolean formulae to enforce implied traits.
+
+// TODO: Make sure these implications are correct and document them.
+// TODO: Ensure that if we use implications to set Has_TraitName to true, then Trait_TraitName
+//       is not manually set to false_type
+
 template<class T> using Has_ExposesCoos =
     mystd::disjunction< TraitHelpers::T_ExposesCoos<T>, TraitHelpers::T_InternalRepByCoos<T>,
                         mystd::negation<std::is_void<Get_CoordinateType<T>>>,
@@ -303,23 +310,12 @@ template<class T> using Has_BitApprox   = TraitHelpers::T_BitApprox<T>;
 template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
 Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
 
-// TODO: Make this one nice
-template<class T,class = int>
-struct T_ApproxLevelOf
-{
-static constexpr unsigned int value = 0;
-};
-// the , inside the decltype is the comma operator for void (hence not overloaded)
-// this template specialization is only valid if T::ApproxLevel exists and will be preferred over
-// the general one above.
-template<class T>
-struct T_ApproxLevelOf<T, decltype( static_cast<void>(T::ApproxLevel), static_cast<int>(0))>
-{
-static constexpr unsigned int value = T::ApproxLevel;
-};
+// For approximations.
+// TODO: Move this somewhere else. It's not really a lattice point trait.
 
-template<class T>
-using ApproxLevelOf = std::integral_constant<unsigned int,T_ApproxLevelOf<T>::value>;
+template<class T> using Obtain_ApproxLevel = std::integral_constant<unsigned int, T::ApproxLevel>;
+template<class T> using ApproxLevelOf =
+    mystd::detected_or_t< std::integral_constant<unsigned int,0>, Obtain_ApproxLevel, T >;
 
 #define IMPL_IS_LATP \
 static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type.")

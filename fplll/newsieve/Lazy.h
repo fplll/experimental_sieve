@@ -5,6 +5,7 @@
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
 #include <tuple>
+#include "TraitChecks.h"
 
 #include "Lazy_macros.h"
 

@@ -1,10 +1,14 @@
 #ifndef TEST_TRAIT_CLASSES_H
 #define TEST_TRAIT_CLASSES_H
 
+#warning Trait checks are now performed with std::[experimental::]is_detected. This test no longer \
+ makes sense.
+
 #include <type_traits>
 #include "../SieveUtility.h"
 #include "../Typedefs.h"
 #include "gmpxx.h"
+#include "../TraitChecks.h"
 
 class C1{};
 class C2{};
