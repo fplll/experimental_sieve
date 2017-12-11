@@ -1,3 +1,9 @@
+#ifndef TRAIT_CHECKS_H
+#define TRAIT_CHECKS_H
+
+// unsure whether this file is needed at all...
+// with mystd::is_detected, we might actually remove these.
+
 /**
 This macro is used to test the presence of a (public) member typedef in a class
 Args:   TypeToCheck - typename whose presence to check
@@ -17,7 +23,7 @@ The user needs to put it to emphasize that this is a declaration.
 */
 
 // clang-format off
-
+/* old version
 #define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName)                           \
   template <class ClassToCheck> class CheckerClassName                                             \
   {                                                                                                \
@@ -31,14 +37,23 @@ The user needs to put it to emphasize that this is a declaration.
     static bool constexpr value = value_t::value;                                                  \
     constexpr operator bool() const { return value; };                                             \
   }
+*/
+
+// New Version:
+// CheckerClassName = is_detected<Op, T>; where Op = typename T::TypeToCheck;
+
+#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName)                           \
+/*creating a unique name for typename T::TypeToCheck */                                            \
+namespace TraitDetectionHelpers                                                                    \
+{                                                                                                  \
+template<class T>                                                                                  \
+using MemberTypedefCheck_##TypeToCheck##_##CheckerClassName = typename T::TypeToCheck;             \
+}                                                                                                  \
+template<class T>                                                                                  \
+using CheckerClassName = mystd::is_detected<TraitDetectionHelpers::MemberTypedefCheck_##TypeToCheck##_##CheckerClassName,T>;
 
 // clang-format on
 
-/*
-#define CREATE_MEMBER_TYPEDEF_CHECK_CLASS(TypeToCheck, CheckerClassName) \
-template<class T> using CheckFor##TypeToCheck = typename T::TypeToCheck; \
-template<class T> using CheckerClassName = is_detected<CheckFor##TypeToCheck,T>;
-*/
 
 /**
 Similar to the above, creates a checker template class that checks wether
@@ -130,3 +145,5 @@ namespace TraitGetterHelper{                                                    
 } \
 template<class ClassToCheck> \
 using CheckerClassName = typename TraitGetterHelper::CheckerClassName##_Helper<ClassToCheck>::type
+
+#endif

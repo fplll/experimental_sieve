@@ -1,9 +1,6 @@
 #ifndef LATTICE_POINT_CONCEPT_H
 #define LATTICE_POINT_CONCEPT_H
 
-// TODO: Remove the concept idea below, we replace it by CRTP (i.e. inheritance without virtual
-// functions, using templates)
-
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include <cmath>
@@ -13,10 +10,7 @@
 #include "GlobalStaticData.h"
 
 #include <bitset> //for approximation
-#include <boost/dynamic_bitset.hpp> //for approximation
-
-//#include "RelevantCoords.h"
-
+//#include <boost/dynamic_bitset.hpp> //for approximation
 
 // clang-format off
 
@@ -30,16 +24,15 @@ namespace GaussSieve{
   GeneralLatticePoint is templated by its child classes.
 
   Note that we have a lot of "default" implementations, which are defined depending on various
-  lattice traits. Mosto of the actual code of these implementations is found in
+  lattice traits. Most of the actual code of these implementations is found in
   LatticePointGeneric.h
 
   GeneralLatticePoint also specifies which methods an implementation is allowed to override.
 */
 
-
-// This class template stores the trait typedefs that the individual lattice point classes have
-// There has to be a specialization for each lattice point class.
-// The general template must never be instantiated.
+// This class template stores the trait typedefs that the individual lattice point classes have.
+// There MUST be a specialization for each lattice point class.
+// The general LatticePointsTraits template must never be instantiated.
 // Note that we can not put these traits into the lattice points classes directly, because that
 // would cause circular references due to CRTP.
 
@@ -69,19 +62,23 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
 //  using Trait_Approximations = std::false_type;
-  using Trait_Leveled = std::false_type;
   using Trait_BitApprox = std::false_type;
+
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
+  using Trait_Leveled = std::false_type;
+
 };
 
 /**
-  Available traits
-  (everything that needs to be set to true_type defaults to false, unless specified otherwise)
-  These traits are used to selectively enable some meaningful default operations on lattice points.
+  Lattice Point traits:
+
   Note: In the actual LatticePointTraits class, the traits are actually prefixed with Trait_
-  (i.e. LatticePointTraits<LP> contains using Trait_ExposesCoos etc.)
-  To retrieve a trait, use Has_TraitName for binary traits.
-  or Get_TraitName for non-binary traits
+  (i.e. LatticePointTraits<LP> contains "using Trait_ExposesCoos = std::true_type/false_type" etc.)
+
+  To retrieve a trait, use Has_TraitName for binary traits or Get_TraitName for non-binary traits.
+  Do NOT access the Trait_* traits directly.
+
+  TODO: Implications between traits may not be up-to-date (both in documentation and in code)
 
   ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
                            Note that the result from a scalar product computation might actually differ.
@@ -104,13 +101,13 @@ template<class LatticePoint> struct LatticePointTraits
   AbsoluteCooType : return type of get_absolute_coo
                     defaults to CoordinateType
 
-  RepCooType      : return type of get_internal_rep (if available)
-                    defaults to CoordinateType
-
-  ExposesInternalRep :  Indicates that get_internal_rep(i), get_internal_rep_size() exists and may be
-                        read for 0<= i < get_internal_rep_size().
+  ExposesInternalRep :  Indicates that get_internal_rep(i), get_internal_rep_size() exist.
+                        get_internal_rep(i) may be read for 0<= i < get_internal_rep_size().
                         We are guaranteed that these entries determine the point.
                         implied by InternalRepVector_R, InternalRepVector_RW, InternalRepByCoos, InternalRepIsAbsolute
+
+  RepCooType      : return type of get_internal_rep (if available)
+                    defaults to CoordinateType
 
   InternalRepLinear:    Indicates that the internal representation is linear.
                         implies Has_ExposesInternalRep
@@ -131,24 +128,26 @@ template<class LatticePoint> struct LatticePointTraits
 
   BitApprox : Set to indicate that we have a bit-approximation.
               This gives the following promises to the user:
-              There is a public member functions:
-              get_bitapprox_norm2() : Returns the number of bits that we are using
-              - defaults to get_dim()
-              There is a member function:
-              do_compute_sc_product_bitapprox(LatP const &): computes the bit-wise scalar product of
-              bit-approximations of *this with LatP.
-              Use compute_sc_product_bitapprox(LatP const & x1, LatP const &x2) to actually compute
-              the bit-approx scalar product.
+              There are public typedefs:
+                  using SimHashBlock (equal to std::bitset<lenght> or compatible)
+                  using SimHashes    (a container of std::bitsets, i.e. sim_hashes[i] is a SimHashBlock)
+              There are public member functions:
 
+              SimHashBlock [const &] access_bitapproximation(unsigned int level);
+              SimHashes take_bitapproximations() &&; (or possibly a lvalue-version)
+              void update_bitapprox();
 
-// Does not work ATM, might be needed later...
-//  AccessNorm2:  Set to true_type to indicate that we we have an access_norm2() function to
-//                return a const-reference to a precomputed norm2.
+              access_bitapproximation(i) gives const-access to the i'th sim_hash.
+              take_bitapproximations() moves the bitapproximations out of the point
+              update_bitapprox() recomputes the bitapproximations.
+              NOTE: For efficiency reasons, bitapproximations are NOT recomputed when
+              modifying the point by += etc. It is currently the caller's job to trigger recomputation.
+              (The reason is that recomputation is too slow)
+              NOTE: This is subject to change.
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
-// TODO: maybe deprecate this trait.
-//  Approximations: Set to true_type to indicate that the point has approximations.
+  // Currently unused:
 
   Leveled : Set to true_type to indicate that the point is a leveled object.
             Cf. Lazy.h for a more details on that.
@@ -167,7 +166,7 @@ template<class LatticePoint> struct LatticePointTraits
                       Use ApproxLevelOf<Some_Class>::value to obtain Some_Class::ApproxLevel
                       (with a default of 0 if Some_Class::ApproxLevel does not exist)
 
-    NOTE: Leveled and ApproxLevel do not relate to Bitapproximation.
+    NOTE: Leveled and ApproxLevel do NOT relate to Bitapproximation.
 */
 
 // forward declaration
