@@ -15,7 +15,6 @@
 		</Build>
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
-		<Unit filename="BitApproximation.h" />
 		<Unit filename="BitApproximationNew.h" />
 		<Unit filename="BitApproximationNew_impl.h" />
 		<Unit filename="Compat.h" />
@@ -70,6 +69,7 @@
 		<Unit filename="Tests/TestQueue.h" />
 		<Unit filename="Tests/TestShiSampler.h" />
 		<Unit filename="Tests/TestTraitClasses.h" />
+		<Unit filename="TraitChecks.h" />
 		<Unit filename="Typedefs.h" />
 		<Unit filename="classtests.cpp" />
 		<Unit filename="sieve_main.cpp" />

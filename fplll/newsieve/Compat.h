@@ -70,9 +70,12 @@
     #define FORCE_INLINE
   #endif
 #else
+  // Note: per C++ standard, unrecognized attributes are ignored (it may generate warnings, though)
+  // So in case the compiler does not support __has_cpp_attribute, we might also just go ahead and define those as above.
+  // Case in point is some clang-versions, which recognize gnu::foo attributes, but do not have __has_cpp_attribute
   #define NODISCARD
   #define FORCE_INLINE
-  #warning "Your compiler does not have feature testing."
+  #warning "Your compiler does support have feature testing for attributes."
 #endif
 
 /**
@@ -143,6 +146,69 @@ namespace mystd
   template<std::size_t N> using make_index_sequence = typename IndexSeqHelper::GenIndexSeq<N>::type;
   template<class... T>    using index_sequence_for  = make_index_sequence<sizeof...(T)>;
 #endif
+
+#if __cpp_lib_void_t >= 201411
+  template<class... Args> using void_t = std::void_t<Args...>;
+#else
+  template<class... Args> using void_t = void;
+#endif
+
+// std::experimental::*_detected_* - features.
+// Part of Library fundamentals V2 TS.
+// These can be used to query the existence of e.g. typedefs (and more).
+// Used for traits checking (More elegant than the old macros)
+// Taken from http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4502.pdf
+
+#if __cpp_lib_experimental_detect >= 201505
+
+using nonesuch = std::experimental::nonesuch;
+template<template<class...> class Op, class... Args> using is_detected = std::experimental::is_detected<Op,Args...>;
+template<template<class...> class Op, class... Args> using detected_t  = std::experimental::detected_t <Op,Args...>;
+template<class Default, template<class...> class Op, class... Args> using detected_or   = std::experimental::detected_or<Default,Op,Args...>;
+template<class Default, template<class...> class Op, class... Args> using detected_or_t = std::expreimental::detected_or_t<Default,Op,Args...>;
+
+#else
+
+struct nonesuch // indicating "Not detected"
+{
+  nonesuch() = delete;
+  ~nonesuch() = delete;
+  nonesuch(nonesuch const &) = delete;
+  void operator=(nonesuch const &) = delete;
+};
+
+namespace detection_impl
+{
+template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
+struct detector
+{
+  using value_t = std::false_type;
+  using type    = Default;
+};
+
+template<class Default, template<class...> class Op, class... Args>
+struct detector<Default, void_t<Op<Args...>>, Op, Args...>
+{
+  using value_t = std::true_type;
+  using type    = Op<Args...>;
+};
+}
+
+template<template<class...> class Op, class... Args>
+using is_detected = typename detection_impl::detector<void, void, Op, Args...>::value_t;
+
+template<template<class...> class Op, class... Args>
+using detected_t  = typename detection_impl::detector<mystd::nonesuch, void, Op, Args...>::type;
+
+template<class Default, template<class...> class Op, class... Args>
+using detected_or = typename detection_impl::detector<Default, void, Op, Args...>;
+
+template<class Default, template<class...> class Op, class... Args>
+using detected_or_t = typename detected_or<Default, Op, Args...>::type;
+
+#endif
+
+
 }  // end namespace mystd
 }  // end namespace GaussSieve
 

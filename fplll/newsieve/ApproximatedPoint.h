@@ -1,3 +1,10 @@
+#error unused
+
+// clang-format off
+
+// This file is currently unused and has to be revised to be compatible with
+// Lattice points possibly storing bitapproximations.
+
 #ifndef APPROXIMATED_POINT_H
 #define APPROXIMATED_POINT_H
 
@@ -666,3 +673,5 @@ template<class ELP, class ApproxLP> class AddApproximationToLatP
 #undef T_IS_ELP
 
 #endif // APPROXIMATED_POINT_H
+
+// clang-format on
