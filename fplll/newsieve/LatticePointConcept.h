@@ -61,7 +61,6 @@ template<class LatticePoint> struct LatticePointTraits
   using Trait_AbsoluteCoos = std::false_type;
   using Trait_CheapNorm2 = std::false_type;
   using Trait_CheapNegate = std::false_type;
-//  using Trait_Approximations = std::false_type;
   using Trait_BitApprox = std::false_type;
 
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
@@ -193,57 +192,58 @@ template<class Implementation> class GeneralLatticePoint;
 // (is_detected<Op,Arg1,Arg2,...> equals true_type iff Op<Arg1,Arg2,...> is valid, false_type otherwise).
 // Third, we post-process T_CoosRW into the actual Get_CoosRW by taking dependencies into account
 // Notably, if ExposesCoos && InternalRepByCoos && InternalRep_RW are all true, CoosRW is true as well.
-// The intermediate steps are contained in a helper namespace.
+// The intermediate steps 1 and 2 are contained in a helper namespace.
 
 namespace TraitHelpers
 {
 // These are "predicates" expressed as templates Predicate<T> depending on a type T,
 // where Predicate<T> is a valid expression iff the predicate holds true. This is used in SFINAE.
-// With (my)std::detected<Predicate,T>, such a predicate is be turned into std::true_type/std::false_type
+// With is_detected<Predicate,T>, such a predicate is be turned into std::true_type/std::false_type
 template<class T> using IsTrueType = typename std::enable_if< std::is_same<std::true_type,T>::value >::type;
 template<class T> using LatticePointPredicate = IsTrueType<typename T::LatticePointTag>;
 
-// Declares alias for LatticePointTraits<T>::Trait_TraitName.
-#define OBTAIN_TRAIT_EXPRESSION(TraitName) \
+// Declares alias for LatticePointTraits<T>::Trait_TraitName. Required to use is_detected.
+#define GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(TraitName) \
 template<class T> using Obtain_##TraitName = typename LatticePointTraits<T>::Trait_##TraitName
 
 // Defines Predicate_TraitName as a check whether Trait_TraitName is set to true_type
-#define BINARY_TRAIT_PREDICATE(TraitName) \
+#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName) \
 template<class T> using Predicate_##TraitName= IsTrueType<typename LatticePointTraits<T>::Trait_##TraitName>
 
 // uses (my)std::is_detected to turn the latter into a true/false T_TraitName
-#define BINARY_TRAIT_PREDICATE_GET(TraitName) \
-BINARY_TRAIT_PREDICATE(TraitName); \
+#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(TraitName) \
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName); \
 template<class T> using T_##TraitName = mystd::is_detected<Predicate_##TraitName,T>
 
-BINARY_TRAIT_PREDICATE_GET(ExposesCoos);
-BINARY_TRAIT_PREDICATE_GET(Coos_RW);
-BINARY_TRAIT_PREDICATE_GET(ExposesInternalRep);
-BINARY_TRAIT_PREDICATE_GET(InternalRepLinear);
-BINARY_TRAIT_PREDICATE_GET(InternalRep_RW);
-BINARY_TRAIT_PREDICATE_GET(InternalRepByCoos);
-BINARY_TRAIT_PREDICATE_GET(InternalRepIsAbsolute);
-BINARY_TRAIT_PREDICATE_GET(AbsoluteCoos);
-BINARY_TRAIT_PREDICATE_GET(CheapNorm2);
-BINARY_TRAIT_PREDICATE_GET(CheapNegate);
-BINARY_TRAIT_PREDICATE_GET(Leveled);
-BINARY_TRAIT_PREDICATE_GET(AccessNorm2);
-BINARY_TRAIT_PREDICATE_GET(BitApprox);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(ExposesCoos);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(Coos_RW);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(ExposesInternalRep);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(InternalRepLinear);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(InternalRep_RW);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(InternalRepByCoos);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(InternalRepIsAbsolute);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(AbsoluteCoos);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(CheapNorm2);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(CheapNegate);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(Leveled);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(AccessNorm2);
+GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(BitApprox);
 
 // "Invalid" is set to true_type in the default instantiation of LatticePointTraits. This is used to
 // detect whether we use a specialization.
 template<class T> using Invalid_SieveTrait = IsTrueType<typename LatticePointTraits<T>::Invalid>;
 
-OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType);
-OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType_Full);
-OBTAIN_TRAIT_EXPRESSION(ApproxLevel);
-OBTAIN_TRAIT_EXPRESSION(CoordinateType);
-OBTAIN_TRAIT_EXPRESSION(AbsoluteCooType);
-OBTAIN_TRAIT_EXPRESSION(RepCooType);
+// For Get_Trait<LatticePoint>
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType);
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType_Full);
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(ApproxLevel);
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(CoordinateType);
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(AbsoluteCooType);
+GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(RepCooType);
 
-#undef BINARY_TRAIT_PREDICATE_GET
-#undef BINARY_TRAIT_PREDICATE
-#undef OBTAIN_TRAIT_PREDICATE
+#undef GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET
+#undef GAUSS_SIEVE_BINARY_TRAIT_PREDICATE
+#undef GAUSS_SIEVE_OBTAIN_TRAIT_PREDICATE
 }
 template<class T> using IsALatticePoint                  = mystd::is_detected<TraitHelpers::LatticePointPredicate,T>;
 template<class T> using DeclaresScalarProductStorageType = mystd::is_detected<TraitHelpers::Obtain_ScalarProductStorageType,T>;
