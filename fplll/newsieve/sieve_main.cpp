@@ -1,9 +1,9 @@
-// clang-format off
-
+// seems to be OK with clang-format
 #define USE_REGULAR_QUEUE // only regular queue is implemented for now
                           // For large dimensions priority queue might be faster
 
-#define PROGRESSIVE
+#define PROGRESSIVE   // start using (durint sampling) only dim/2 basis vectors 
+                      // progressively increasing the rank up to dim
 
 
 /*
@@ -32,7 +32,7 @@ static void main_usage(char *myself)
 {
   std::cout << "Usage: " << myself << " [options]\n"
        << "List of options:\n"
-       << "  -k [2|3|]\n"
+       << "  -k [2|3]\n"
        << "     2- or 3-sieve;\n"
        << "  -d nnn\n"
        << "     dimension;\n"
@@ -42,7 +42,7 @@ static void main_usage(char *myself)
        << "     Targeted norm^2=nnn\n"
        << "  -b nnn\n"
        << "     BKZ preprocessing of blocksize=nnn\n"
-       << "  -v\n"
+       << "  -v [0|1|2];\n"
        << "     Verbose mode\n";
   exit(0);
 }
@@ -57,9 +57,9 @@ int main(int argc, char **argv)
   char* input_file_name = NULL;
   bool flag_file = false;
   int opt;
-  int dim;
-  //fplll::Z_NR<mpz_t> target_norm;
-  //target_norm = 0;
+  int dim   = 0;
+  int verb  = 0;
+  
   mpz_class target_norm_conv = 0;
   int k=2;
   int beta=0; //beta = 0 means we run LLL
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
       return -1;
   }
 
-  while ((opt = getopt(argc, argv, "d:t:k:f:b:")) != -1) {
+  while ((opt = getopt(argc, argv, "d:t:k:f:b:v:")) != -1) {
       switch (opt) {
           case 'd':
               dim = atoi(optarg);
@@ -88,7 +88,9 @@ int main(int argc, char **argv)
           case 'b':
               beta = atoi(optarg);
               break;
-          break;
+          case 'v':
+              verb = atoi(optarg);
+              break;
           case 'h':
             main_usage(argv[0]);
             return -1;
@@ -165,8 +167,8 @@ int main(int argc, char **argv)
   using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, fplll::ZZ_mat< mpz_t > >;
   //using Traits = GaussSieve::DefaultSieveTraits<long, multithreaded, -1, fplll::ZZ_mat< mpz_t >>;
   
-  //instantiate the Sieve class with the basis, k-number of tuples, and verbosity
-	Sieve<Traits, multithreaded> test_sieve (B, k, 0);
+  //instantiate the Sieve class with the basis, termination conditions(0), k-number of tuples, and verbosity
+	Sieve<Traits, multithreaded> test_sieve (B, k, 0, verb);
   
   TerminationCondition<Traits,multithreaded> * termcond;
   
@@ -183,7 +185,6 @@ int main(int argc, char **argv)
 
 
   test_sieve.run();
-  std::cout << "sv is " << std::endl;
   test_sieve.print_status();
 
 
@@ -195,4 +196,3 @@ int main(int argc, char **argv)
   return 1;
 }
 
-//clang-format on
