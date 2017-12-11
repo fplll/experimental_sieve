@@ -1,12 +1,15 @@
 #ifndef TRAIT_CHECKS_H
 #define TRAIT_CHECKS_H
 
+#warning This file is deprecated
+
 // This class contains macros used to detect the presence of typedefs inside classes.
 // This used to use some complicated manual SFINAE constructions.
 // Changed to use (indirectly) std::void_t and std::[experimental::]is_detected and friends.
 // (enabled via compat.h)
 
 // This means that this file should not be needed at all anymore and will be removed in the future.
+// It currently is still in use only in automatic testing code and deactivated Lazy.h
 
 /**
 This macro is used to test the presence of a (public) member typedef in a class
