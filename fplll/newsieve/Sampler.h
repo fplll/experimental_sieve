@@ -1,4 +1,6 @@
-// clang-format status: OK
+// clang-format status: NOT OK (reason: templates)
+
+// clang-format off
 
 /**
  This file provided the interface for the lattice point sampler.
@@ -19,6 +21,7 @@
 #include "MTPRNG.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
+#include <random>
 #include "LatticeBases.h"
 
 namespace GaussSieve
@@ -46,7 +49,7 @@ enum class SamplerType
   elliptic_sampler    = 1,  // not implemented
   GPV_sampler         = 2,  // GPVSampler.h
   uniform_sampler     = 3,  // UniformSampler.h
-  GPVExtended_sampler = 4  // GPVSamplerExtended.h
+  GPVExtended_sampler = 4   // GPVSamplerExtended.h
 };
 
 /**
@@ -67,9 +70,8 @@ IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any
 */
 
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
-// clang-format off
 
-template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
+template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
 {
 public:
   using GaussSampler_ReturnType = typename SieveTraits::GaussSampler_ReturnType;
@@ -86,7 +88,7 @@ public:
 
   // We call init first, then custom_init (via init).
   inline void init(Sieve<SieveTraits, MT> *const sieve,
-    SieveLatticeBasis<SieveTraits,MT> const & input_basis );
+                   SieveLatticeBasis<SieveTraits, MT> const &input_basis);
   virtual ~Sampler() = 0;  // needs to be virtual
 
 #ifdef PROGRESSIVE
@@ -110,9 +112,8 @@ public:
   */
   virtual SamplerType sampler_type() const { return SamplerType::user_defined; };
 
-  virtual GaussSampler_ReturnType sample(int const thread = 0) = 0;  // thread is the index of the calling
-                                                               // thread (we need to keep separate
-                                                               // PRNGs for each thread)
+  // thread is the index of the calling thread (we need to keep separate PRNGs for each thread)
+  virtual GaussSampler_ReturnType sample(int const thread = 0) = 0;
 
   // TODO : Allow sampling in subspaces, updating basis.
 
@@ -130,11 +131,11 @@ private:
 
 
 protected:
-  MTPRNG<Engine, MT, Sseq> engine;  // or engines
+  MTPRNG<Engine, MT, Sseq> engine;   // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 
 #ifdef PROGRESSIVE
-  uint_fast16_t progressive_rank; // progressive rank. We may want to sample only from a sublattice.
+  uint_fast16_t progressive_rank;  // In case we sample from a sublattice.
 #endif
 
 };
