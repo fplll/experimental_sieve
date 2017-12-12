@@ -1,3 +1,5 @@
+// clang-format status: OK
+
 /**
  This file provided the interface for the lattice point sampler.
  To this end, this file provides a virtual interface template class Sampler, from which the actual
@@ -18,7 +20,6 @@
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "LatticeBases.h"
-//#include <cfenv>
 
 namespace GaussSieve
 {
@@ -41,12 +42,11 @@ inline std::istream &operator>>(std::istream &is,
 
 enum class SamplerType
 {
-  user_defined     = 0,
-  elliptic_sampler = 1,
-  shi_sampler      = 2,
-  gauss_sampler    = 3,
-  uniform_sampler  = 4,
-  GPV_sampler      = 5
+  user_defined        = 0,
+  elliptic_sampler    = 1,  // not implemented
+  GPV_sampler         = 2,  // GPVSampler.h
+  uniform_sampler     = 3,  // UniformSampler.h
+  GPVExtended_sampler = 4  // GPVSamplerExtended.h
 };
 
 /**
@@ -89,7 +89,7 @@ public:
     SieveLatticeBasis<SieveTraits,MT> const & input_basis );
   virtual ~Sampler() = 0;  // needs to be virtual
 
-  #ifdef PROGRESSIVE
+#ifdef PROGRESSIVE
   // set_progressive_rank is virtual, so a child might overwrite it, e.g. to update internal data
   // structures or to output diagnostics whenever the progressive rank changes.
   virtual void set_progressive_rank(uint_fast16_t const new_progressive_rank)
@@ -97,7 +97,7 @@ public:
     progressive_rank = new_progressive_rank;
   }
   uint_fast16_t get_progressive_rank() const { return progressive_rank; }
-  #endif
+#endif
 
   /**
   run-time type information.
@@ -133,9 +133,9 @@ protected:
   MTPRNG<Engine, MT, Sseq> engine;  // or engines
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 
-  #ifdef PROGRESSIVE
+#ifdef PROGRESSIVE
   uint_fast16_t progressive_rank; // progressive rank. We may want to sample only from a sublattice.
-  #endif
+#endif
 
 };
 

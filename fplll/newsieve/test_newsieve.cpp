@@ -1,172 +1,221 @@
-// clang-format off
+// clang-format status: OK
 
-#define USE_REGULAR_QUEUE //comment out if you use priority-queue
+#define USE_REGULAR_QUEUE  // only regular queue is implemented for now
+// For large dimensions priority queue might be faster
 
-//#define USE_LSH
-#define PROGRESSIVE // progressive-sieve on
+#define PROGRESSIVE  // start using (durint sampling) only dim/2 basis vectors
+                     // progressively increasing the rank up to dim
 
-//#define USE_APPROXPOINT //<-does not work yet
+/*
+ This provides an implementation of k-tuple Gauss sieving
+ for k=2 and k=3.
+ For developing/testing sieving. Exacly the same as sieve_main.cpp
+ except we define DEBUG_SIEVE_SILENT_ALL here
+
+ Compilation flags are sets as
+ testsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
+
+ */
+
+// enables all silent checks
+#define DEBUG_SIEVE_SILENT_ALL
 
 #include "fplll.h"
 #include <thread>
 #include <chrono>
 #include "SieveGauss_main.h"
-#include <iostream>
-#include <fstream>
-#include <random>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 
-
-
-using namespace fplll;
 using namespace GaussSieve;
 
-template <class ZT> void test_run_sieve(int dim, std::ofstream &ofs)
-{
+/**
+ * help function
+ */
 
+static void main_usage(char *myself)
+{
+  std::cout << "Usage: " << myself << " [options]\n"
+            << "List of options:\n"
+            << "  -k [2|3]\n"
+            << "     2- or 3-sieve;\n"
+            << "  -d nnn\n"
+            << "     dimension;\n"
+            << "  -f filename\n"
+            << "     Filename with input basis\n"
+            << "  -t nnn\n"
+            << "     Targeted norm^2=nnn\n"
+            << "  -b nnn\n"
+            << "     BKZ preprocessing of blocksize=nnn\n"
+            << "  -v [0|1|2];\n"
+            << "     Verbose mode\n";
+  exit(0);
 }
 
+/**
+ * main function
+ */
 
 int main(int argc, char **argv)
 {
+  char *target_norm_string = NULL;
+  char* input_file_name = NULL;
+  bool flag_file = false;
+  int opt;
+  int dim  = 0;
+  int verb = 2;
 
-    char *target_norm_string = NULL;
-    char* input_file_name = NULL;
-    bool flag_file = false;
+  mpz_class target_norm_conv = 0;
+  int k=2;
+  int beta=0; //beta = 0 means we run LLL
+  
+  if (argc < 2)
+  {
+    std::cout << "Please provide the dimension." << std::endl;
+    return -1;
+  }
 
-    int opt, dim = 10;
-    int b = 2;
-    int k = 3;
-    Z_NR<mpz_t> target_norm;
-    mpz_class target_norm_conv;
-    target_norm = 0;
-
-    if (argc == 1)
+  while ((opt = getopt(argc, argv, "d:t:k:f:b:v:")) != -1)
+  {
+    switch (opt)
     {
-        std::cout << "Please provide the dimension." << std::endl;
-        return -1;
+    case 'd':
+      dim = atoi(optarg);
+      break;
+    case 'k':
+      k = atoi(optarg);
+      break;
+    case 't':
+      target_norm_string = optarg;
+      break;
+    case 'f':
+      input_file_name = optarg;
+      flag_file       = true;
+      break;
+    case 'b':
+      beta = atoi(optarg);
+      break;
+    case 'v':
+      verb = atoi(optarg);
+      break;
+    case 'h':
+      main_usage(argv[0]);
+      return -1;
+    case '?':
+      main_usage(argv[0]);
+      return -1;
+    case ':':
+      main_usage(argv[0]);
+      return -1;
     }
-
-    while ((opt = getopt(argc, argv, "d:t:k:b:f:")) != -1) {
-        switch (opt) {
-            case 'd':
-                dim = atoi(optarg);
-                break;
-            case 't':
-                target_norm_string = optarg;
-                break;
-            case 'f':
-                input_file_name = optarg;
-                flag_file = true;
-                break;
-            case 'k':
-                k=atoi(optarg);
-                break;
-            case 'b':
-                b=atoi(optarg);
-            break;
-        }
-    }
-
-    ZZ_mat<mpz_t> B;
-    B.resize(dim, dim);
-
-    if (flag_file) {
-        std::ifstream input_file(input_file_name);
-        if (input_file.is_open()) {
-            std::cout << "reading B from file ..." << std::endl;
-            input_file >> B;
-            input_file.close();
-        }
-    }
-    else {
-        srand (0);
-        //generates GM lattice
-        B.gen_qary_prime(1, 10*dim);
-        
-        std::ofstream outputB;
-        outputB.open("dim="+std::to_string(dim));
-        outputB << B;
-    }
-
-    if (target_norm_string!=NULL)
+  }
+  
+  if (dim==0)
+  {
+    std::cout << "Please, provide the dimension" << std::endl;
+    return -1;
+  }
+  
+  if (target_norm_string!=NULL)
+  {
+    target_norm_conv = mpz_class(target_norm_string);
+  }
+  
+  // ZZ_mat is an integer row-oriented matrix. See /nr/matrix.h
+  fplll::ZZ_mat<mpz_t> B;
+  B.resize(dim, dim);
+  
+  if (flag_file)
+  {
+    std::ifstream input_file(input_file_name);
+    if (input_file.is_open())
     {
-        target_norm.set_str(target_norm_string);
-        target_norm_conv = mpz_class(target_norm_string);
+      std::cout << "reading B from file ..." << std::endl;
+      input_file >> B;
+      input_file.close();
     }
+  }
+  else
+  {
+    srand (1);
+    //generates GM lattice
+    B.gen_qary_prime(1, 10*dim);
+  }
+  
+  /* preprocessing of basis */
+  clock_t stime = clock();
+  if (beta > 0)
+    fplll::bkz_reduction(B, beta, fplll::BKZ_DEFAULT, fplll::FT_DEFAULT, 0);
+  else
+    fplll::lll_reduction(B, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
+  
+  clock_t etime = clock();
+  double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
+  
+  if (beta > 0)
+    std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
+  else
+    std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
 
-    if(target_norm > 0)
-    {
-        std::cout << "target norm set: " << target_norm << std::endl;
-    }
-
-    std::cout << "b = " << b << std::endl;
-
-    /* preprocessing of basis */
-    clock_t stime = clock();
-
-    if (b > 2)
-        bkz_reduction(B, b, BKZ_DEFAULT, FT_DEFAULT, 0);
-    else
-        lll_reduction(B, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER);
-
-    clock_t etime = clock();
-    double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
-
-    if (b > 2)
-        std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
-    else
-        std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
-
-    bool constexpr multithreaded = false;
-
-//    using Traits = GaussSieve::DefaultSieveTraits<long, false, -1>;
-    //using Traits = GaussSieve::DefaultSieveTraits<mpz_class, false, -1>;
-    using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, ZZ_mat< mpz_t > >;
-
-
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-
-	Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
-
-
-    TerminationCondition<Traits,multithreaded> * termcond;
-
-    if (target_norm!=0)
-    {
-        termcond = new LengthTerminationCondition<Traits, multithreaded> (ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
-    }
-    else
-    {
-        termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
-    }
-
-	Test_3Sieve.set_termination_condition(termcond);
-
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  std::cout << "sieve uses approximations with params:" <<std::endl;
-  std::cout << "sim_hash_len = " << GaussSieve::SimHash::sim_hash_len
-            << " num_of_levels = " << GaussSieve::SimHash::num_of_levels <<
-            std::endl;
-  std::cout << "approx_sc_prod bound is: " <<  GaussSieve::SimHash::threshold_lvls_2sieve[0] << std::endl;
+#ifndef USE_REGULAR_QUEUE
+  std::cout << "Use Priority Queue" << std::endl;
+#else
+  std::cout << "Use Standard Queue" << std::endl;
 #endif
+  
+  auto start = std::chrono::high_resolution_clock::now();
+  
+  bool constexpr multithreaded = false;
+  
+  // Define all the types, consts for the sieve
+  // template params are <entry type for sieving, single/multi-threaded, is_dim_fixed, entry type of
+  // reduced B>
+  // here we assume that the entries of reduced B fit in long or int32_t
 
-    Test_3Sieve.run();
-    std::cout << "sv is " << std::endl;
-    Test_3Sieve.print_status();
+  using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, fplll::ZZ_mat<mpz_t>>;
+  // using Traits = GaussSieve::DefaultSieveTraits<long, multithreaded, -1, fplll::ZZ_mat< mpz_t >>;
 
-    auto finish = std::chrono::high_resolution_clock::now();
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-    std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
-    delete termcond;
+  // instantiate the Sieve class with the basis, termination conditions(0), k-number of tuples, and
+  // verbosity
+  Sieve<Traits, multithreaded> test_sieve(B, k, 0, verb);
 
-
+  // This should assert to false but it does not
+  int dim2 = 50;
+  fplll::ZZ_mat<mpz_t> B2;
+  B2.resize(dim2, dim2);
+  B2.gen_qary_prime(1, 10*dim2);
+  fplll::lll_reduction(B2, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
+  
+  Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
+  //Sieve<Traits, multithreaded> Test_3Sieve2 (B2, k, 0);
+  
+  TerminationCondition<Traits,multithreaded> * termcond;
+  
+  if (target_norm_conv!=0)
+  {
+    termcond = new LengthTerminationCondition<Traits, multithreaded>(
+        ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
+  }
+  else
+  {
+    termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
+  }
+  
+  test_sieve.set_termination_condition(termcond);
+  
+  test_sieve.run();
+  test_sieve.print_status();
+  
+  auto finish = std::chrono::high_resolution_clock::now();
+  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+  std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
+  delete termcond;
+  
+  return 1;
 }
 
-//clang-format on
+
+
