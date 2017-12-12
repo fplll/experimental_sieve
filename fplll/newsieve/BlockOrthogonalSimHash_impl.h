@@ -1,6 +1,15 @@
-#pragma once
-#ifndef GAUSS_SIEVE_BITAPPROX_NEW_H
-#error wrong usage
+/**
+  Implementation file for BlockOrthogonalSimHash.h
+*/
+
+// clang-format adjustments finished -- Gotti
+// clang-format off
+
+#ifndef GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_IMPL_H
+#define GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_IMPL_H
+
+#ifndef GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_H
+  #error wrong usage
 #endif
 
 namespace GaussSieve
@@ -18,7 +27,7 @@ BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
   rng.seed(random_seed);  // seed with the input random seed
 
   unsigned int const ambient_dimension = dim;  // Note that this converts dim to an unsigned int.
-  assert(ambient_dimension!=0);
+  assert(ambient_dimension != 0);
 
   // sim_hash_num * sim_hash_len is the total number of required bits in the output simhashes.
   // We need ceil(total number of required bits / ambient_dimension) many repetitions of the input
@@ -27,8 +36,8 @@ BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
   number_of_orthogonal_blocks = ((sim_hash_num * sim_hash_len - 1) / ambient_dimension) + 1;
 
   // fast_walsh_hadamard_len is the largest power of 2 which is <= ambient dimension.
-  fast_walsh_hadamard_loglen  = static_cast<unsigned int>(floor(log2(ambient_dimension)));
-  fast_walsh_hadamard_len     = static_cast<unsigned int>(pow(2, floor(log2(ambient_dimension))));
+  fast_walsh_hadamard_loglen = static_cast<unsigned int>(floor(log2(ambient_dimension)));
+  fast_walsh_hadamard_len    = static_cast<unsigned int>(pow(2, floor(log2(ambient_dimension))));
 
   // pmatrices are a std::vector<std::array<pmatrix<num_of_transforms>>.
   // The outer dimension (of the vector) of given by number_of_orthogonal_blocks. Dito dmatrices.
@@ -40,12 +49,11 @@ BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
   {
     for (unsigned int j = 0; j < num_of_transforms; ++j)
     {
-      pmatrices[i][j] = PMatrix(ambient_dimension,rng);
-      dmatrices[i][j] = DMatrix(ambient_dimension,rng);
+      pmatrices[i][j] = PMatrix(ambient_dimension, rng);
+      dmatrices[i][j] = DMatrix(ambient_dimension, rng);
     }
   }
 }
-
 
 /**
  fast_partial_walsh_hadamard<len>(input) performs (fast) Walsh-Hadamard Transform on the first
@@ -82,14 +90,14 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
     {
       // Note: static_cast<T> is required to be able to use mpz_class, because mpz_class internally
       // uses expression templates (so the types of a+b and a-b don't match for mpz_classes a,b)
-      output[j] = ( (j/i)%2 != 0) ? static_cast<T>(input[j-i] - input[j]  )   // for j/i odd
-                                  : static_cast<T>(input[j]   + input[i+j]);  // for j/i even
+      output[j] = ((j / i) % 2 != 0) ? static_cast<T>(input[j - i] - input[j]    )   // for j/i odd
+                                     : static_cast<T>(input[j]     + input[i + j]);  // for j/i even
     }
     swap(input, output);
   }
 
   const double lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
-  for(uint_fast16_t i = 0; i < len; ++i)
+  for (uint_fast16_t i = 0; i < len; ++i)
   {
     output[i] /= lengthfactor;
   }
@@ -110,7 +118,7 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class T>
 void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
-    faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const
+    faster_almost_partial_walsh_hadamard_inplace(std::vector<T> &input) const
 {
   unsigned int const len = fast_walsh_hadamard_len;
   assert(is_a_power_of_two(len));
@@ -132,8 +140,6 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
   // uses ONE temporary (scalar) variable, as opposed to a temporary matrix. The lower memory foot-
   // print is what gains an order of magnitude in speed.
 
-
-
   // writing the indices in binary, for the WH-Transform, we perform
   // output[****0*****] = input[*****0*****] + input[*****1*****]
   // output[****1*****] = input[*****0*****] - input[*****1*****]
@@ -147,7 +153,6 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
   // use output[****1****] = -input[*****0*****] + input[****1****] to use a single -= operation
   // (this is faster by ~5 -- 10%)
 
-
   // The following 3 versions are equivalent, up to permutation and signs
   // experimentally, the one selected was the fastest on my (Gotti's) machine...
 
@@ -158,19 +163,20 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
   // lower_bits  is 000000****
   // (i.e. the loop variables are already multiplied by the appropriate power of 2)
 
+  // loop order does not matter (up to sign/permutation)
   for (uint_fast16_t i = len >> 1; i > 0; i >>= 1)
-//  for (uint_fast16_t i = 1; i < len; i<<=1) // loop order does not matter (up to sign/permutation)
+  // for (uint_fast16_t i = 1; i < len; i <<= 1)
   {
     // this order of the 2 inner loops is 5-10% faster. No idea why.
-    for(uint_fast16_t lower_bits = 0; lower_bits < i; ++lower_bits)
+    for (uint_fast16_t lower_bits = 0; lower_bits < i; ++lower_bits)
     {
-      for(uint_fast16_t higher_bits =0; higher_bits < len; higher_bits += (2*i) )
+      for (uint_fast16_t higher_bits = 0; higher_bits < len; higher_bits += (2 * i))
       {
         // Note all + in the indices are the same as XOR's
-        tmp = input[higher_bits+0+lower_bits];
-        input[higher_bits+0+lower_bits]+=input[higher_bits+i+lower_bits];
-//       input[higher_bits+i+lower_bits] =tmp - input[higher_bits+i+lower_bits];   // <- WH trafo
-        input[higher_bits+i+lower_bits]-=tmp;  //  <- 5-10% faster.
+        tmp = input[higher_bits + 0 + lower_bits];
+        input[higher_bits + 0 + lower_bits] += input[higher_bits + i + lower_bits];
+//        input[higher_bits+i+lower_bits] = tmp - input[higher_bits+i+lower_bits];   // <- WH trafo
+        input[higher_bits + i + lower_bits] -= tmp;  //  <- 5-10% faster.
       }
     }
   }
@@ -211,7 +217,7 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
   */
 
   double const lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
-  for(uint_fast16_t i = 0; i < len; ++i)
+  for (uint_fast16_t i = 0; i < len; ++i)
   {
     input[i] /= lengthfactor;
   }
@@ -256,7 +262,7 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      if ( j < num_of_transforms - 1 )  // on the last iteration, we do not perform a WH - trafo
+      if (j < num_of_transforms - 1)  // on the last iteration, we do not perform a WH - trafo
       {
         faster_almost_partial_walsh_hadamard_inplace(blocks[i]);
       }
@@ -301,8 +307,7 @@ PMatrix::PMatrix(unsigned int dim, std::mt19937 &rng)
 /**
   Applies stored permutation to a vector.
 */
-template<class T>
-inline void PMatrix::apply(std::vector<T> &vec) const
+template<class T> inline void PMatrix::apply(std::vector<T> &vec) const
 {
   auto const dim = vec.size();
   assert(dim == permutation.size());
@@ -381,233 +386,5 @@ inline void DMatrix::print(std::ostream &os) const
 
 }  // end namespace GaussSieve
 
-
-/**
-  UNUSED CODE STARTS HERE:
-*/
-
-
-/*
-// unused, did not incorporate recent changes.
-// (unused) variant of the above function, for arrays instead of vectors.
-template<class T, std::size_t arraylen>
-inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned int const len)
-    -> std::array<T,arraylen>
-{
-  using std::swap;
-  assert(std::bitset< std::numeric_limits<unsigned long>::digits>{len}.count() == 1);
-  assert(len <= arraylen);
-  std::array<T,arraylen> output{}; // assumes that entries are default-constructible.
-
-  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the unmodified coos.
-  for (uint_fast16_t i = len; i < arraylen; ++i)
-  {
-    input [i] = static_cast<T>(input[i] * lengthfactor);
-    output[i] = input[i];
-  }
-
-  for (uint_fast16_t i = len >> 1; i > 0; i >>= 1)
-  {
-    for (uint_fast16_t j = 0; j < len; j++)
-    {
-      // Note: static_cast<T> is required to be able to use mpz_class, because mpz_class internally
-      // uses expression templates (so the types of a+b and a-b don't match for mpz_classes a,b)
-      output[j] = ( (j/i)%2 != 0) ? static_cast<T>(input[j-i] - input[j]  )   // for j/i odd
-                                  : static_cast<T>(input[j]   + input[i+j]);  // for j/i even
-    }
-    swap(input, output);
-  }
-  return output;
-}
-*/
-
-#if 0  // deactivated
-template<class SieveTraits, bool MT>
-template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto BlockOrthogonalSimHash<SieveTraits,MT>::transform_and_bitapprox_2nd_layer(LatP const &point)
-    -> SimHashes<SieveTraits,MT>
-{
-  using std::abs;
-  using std::max;
-  unsigned int const dim = static_cast<unsigned int>(point.get_dim());
-
-  using ET    = Get_AbsoluteCooType<LatP>;
-  using Block = std::vector<ET>;  // will be of length dim.
-  Block copy_of_point(dim);
-  for (unsigned int i = 0; i < dim; ++i)
-  {
-    copy_of_point[i] = point.get_absolute_coo(i);
-  }
-  std::vector<Block> blocks(number_of_orthogonal_blocks, std::move(copy_of_point));
-
-  for (uint_fast16_t i = 0; i < number_of_orthogonal_blocks; ++i)  // for each block:
-  {
-    for (uint_fast8_t j = 0; j < num_of_transforms; ++j)  // repeat num_of_transforms many times:
-    {
-      pmatrices[i][j].apply(blocks[i]);
-      dmatrices[i][j].apply(blocks[i]);
-      blocks[i] = fast_partial_walsh_hadamard(blocks[i], fast_walsh_hadamard_len);
-    }
-  }
-  // put together the blocks into an array of bitsets.
-  SimHashes<SieveTraits,MT> ret;
-  for (unsigned int n = 0; n < sim_hash_num ; ++n)
-  {
-    // maximal entry of the outbut block.
-    // Note: The walsh-hadamard transform used above is not normalized, so the elements are larger
-    // than the original vector. That's why we do not compare to norm2() currently.
-    // TODO : Reconsider the point where we change the sign. Currently, it's at
-    // half the maximal entry. This may not be ideal.
-    /*
-    ET maxentry = 0;
-    for (unsigned int m = 0; m < sim_hash_len; ++m)
-    {
-      unsigned int const flat_bit_count = n * sim_hash_len + m;
-      maxentry = max(maxentry, static_cast<ET>(abs(blocks[flat_bit_count / dim][flat_bit_count % dim])));
-    }
-    */
-    ET const norm2 = point.get_norm2();
-
-    for (unsigned int m = 0; m < sim_hash_len; ++m)
-    {
-      // index of the bit currently considered
-      // if we use only one level of indexing.
-      unsigned int const flat_bit_count = n * sim_hash_len + m;
-      ret[n][m] = ( blocks[flat_bit_count / dim][flat_bit_count % dim]
-                  * blocks[flat_bit_count / dim][flat_bit_count % dim] * dim * 6 > norm2);
-    }
-//    std::cout << ret[0].count() << std::endl << std::flush;
-  }
-  return ret;
-}
-#endif // 0
-
-/*
-template<class SieveTraits, bool MT>
-template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto BlockOrthogonalSimHash<SieveTraits,MT>::transform_and_bitapprox_simple(LatP const &point)
-    -> std::array< std::bitset<sim_hash_len>,num_of_levels >
-{
-  using ET    = Get_AbsoluteCooType<LatP>;
-  ET res;
-
-  std::array< std::bitset<sim_hash_len>, num_of_levels > ret;
-  for (unsigned int i = 0; i < num_of_levels; ++i)
-  {
-    for (unsigned int j = 0; j < sim_hash_len; ++j)
-    {
-      for (unsigned int k=0; k < SimHash::num_of_coos; ++k)
-      {
-        uint_fast16_t coo = BlockOrthogonalSimHash<SieveTraits,MT>::rmatrices[i].get_value(i, k);
-        res+=point[coo];
-      }
-      ret[i][j] = res>0;
-
-    }
-
-  }
-  return ret;
-
-}
- */
-
-
-/** OLD UNUSED CODE
-*/
-
-/*
-// helpers for the function below, do not use.
-namespace GaussSieve{ namespace SimHash { namespace Helpers{
-template<int SizeOfBitSet> struct MakeBitApprox_Helper
-{
-  static_assert(SizeOfBitSet >= 0, "Only for fixed-size bit-sets.");
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline std::bitset<SizeOfBitSet> compute_bitapproximation(LatP const &point)
-  {
-    auto const dim = point.get_dim();
-    static_assert(dim == SizeOfBitSet, "size of bitset must equal fixed ambient dim of vector");
-    std::bitset<SizeOfBitSet> ret;
-    for (uint_fast16_t i = 0; i < dim; ++i)
-    {
-      ret[i] = (point.get_absolute_coo(i) >= 0) ? 1 : 0;
-    }
-    return ret;
-  }
-};
-
-// variable-dim version:
-template<> struct MakeBitApprox_Helper<-1>
-{
-  template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
-  static inline boost::dynamic_bitset<> compute_bitapproximation(LatP const &point)
-  {
-    auto const dim = point.get_dim();
-    boost::dynamic_bitset<> ret{ static_cast<size_t>(dim) };
-//    ret.resize(dim);
-    for (uint_fast16_t i = 0; i < dim; ++i)
-    {
-      ret[i] = (point.get_absolute_coo(i) >= 0) ? 1 : 0;
-    }
-    return ret;
-  }
-};
-}}} // end namespaces GaussSieve::SimHash::Helpers
-*/
-
-
-/**
-  compute_coordinate_wise_bitapproximation<length>(point)
-  computes the coordinate wise 1-bit-approximation of the lattice point point.
-  It returns a std::bitset<length> for lenght>= 0 or boost::dynamic_bitset for length == -1.
-  Currently, the length parameter (if >=0) has to match the (fixed!) dimension of the lattice point.
-  For length==1, the dynamic_bitset that is returned has length equal to the dimension of point.
-*/
-
-/*
-namespace GaussSieve{ namespace SimHash{
-template<int SizeOfBitSet, class LatP>
-auto compute_coordinate_wise_bitapproximation(LatP const &point)
-    -> decltype(  Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation( std::declval<LatP>() )  )
-{
-  static_assert(IsALatticePoint<mystd::decay_t<LatP>>::value,"Not a lattice point.");
-  return Helpers::MakeBitApprox_Helper<SizeOfBitSet>::compute_bitapproximation(point);
-}
-}}// end namespace GaussSieve::SimHash
-*/
-
-
-/*
-namespace GaussSieve{ namespace SimHash{
-
-// assume sim_hash2_len is a power-of-two.
-
-// deprecated. Use fast_partial_walsh_hadamard instead.
-template<class T>
-[[deprecated]] inline std::vector<T> fast_walsh_hadamard_ext(std::vector<T> input, unsigned int len)
-{
-  std::vector<T> output (input.size());
-  std::vector<T> tmp = input;
-  uint_fast16_t i, j, s;
-
-  for (i = (len >> 1); i > 0; i >>= 1)
-  {
-    for (j = 0; j < len; j++)
-    {
-      s = (j/i)%2;
-      output[j]=input[(s?-i:0)+j]+(s?-1:1)*input[(s?0:i)+j];
-    }
-    //tmp = inp; inp = out; out = tmp;
-    std::swap(input, output);
-  }
-
-  //lower matrix with 1's on the main diag
-  for (i = len; i < output.size(); ++i)
-  {
-    output[i] = tmp[i];
-  }
-
-  return output;
-}
-
-}}  // end namespace GaussSieve::SimHash
-*/
+#endif  // include guard
+// clang-format on

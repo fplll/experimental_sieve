@@ -1,7 +1,8 @@
-#ifndef GAUSS_SIEVE_BITAPPROX_NEW_H
-#define GAUSS_SIEVE_BITAPPROX_NEW_H
+#ifndef GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_H
+#define GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_H
 
-// TODO: Rename file
+// clang-format adjustments finished -- Gotti
+// clang-format off
 
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
@@ -182,6 +183,9 @@ private:
 
 }  // end namespace GaussSieve
 
+// implementation file
 #include "BlockOrthogonalSimHash_impl.h"
 
 #endif  // include guards
+
+// clang-format on
