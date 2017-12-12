@@ -7,14 +7,15 @@
 
 namespace GaussSieve{
 
-//We may always assumed that SieveJoint.cpp is prepended before this file
+// We may always assumed that SieveJoint.cpp is prepended before this file
+// This file collects utility functions that are called from sieving routines
+ 
+  
 
-
-//class next_block;
-//using namespace LatticeApproximations; // to be able to use ApproxTypeNorm2 to store inner-produces scaled by length
-
-//class main_list;
-
+/*
+  Checks if newvector is shorter that the shortest_vector_found
+  If yes, updates the shortest_vector_found
+ */
 template<class SieveTraits>
 bool Sieve<SieveTraits,false>::update_shortest_vector_found(FastAccess_Point const & newvector)
 {
@@ -42,7 +43,6 @@ typename Sieve<SieveTraits,false>::LengthType Sieve<SieveTraits,false>::get_best
 template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 {
     if (verbosity >=2) std::cout << "the shortest vector in the input basis has norm2 = " << get_shortest_vector_found().get_norm2() << std::endl;
-    //int MaxIteration = 8000;
     if (term_cond==nullptr)
     {
         if (verbosity >=1) std::cerr << "No termination condition set. Aborting.";
@@ -71,7 +71,6 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 
 template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 {
-//    typename SieveTraits::GaussQueue_ReturnType p;
   int i=0;
 
   std::cout << "start 2-sieve " << std::endl;
@@ -83,28 +82,16 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 
   while (!check_if_done() )
   {
-
 #ifdef PROGRESSIVE
     if ((progressive_rank < lattice_rank)  && check_if_enough_short_vectors() )
     {
       increase_progressive_rank();
     }
 #endif
-  //convert here???
-
-//        GaussSieve::FastAccess_Point<ET, false, nfixed> p_converted (std::move(p));
     typename SieveTraits::FastAccess_Point p = main_queue.true_pop(); // may need conversion.
-  //typename SieveTraits::FastAccess_Point p = static_cast<typename SieveTraits::GaussList_StoredPoint>(main_queue.true_pop());
-//        Sieve<ET,false,nfixed>::sieve_2_iteration(p_converted);
-//        std::cout << p << std::endl << std::flush;
 
-#ifdef USE_LSH
-    hash_sieve_2_iteration(p);
-#else
     sieve_2_iteration(p);
-#endif
-
-    ++i;
+    ++i; //TODO: move '1000' to TypeDefs
     if (( i % 1000 == 0) && (verbosity >=2))
     {
     // STAT_MARK
@@ -140,7 +127,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
 
     sieve_3_iteration(p);
 
-    ++i;
+    ++i; //TODO: move '1000' to TypeDefs
     if (( i % 1000 == 0) && (verbosity >=2))
     {
       std::cout << "[" << i << "]"
