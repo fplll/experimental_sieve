@@ -8,8 +8,8 @@ namespace GaussSieve
 namespace SimHashNew
 {
 
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
-CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
+CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     CoordinateSelection(DimensionType const dim, unsigned int random_seed)
 {
   std::mt19937 rng;
@@ -20,14 +20,14 @@ CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
 // (X-1)/ Y + 1 is the same as ceil(X/Y)
   unsigned int const ambient_dimension = dim;
   assert(ambient_dimension!=0);
-  number_of_blocks =((sim_hash_num * sim_hash_len - 1) / ambient_dimension) + 1;
+  number_of_orthogonal_blocks =((sim_hash_num * sim_hash_len - 1) / ambient_dimension) + 1;
   fast_walsh_hadamard_loglen = static_cast<unsigned int>(floor(log2(ambient_dimension)));
   fast_walsh_hadamard_len =
       static_cast<unsigned int>(    pow(  2,  floor(log2(ambient_dimension))  )    );
 
-  pmatrices.resize(number_of_blocks);
-  dmatrices.resize(number_of_blocks);
-  for (unsigned int i = 0; i < number_of_blocks; ++i)
+  pmatrices.resize(number_of_orthogonal_blocks);
+  dmatrices.resize(number_of_orthogonal_blocks);
+  for (unsigned int i = 0; i < number_of_orthogonal_blocks; ++i)
   {
     for (unsigned int j = 0; j < num_of_transforms; ++j)
     {
@@ -49,9 +49,9 @@ CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
  TODO: Change the scaling?
 */
 
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class T>
-inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
+inline auto CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>
 {
@@ -62,8 +62,7 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
 
   using std::swap;
   // len must be a power of two:
-  assert(std::bitset< std::numeric_limits<unsigned long>::digits >{len}.count() == 1);
-  // static_assert(is_a_power_of_two(len), "len must be a power of two");
+  assert(is_a_power_of_two(len));
   assert(len <= input.size());  // maybe static
   std::vector<T> output(input.size());
 
@@ -95,13 +94,13 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
   return output;
 }
 
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class T>
-void inline CoordinateSelection<sim_hash_len_arg, sim_hash_num_arg, MT, DimensionType>::
+void inline CoordinateSelection<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
     faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const
 {
   unsigned int const len = fast_walsh_hadamard_len;
-  assert(std::bitset< std::numeric_limits<unsigned long>::digits >{len}.count() == 1);
+  assert(is_a_power_of_two(len));
   assert(len <= input.size());  // maybe static
 
 
@@ -187,9 +186,9 @@ void inline CoordinateSelection<sim_hash_len_arg, sim_hash_num_arg, MT, Dimensio
 }
 
 
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionType>::
+inline auto CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     compute_all_bitapproximations(LatP const &point) const -> SimHashes
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
@@ -202,11 +201,11 @@ inline auto CoordinateSelection<sim_hash_len_arg,sim_hash_num_arg,MT,DimensionTy
     copy_of_point[i] = point.get_absolute_coo(i);
   }
 
-  // initialize blocks by number_of_blocks many copies of the input point.
-  std::vector<Block> blocks(number_of_blocks, std::move(copy_of_point));
+  // initialize blocks by number_of_orthogonal_blocks many copies of the input point.
+  std::vector<Block> blocks(number_of_orthogonal_blocks, std::move(copy_of_point));
 
   // each block gets transformed by applying WH * D * P num_transform many times.
-  for (uint_fast16_t i = 0; i < number_of_blocks; ++i)  // for each block:
+  for (uint_fast16_t i = 0; i < number_of_orthogonal_blocks; ++i)  // for each block:
   {
     for (uint_fast8_t j = 0; j < num_of_transforms; ++j)  // repeat num_of_transforms many times:
     {
@@ -374,9 +373,9 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
   {
     copy_of_point[i] = point.get_absolute_coo(i);
   }
-  std::vector<Block> blocks(number_of_blocks, std::move(copy_of_point));
+  std::vector<Block> blocks(number_of_orthogonal_blocks, std::move(copy_of_point));
 
-  for (uint_fast16_t i = 0; i < number_of_blocks; ++i)  // for each block:
+  for (uint_fast16_t i = 0; i < number_of_orthogonal_blocks; ++i)  // for each block:
   {
     for (uint_fast8_t j = 0; j < num_of_transforms; ++j)  // repeat num_of_transforms many times:
     {

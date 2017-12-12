@@ -12,7 +12,6 @@
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
-#include <tuple>
 #include "Lazy.h"
 #include "GlobalStaticData.h"
 #include "PlainLatticePoint.h"

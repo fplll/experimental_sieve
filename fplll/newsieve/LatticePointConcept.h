@@ -3,14 +3,8 @@
 
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
-#include <cmath>
-#include <cstdint>
 #include <gmpxx.h>
-#include <array>
 #include "GlobalStaticData.h"
-
-#include <bitset> //for approximation
-//#include <boost/dynamic_bitset.hpp> //for approximation
 
 // clang-format off
 
@@ -199,7 +193,7 @@ namespace TraitHelpers
 // These are "predicates" expressed as templates Predicate<T> depending on a type T,
 // where Predicate<T> is a valid expression iff the predicate holds true. This is used in SFINAE.
 // With is_detected<Predicate,T>, such a predicate is be turned into std::true_type/std::false_type
-template<class T> using IsTrueType = typename std::enable_if< std::is_same<std::true_type,T>::value >::type;
+template<class T> using IsTrueType = mystd::enable_if_t< std::is_same<std::true_type,T>::value >;
 template<class T> using LatticePointPredicate = IsTrueType<typename T::LatticePointTag>;
 
 // Declares alias for LatticePointTraits<T>::Trait_TraitName. Required to use is_detected.

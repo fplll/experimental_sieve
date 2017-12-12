@@ -1,10 +1,6 @@
 #ifndef GAUSS_SIEVE_BITAPPROX_NEW_H
 #define GAUSS_SIEVE_BITAPPROX_NEW_H
 
-#include <bitset>
-//#include <boost/dynamic_bitset.hpp> // maybe remove at some point.
-#include <random>
-#include <math.h> //for log2, sqrt
 
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
@@ -16,21 +12,8 @@ namespace GaussSieve
 namespace SimHashNew
 {
 
-/*****************************************************************************
-is_a_power_of_two(n) checks whether n is a power of 2.
-Slow, but designed for use in static asserts
-(This is why it's a recursive one-line function, to be C++11 - constexpr)
-******************************************************************************/
-
-template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-constexpr bool is_a_power_of_two(Integer const n)
-{
-  // one-line function to be C++11 - constexpr. Slow, but only used in static_asserts anyway.
-  return (n > 0) && ( (n == 1) || ( (n%2 == 0) && is_a_power_of_two(n/2) ) );
-}
-
 // forward declarations:
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType>
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 class CoordinateSelection;
 template<class CooSelection> class ObtainSimHashBlock;
 
@@ -94,19 +77,19 @@ TODO: Update documentation to reflect refactoring due to inclusion into main lis
 
 // Note args should be size_t, because that is what std::bitset and std::array expect
 // (Otherwise, certain templates might not work)
-template<std::size_t sim_hash_len_arg, std::size_t sim_hash_num_arg, bool MT, class DimensionType> // Nfixed?
+// Note: The _arg suffix is used to be able to mirror the template argument in a local typedef.
+template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg> // Nfixed?
 class CoordinateSelection
 {
 public:
+  using IsCooSelection = std::true_type;
+  static_assert(is_a_power_of_two_constexpr(sim_hash_len),"");
   static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
-  static std::size_t constexpr sim_hash_num = sim_hash_num_arg;
-  static std::size_t constexpr sim_hash_len = sim_hash_len_arg;
-  static_assert(is_a_power_of_two(sim_hash_len),"");
   using SimHashBlock  = std::bitset<sim_hash_len>;
   using SimHashes     = std::array<SimHashBlock,sim_hash_num>;
-  using Get_DimensionType = DimensionType;
-
-  static_assert(MT==false,""); using SimHashesForList = SimHashes; // TODO!
+  using DimensionType = DimensionType_arg;
+  static std::size_t constexpr get_sim_hash_num() { return sim_hash_num; }
+  static std::size_t constexpr get_sim_hash_len() { return sim_hash_len; }
 
   CoordinateSelection() = default;
   CoordinateSelection(DimensionType const dim, unsigned int random_seed);
@@ -120,6 +103,7 @@ public:
   // TODO: static_assert those conditions.
 
 private:
+
   template<class T>
   [[deprecated]] // use faster_partial_walsh_hadamard, which performs inplace operation.
   auto inline fast_partial_walsh_hadamard(std::vector<T> input) const
@@ -131,7 +115,7 @@ private:
   template<class T>
   void inline faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const;
 
-  unsigned int number_of_blocks;  // TODO: rename
+  unsigned int number_of_orthogonal_blocks;  // TODO: rename
   unsigned int fast_walsh_hadamard_len;
   unsigned int fast_walsh_hadamard_loglen;
   std::vector< std::array<PMatrix,num_of_transforms> > pmatrices;

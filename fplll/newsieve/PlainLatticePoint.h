@@ -5,8 +5,6 @@
 
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
-#include <array>
-#include <vector>
 #include "GlobalStaticData.h"
 
 namespace GaussSieve

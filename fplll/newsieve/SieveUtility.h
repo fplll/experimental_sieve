@@ -1,11 +1,12 @@
 // This file contains utility (boilerplate) functions and classes only. It should not have
 // dependencies on other files within the Gauss Sieve and be header-only.
 
+// TODO: Merge file with version on my laptop. Forgot to push sth.
+
 #ifndef GAUSS_SIEVE_UTILITY_H
 #define GAUSS_SIEVE_UTILITY_H
 
 #include "DefaultIncludes.h"
-#include <istream>
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
@@ -23,6 +24,23 @@ template<class Integer> struct ConvertMaybeMPZ;
 template<class T> class UnZNR;
 }
 
+/*****************************************************************************
+is_a_power_of_two(n) checks whether n is a power of 2.
+The constexpr version may be slow; it is designed for use in static asserts
+(This is why it's a recursive one-line function, to be C++11 - constexpr)
+******************************************************************************/
+template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+constexpr bool is_a_power_of_two_constexpr(Integer const n)
+{
+  // one-line function to be C++11 - constexpr. Slow, but only used in static_asserts anyway.
+  return (n > 0) && ( (n == 1) || ( (n%2 == 0) && is_a_power_of_two_constexpr(n/2) ) );
+}
+template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>, std::is_unsigned<Integer>)>
+CPP14CONSTEXPR bool is_a_power_of_two(Integer const n)
+{
+  // essentially performs a popcount and checks whether it's 1.
+  return std::bitset< std::numeric_limits<Integer>::digits >{n}.count() == 1;
+}
 
 namespace GaussSieve
 {

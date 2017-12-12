@@ -4,10 +4,6 @@
 
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
-#include <mutex>
-#include <atomic>
-#include <queue>
-#include <random>
 //#include "LatticePoint.h"
 //#include "LatticePointsNew.h"
 #include "Typedefs.h"

@@ -15,8 +15,6 @@ Header-only
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-#include <random>
-#include <vector>
 
 namespace GaussSieve
 {
@@ -63,7 +61,7 @@ Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                         double const maxdeviation);
 template <class Engine>
 int sample_uniform (int max_val, Engine &engine);
-  
+
 
 /**
 The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
@@ -310,7 +308,7 @@ inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &e
     }
   }
 }
-  
+
 // Samples uniformly at random from the interval [0, max_val];
 template <class Engine>
 inline int sample_uniform(int max_val, Engine &engine)

@@ -269,6 +269,8 @@ using detected_or_t = typename detected_or<Default, Op, Args...>::type;
 
 #endif
 
+template<bool B, class T = void>
+using enable_if_t = typename std::enable_if<B,T>::type;
 
 }  // end namespace mystd
 }  // end namespace GaussSieve

@@ -5,11 +5,7 @@
 
 #include "DefaultIncludes.h"
 
-#include <mutex>
-#include <atomic>
-#include <forward_list>
-#include <queue>
-#include <stack>
+
 #include "Typedefs.h"
 #include <list>
 #include "SieveUtility.h"

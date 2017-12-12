@@ -10,8 +10,6 @@
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
-#include <array>
-#include <vector>
 #include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
 

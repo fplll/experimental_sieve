@@ -5,10 +5,7 @@
 #include "GlobalStaticData.h"
 #include "SieveUtility.h"
 #include "gmpxx.h"
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <vector>
+
 
 /**
   This defines a lattice point approximation, where the approximation consists of
