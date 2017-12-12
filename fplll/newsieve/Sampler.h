@@ -1,3 +1,5 @@
+// clang-format status: OK
+
 /**
  This file provided the interface for the lattice point sampler.
  To this end, this file provides a virtual interface template class Sampler, from which the actual
@@ -42,10 +44,10 @@ inline std::istream &operator>>(std::istream &is,
 enum class SamplerType
 {
   user_defined        = 0,
-  elliptic_sampler    = 1, //not implemented
-  GPV_sampler         = 2, //GPVSampler.h
-  uniform_sampler     = 3, //UniformSampler.h
-  GPVExtended_sampler = 4  //GPVSamplerExtended.h
+  elliptic_sampler    = 1,  // not implemented
+  GPV_sampler         = 2,  // GPVSampler.h
+  uniform_sampler     = 3,  // UniformSampler.h
+  GPVExtended_sampler = 4  // GPVSamplerExtended.h
 };
 
 /**
