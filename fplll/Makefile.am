@@ -76,12 +76,12 @@ latsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
 # newlatsieve bin
 newlatsieve_SOURCES=newsieve/sieve_main.cpp
 newlatsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
-newlatsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
+# newlatsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 
 #testsieve bin
 testsieve_SOURCES=newsieve/test_newsieve.cpp
 testsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
-#testsieve_CXXFLAGS= -pg
+testsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 
 #thresholdcheck bin
 thresholdcheck_SOURCES=newsieve/threshold_check.cpp

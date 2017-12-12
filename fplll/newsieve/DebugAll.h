@@ -13,9 +13,6 @@
 // Used to track which functions get called.
 // #define DEBUG_SIEVE_LP_TRACEGENERIC
 
-// enables all silent checks
-#define DEBUG_SIEVE_SILENT_ALL
-
 // verbose output for Lazy
 #define DEBUG_SIEVE_LAZY_ALL
 
