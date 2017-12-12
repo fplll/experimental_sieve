@@ -9,8 +9,8 @@ namespace SimHashNew
 {
 
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
-    CoordinateSelection(DimensionType const dim, unsigned int random_seed)
+BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
+    BlockOrthogonalSimHash(DimensionType const dim, unsigned int random_seed)
 {
   std::mt19937 rng;
   rng.seed(random_seed);
@@ -51,7 +51,7 @@ CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
 
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class T>
-inline auto CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
+inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>
 {
@@ -96,7 +96,7 @@ inline auto CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>:
 
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class T>
-void inline CoordinateSelection<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
+void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
     faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const
 {
   unsigned int const len = fast_walsh_hadamard_len;
@@ -188,7 +188,7 @@ void inline CoordinateSelection<sim_hash_len, sim_hash_num, MT, DimensionType_ar
 
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
+inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     compute_all_bitapproximations(LatP const &point) const -> SimHashes
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
@@ -359,7 +359,7 @@ inline auto fast_partial_walsh_hadamard(std::array<T,arraylen> input, unsigned i
 #if 0  // deactivated
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_layer(LatP const &point)
+inline auto BlockOrthogonalSimHash<SieveTraits,MT>::transform_and_bitapprox_2nd_layer(LatP const &point)
     -> SimHashes<SieveTraits,MT>
 {
   using std::abs;
@@ -420,7 +420,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_2nd_lay
 /*
 template<class SieveTraits, bool MT>
 template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(LatP const &point)
+inline auto BlockOrthogonalSimHash<SieveTraits,MT>::transform_and_bitapprox_simple(LatP const &point)
     -> std::array< std::bitset<sim_hash_len>,num_of_levels >
 {
   using ET    = Get_AbsoluteCooType<LatP>;
@@ -433,7 +433,7 @@ inline auto CoordinateSelection<SieveTraits,MT>::transform_and_bitapprox_simple(
     {
       for (unsigned int k=0; k < SimHash::num_of_coos; ++k)
       {
-        uint_fast16_t coo = CoordinateSelection<SieveTraits,MT>::rmatrices[i].get_value(i, k);
+        uint_fast16_t coo = BlockOrthogonalSimHash<SieveTraits,MT>::rmatrices[i].get_value(i, k);
         res+=point[coo];
       }
       ret[i][j] = res>0;

@@ -108,7 +108,7 @@ class DefaultSieveTraits
 
   using DimensionType           = MaybeFixed<nfixed>;
 
-  using SimHashGlobalDataType   = SimHashNew::CoordinateSelection<sim_hash_len,sim_hash_num,MT,DimensionType>;
+  using SimHashGlobalDataType   = SimHashNew::BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType>;
   using SimHashBlock            = typename SimHashGlobalDataType::SimHashBlock;
   using SimHashes               = typename SimHashGlobalDataType::SimHashes;
 
@@ -137,7 +137,7 @@ class DefaultSieveTraits
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_out;
   template< class ET, bool MT, int nfixed, class InputBT>
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_out;
-  
+
   template< class ET, bool MT, int nfixed, class InputBT>
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_inn;
   template< class ET, bool MT, int nfixed, class InputBT>

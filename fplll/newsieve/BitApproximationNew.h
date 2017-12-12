@@ -14,7 +14,7 @@ namespace SimHashNew
 
 // forward declarations:
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-class CoordinateSelection;
+class BlockOrthogonalSimHash;
 template<class CooSelection> class ObtainSimHashBlock;
 
 /**
@@ -49,37 +49,11 @@ public:
   inline void print(std::ostream &os = std::cout) const;
 };
 
-/********************************************************************
-SimHash::CoordinateSelection<SieveTraits,IsMultithreaded>
-is a class template holding the data related to bitapproximation.
-
-Notably, it determines the random directions we are using for SimHash.
-This is essentially encoded in a set of orthogonal matrices (up to scaling), each of which is
-(for efficiency reason) defined and stored as a sequence of special matrices (permutations,
-diagonal matrices and the Walsh-Hadamard matrix) that can be applied to a vector fast.
-
-Note: We may template this by the user lattice point class as well or
-store these data inside some other class which uses the data.
-Initializiation is performed by StaticInitializer<CoordinateSelection>.
-This is called by ExactLatticePoint at the moment, but this is subject
-to change.
-
-Note2: Template arguments are subject to change.
-
-Note3: Currently, we only use CoordinateSelection<void,false>
-       This will change once control over bitapproximations is moved into the main list.
-
-TODO: Consider writing a wrapper around either a std::bitset or a std::dynamic_bitset
-      that actually has these as static data and initialize it via the main sieve.
-
-TODO: Update documentation to reflect refactoring due to inclusion into main list
-********************************************************************/
-
 // Note args should be size_t, because that is what std::bitset and std::array expect
 // (Otherwise, certain templates might not work)
 // Note: The _arg suffix is used to be able to mirror the template argument in a local typedef.
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg> // Nfixed?
-class CoordinateSelection
+class BlockOrthogonalSimHash
 {
 public:
   using IsCooSelection = std::true_type;
@@ -91,10 +65,10 @@ public:
   static std::size_t constexpr get_sim_hash_num() { return sim_hash_num; }
   static std::size_t constexpr get_sim_hash_len() { return sim_hash_len; }
 
-  CoordinateSelection() = default;
-  CoordinateSelection(DimensionType const dim, unsigned int random_seed);
-  CoordinateSelection(DimensionType const dim)
-      :CoordinateSelection(dim, std::random_device{}()) {}
+  BlockOrthogonalSimHash() = default;
+  BlockOrthogonalSimHash(DimensionType const dim, unsigned int random_seed);
+  BlockOrthogonalSimHash(DimensionType const dim)
+      :BlockOrthogonalSimHash(dim, std::random_device{}()) {}
 
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline SimHashes compute_all_bitapproximations(LatP const &point) const;
