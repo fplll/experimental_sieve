@@ -41,7 +41,13 @@
 
   For our use of SimHashes, we need to define a class that collects the (usually randomized)
   parameters of the hash functions(s).
-  Such a class CoordinateSelection is called a Coordinate Selection (CooSelection)
+
+  Such a class CoordinateSelection is called a Coordinate Selection (CooSelection).
+  For a typical SimHash, we choose #output_bits many directions v_i and set the i-th bit of H(i) as
+  the sign of <v_i, p>. The parameters of the hash functions then correspond to a selection of v_i's
+  This is why we chose that name.
+  Note that a given class that satisfies this concept might choose the v_i's in a structured, maybe
+  implicit, way and does not need to store such v_i's explicitly (in fact, our choices don't).
 
   A CoordinateSelection is a class (concept) that has the following interface:
   - It has a public member typedef IsCooSelection = std::true_type
@@ -71,7 +77,7 @@
   - it has a public member template function
     SimHashes compute_all_bitapproximations(LatticePoint const &p) const
     After a CoordinateSelection object was created by one of the two mentioned constructors above,
-    this determinstically computes all sim_hashes of the point p. LatticePoint may be any lattice
+    this deterministically computes all sim_hashes of the point p. LatticePoint may be any lattice
     point class (see LatticePointConcept.h for what is a "LatticePoint" in this context).
 */
 

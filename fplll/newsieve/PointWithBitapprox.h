@@ -2,7 +2,7 @@
 #define POINT_WITH_BITAPPROX_H
 
 #include "DefaultIncludes.h"
-#include "GlobalBitApproxData.h"
+#include "SimHash.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
 

@@ -21,7 +21,7 @@
 //#include "ApproximatedPoint.h"
 //#include "EMVApproximation.h"  -- currently unused
 #include "BitApproximationNew.h"
-#include "GlobalBitApproxData.h"
+#include "SimHash.h"
 #include "PointWithBitapprox.h"
 
 

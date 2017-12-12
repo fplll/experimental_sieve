@@ -86,7 +86,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "HyperplaneLSH.h"
 //#include "RelevantCoords.h"
 #include "Statistics.h"
-#include "GlobalBitApproxData.h"
+#include "SimHash.h"
 #include "FilteredPoint2.h"
 
 namespace GaussSieve{

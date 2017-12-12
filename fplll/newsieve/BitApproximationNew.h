@@ -1,13 +1,14 @@
 #ifndef GAUSS_SIEVE_BITAPPROX_NEW_H
 #define GAUSS_SIEVE_BITAPPROX_NEW_H
 
+// TODO: Rename file
 
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
 
 /**
   This files defines the class BlockOrthogonalSimHash, which is a "CoordinateSelection" in the sense
-  explained in GlobalBitApproxData.h
+  explained in SimHash.h
   Roughly, such a CoordinateSelection stores the parameters for and allows the application of a hash
   function H that maps lattice points to sequences of bits (stored as a vector of blocks of bits).
 
@@ -133,7 +134,7 @@ public:
   static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
 
   // required to tell users the type of outputs, required by the interface specified in
-  // GlobalBitApproxData.h
+  // SimHash.h
   using SimHashBlock  = std::bitset<sim_hash_len>;
   using SimHashes     = std::array<SimHashBlock,sim_hash_num>;
   using DimensionType = DimensionType_arg;  // convertible to unsigned int

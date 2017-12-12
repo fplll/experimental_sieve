@@ -8,7 +8,7 @@
 #include "Typedefs.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
-#include "GlobalBitApproxData.h"
+#include "SimHash.h"
 
 namespace GaussSieve{
 
