@@ -115,8 +115,7 @@ public:
 // rnd(thread-number) for thread-number that was was made invalid by the decrease
 // would actually work until reseed is called.
 // This is considered wrong usage of the class and not allowed.
-#ifdef DEBUG_SIEVE_MTPRNG
-    assert(num_threads >= 0);
+#ifdef DEBUG_SIEVE_MTPRNG_THREAD_RANGE
     assert(thread < num_threads);
 #endif
     return engines[thread];

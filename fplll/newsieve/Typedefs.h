@@ -17,9 +17,9 @@
 #include "PlainLatticePoint.h"
 #include "SieveUtility.h"
 #include "GlobalStaticData.h"
-//#include "HashedLatticePoint.h"
-//#include "ApproximatedPoint.h"
-//#include "EMVApproximation.h"  -- currently unused
+// #include "HashedLatticePoint.h"
+// #include "ApproximatedPoint.h"
+// #include "EMVApproximation.h"  // currently unused
 #include "BlockOrthogonalSimHash.h"
 #include "SimHash.h"
 #include "PointWithBitapprox.h"
@@ -35,19 +35,19 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 
 double constexpr list_size_k2 = 0.2075187494;
 double constexpr list_size_k3 = 0.1887218757;
-//double constexpr list_size_k3 = 0.195;
+// double constexpr list_size_k3 = 0.195;
 double constexpr list_size_k4 = 0.1723692862;
 
 
 
 
 // forward-declarations:
-template <class ET, int nfixed> class MyLatticePoint;
-template <class ET, int nfixed> class PlainLatticePoint;
-template <class ET, int nfixed> class ExactLatticePoint;
-template <class ET, int nfixed> class HashedLatticePoint;
-template <class ELP, class Approximation> class VectorWithApproximation;
-template <class ELP, class CooSelection>  class AddBitApproximationToLP;
+template<class ET, int nfixed> class MyLatticePoint;
+template<class ET, int nfixed> class PlainLatticePoint;
+template<class ET, int nfixed> class ExactLatticePoint;
+template<class ET, int nfixed> class HashedLatticePoint;
+template<class ELP, class Approximation> class VectorWithApproximation;
+template<class ELP, class CooSelection>  class AddBitApproximationToLP;
 
 // Note: ET does *not* include Z_NR<...> here
 
@@ -108,7 +108,7 @@ class DefaultSieveTraits
 
   using DimensionType           = MaybeFixed<nfixed>;
 
-  using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType>;
+  using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType>;
   using SimHashBlock            = typename CoordinateSelectionUsed::SimHashBlock;
   using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
 
@@ -130,18 +130,18 @@ class DefaultSieveTraits
 
 };
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_lb;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_2sieve_lb;
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_2sieve_ub;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_2sieve_ub;
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_out;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_3sieve_lb_out;
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_out;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_3sieve_ub_out;
 
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_inn;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_3sieve_lb_inn;
   template< class ET, bool MT, int nfixed, class InputBT>
-  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_inn;
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed,InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed,InputBT>::threshold_lvls_3sieve_ub_inn;
 
 //  template< class ET, bool MT, int nfixed, class InputBT>
 //  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub; = {{64+5,128+8}};

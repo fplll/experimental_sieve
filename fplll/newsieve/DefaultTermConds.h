@@ -4,6 +4,8 @@
   This file provides default and example termination conditions.
 */
 
+// clang-format: currently adheres to clang-format
+
 #ifndef DEFAULT_TERM_CONDS_H
 #define DEFAULT_TERM_CONDS_H
 

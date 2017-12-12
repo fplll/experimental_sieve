@@ -13,8 +13,9 @@
 #include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
 
-#define FOR_FIXED_DIM template <int X = nfixed, typename std::enable_if<X >= 0, int>::type = 0>
-#define FOR_VARIABLE_DIM template <int X = nfixed, typename std::enable_if<X == -1, int>::type = 0>
+// local defines, undef at the end of file, used to enable functions only for (non-)fixed dimension.
+#define FOR_FIXED_DIM    template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy >= 0)>
+#define FOR_VARIABLE_DIM template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy == -1)>
 
 namespace GaussSieve
 {
@@ -53,16 +54,17 @@ class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET
 public:
   friend StaticInitializer< ExactLatticePoint<ET,nfixed> >;
   using LatticePointTag         = std::true_type;
+  // Container type used to store the actual point
   using Container = mystd::conditional_t< (nfixed >= 0),
-            std::array<ET,(nfixed >=0 ? nfixed:0)>,  // if nfixed >= 0
-            std::vector<ET>  >;                     // if nfixed <0
-            // Note : The nfixed >=0 ? nfixed:0 is always nfixed, of course.
+            std::array <ET, (nfixed >=0 ? nfixed : 0)>,  // if nfixed >= 0
+            std::vector<ET>  >;                          // if nfixed <0
+            // Note : The nfixed >=0 ? nfixed : 0 is always nfixed, of course.
             // The ?: expression is only needed to silence compiler errors/warnings.
 
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
   {
-    static_assert(X == nfixed, "");
+    static_assert(nfixed_copy == nfixed, "");  // nfixed_copy from FOR_FIXED_DIM
     return MaybeFixed<nfixed>(nfixed);
   }
 
@@ -74,10 +76,12 @@ public:
   }
 
   FOR_FIXED_DIM
-  explicit ExactLatticePoint() noexcept
+  constexpr explicit ExactLatticePoint() noexcept
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
+#ifdef DEBUG_SIEVE_LP_INIT
     assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
+    // TODO: Turn into an exception and make constexpr.
   }
 
   FOR_VARIABLE_DIM

@@ -198,7 +198,7 @@ static_assert(IsALatticePoint<ELP>::value,"ELP is no lattice point");
 public:
 // forwarding traits from ELP
   using Trait_ScalarProductStorageType = Get_ScalarProductStorageType<ELP>;
-  using Trait_ScalarProductStorageType_Full  = MakeLeveledScalar<Get_ScalarProductStorageType<ELP>>;
+  using Trait_ScalarProductStorageType_Full = MakeLeveledScalar<Get_ScalarProductStorageType<ELP>>;
   using Trait_CoordinateType          = Get_CoordinateType<ELP>;
   using Trait_AbsoluteCoos            = Get_AbsoluteCooType<ELP>;
   using Trait_RepCooType              = Get_RepCooType<ELP>;
@@ -217,7 +217,7 @@ public:
   static_assert(ApproxLevelOf<ELP>::value == 0,"");
   using Trait_Leveled = std::true_type;
   // using Trait_DelayedScalarProduct = std::true_type;
-  using Trait_ApproxLevel          = std::integral_constant<unsigned int, 0>;
+  using Trait_ApproxLevel             = std::integral_constant<unsigned int, 0>;
 };
 
 template<class ELP>

@@ -6,7 +6,6 @@
 #include "SieveUtility.h"
 #include "gmpxx.h"
 
-
 /**
   This defines a lattice point approximation, where the approximation consists of
   a (shared) exponenent and a vector of >= 16-bit mantissas, i.e. we approximate by
@@ -66,7 +65,7 @@ class EMVScalar
 {
 public:
   using HasDefaultStaticInitializer = std::true_type;
-  using MantissaType = typename EMVApproximationTraits::ApproxNorm2Type;
+  using MantissaType                = typename EMVApproximationTraits::ApproxNorm2Type;
   static_assert(std::numeric_limits<MantissaType>::is_specialized, "Wrong ApproxNorm2Type");
 
   int exponent;
