@@ -17,7 +17,7 @@
 #include "ExactLatticePoint.h"
 //#include "HashedLatticePoint.h"
 #include "GaussListBitapprox.h"
-#include "BitApproximationNew.h"
+//#include "BitApproximationNew.h"
 #include "Typedefs.h"
 
 namespace GaussSieve{

@@ -5,7 +5,6 @@
 #include "GlobalBitApproxData.h"
 #include "SieveUtility.h"
 #include "LatticePointConcept.h"
-#include "BitApproximationNew.h"
 
 #define T_IS_ELP static_assert(std::is_same<T,ELP>::value,"Wrong template argument")
 

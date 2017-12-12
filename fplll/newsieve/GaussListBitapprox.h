@@ -5,10 +5,8 @@
 
 #include "DefaultIncludes.h"
 
-
 #include "Typedefs.h"
 #include "SieveUtility.h"
-#include "BitApproximationNew.h"
 #include "LatticePointConcept.h"
 #include "GlobalBitApproxData.h"
 

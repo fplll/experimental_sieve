@@ -5,8 +5,6 @@
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
 
-// clang-format off
-
 /**
   This files defines the class BlockOrthogonalSimHash, which is a "CoordinateSelection" in the sense
   explained in GlobalBitApproxData.h
@@ -184,5 +182,3 @@ private:
 #include "BitApproximationNew_impl.h"
 
 #endif // include guards
-
-// clang-format on
