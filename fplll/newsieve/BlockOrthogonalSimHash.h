@@ -80,6 +80,7 @@ private:
 public:
   PMatrix() = default;
   // creates a random dim-dimensional permutation using rng as a source of randomness.
+  // Note that the randomness source is changed (because it changes its state)
   PMatrix(unsigned int dim, std::mt19937 &rng);
   // apply the stored permutation to the given vector. Changes the argument.
   template<class T> inline void apply(std::vector<T> &vec) const;
@@ -99,9 +100,11 @@ private:
   // 0 means no sign-flip, 1 means sign-flip,
   // i.e. the actual matrix entry is Matrix[i,i] = (-1)^{diagonal[i])
   std::vector<uint_fast8_t> diagonal;
+
 public:
   DMatrix() = default;
   // creates a random such DMatrix, using rng as randomness source.
+  // Note that the randomness source is changed (because it changes its state)
   DMatrix(unsigned int const dim, std::mt19937 &rng);
   template<class T> inline void apply(std::vector<T> &vec) const;
   // prints diagonal (as a sequence of 0's and 1's, not as +/-1's)
@@ -130,8 +133,8 @@ template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class Dime
 class BlockOrthogonalSimHash
 {
 public:
-  using IsCooSelection = std::true_type;  // Satisfies the CoordinateSelection concept
-  static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
+  using IsCooSelection = std::true_type;                // Satisfies the CoordinateSelection concept
+  static unsigned int constexpr num_of_transforms = 3;  // affects the "quality" vs. speed tradeoff
 
   // required to tell users the type of outputs, required by the interface specified in
   // SimHash.h
@@ -147,24 +150,24 @@ public:
   // random_seed as (optional) input randomness. If the user does not provide it, use random_device
   BlockOrthogonalSimHash(DimensionType const dim, unsigned int random_seed);
   BlockOrthogonalSimHash(DimensionType const dim)
-      :BlockOrthogonalSimHash(dim, std::random_device{}()) {}
+      : BlockOrthogonalSimHash(dim, std::random_device{}()) {}
 
   // computes the SimHashes of a LatticePoint point
   template<class LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP>)>
   inline SimHashes compute_all_bitapproximations(LatP const &point) const;
 
 private:
+  // use faster_partial_walsh_hadamard instead, which performs inplace operation.
   template<class T>
-  [[deprecated]] // use faster_partial_walsh_hadamard instead, which performs inplace operation.
-  auto inline fast_partial_walsh_hadamard(std::vector<T> input) const
-    -> std::vector<T>;
+  [[deprecated("Use faster_partial_walsh_hadamard_inplace instead")]]
+      auto inline fast_partial_walsh_hadamard(std::vector<T> input) const -> std::vector<T>;
 
   // performs WH-Trafo (well, almost: up to a fixed permutation / sign-flips) in
   // the first fast_walsh_hadamard_len coordinates. Modifies the argument (hence inplace).
   // This version is an order of magnitude faster than the above.
   // Note: Allowing a fixed permutation / sign-flips allows some micro-optimizations.
   template<class T>
-  void inline faster_almost_partial_walsh_hadamard_inplace(std::vector<T> & input) const;
+  void inline faster_almost_partial_walsh_hadamard_inplace(std::vector<T> &input) const;
 
   // to compute a bitapproximation on a vector p, we duplicate p number_of_orthogonal_blocks many
   // times and operate on each block individually.
@@ -179,7 +182,6 @@ private:
 
 }  // end namespace GaussSieve
 
-
 #include "BlockOrthogonalSimHash_impl.h"
 
-#endif // include guards
+#endif  // include guards
