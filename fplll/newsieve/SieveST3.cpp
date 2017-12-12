@@ -265,13 +265,13 @@ start_over:
     {
       continue;  // for loop over it_x1;
     }
-
+    /*
     typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
     if(sign_px1)
     {
       x1_sims = flip_all_bits(x1_sims);
     }
-
+    */
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
@@ -279,7 +279,7 @@ start_over:
     {
 
       if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
-                                                                                     x1_sims, filtp_x2.sim_hashes,
+                                                                                     it_x1, filtp_x2.sim_hashes,
                                                                                      SieveTraits::threshold_lvls_3sieve_lb_inn,
                                                                                      SieveTraits::threshold_lvls_3sieve_ub_inn))
       {
@@ -368,13 +368,13 @@ start_over:
       ++it_x1;
       continue;  // for loop over it_x1;
     }
-
+    /*
     typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
     if(sign_px1)
     {
       x1_sims = flip_all_bits(x1_sims);
     }
-
+    */
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
@@ -382,7 +382,7 @@ start_over:
     {
 
       if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
-                                                                                     x1_sims, filtp_x2.sim_hashes,
+                                                                                     it_x1, filtp_x2.sim_hashes,
                                                                                      SieveTraits::threshold_lvls_3sieve_lb_inn,
                                                                                      SieveTraits::threshold_lvls_3sieve_ub_inn))
       {
