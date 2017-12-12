@@ -27,9 +27,9 @@ using SimHashApproxNorm2 = double;
 template<class SieveTraits>
 struct STNode
 {
-  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
-  using SimHashes = typename SimHashGlobalDataType::SimHashes;
-  using GlobalSimHashClass = GlobalBitApproxData<SimHashGlobalDataType>;
+  using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
+  using SimHashes = typename CoordinateSelectionUsed::SimHashes;
+  using GlobalSimHashClass = GlobalBitApproxData<CoordinateSelectionUsed>;
 
   STNode( STNode const &) = delete;
   STNode( STNode &&) noexcept = default;
@@ -73,9 +73,9 @@ public:
   using StoredPoint  = typename SieveTraits::GaussList_StoredPoint;
   using ReturnType   = typename SieveTraits::GaussList_ReturnType;
   using Iterator     = GaussIteratorBitApprox<SieveTraits,false>;
-  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
-  using SimHashBlock =typename SimHashGlobalDataType::SimHashBlock;
-  using SimHashes = typename SimHashGlobalDataType::SimHashes;
+  using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
+  using SimHashBlock =typename CoordinateSelectionUsed::SimHashBlock;
+  using SimHashes = typename CoordinateSelectionUsed::SimHashes;
 
   friend Iterator;
   using UnderlyingContainer = std::list<STNode< SieveTraits> >;
@@ -126,7 +126,7 @@ public:
   NODISCARD bool empty() const noexcept { return actual_list.empty(); }
 
 //public:
-//  SimHashGlobalDataType const sim_hash_data;
+//  CoordinateSelectionUsed const sim_hash_data;
 private:
   StaticInitializer<StoredPoint> const init_stored_point;
   StaticInitializer<ReturnType>  const init_return_type;
@@ -146,9 +146,9 @@ public:
   using UnderlyingIterator  = typename ListType::UnderlyingContainer::iterator;
   using CUnderlyingIterator = typename ListType::UnderlyingContainer::const_iterator;
 
-  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
-  using SimHashBlock =typename SimHashGlobalDataType::SimHashBlock;
-  using SimHashes = typename SimHashGlobalDataType::SimHashes;
+  using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
+  using SimHashBlock =typename CoordinateSelectionUsed::SimHashBlock;
+  using SimHashes = typename CoordinateSelectionUsed::SimHashes;
 private:
   CUnderlyingIterator it;
 

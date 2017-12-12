@@ -134,8 +134,8 @@ public:
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
   using LengthType        = typename SieveTraits::LengthType;
-  using SimHashGlobalDataType = typename SieveTraits::SimHashGlobalDataType;
-  using SimHashGlobalData = GlobalBitApproxData<SimHashGlobalDataType>;
+  using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
+  using SimHashGlobalData = GlobalBitApproxData<CoordinateSelectionUsed>;
 
   // TODO: Remove this typedef
   using Filtered_Point   = FilteredPoint2<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
@@ -230,13 +230,13 @@ public:
   bool check2red(LHS &&p1, RHS &&p2, int &scalar);
 //  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
 //  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
-  //bool check2red_approx(SimHashNew::SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
+  //bool check2red_approx(SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
   //bool check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
-  //                                           SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+  //                                           SimHashes<SieveTraits,false> const &p1_bitapprox,
   //                                           typename MainListType::Iterator            const &p2it,
   //                                           int &scalar);
   //bool check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
-  //                                           SimHashNew::SimHashes<SieveTraits,false> const &p1_bitapprox,
+  //                                           SimHashes<SieveTraits,false> const &p1_bitapprox,
   //                                           typename MainListType::Iterator            const &p2it,
   //                                           int &scalar);
   //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)

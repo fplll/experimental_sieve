@@ -41,7 +41,7 @@ template<class SieveTraits>
 template<class LHS, class RHS>
 bool Sieve<SieveTraits,false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
 {
-  if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+  if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
                                               p1, p2,
                                               SieveTraits::threshold_lvls_2sieve_lb,
                                               SieveTraits::threshold_lvls_2sieve_ub))

@@ -9,8 +9,6 @@
 
 namespace GaussSieve
 {
-namespace SimHashNew
-{
 
 // forward declarations:
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
@@ -97,7 +95,6 @@ private:
   //static std::array<RMatrix,SimHash::num_of_levels> rmatrices;
 };
 
-}  // end namespace (GaussSieve::)SimHash
 }  // end namespace GaussSieve
 
 

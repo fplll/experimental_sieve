@@ -5,8 +5,6 @@
 
 namespace GaussSieve
 {
-namespace SimHashNew
-{
 
 template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
 BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
@@ -310,10 +308,6 @@ inline void DMatrix::print(std::ostream &os) const
   os << std::endl;
 }
 
-
-
-
-}  // end namespace SimHash (within GaussSieve::)
 }  // end namespace GaussSieve
 
 

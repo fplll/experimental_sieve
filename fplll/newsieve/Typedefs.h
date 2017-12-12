@@ -108,16 +108,16 @@ class DefaultSieveTraits
 
   using DimensionType           = MaybeFixed<nfixed>;
 
-  using SimHashGlobalDataType   = SimHashNew::BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType>;
-  using SimHashBlock            = typename SimHashGlobalDataType::SimHashBlock;
-  using SimHashes               = typename SimHashGlobalDataType::SimHashes;
+  using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType>;
+  using SimHashBlock            = typename CoordinateSelectionUsed::SimHashBlock;
+  using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
 
 
   using LengthType               = ET;
 
   using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
 
-  using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, SimHashGlobalDataType >;
+  using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, CoordinateSelectionUsed >;
 
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
