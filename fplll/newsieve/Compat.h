@@ -41,25 +41,22 @@
   assumption).
 */
 
-#if defined(__cpp_constexpr)
-  #if __cpp_constexpr >= 201304
-    #define CPP14CONSTEXPR constexpr
-  #else
-    #define CPP14CONSTEXPR
-  #endif
+// Note that undefined symbols in an #if get replaced by 0, so this works even if
+// __cpp_constexpr is not even defined.
+
+#if __cpp_constexpr >= 201304
+  #define CPP14CONSTEXPR constexpr
 #else
   #define CPP14CONSTEXPR
-  #warning "Your compiler does not support feature testing for constexpr."
 #endif
 
-#if defined(__if_constexpr)
-  #if __if_constexpr
-    #define CPP17CONSTEXPRIF if constexpr
-  #else
-    #define CPP17CONSTEXPRIF if
-  #endif
+#if !defined(__cpp_constexpr)
+  #warning Your compiler does not support feature testing for constexpr.
+#endif
+
+#if __cpp_if_constexpr >= 201606
+  #define CPP17CONSTEXPRIF if constexpr
 #else
-  //#warning "Your compiler does not support feature testing for if constexpr."
   #define CPP17CONSTEXPRIF if
 #endif
 
@@ -76,8 +73,10 @@
   #endif
 #else
   // Note: per C++ standard, unrecognized attributes are ignored (it may generate warnings, though)
-  // So in case the compiler does not support __has_cpp_attribute, we might also just go ahead and define those as above.
-  // Case in point is some clang-versions, which recognize gnu::foo attributes, but do not have __has_cpp_attribute
+  // So in case the compiler does not support __has_cpp_attribute, we might also just go ahead and
+  // define those as above.
+  // Case in point is some clang-versions, which recognize gnu::foo attributes, but do not have
+  // __has_cpp_attribute
   #define NODISCARD
   #define FORCE_INLINE
   #warning "Your compiler does support have feature testing for attributes."
@@ -206,9 +205,10 @@ namespace mystd
   template<class... T>    using index_sequence_for  = make_index_sequence<sizeof...(T)>;
 #endif
 
+// void_t takes any number of arguments and ignores them.
+// The point is that arguments have to be valid (to be used in SFINAE contexts).
+// This is seemingly trivial, but actually extremely useful.
 #if __cpp_lib_void_t >= 201411
-// takes any number of arguments and ignores them. The point is that arguments have to be valid (to be used in SFINAE contexts)
-// seemingly trivial, but actually extremely useful.
   template<class... Args> using void_t = std::void_t<Args...>;
 #else
   template<class... Args> using void_t = void;
