@@ -39,6 +39,9 @@ public:
 
   // Note: Sampler::sieveptr is only initialized during Sampler::init.
   // Consequently, some member fields will only be set during custom_init.
+  // The constructor takes a seed of type Sseq, e.g. std::seed_seq seed{3,2,1},
+  // and a cut_off parameter for maxdeviations, namely
+  // maxdeviations = sqrt(s2pi)*_cutoff
   explicit GPVSampler(Sseq &seq, double const _cutoff = 2.0)
       : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false),
         static_init_rettype(nullptr),
