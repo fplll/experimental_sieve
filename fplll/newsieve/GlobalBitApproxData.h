@@ -244,11 +244,15 @@ template<class CooSelection> struct ObtainSimHashBlock
 
 /**
   Checks whether popcount(lhs XOR rhs) is >= ub or <= lb (cumulatively) for each level.
+  LHS / RHS may be either a SimHash or something having an access_bitapproximation function
+  (i.e. currently either a SimHash, a list iterator or a lattice point with BitApproximation)
+
   Cumulative means the following:
+
   We first check lhs[0] XOR rhs[0] against ub[0], lb[0].
   On the next level, we check (lhs[0] XOR rhs[0]) + (lhs[1] XOR rhs[1]) against ub[1] and lb[1] etc.
-  We return true iff:
-    for each level : (we are either >= ub or <= lb).
+  We return true iff for each level : (we are either >= ub or <= lb).
+
   Note: a "scalar product" corresponds rougly to 1 - 2*(lhs XOR rhs)/len, in the sense that
         for points on the unit sphere, the expression 1-2*(lhs XOR rhs)/len is close to 1 if the
         points are close, close to -1 if the points are near-antipodes and close to 0 if the points
@@ -256,8 +260,7 @@ template<class CooSelection> struct ObtainSimHashBlock
         In particular, lhs XOR rhs itself becomes *smaller* if the scalar product gets *larger*, so
         the lower thresholds on the XOR means an upper threshold on the scalar product.
 
-  LHS / RHS may be either a SimHash or something having an access_bitapproximation function
-  (i.e. currently either a SimHash, a list iterator or a lattice point with BitApproximation)
+
 */
 template<class CoordinateSelection, class LHS, class RHS, class LowerThresholds, class UpperThresholds>
 FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
