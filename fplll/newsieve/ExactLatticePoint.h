@@ -79,8 +79,7 @@ public:
   constexpr explicit ExactLatticePoint() noexcept
   {
     // The extra () are needed, because assert is a macro and the argument contains a ","
-#ifdef DEBUG_SIEVE_LP_INIT
-    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
+//    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
     // TODO: Turn into an exception and make constexpr.
   }
 
