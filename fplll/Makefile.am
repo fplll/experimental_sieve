@@ -81,6 +81,7 @@ newlatsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 #testsieve bin
 testsieve_SOURCES=newsieve/test_newsieve.cpp
 testsieve_LDADD=libfplll.la $(LIBQD_LIBADD)
+testsieve_CXXFLAGS= -pg
 
 #thresholdcheck bin
 thresholdcheck_SOURCES=newsieve/threshold_check.cpp
