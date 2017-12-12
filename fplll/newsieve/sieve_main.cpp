@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   bool flag_file = false;
   int opt;
   int dim   = 0;
-  int verb  = 0;
+  int verb  = 2;
   
   mpz_class target_norm_conv = 0;
   int k=2;
@@ -118,7 +118,8 @@ int main(int argc, char **argv)
   fplll::ZZ_mat<mpz_t> B;
   B.resize(dim, dim);
 
-  if (flag_file) {
+  if (flag_file)
+  {
       std::ifstream input_file(input_file_name);
       if (input_file.is_open()) {
           std::cout << "reading B from file ..." << std::endl;
@@ -126,13 +127,17 @@ int main(int argc, char **argv)
           input_file.close();
       }
   }
-  else {
+  else
+  {
       srand (1);
       //generates GM lattice
       B.gen_qary_prime(1, 10*dim);
   }
 
-  std::cout << "target_norm_conv = " << target_norm_conv << std::endl;
+  
+  
+  
+  
 
   /* preprocessing of basis */
   clock_t stime = clock();

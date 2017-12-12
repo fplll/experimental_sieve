@@ -84,21 +84,21 @@ class DefaultSieveTraits
 #endif
 
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
-  static std::size_t constexpr sim_hash_num = 1;   // number of simhash blocks/levels per vector
+  static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-8}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-8,64-11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+8,64+11}};
 
   //for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-0}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+0}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-7, 64-9}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+7, 64+9}};
 
   //for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-4}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+4}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32+5, 64+5}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32-5, 64-5}};
 
   // for 3-sieve exact check, squared, normalized
   constexpr static double x1x2_target = .1111;
@@ -137,6 +137,11 @@ class DefaultSieveTraits
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_out;
   template< class ET, bool MT, int nfixed, class InputBT>
   constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_out;
+  
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_lb_inn;
+  template< class ET, bool MT, int nfixed, class InputBT>
+  constexpr std::array<unsigned int, DefaultSieveTraits<ET,MT,nfixed, InputBT>::sim_hash_num> DefaultSieveTraits<ET,MT,nfixed, InputBT>::threshold_lvls_3sieve_ub_inn;
 
 //  template< class ET, bool MT, int nfixed, class InputBT>
 //  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub; = {{64+5,128+8}};

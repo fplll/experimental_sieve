@@ -204,7 +204,7 @@ void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAcce
   // TODO: Reuse memory in different iterations. Consider making this static or a member
   // of the Sieve class
 
-  thread_local static FilteredListType filtered_list;
+  static FilteredListType filtered_list;
   filtered_list.reserve(filtered_list_size_max);
 
 start_over:
@@ -265,11 +265,27 @@ start_over:
     {
       continue;  // for loop over it_x1;
     }
+    
+    typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
+    if(sign_px1)
+    {
+      x1_sims = flip_all_bits(x1_sims);
+    }
+    
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
     for (auto & filtp_x2 : filtered_list) // Note that we know ||p|| >= ||*it_x1|| >= ||x2||
     {
+      
+      if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+                                                                                     x1_sims, filtp_x2.sim_hashes,
+                                                                                     SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                                                                     SieveTraits::threshold_lvls_3sieve_ub_inn))
+      {
+        continue;
+      }
+      
       // Note: We do not check approximately, just like the old code below.
       LengthType sc_prod_x1x2 = (filtp_x2.sign_flip==sign_px1)
                                     ?  compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact))
@@ -352,12 +368,28 @@ start_over:
       ++it_x1;
       continue;  // for loop over it_x1;
     }
+    
+    typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
+    if(sign_px1)
+    {
+      x1_sims = flip_all_bits(x1_sims);
+    }
+    
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
     for (auto const & filtp_x2 : filtered_list)
     {
 
+      if (!check_simhash_scalar_product<typename SieveTraits::SimHashGlobalDataType>(
+                                                                                     x1_sims, filtp_x2.sim_hashes,
+                                                                                     SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                                                                     SieveTraits::threshold_lvls_3sieve_ub_inn))
+      {
+        continue;
+      }
+
+      
       // Note that we know ||p|| < ||x1|| and ||x1|| >= ||x2||, so x1 is the maximum.
       LengthType sc_prod_x1x2 = (filtp_x2.sign_flip == sign_px1)
                                     ?  compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact))
