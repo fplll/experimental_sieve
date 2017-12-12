@@ -180,6 +180,6 @@ private:
 }  // end namespace GaussSieve
 
 
-#include "BitApproximationNew_impl.h"
+#include "BlockOrthogonalSimHash_impl.h"
 
 #endif // include guards

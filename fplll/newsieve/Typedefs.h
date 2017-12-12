@@ -20,7 +20,7 @@
 //#include "HashedLatticePoint.h"
 //#include "ApproximatedPoint.h"
 //#include "EMVApproximation.h"  -- currently unused
-#include "BitApproximationNew.h"
+#include "BlockOrthogonalSimHash.h"
 #include "SimHash.h"
 #include "PointWithBitapprox.h"
 
