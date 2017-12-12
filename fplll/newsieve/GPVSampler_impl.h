@@ -1,11 +1,10 @@
 /**
-Implementation file for ShiSampler.
+Implementation file for the GPV sampler.
 
-TODO: Change internal representation of basis.
 */
 
-#ifndef SHI_SAMPLER_IMPL_H
-#define SHI_SAMPLER_IMPL_H
+#ifndef GPV_SAMPLER_IMPL_H
+#define GPV_SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
 #include "Sampler.h"
@@ -23,7 +22,7 @@ namespace GaussSieve
 {
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
-void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
+void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
 {
   assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -34,7 +33,6 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
   dim           = input_basis.ambient_dimension;
   lattice_rank  = input_basis.lattice_rank;
-
   mu_matrix     = input_basis.get_mu_matrix();
 
   // vectors of length lattice_rank
@@ -54,30 +52,23 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
     double res = maxbistar2 / convert_to_double(input_basis.get_g(i,i));
 
-    s2pi[i] = 1.0*res / GaussSieve::pi; // We rescale to avoid doing this during sampling.
+    // the scaling of 1.0 is somewhat arbitrary but works ok
+    //
+    s2pi[i] = 1.0*res / GaussSieve::pi; // We rescale by pi to avoid doing this during sampling.
     maxdeviations[i] = sqrt(res) * cutoff;
 
     basis[i] = input_basis.get_basis_vector(i).make_copy();
-    //std::cout << maxdeviations[i] << " ";
-//    tmp.set_z(g(i, i));
-//    tmp2.div(maxbistar2, tmp);  // s'_i^2 = max GS length^2 / lenght^2 of basis vector
-//    s2pi[i] = tmp2.get_d() / GaussSieve::pi;
-//    tmp2.sqrt(tmp2);
-//    maxdeviations[i] = tmp2.get_d() * cutoff;
   }
-
 
   using RetType = typename SieveTraits::GaussSampler_ReturnType;
 
   if(static_init_plainpoint!=nullptr)
   {
     assert(false);
-//    delete static_init_plainpoint;
   }
   if(static_init_rettype!=nullptr)
   {
     assert(false);
-//    delete stat_init_rettype;
   }
 
   static_init_rettype   = new StaticInitializer<RetType>(MaybeFixed<SieveTraits::get_nfixed>{dim});
@@ -89,7 +80,7 @@ void ShiSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<Si
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
-ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
+GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 {
   assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -102,12 +93,10 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
   vec.fill_with_zero();
 
 
-  // shift, expressed in coordinates wrt the Gram-Schmidt basis.
+  // shifts expressed in coordinates wrt the Gram-Schmidt basis.
   std::vector<double> shifts(lattice_rank, 0.0);
   
   
-
-
   // Note: This is a while - loop, because --j will cause trouble on unsigned j.
   // (With signed j, the correct for loop would be for(int j = lattice_rank-1 ; j>=0;--j) )
   //std::cout << vec << std::endl;
@@ -127,18 +116,13 @@ ShiSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
         s2pi[j], shifts[j], engine.rnd(), maxdeviations[j]);  // coefficient of b_j in vec.
 
       vec += basis[j] * newcoeff;
-      //std::cout << newcoeff << " ";
 
       for (uint_fast16_t i = 0; i < j; ++i)  // adjust shifts
       {
         shifts[i] -= newcoeff * (mu_matrix[j][i]);
       }
     }
-    //std::cout << "|" << std::endl;
   }
-
-  //std::cout << "sampled vec = " << vec << std::endl;
-
 
   typename SieveTraits::GaussSampler_ReturnType ret;
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);

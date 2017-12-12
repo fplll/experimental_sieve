@@ -1,5 +1,5 @@
-#ifndef GPV_SAMPLER_IMPL_H
-#define GPV_SAMPLER_IMPL_H
+#ifndef GPV_SAMPLER_EXTENDED_IMPL_H
+#define GPV_SAMPLER_EXTENDED_IMPL_H
 
 #include "DefaultIncludes.h"
 #include "Sampler.h"
@@ -17,7 +17,7 @@ namespace GaussSieve
 {
   
   template <class SieveTraits, bool MT, class Engine, class Sseq>
-  void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
+  void GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
   {
     assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -26,11 +26,8 @@ namespace GaussSieve
     assert(sieveptr==nullptr);
 #endif
     
-    
-    
     dim           = input_basis.ambient_dimension;
     lattice_rank  = input_basis.lattice_rank;
-    
     mu_matrix     = input_basis.get_mu_matrix();
     
     assert(start_babai<lattice_rank); //use strictly less to prevent outputting 0
@@ -80,7 +77,7 @@ namespace GaussSieve
   //TODO: progressive rank + babai_start
   template <class SieveTraits, bool MT, class Engine, class Sseq>
   typename SieveTraits::GaussSampler_ReturnType
-  GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
+  GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
   {
     assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER

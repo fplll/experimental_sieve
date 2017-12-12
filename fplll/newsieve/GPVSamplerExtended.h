@@ -1,5 +1,5 @@
-#ifndef GPV_SAMPLER_H
-#define GPV_SAMPLER_H
+#ifndef GPV_SAMPLER_EXTENDED_H
+#define GPV_SAMPLER_EXTENDED_H
 
 #include "DefaultIncludes.h"
 #include "Sampler.h"
@@ -32,25 +32,25 @@ namespace GaussSieve
 template <class SieveTraits, bool MT> class Sieve;
 
 
-template <class SieveTraits, bool MT, class Engine, class Sseq> class GPVSampler; //declaration
+template <class SieveTraits, bool MT, class Engine, class Sseq> class GPVSamplerExtended; //declaration
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
-class GPVSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
+class GPVSamplerExtended final : public Sampler<SieveTraits, MT, Engine, Sseq>
 {
 public:
   using DimensionType = typename SieveTraits::DimensionType;
   using LengthType     = typename SieveTraits::LengthType;
   using RetType       = typename SieveTraits::GaussSampler_ReturnType;
 
-  explicit GPVSampler(Sseq &seq, uint_fast16_t babai, double const _cutoff = 2.0)
+  explicit GPVSamplerExtended(Sseq &seq, uint_fast16_t babai, double const _cutoff = 2.0)
       : Sampler<SieveTraits,MT,Engine,Sseq>(seq),
         start_babai(babai), cutoff(_cutoff), initialized(false),
         static_init_rettype(nullptr), static_init_plainpoint(nullptr)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing GPVSampler.")
   };
-  virtual SamplerType sampler_type() const override { return SamplerType::GPV_sampler; };
-  virtual ~GPVSampler()
+  virtual SamplerType sampler_type() const override { return SamplerType::GPVExtended_sampler; };
+  virtual ~GPVSamplerExtended()
   {
     if(initialized)
     {
