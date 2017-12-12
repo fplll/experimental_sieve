@@ -1,4 +1,4 @@
-// clang-format status: OK
+// clang-format status: NOT OK (nested ifdefs)
 
 /**
  Implementation for some methods of the sampler. These are in a separate file because they need to
@@ -25,21 +25,21 @@ Sampler<SieveTraits, MT, Engine, Sseq>::~Sampler()
 }
 
 template <class SieveTraits, bool MT, class Engine, class Sseq>
-void Sampler<SieveTraits, MT, Engine, Sseq>::init(Sieve<SieveTraits, MT> *const sieve,
-  SieveLatticeBasis<SieveTraits,MT> const & input_basis)
+void Sampler<SieveTraits, MT, Engine, Sseq>::init(
+    Sieve<SieveTraits, MT> *const sieve, SieveLatticeBasis<SieveTraits, MT> const &input_basis)
 {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing Sampler:")
   sieveptr = sieve;
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
-  assert(sieveptr!=nullptr);
+  assert(sieveptr != nullptr);
 #else
-  assert(sieveptr==nullptr);
+  assert(sieveptr == nullptr);
 #endif
 
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
-    engine.init(1);
+  engine.init(1);
 #else
-    engine.init(sieve->get_num_threads());
+  engine.init(sieve->get_num_threads());
 #endif
 
 #ifdef PROGRESSIVE
