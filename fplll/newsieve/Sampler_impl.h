@@ -1,5 +1,7 @@
 // clang-format status: NOT OK (nested ifdefs)
 
+// clang-format off
+
 /**
  Implementation for some methods of the sampler. These are in a separate file because they need to
  access the header of the main Sieve class
