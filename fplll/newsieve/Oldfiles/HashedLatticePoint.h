@@ -1,3 +1,5 @@
+#error unused
+
 /**
   Very simple lattice point class that stores precomputed values for its length.
   Otherwise, just a wrapper around a vector, really.
@@ -9,8 +11,6 @@
 #include "DefaultIncludes.h"
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
-#include <array>
-#include <vector>
 #include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
 

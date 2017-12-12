@@ -1,3 +1,5 @@
+#error unused
+
 //
 // HyperplaneLSH.h
 //
@@ -48,7 +50,7 @@ namespace GaussSieve{
     ~Bucket_Element() {}
 
     inline ListStoredPoint const& get_point() const {return *pointer_to_lattice_point;}
-  
+
     //inline ListStoredPoint const* get_pointer() const {return pointer_to_lattice_point;}
 
   private:
@@ -58,8 +60,8 @@ namespace GaussSieve{
 
 
   template<class SieveTraits, class ET> struct HashTable{
-      
-    
+
+
 
     using Bucket = std::list<Bucket_Element<SieveTraits>>;
     using Iterator = typename std::list<Bucket_Element<SieveTraits>>::iterator;
@@ -180,9 +182,9 @@ namespace GaussSieve{
     // a pointer to the newly created lattice-pointed is stored in hash
 
     //typename SieveTraits::GaussList_StoredPoint v_copy = v.make_copy();
-    
+
     typename SieveTraits::GaussList_StoredPoint* v_copy  = new typename SieveTraits::GaussList_StoredPoint(v.make_copy());
-    
+
     //std::cout<<"put v =" << &v_copy << "of len " << v_copy->get_norm2() << std::endl;
     for(int i=0; i<SieveTraits::number_of_hash_tables; ++i)
     {
@@ -228,7 +230,7 @@ namespace GaussSieve{
     //std::cout<< hash_value << std::endl;
     //std::cout << "v = " << v << " " << v->get_norm2() << std::endl;
 
- 
+
     //this->hash_table[hash_value].remove(v); //supposed to be linear in |Bucket|
     //std::cout << "delete v " << &v << " of len = " << v->get_norm2() << std::endl;
     int N = 1;

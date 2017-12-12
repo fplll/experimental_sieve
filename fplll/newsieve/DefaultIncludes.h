@@ -4,39 +4,25 @@
 #include "Compat.h"
 #include "DebugAll.h"
 #include "assert.h"
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <utility>
 #include <array>
+#include <atomic>
 #include <bitset>
-#include <tuple>
-#include <bitset>
-//#include <boost/dynamic_bitset.hpp> // maybe remove at some point.
-#include <random>
-#include <math.h> //for log2, sqrt
 #include <cmath>
 #include <cstdint>
-#include <limits>
-#include <vector>
-#include <array>
-#include <vector>
-#include <mutex>
-#include <atomic>
 #include <forward_list>
-#include <queue>
-#include <stack>
-#include <list>
-#include <mutex>
-#include <atomic>
-#include <queue>
-#include <tuple>
-#include <mutex>
-#include <atomic>
-#include <forward_list>
-#include <queue>
-#include <stack>
+#include <iostream>
 #include <istream>
-
+#include <limits>
+#include <list>
+#include <math.h>  //for log2, sqrt
+#include <mutex>
+#include <queue>
+#include <random>
+#include <stack>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #endif

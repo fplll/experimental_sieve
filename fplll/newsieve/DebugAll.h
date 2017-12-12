@@ -43,13 +43,9 @@
 // do NOT use this outside of testing, because it actually breaks things.
 
 #ifdef DEBUG_SIEVE_STANDALONE_MODULES_ALL
-
   #define DEBUG_SIEVE_STANDALONE_SAMPLER
-
   #define DEBUG_SIEVE_STANDALONE_QUEUE
-
 #endif
-
 
 
 #ifdef DEBUG_SIEVE_LAZY_ALL

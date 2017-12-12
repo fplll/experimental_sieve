@@ -1,7 +1,12 @@
 // Definitions for C++ version compatibility
 
+// clang-format adjustments finished -- Gotti
+
 // clang-format off
-// clang-format makes readability worse: It does not like indentation of #if's or {} for empty classes.
+// clang-format makes readability worse:
+// It does not like indentation of #if's or {} for empty classes.
+// It breaks the manual hoizontal alignment chosen for readability and completely messes up some
+// macros
 
 /**
   This file defines some compatibility macros / workaround for C++-14 / C++-17 features.
@@ -20,7 +25,6 @@
 #if __cpp_lib_experimental_detect >= 201505
 #include <experimental/type_traits>
 #endif
-
 
 /**
   CPP14CONSTEXPR is used to declare functions as constexpr, provided the (considerable!) relaxations
@@ -98,7 +102,7 @@
   is convertible to boolean true at compile time. Use as the last template argument.
   (For variadic templates, you should know what you are doing)
 
-  The variants TEMPL_RESTRICT_DECL2 and TEMPL_RESTRICT_IMPL2 are similar, but takea comma-separated
+  The variants TEMPL_RESTRICT_DECL2 and TEMPL_RESTRICT_IMPL2 are similar, but take a comma-separated
   list of *types* T_1,T_2,... encapsulating a boolean value instead.
   (i.e. types with static constexpr bool T_i::value defined -- This is compatible with all such
   types and manipulators from std:: ). It restricts to the AND of these types.
@@ -109,9 +113,9 @@
   you use a separate file to then define the function, you need to use IMPL -- This is because DECL
   sets default parameters and IMPL does not)
 
-  NOTE: Since these are macros, be aware of unshielded commas in template parameters. You can use ((arg))
+  NOTE: Since these are macros, be aware of unshielded commas in template parameters. Use ((arg))
   for the TEMPL_RESTRICT_DECL/IMPL((arg)) variants. The DECL2/IMPL2 variant automagically work.
-  (The arguments are actually chopped up by the parser, but it still works)
+  (The arguments are actually chopped up by the preprocessor, but it still works)
 */
 
 /**
@@ -127,14 +131,8 @@
 #define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
 #define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
 
-// same as above, but accepts a type rather than a value. This allows for easier syntax.
-// Limitation: If the argument contains a comma in its arguments (e.g. template<A,B>), it does not
-// work
-
 #define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type = 0
 #define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type
-
-
 
 /**
   Replacements for C++14 (and beyond) standard library features that are missing in C++11.
@@ -146,22 +144,24 @@ namespace GaussSieve
 namespace mystd
 {
   // some often-used shorthands to avoid having to use typename ...
-  template<bool B, class T, class F> using conditional_t = typename std::conditional<B,T,F>::type;
+  // completely identical to the corresponding std::conditonal_t etc.
+  template<bool b, class T, class F> using conditional_t = typename std::conditional<b,T,F>::type;
   template<class T>                  using decay_t       = typename std::decay<T>::type;
+  template<bool b>                   using bool_constant = std::integral_constant<bool,b>;
+  template<bool b, class T = void>   using enable_if_t   = typename std::enable_if<b,T>::type;
 
-  template<bool b>      using bool_constant = std::integral_constant<bool,b>;
 
-  // std::max is not (and cannote be) constexpr until C++14 (where the def. of constexpr was relaxed).
-  // This version is *always* constexpr, but does not support custom comparators or initializer lists.
+  // std::max is not (and can't be) constexpr until C++14 (where the def. of constexpr was relaxed).
+  // This version is always constexpr, but does not support custom comparators or initializer lists.
   template<class T> constexpr const T& constexpr_max(const T &x1, const T &x2)
   { return (x1 < x2) ? x2 : x1; }
   template<class T> constexpr const T& constexpr_min(const T &x1, const T &x2)
   { return (x1 < x2) ? x1 : x2; }
 
 #if __cpp_lib_logical_traits >= 201510
-  template<class... Bs> using conjunction   = std::conjunction<Bs...>;           //AND
-  template<class... Bs> using disjunction   = std::disjunction<Bs...>;           //OR
-  template<class B>     using negation      = std::negation<B>;                  //NOT
+  template<class... Bs> using conjunction = std::conjunction<Bs...>;           //AND
+  template<class... Bs> using disjunction = std::disjunction<Bs...>;           //OR
+  template<class B>     using negation    = std::negation<B>;                  //NOT
 #else
   // just implement std::conjunction, disjunction and negation myself:
   template<class...> struct conjunction     : std::true_type{};
@@ -195,7 +195,7 @@ namespace mystd
   {
   // encapsulates a integer sequence 0,...,N-1, RestArgs
     template<std::size_t N, std::size_t... RestArgs> struct GenIndexSeq
-        : GenIndexSeq <N-1,N-1,RestArgs...> {};
+        : GenIndexSeq<N - 1,N - 1,RestArgs...> {};
     template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>
     {
       using type = index_sequence<RestArgs...>;
@@ -222,55 +222,60 @@ namespace mystd
 
 #if __cpp_lib_experimental_detect >= 201505
 
-using nonesuch = std::experimental::nonesuch;
-template<template<class...> class Op, class... Args> using is_detected = std::experimental::is_detected<Op,Args...>;
-template<template<class...> class Op, class... Args> using detected_t  = std::experimental::detected_t <Op,Args...>;
-template<class Default, template<class...> class Op, class... Args> using detected_or   = std::experimental::detected_or<Default,Op,Args...>;
-template<class Default, template<class...> class Op, class... Args> using detected_or_t = std::experimental::detected_or_t<Default,Op,Args...>;
+  using nonesuch = std::experimental::nonesuch;
+
+  template<template<class...> class Op, class... Args>
+  using is_detected = std::experimental::is_detected<Op,Args...>;
+
+  template<template<class...> class Op, class... Args>
+  using detected_t  = std::experimental::detected_t <Op,Args...>;
+
+  template<class Default, template<class...> class Op, class... Args>
+  using detected_or   = std::experimental::detected_or<Default,Op,Args...>;
+
+  template<class Default, template<class...> class Op, class... Args>
+  using detected_or_t = std::experimental::detected_or_t<Default,Op,Args...>;
 
 #else
 
-struct nonesuch // indicating "Not detected"
-{
-  nonesuch() = delete;
-  ~nonesuch() = delete;
-  nonesuch(nonesuch const &) = delete;
-  void operator=(nonesuch const &) = delete;
-};
+  struct nonesuch // indicating "Not detected"
+  {
+    nonesuch()                       = delete;
+    ~nonesuch()                      = delete;
+    nonesuch(nonesuch const &)       = delete;
+    void operator=(nonesuch const &) = delete;
+  };
 
-namespace detection_impl
-{
-template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
-struct detector
-{
-  using value_t = std::false_type;
-  using type    = Default;
-};
+  namespace detection_impl
+  {
+    template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
+    struct detector
+  {
+    using value_t = std::false_type;
+    using type    = Default;
+  };
 
-template<class Default, template<class...> class Op, class... Args>
-struct detector<Default, void_t<Op<Args...>>, Op, Args...>
-{
-  using value_t = std::true_type;
-  using type    = Op<Args...>;
-};
-}
+  template<class Default, template<class...> class Op, class... Args>
+  struct detector<Default, void_t<Op<Args...>>, Op, Args...>
+  {
+    using value_t = std::true_type;
+    using type    = Op<Args...>;
+  };
+  } // end namespace detection_impl
 
-template<template<class...> class Op, class... Args>
-using is_detected = typename detection_impl::detector<void, void, Op, Args...>::value_t;
+  template<template<class...> class Op, class... Args>
+  using is_detected = typename detection_impl::detector<void, void, Op, Args...>::value_t;
 
-template<template<class...> class Op, class... Args>
-using detected_t  = typename detection_impl::detector<mystd::nonesuch, void, Op, Args...>::type;
+  template<template<class...> class Op, class... Args>
+  using detected_t  = typename detection_impl::detector<mystd::nonesuch, void, Op, Args...>::type;
 
-template<class Default, template<class...> class Op, class... Args>
-using detected_or = typename detection_impl::detector<Default, void, Op, Args...>;
+  template<class Default, template<class...> class Op, class... Args>
+  using detected_or = typename detection_impl::detector<Default, void, Op, Args...>;
 
-template<class Default, template<class...> class Op, class... Args>
-using detected_or_t = typename detected_or<Default, Op, Args...>::type;
+  template<class Default, template<class...> class Op, class... Args>
+  using detected_or_t = typename detected_or<Default, Op, Args...>::type;
 
-#endif
-
-template<bool B, class T = void>
-using enable_if_t = typename std::enable_if<B,T>::type;
+#endif  // __cpp_lib_experimental_detect >= 201505
 
 }  // end namespace mystd
 }  // end namespace GaussSieve

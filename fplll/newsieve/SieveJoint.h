@@ -83,7 +83,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "Typedefs.h"
 #include "LatticeBases.h"
 
-#include "HyperplaneLSH.h"
+//#include "HyperplaneLSH.h"
 //#include "RelevantCoords.h"
 #include "Statistics.h"
 #include "SimHash.h"
