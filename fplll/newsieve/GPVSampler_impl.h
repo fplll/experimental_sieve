@@ -1,4 +1,6 @@
-// clang-format status: OK
+// clang-format status: NOT OK (reason: templates)
+
+// clang-format off
 
 /**
 Implementation file for the GPV sampler.
@@ -35,9 +37,9 @@ Implementation file for the GPV sampler.
 namespace GaussSieve
 {
 
-template <class SieveTraits, bool MT, class Engine, class Sseq>
-void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(
-    SieveLatticeBasis<SieveTraits, MT> const &input_basis)
+template<class SieveTraits, bool MT, class Engine, class Sseq>
+void GPVSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
+    SieveLatticeBasis<SieveTraits,MT> const &input_basis)
 {
   assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -93,9 +95,9 @@ void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(
   initialized = true;
 }
 
-template <class SieveTraits, bool MT, class Engine, class Sseq>
+template<class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
-GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
+GPVSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
 {
   assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER

@@ -1,4 +1,6 @@
-// clang-format status: OK
+// clang-format status: NOT OK (reason: templates)
+
+// clang-format off
 
 /**
  Gaussian GPV sampler from Gentry, Peikert, Vaikuntanathan 'How to Use a Short Basis:
@@ -24,12 +26,12 @@ namespace GaussSieve
 {
 
 // forward declaration
-template <class SieveTraits, bool MT> class Sieve;
+template<class SieveTraits, bool MT> class Sieve;
 
-template <class SieveTraits, bool MT, class Engine, class Sseq> class ShiSampler;
+template<class SieveTraits, bool MT, class Engine, class Sseq> class ShiSampler;
 
-template <class SieveTraits, bool MT, class Engine, class Sseq>
-class GPVSampler final : public Sampler<SieveTraits, MT, Engine, Sseq>
+template<class SieveTraits, bool MT, class Engine, class Sseq>
+class GPVSampler final : public Sampler<SieveTraits,MT,Engine,Sseq>
 {
 public:
   using DimensionType = typename SieveTraits::DimensionType;
@@ -42,7 +44,7 @@ public:
   // and a cut_off parameter for maxdeviations, namely
   // maxdeviations = sqrt(s2pi)*_cutoff
   explicit GPVSampler(Sseq &seq, double const _cutoff = 2.0)
-      : Sampler<SieveTraits, MT, Engine, Sseq>(seq), cutoff(_cutoff), initialized(false),
+      : Sampler<SieveTraits,MT,Engine,Sseq>(seq), cutoff(_cutoff), initialized(false),
         static_init_rettype(nullptr),
         static_init_plainpoint(nullptr){
             DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing GPVSampler.")};
@@ -58,7 +60,7 @@ public:
   virtual inline RetType sample(int const thread = 0) override;
 
 private:
-  inline virtual void custom_init(SieveLatticeBasis<SieveTraits, MT> const &input_basis) override;
+  inline virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const &input_basis) override;
 
   std::vector<std::vector<double>> mu_matrix;  // copied from basis.
   std::vector<double> s2pi;
@@ -71,8 +73,8 @@ private:
 
 protected:
   // bring into scope from parent
-  using Sampler<SieveTraits, MT, Engine, Sseq>::sieveptr;
-  using Sampler<SieveTraits, MT, Engine, Sseq>::engine;
+  using Sampler<SieveTraits,MT,Engine,Sseq>::sieveptr;
+  using Sampler<SieveTraits,MT,Engine,Sseq>::engine;
   std::vector<typename SieveTraits::PlainPoint> basis;
 
   StaticInitializer<RetType> *static_init_rettype;
