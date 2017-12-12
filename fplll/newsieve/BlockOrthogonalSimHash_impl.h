@@ -169,8 +169,8 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
         // Note all + in the indices are the same as XOR's
         tmp = input[higher_bits+0+lower_bits];
         input[higher_bits+0+lower_bits]+=input[higher_bits+i+lower_bits];
-//        input[higher_bits+i+lower_bits] =tmp - input[higher_bits+i+lower_bits];  // <- This is WH trafo
-        input[higher_bits+i+lower_bits]-=tmp;// - input[higher_bits+i+lower_bits]; // <- This is just as good, but 5-10% faster.
+//       input[higher_bits+i+lower_bits] =tmp - input[higher_bits+i+lower_bits];   // <- WH trafo
+        input[higher_bits+i+lower_bits]-=tmp;  //  <- 5-10% faster.
       }
     }
   }
@@ -210,7 +210,7 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
   }
   */
 
-  const double lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
+  double const lengthfactor = std::sqrt(len);  // we have to properly rescale the modified coos.
   for(uint_fast16_t i = 0; i < len; ++i)
   {
     input[i] /= lengthfactor;
@@ -279,9 +279,9 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
   return ret;
 }
 
-
-
-
+/**
+  construct a random permutation in dim dimension. Just uses std::shuffle for that.
+*/
 PMatrix::PMatrix(unsigned int dim, std::mt19937 &rng)
 {
   DEBUG_SIEVE_TRACEINITIATLIZATIONS("about to initialize P matrix")
@@ -290,27 +290,38 @@ PMatrix::PMatrix(unsigned int dim, std::mt19937 &rng)
   {
     permutation[i] = i;
   }
+  // TODO:  Consider making the permutation fixed / improve the mixing between the parts affected by
+  //        WH-Trafo. With the current amount of randomness, some coordinates are unaffected.
   std::shuffle(permutation.begin(), permutation.end(), rng);
 #ifdef DEBUG_SIEVE_TRACEINITIATLIZATIONS
 //  print();
 #endif
 }
 
+/**
+  Applies stored permutation to a vector.
+*/
 template<class T>
 inline void PMatrix::apply(std::vector<T> &vec) const
 {
   auto const dim = vec.size();
   assert(dim == permutation.size());
-  std::vector<T> out(dim);
+  std::vector<T> out(dim);  // temporary holding the new vec after the function finishes
   for (unsigned int i = 0; i < dim; ++i)
   {
     out[i] = vec[permutation[i]];
   }
   using std::swap;
   swap(out, vec);
+  // Note: We could avoid the temporary by storing a cycle representation of the permutation.
+  //       At any rate, we might remove the randomness from the permutation...
   return;
 }
 
+/**
+  Print the stored data to stream. Only used for debugging at the moment.
+  TODO: Turn into << operator
+*/
 inline void PMatrix::print(std::ostream &os) const
 {
   // os << "P  [" << i <<"] is: " << std::endl;
@@ -321,6 +332,9 @@ inline void PMatrix::print(std::ostream &os) const
   os << std::endl;
 }
 
+/**
+  Construct a (uniformly random) diagonal matrix with +/-1 on the diagonals.
+*/
 
 DMatrix::DMatrix(unsigned int const dim, std::mt19937 &rng)
 {
@@ -336,6 +350,9 @@ DMatrix::DMatrix(unsigned int const dim, std::mt19937 &rng)
 #endif
 }
 
+/**
+  Applies such a diagonal matrix on a vector (i.e. flip some signs in vec).
+*/
 template<class T> inline void DMatrix::apply(std::vector<T> &vec) const
 {
   auto const dim = vec.size();
@@ -349,6 +366,10 @@ template<class T> inline void DMatrix::apply(std::vector<T> &vec) const
   }
 }
 
+/**
+  Print the stored data to stream. Only used for debugging at the moment.
+  TODO: Turn into << operator
+*/
 inline void DMatrix::print(std::ostream &os) const
 {
   for (uint_fast16_t k = 0; k < diagonal.size(); ++k)
