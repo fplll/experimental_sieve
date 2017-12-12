@@ -15,6 +15,20 @@
     parameters we are using. Note that those parameters (should) act essentially as a Singleton.
 
   - This file defines some functions to operate on SimHashes.
+
+  Notably, such a SimHash can be applied to a lattice point p, resulting in a sequence of bits H(p).
+  For 2 lattice points p, q on the sphere (Note that H is invariant under scaling), we have that
+  the number of coinciding bits of their hashes is a rough measure for their distance, i.e.
+  H(p) XOR H(q) is correlated with the (angular) distance between p,q.
+  We use that to determine whether points are promising candidates for a reduction.
+
+  Note: The difference between this usage (SimHash) and locality sensitive hashing / filtering
+        techniques is that for the latter, we would organize our storage according to the value of
+        the sim_hash, in order to directly obtain all points with a given (set of restrictions on
+        the) sim_hash without looking at other points. This requires more elaborate data structure
+        with a larger overhead. By constrast, for SimHashes we store the hashes along the points
+        and *test* each candidate.
+
 ******/
 
 // TODO: Unify naming "bit_approximation", "bitapproximation", "bitapprox", "sim_hashes", both in
@@ -90,9 +104,9 @@ namespace GaussSieve
 {
 
 // To ensure validity of template arguments, in order to give meaningful compiler errors.
-template<class T> using IsCooSelection_Predicate =
-    mystd::enable_if_t< std::is_same<typename T::IsCooSelection,std::true_type>::value >;
-template<class T> using IsACoordinateSelection = mystd::is_detected<IsCooSelection_Predicate,T>;
+template<class T> using Predicate_IsCooSelection =
+    mystd::enable_if_t<  std::is_same<typename T::IsCooSelection, std::true_type>::value  >;
+template<class T> using IsACoordinateSelection = mystd::is_detected<Predicate_IsCooSelection,T>;
 
 /**
   This is a class that encapsulates (as a static member) a singleton of type CooSelection.
@@ -188,7 +202,6 @@ std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>
 /**
   takes a SimHash and returns a copy of it, with all bits flipped.
 */
-
 template<std::size_t sim_hash_num, std::size_t sim_hash_len>
 auto flip_all_bits( std::array< std::bitset<sim_hash_len>, sim_hash_num > const &sim_hashes)
     -> std::array< std::bitset<sim_hash_len>, sim_hash_num >
@@ -206,7 +219,7 @@ auto flip_all_bits( std::array< std::bitset<sim_hash_len>, sim_hash_num > const 
   ObtainSimHashBlock<CooSelection>get(arg, level)
   is equivalent to arg[level] if arg *is* a SimHash, but also works for certain classes that
   instead *contain* a SimHash, if they provide an access_bitapproximation(unsigned int) - member.
-  ( Some Lattice point classes and our list iterators do that). Used to unify code.
+  (Some Lattice point classes and our list iterators do that.) Used to unify code.
 */
 namespace Helpers
 {
