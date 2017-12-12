@@ -35,7 +35,6 @@
 // documentation and naming of classes / functions
 // Note : These are the same, really!
 
-
 /**
   CONCEPT: CoordinateSelection
 
@@ -105,7 +104,6 @@
   CoordinateSelection, defined in BlockOrthogonalSimHash.h
 */
 
-
 namespace GaussSieve
 {
 
@@ -123,12 +121,14 @@ class GlobalBitApproxData
 {
   static_assert(IsACoordinateSelection<CooSelection>::value, "Invalid template argument");
   friend StaticInitializer<GlobalBitApproxData>;
+
 private:
-    // we store the data used to construct coo_selection during its initialization.
-    // This is done to detect re-initialization attempts with different dim / seed while we still
-    // use the current coo_selection.
+  // we store the data used to construct coo_selection during its initialization.
+  // This is done to detect re-initialization attempts with different dim / seed while we still
+  // use the current coo_selection.
   static typename CooSelection::DimensionType dim_used;
   static unsigned int random_seed_used;
+
 public:
   static CooSelection coo_selection;  // the actual global object.
 };
@@ -139,12 +139,9 @@ public:
 // compile-time initialization of coo_selection. This will be overwritten at runtime before its
 // first use by the StaticInitializer. Note that our StaticInitializer keep a "WasInitialized" bit
 // around, so we do not need one here.
-template<class CooSelection>
-CooSelection GlobalBitApproxData<CooSelection>::coo_selection;
-template<class CooSelection>
-typename CooSelection::DimensionType GlobalBitApproxData<CooSelection>::dim_used;
-template<class CooSelection>
-unsigned int GlobalBitApproxData<CooSelection>::random_seed_used;
+template<class CooSelection> CooSelection                         GlobalBitApproxData<CooSelection>::coo_selection;
+template<class CooSelection> typename CooSelection::DimensionType GlobalBitApproxData<CooSelection>::dim_used;
+template<class CooSelection> unsigned int                         GlobalBitApproxData<CooSelection>::random_seed_used;
 
 /**
   Static Initializer for run-time initialization (RAII-style wrapper).
@@ -152,24 +149,24 @@ unsigned int GlobalBitApproxData<CooSelection>::random_seed_used;
   (cf. GlobalStaticData.h)
  */
 
-template<class CooSelection> class StaticInitializer< GlobalBitApproxData<CooSelection> >
-    final : public DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >
+template<class CooSelection> class StaticInitializer< GlobalBitApproxData<CooSelection> > final
+    : public DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >
 {
   static_assert(IsACoordinateSelection<CooSelection>::value, "Invalid template argument");
-  using Parent = DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >;
+  using Parent        = DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >;
   using DimensionType = typename CooSelection::DimensionType;
-  public:
 
+public:
   // See GlobalStaticData.h for the meaning of IsArgForStaticInitializer.
   // Essentially, we allow certain types that have a .dim member.
   template<class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
-  StaticInitializer(T const & initializer, unsigned int random_seed)
-      : StaticInitializer(static_cast<DimensionType>(initializer.dim),random_seed) {}
+  StaticInitializer(T const &initializer, unsigned int random_seed)
+      : StaticInitializer(static_cast<DimensionType>(initializer.dim), random_seed) {}
 
   StaticInitializer(DimensionType const new_dim, unsigned int random_seed)
   {
-    assert(Parent::user_count > 0); // Parent::user_count includes this object itself as well.
-    if(Parent::user_count > 1)
+    assert(Parent::user_count > 0);  // Parent::user_count includes this object itself as well.
+    if (Parent::user_count > 1)
     {
       // ensure we not reinitialize as long as there are previous users around.
       // TODO: Throw exception rather than assert!
@@ -178,15 +175,17 @@ template<class CooSelection> class StaticInitializer< GlobalBitApproxData<CooSel
     }
     else  // we are the first / only user of GlobalBitApproxData<CooSelection>
     {
-      GlobalBitApproxData<CooSelection>::dim_used = new_dim;
+      GlobalBitApproxData<CooSelection>::dim_used         = new_dim;
       GlobalBitApproxData<CooSelection>::random_seed_used = random_seed;
-      GlobalBitApproxData<CooSelection>::coo_selection = CooSelection{new_dim,random_seed};
+      GlobalBitApproxData<CooSelection>::coo_selection    = CooSelection{new_dim, random_seed};
     }
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing Global data for Bitapproximations." << " Counter is" << Parent::user_count )
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing Global data for Bitapproximations."
+                                      << " Counter is" << Parent::user_count)
   }
   ~StaticInitializer()
   {
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing Global data for Bitapproximations." << " Counter is " << Parent::user_count )
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing Global data for Bitapproximations."
+                                      << " Counter is " << Parent::user_count)
   }
 };
 
@@ -196,9 +195,10 @@ template<class CooSelection> class StaticInitializer< GlobalBitApproxData<CooSel
  Outputs a SimHash (i.e. an array of bitsets)
 */
 template<std::size_t sim_hash_num, std::size_t sim_hash_len>
-std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
+std::ostream & operator<<(std::ostream                                               &os,
+                          std::array< std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
 {
-  for(unsigned int i=0; i < sim_hash_num; ++i)
+  for (unsigned int i = 0; i < sim_hash_num; ++i)
   {
     os << sim_hashes[i] << " ";
   }
@@ -209,11 +209,11 @@ std::ostream& operator<<(std::ostream &os, std::array< std::bitset<sim_hash_len>
   takes a SimHash and returns a copy of it, with all bits flipped.
 */
 template<std::size_t sim_hash_num, std::size_t sim_hash_len>
-auto flip_all_bits( std::array< std::bitset<sim_hash_len>, sim_hash_num > const &sim_hashes)
+auto flip_all_bits(std::array< std::bitset<sim_hash_len>, sim_hash_num > const &sim_hashes)
     -> std::array< std::bitset<sim_hash_len>, sim_hash_num >
 {
   auto sim_hash_ret = sim_hashes;
-  for(size_t i = 0; i < sim_hash_num; ++i )
+  for (size_t i = 0; i < sim_hash_num; ++i)
   {
     sim_hash_ret[i] = ~sim_hashes[i];
   }
@@ -268,12 +268,14 @@ template<class CooSelection> struct ObtainSimHashBlock
 
 
 */
-template<class CoordinateSelection, class LHS, class RHS, class LowerThresholds, class UpperThresholds>
+template<class CoordinateSelection, class LHS, class RHS,
+	 class LowerThresholds, class UpperThresholds>
 FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
     LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub)
 {
   uint_fast16_t approx_scprod = 0;  // holds accumulated XOR - value
-  for (unsigned int level = 0; level < GlobalBitApproxData<CoordinateSelection>::coo_selection.get_sim_hash_num(); ++level)
+  for (unsigned int level = 0;
+       level < GlobalBitApproxData<CoordinateSelection>::coo_selection.get_sim_hash_num(); ++level)
   {
     approx_scprod += ( Helpers::ObtainSimHashBlock<CoordinateSelection>::get(lhs,level)
                       ^Helpers::ObtainSimHashBlock<CoordinateSelection>::get(rhs,level) ).count();
