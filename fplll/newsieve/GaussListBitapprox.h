@@ -1,3 +1,6 @@
+#ifndef POINT_LIST_WITH_BITAPPROX_H
+#define POINT_LIST_WITH_BITAPPROX_H
+
 /**
   New version of GaussList (i.e. the main list of the lattice points we keep during the algorithm)
   Think of this as similar to a std::list of lattice points.
@@ -21,21 +24,19 @@
   NOTE: The interface is NOT stable at all.
 */
 
+#include "DefaultIncludes.h"
+#include "LatticePointConcept.h"
+#include "SieveUtility.h"
+#include "SimHash.h"
+#include "Typedefs.h"
+
+// clang-format checked and adjusted by hand -- Gotti
 // clang-format off
 
-#ifndef POINT_LIST_WITH_BITAPPROX_H
-#define POINT_LIST_WITH_BITAPPROX_H
+namespace GaussSieve
+{
 
-#include "DefaultIncludes.h"
-
-#include "Typedefs.h"
-#include "SieveUtility.h"
-#include "LatticePointConcept.h"
-#include "SimHash.h"
-
-namespace GaussSieve{
-
-//forward declarations
+// forward declarations
 template<class SieveTraits, bool MT> class GaussListWithBitApprox;
 template<class SieveTraits, bool MT> class GaussIteratorBitApprox;
 
@@ -70,7 +71,7 @@ struct STNode
   using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
   using GlobalSimHashClass      = GlobalBitApproxData<CoordinateSelectionUsed>;
   // This would store 2 independently maintained sim_hashes.
-  static_assert(Has_BitApprox<typename SieveTraits::GaussList_StoredPoint>::value==false, "");
+  static_assert(Has_BitApprox<typename SieveTraits::GaussList_StoredPoint>::value == false, "");
 
   // we should never need to copy. If we do, we want the compiler to tell us.
   STNode(STNode const  &)          = delete;
@@ -88,10 +89,10 @@ struct STNode
   template<class Arg, TEMPL_RESTRICT_DECL2( IsALatticePoint< mystd::decay_t<Arg> >,
                                             mystd::negation< std::is_reference<Arg> >,
                                             mystd::negation< Has_BitApprox<mystd::decay_t<Arg>> >)>
-  explicit STNode(Arg &&arg)  noexcept  // Note: new might actually throw.
+  explicit STNode(Arg &&arg) noexcept  // Note: new might actually throw.
       : bit_approximations(GlobalSimHashClass::coo_selection.compute_all_bitapproximations(arg)),
         approx_norm2(convert_to_double(arg.get_norm2())),
-        ptr_to_exact(new typename SieveTraits::GaussList_StoredPoint(std::move(arg)) ) {}
+        ptr_to_exact(new typename SieveTraits::GaussList_StoredPoint(std::move(arg))) {}
 
   // Variant for Arg's with SimHashes
   template<class Arg, TEMPL_RESTRICT_DECL2( IsALatticePoint< mystd::decay_t<Arg> >,
@@ -114,11 +115,11 @@ struct STNode
 
   SimHashes bit_approximations;
   SimHashApproxNorm2 approx_norm2;  // currently a double, consider making it a float
-  typename SieveTraits::GaussList_StoredPoint *ptr_to_exact; // owning pointer
+  typename SieveTraits::GaussList_StoredPoint *ptr_to_exact;  // owning pointer
 
   // we keep the list sorted according to length. We define operator< to use sort() from std::list.
   // (Note that comparions for the lattice points *ptr_to_exact are by norm2)
-  bool operator<(STNode const &other) const {return *ptr_to_exact < *(other.ptr_to_exact); }
+  bool operator<(STNode const &other) const { return *ptr_to_exact < *(other.ptr_to_exact); }
 };
 
 }  // end namespace GaussListDetails
@@ -135,30 +136,33 @@ struct STNode
 template<class SieveTraits>
 class GaussListWithBitApprox<SieveTraits, false>
 {
-public:
-  using StoredPoint  = typename SieveTraits::GaussList_StoredPoint;
-  using ReturnType   = typename SieveTraits::GaussList_ReturnType;
-  using Iterator     = GaussIteratorBitApprox<SieveTraits,false>;  // custom iterator class below
+private:
+  using StoredPoint = typename SieveTraits::GaussList_StoredPoint;
+  using ReturnType  = typename SieveTraits::GaussList_ReturnType;
+  using Iterator    = GaussIteratorBitApprox<SieveTraits, false>;  // custom iterator class below
   using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
-  using SimHashBlock =typename CoordinateSelectionUsed::SimHashBlock;
-  using SimHashes = typename CoordinateSelectionUsed::SimHashes;
+  using SimHashBlock            = typename CoordinateSelectionUsed::SimHashBlock;
+  using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
 
   friend Iterator;
-  using UnderlyingContainer = std::list<GaussListDetails::STNode< SieveTraits> >;  // just wraps around this
+  // The class is essentially just a wrapper around UnderlyingContainer
+  using UnderlyingContainer = std::list<GaussListDetails::STNode< SieveTraits> >;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
+
+public:
   GaussListWithBitApprox()                                          = delete;
   GaussListWithBitApprox(GaussListWithBitApprox const &)            = delete;
   GaussListWithBitApprox(GaussListWithBitApprox &&)                 = delete;
-  GaussListWithBitApprox& operator= (GaussListWithBitApprox const&) = delete;
-  GaussListWithBitApprox& operator= (GaussListWithBitApprox &&)     = delete;
+  GaussListWithBitApprox &operator=(GaussListWithBitApprox const &) = delete;
+  GaussListWithBitApprox &operator=(GaussListWithBitApprox &&)      = delete;
 
   // Sole constructor. The argument is used to initialize the static data of the used lattice point
   // classes.
   // NOTE / TODO: Making this noexcept means we have to catch reinitializations in the caller.
   explicit GaussListWithBitApprox(GlobalStaticDataInitializer const &static_data) noexcept
-      :init_stored_point(static_data),
-       init_return_type(static_data),
-       actual_list() {}
+      : init_stored_point(static_data),
+        init_return_type(static_data),
+        actual_list() {}
 
   // behaves like cbegin, cend from STL containers, i.e. gives const-iterator to begin/end.
   CPP14CONSTEXPR Iterator cbegin() const noexcept { return actual_list.cbegin(); }
@@ -178,7 +182,7 @@ public:
 
   // Inserts the lattice point pointed to by a pointer. The list takes ownership of the pointee.
   // TODO: Consider using unique_ptr
-  Iterator insert_before(Iterator const &pos, StoredPoint * &&point_ptr)
+  Iterator insert_before(Iterator const &pos, StoredPoint *&&point_ptr)
   {
     return actual_list.emplace(pos.it, std::move(point_ptr));
   }
@@ -188,10 +192,10 @@ public:
 
   // The implementation differs, depending on whether ReturnType includes SimHashes
   // (in which case we do not recompute them)
-  template<class dummy=ReturnType, TEMPL_RESTRICT_DECL2(mystd::negation<Has_BitApprox<dummy>>)>
+  template<class dummy = ReturnType, TEMPL_RESTRICT_DECL2(mystd::negation<Has_BitApprox<dummy>>)>
   auto true_pop_point(Iterator &pos) -> ReturnType;
 
-  template<class dummy=ReturnType, TEMPL_RESTRICT_DECL2(Has_BitApprox<dummy>)>
+  template<class dummy = ReturnType, TEMPL_RESTRICT_DECL2(Has_BitApprox<dummy>)>
   auto true_pop_point(Iterator &pos) -> ReturnType;
 
   // erase, sort, size, empty follow std::list's semantics
@@ -231,8 +235,9 @@ private:
 template<class SieveTraits>
 class GaussIteratorBitApprox<SieveTraits, false>
 {
-public:
-  using ListType = GaussListWithBitApprox<SieveTraits,false>;
+private:
+  using ListType                = GaussListWithBitApprox<SieveTraits, false>;
+
   using StoredPoint             = typename SieveTraits::GaussList_StoredPoint;
   using ReturnType              = typename SieveTraits::GaussList_ReturnType;
   using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
@@ -244,56 +249,56 @@ public:
   using UnderlyingIterator      = typename ListType::UnderlyingContainer::iterator;
   using CUnderlyingIterator     = typename ListType::UnderlyingContainer::const_iterator;
 
-
 private:
   CUnderlyingIterator it;
 
   friend GaussListWithBitApprox<SieveTraits, false>;
 
 public:
-  GaussIteratorBitApprox() = delete;
-  GaussIteratorBitApprox(GaussIteratorBitApprox const  &)            = default;
-  GaussIteratorBitApprox(GaussIteratorBitApprox       &&)            = default;
-  GaussIteratorBitApprox& operator=(GaussIteratorBitApprox const  &) = default;
-  GaussIteratorBitApprox& operator=(GaussIteratorBitApprox       &&) = default;
+  GaussIteratorBitApprox()                                          = delete;
+  GaussIteratorBitApprox(GaussIteratorBitApprox const &)            = default;
+  GaussIteratorBitApprox(GaussIteratorBitApprox &&)                 = default;
+  GaussIteratorBitApprox &operator=(GaussIteratorBitApprox const &) = default;
+  GaussIteratorBitApprox &operator=(GaussIteratorBitApprox &&)      = default;
 
   // we can convert from a "plain" iterator to the underlying list. Only used internally.
   constexpr GaussIteratorBitApprox( UnderlyingIterator const &new_it) noexcept : it(new_it) {}
   constexpr GaussIteratorBitApprox(CUnderlyingIterator const &new_it) noexcept : it(new_it) {}
 
   // comparison, needed for for-loops (i.e. compare against list.cend() )
-  bool operator==(GaussIteratorBitApprox const &other) const { return it==other.it; }
-  bool operator!=(GaussIteratorBitApprox const &other) const { return it!=other.it; }
+  bool operator==(GaussIteratorBitApprox const &other) const { return it == other.it; }
+  bool operator!=(GaussIteratorBitApprox const &other) const { return it != other.it; }
 
   // increment operators. We have NO decrement, these are forward iterators.
   // (The latter is for interface compatibility with multi-threaded, where that restriction makes
   // everything both faster and easier.)
-  GaussIteratorBitApprox& operator++()    { ++it; return *this; }  // prefix version
+  GaussIteratorBitApprox &operator++()    { ++it; return *this; }  // prefix version
   GaussIteratorBitApprox  operator++(int) { return it++; }         // postfix version
   // is_end
 
   // obtains an approximation to norm2 of the pointee.
-  SimHashApproxNorm2 get_approx_norm2() const
-  { return it->approx_norm2; }
+  SimHashApproxNorm2 get_approx_norm2() const { return it->approx_norm2; }
 
   // obtains all bitapproximations of the pointee.
-  SimHashes get_all_bitapproximations() const
-  { return it->bit_approximations; }
+  SimHashes get_all_bitapproximations() const { return it->bit_approximations; }
 
   // gives access to the level'th block the bitapproximations.
   // In the MT case, we might return a reference to atomic.
   // NOTE: the check_simhash_scalar_product function works with *any* type that exposes an
   // access_bitapproximation(unsigned int) function (i.e. some lattice points and this class)
   // this way, we can call these directly on the iterator.
-  SimHashBlock const & access_bitapproximation(unsigned int level) const
-  { return it->bit_approximations[level]; }
+  SimHashBlock const &access_bitapproximation(unsigned int level) const
+  {
+    return it->bit_approximations[level];
+  }
 
   // derefencing gives us the point stored in the STNodes (i.e. without sim_hashes)
-  StoredPoint const & operator*() const  { return *(it->ptr_to_exact); }
+  StoredPoint const &operator*() const { return *(it->ptr_to_exact); }
+
   // Note that for overloads of the -> operator, the return type is a class, whose -> operator is
   // recursively called (recursion stops at plain pointers).
-  StoredPoint const * operator->() const { return it->ptr_to_exact;    }
-//  explicit operator StoredPoint* ()         { return it->ptr_to_exact;    }
+  StoredPoint const *operator->() const { return it->ptr_to_exact; }
+
   // Iterator is explicitly convertible to pointer to const-Lattice Point.
   explicit operator StoredPoint const * () const { return it->ptr_to_exact; }
 };
@@ -314,14 +319,20 @@ template<class PointOrIterator> struct ConvertIteratorToPoint_Helper
 {
   static_assert(IsALatticePoint<PointOrIterator>::value == true, "");
   using RetType = PointOrIterator;
-  FORCE_INLINE static inline constexpr PointOrIterator const & get(PointOrIterator const &arg) { return arg; }
+  FORCE_INLINE static inline constexpr PointOrIterator const &get(PointOrIterator const &arg)
+  {
+    return arg;
+  }
 };
 // partial specialization is for iterators : get dereferences
-template<class SieveTraits>
-struct ConvertIteratorToPoint_Helper<GaussIteratorBitApprox<SieveTraits, false>>
+template<class SieveTraits, bool MT>
+struct ConvertIteratorToPoint_Helper< GaussIteratorBitApprox<SieveTraits,MT> >
 {
-  using RetType = typename GaussIteratorBitApprox<SieveTraits,false>::StoredPoint;
-  FORCE_INLINE static inline RetType const & get(GaussIteratorBitApprox<SieveTraits,false> const &arg) { return *arg; }
+  using RetType = decltype(*std::declval<GaussIteratorBitApprox<SieveTraits,MT>>());
+  FORCE_INLINE static inline RetType const &get(GaussIteratorBitApprox<SieveTraits,MT> const &arg)
+  {
+    return *arg;
+  }
 };
 }  // end Helper namespace
 
@@ -329,7 +340,8 @@ template<class PointOrIterator>
 FORCE_INLINE auto CPP14CONSTEXPR turn_maybe_iterator_to_point(PointOrIterator &&arg)
     -> typename Helpers::ConvertIteratorToPoint_Helper<mystd::decay_t<PointOrIterator>>::RetType const &
 {
-  return Helpers::ConvertIteratorToPoint_Helper<mystd::decay_t<PointOrIterator>>::get(std::forward<PointOrIterator>(arg));
+  return Helpers::ConvertIteratorToPoint_Helper<mystd::decay_t<PointOrIterator>>::get(
+      std::forward<PointOrIterator>(arg));
 }
 
 }  // end namespace GaussSieve
