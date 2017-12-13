@@ -44,6 +44,13 @@ CPP14CONSTEXPR bool is_a_power_of_two(Integer const n)
   return std::bitset< std::numeric_limits<Integer>::digits >{n}.count() == 1;
 }
 
+template<class Arg1, class...>
+class GetFirstArg
+{
+  using type = Arg1;
+};
+template<class Arg1, class... Args> using GetFirstArg_t = GetFirstArg<Arg1,Args...>;
+
 namespace GaussSieve
 {
 

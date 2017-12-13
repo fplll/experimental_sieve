@@ -60,32 +60,44 @@ class DefaultSieveTraits
 {
   public:
 
-  //static constexpr int max_bucket_size = 250;
-
   using IsSieveTraitsClass = std::true_type;
 
-  using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
-  using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
-  using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
-  using GaussQueue_ReturnType   = GaussSampler_ReturnType;
-  using GaussQueue_DataType     = GaussQueue_ReturnType;
-
-//#endif
-
-#ifdef USE_LSH
-  using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
-  using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
-  using GaussList_ReturnType    = HashedLatticePoint<ET,nfixed>;
-  using FastAccess_Point        = HashedLatticePoint<ET,nfixed>;
-
-  //--------HYPERPLANE LSH SPECIFIC----------
-  static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
-  static constexpr int number_of_hash_functions = 11;
-#endif
+  using DimensionType           = MaybeFixed<nfixed>;
 
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
   static std::size_t constexpr sim_hash_num = 1;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
+
+  using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType>;
+  using SimHashBlock            = typename CoordinateSelectionUsed::SimHashBlock;
+  using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
+
+  using LengthType               = ET;
+
+  using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
+
+  using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, CoordinateSelectionUsed >;
+
+
+  using GaussSampler_ReturnType = ExactLatticePoint<ET,nfixed>;
+  using GaussList_StoredPoint   = ExactLatticePoint<ET,nfixed>;
+//  using GaussList_ReturnType    = ExactLatticePoint<ET,nfixed>;
+  using GaussList_ReturnType    = FastAccess_Point;
+  using GaussQueue_ReturnType   = GaussSampler_ReturnType;
+  using GaussQueue_DataType     = GaussQueue_ReturnType;
+
+//#ifdef USE_LSH
+//  using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
+//  using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;
+//  using GaussList_ReturnType    = HashedLatticePoint<ET,nfixed>;
+//  using FastAccess_Point        = HashedLatticePoint<ET,nfixed>;
+//
+//  //--------HYPERPLANE LSH SPECIFIC----------
+//  static constexpr unsigned short number_of_hash_tables = HashedLatticePoint<ET,nfixed>::number_of_hash_tables;
+//  static constexpr int number_of_hash_functions = 11;
+//#endif
+
+
 
   //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
@@ -106,18 +118,6 @@ class DefaultSieveTraits
 
 //  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
 
-  using DimensionType           = MaybeFixed<nfixed>;
-
-  using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType>;
-  using SimHashBlock            = typename CoordinateSelectionUsed::SimHashBlock;
-  using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
-
-
-  using LengthType               = ET;
-
-  using GlobalStaticDataInitializer = StaticInitializerArg<DimensionType>;
-
-  using FastAccess_Point        = AddBitApproximationToLP< ExactLatticePoint<ET,nfixed>, CoordinateSelectionUsed >;
 
 
   // note that if ET = mpz_class, then ZNREntryType::underlying_data_type = mpz_t,
