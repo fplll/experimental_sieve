@@ -87,9 +87,6 @@ public:
 
   friend class Matrix<T>;
 
-  // Added for newsieve
-  NumVect<T> &get_underlying_row() const { return row; }
-
 private:
   MatrixRow(const NumVect<T> &row) : row(const_cast<NumVect<T> &>(row)) {}
   NumVect<T> &row;

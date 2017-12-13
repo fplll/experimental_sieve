@@ -23,8 +23,6 @@ template<class Z = mpz_t> class Z_NR
 
 public:
 
-  using underlying_data_type = Z; //introspection, added for newsieve
-
   /**
    * Constructors.
    */
