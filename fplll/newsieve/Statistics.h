@@ -423,7 +423,6 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     compute_and_print_statistics_all(of);
     compute_and_print_statistics_all_innloop(of);
     #endif
-
 }
 
 } // end namespace GaussSieve

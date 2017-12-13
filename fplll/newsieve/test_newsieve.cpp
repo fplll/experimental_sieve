@@ -1,7 +1,7 @@
 // clang-format status: OK
 
 #define USE_REGULAR_QUEUE  // only regular queue is implemented for now
-// For large dimensions priority queue might be faster
+// For large dimensions priority queue might be faster -- no, it's slower -- Gotti
 
 #define PROGRESSIVE  // start using (durint sampling) only dim/2 basis vectors
                      // progressively increasing the rank up to dim
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
   mpz_class target_norm_conv = 0;
   int k=2;
   int beta=0; //beta = 0 means we run LLL
-  
+
   if (argc < 2)
   {
     std::cout << "Please provide the dimension." << std::endl;
@@ -112,22 +112,22 @@ int main(int argc, char **argv)
       return -1;
     }
   }
-  
+
   if (dim==0)
   {
     std::cout << "Please, provide the dimension" << std::endl;
     return -1;
   }
-  
+
   if (target_norm_string!=NULL)
   {
     target_norm_conv = mpz_class(target_norm_string);
   }
-  
+
   // ZZ_mat is an integer row-oriented matrix. See /nr/matrix.h
   fplll::ZZ_mat<mpz_t> B;
   B.resize(dim, dim);
-  
+
   if (flag_file)
   {
     std::ifstream input_file(input_file_name);
@@ -144,17 +144,17 @@ int main(int argc, char **argv)
     //generates GM lattice
     B.gen_qary_prime(1, 10*dim);
   }
-  
+
   /* preprocessing of basis */
   clock_t stime = clock();
   if (beta > 0)
     fplll::bkz_reduction(B, beta, fplll::BKZ_DEFAULT, fplll::FT_DEFAULT, 0);
   else
     fplll::lll_reduction(B, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
-  
+
   clock_t etime = clock();
   double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
-  
+
   if (beta > 0)
     std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
   else
@@ -165,11 +165,11 @@ int main(int argc, char **argv)
 #else
   std::cout << "Use Standard Queue" << std::endl;
 #endif
-  
+
   auto start = std::chrono::high_resolution_clock::now();
-  
+
   bool constexpr multithreaded = false;
-  
+
   // Define all the types, consts for the sieve
   // template params are <entry type for sieving, single/multi-threaded, is_dim_fixed, entry type of
   // reduced B>
@@ -188,12 +188,12 @@ int main(int argc, char **argv)
   B2.resize(dim2, dim2);
   B2.gen_qary_prime(1, 10*dim2);
   fplll::lll_reduction(B2, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
-  
+
   Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
   //Sieve<Traits, multithreaded> Test_3Sieve2 (B2, k, 0);
-  
+
   TerminationCondition<Traits,multithreaded> * termcond;
-  
+
   if (target_norm_conv!=0)
   {
     termcond = new LengthTerminationCondition<Traits, multithreaded>(
@@ -203,17 +203,17 @@ int main(int argc, char **argv)
   {
     termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
   }
-  
+
   test_sieve.set_termination_condition(termcond);
-  
+
   test_sieve.run();
   test_sieve.print_status();
-  
+
   auto finish = std::chrono::high_resolution_clock::now();
   auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
   std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
   delete termcond;
-  
+
   return 1;
 }
 

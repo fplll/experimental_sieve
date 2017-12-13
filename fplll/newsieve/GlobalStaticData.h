@@ -4,8 +4,94 @@
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 
-// This struct holds all data that is used to initialize the static data associated to our various classes.
-// Note that it need not be a singleton itself
+/**
+  This class deals with static initializations of static members of classes.
+  For reasons of efficiency, keep certain data as *static* members of our classes.
+  In particular, the dimension of lattice points is kept as static data.
+  ( This is to avoid passing the dimension as a parameter in every operation, which would prevent us
+    from using operator+, etc. Alternatively, we could store the dimension inside the points, but
+    that seems like a waste (although this is actually done because the containers we use inside
+    our current lattice point implementations do that).
+    The main reason has to do with multi-threading: If we rely on the value of the size of the
+    containers inside the point, we have to be very careful about about synchronization,
+    because data races for the size member will cause us to read/write to the wrong memory
+    (as opposed to just getting some data wrong -- in particular, it prevents certain strategies of
+    optimistic concurrency control)
+    Furthermore, we might want to store a slow function of the dimension (which we do not need to
+    recompute every time), e.g. some optimal sieve parameters that depend on the dimension...)
+  Essentially, we have some global variables this way. While this has certain advantages (simpler
+  code, some easier-to-write optimizations), one downside is that we need to care about their
+  initialization. Furthermore, this choice implies that
+  * WE MIGHT NOT BE ABLE TO RUN TWO INSTANCES OF THE SIEVE IN PARALLEL*,
+  because they will both need to access the same global static data.
+  ( It's not that bad: actually, we can, provided the static paramters are the same for all
+    instances (which is what happens if you use e.g. extreme pruning). Furthermore, we can
+    parallelize inside the loop. In fact, since available memory is a shared constraint, running
+    several sieves in parallel is probably a BAD IDEA anyway... )
+  Note that classes that have such global data as static member variables *must* actually be class
+  templates (or store their static data in another way).
+  (The reason is that this makes them "inline", i.e. even if several cpp-files see a
+  header with such static data members, they are recognized as the same object by the linker.
+  This is ONLY true for members of class templates, not for non-template classes)
+
+  In order to manage such static data, we use RAII - style wrappers, called static initializers.
+  e.g. StaticInitializer<LatticePoint>'s constructor will perform the initialization and its
+  destructor the (implicit) deinitialization. Essentially the "Is Initialized" state of the
+  LatticePoint class is tied to the lifetime of a StaticInitializer<LatticePoint> object.
+  (having such RAII wrappers ensures deinitialization and exception safety, guards against
+   reinitialization and allows us to avoid some initialization order issues)
+
+  Notably, these static initializers are kept as member objects of e.g. the main_sieve.
+  Note that the order of member fields (which equals the order of construction) matters here:
+  we keep these as early members and construct them in the initializer list. This way we can have
+  e.g. LatticePoint members of main_sieve (if we would perform initialization in the constructor's
+  body, we would be in trouble, because this is done after the (implicit) construction of all member
+  objects)
+
+  Our static initializers StaticInitializer<ForObject> keeps track of how many of them exist (on a
+  For-Object basis), essentially performing some kind of reference counting.
+  We allow reinitialization with the same data (which is a no-op). Reinitializing with different
+  data is only possibly if the reference count is at 0. This ensures that all previous users are no
+  longer using the global data.
+
+  All StaticInitializers<ForClass> shall be derived from DefaultStaticInitializer<ForClass>.
+  This parent class template takes care of reference counting.
+
+  Note that template<class AnyClass> StaticInitializer is already defined as a default (which does
+  nothing but inconsequetial reference counting). To define a custom static initializer for a given
+  class, you need to specialize that template.
+
+  For classes Y for which our generic code assumes that a static initializer is needed, you
+  *have to* set a public member typedef HasDefaultStaticInitializer = std::true_type in Y to enable
+  the unspecialized template.
+  (Otherwise, some friendly static_asserts will remind you ;-). This is to ensure correct usage.)
+
+  TODO: List classes Y for which we use StaticInitializers
+
+  ****StaticInitializerArgs:****
+
+  Note that StaticInitializer<ForObject>'s constructor might need some argument/data that depends on
+  ForObject. Since we need to forward such data around (the queue has its own static_initializer
+  objects of type StaticInitializer<LatticePointsUsedByQueue>, for example), but do not know exactly
+  which data every class needs (and do not want to change the interface in too many places if we add
+  something), we encapsulate the data in a class X.
+
+  Technically, this is a concept (i.e. a predicate on a class). Which one we are using is determined
+  by SieveTraits.
+
+  A class X is a ArgForStaticInitializer iff it has a public member typedef
+  using StaticInitializerArgTag = std::true_type;
+
+  All static initializers for *any* class Y take *any* such ArgForStaticInitializer class X as an
+  argument to their constructors StaticInitializer<Y>(X const &x)
+  and will look for their required member objects (which depend on Y) such as x.dim or x.memory_pool
+  or whatever. It is the task of SieveTraits to select a concrete ArgForStaticInitializer class X
+  that fits every static initializer used.
+  (The purpose of these rules is that if a static initializer for Y needs some new input argument,
+   you can add a single member to X without having to change any interface of any other class but
+   X and Y)
+*/
+
 
 namespace GaussSieve{
 

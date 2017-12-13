@@ -53,15 +53,30 @@ private: // aliases to avoid typing long names
   using DataType                    = typename SieveTraits::GaussQueue_DataType;
   using RetType                     = typename SieveTraits::GaussQueue_ReturnType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
-
-  // TODO: Remove
-  static_assert( std::is_same<DataType, RetType>::value,
-                "Currently, DataType and RetType must be identical.");
 #ifndef USE_REGULAR_QUEUE
-  // TODO: Make this one work (and actually a template argument)
-  static_assert(false, "Only regular queue might work at the moment");
-  //  using QueueType = DOES NOT WORK : std::priority_queue< DataType* ,
-  //      std::vector<DataType* >, IsLongerVector_ExactPtr<ET,false,nfixed> >;
+  // If this symbol is not set, we use a priority queue to always process the smallest element from
+  // the queue.
+  // However, there is the issue that std::priortiy_queue does not allow non-const access to its
+  // elements (presumably, because modifying would destroy the sorting)
+  // This is true even if we erase that element immediately afterwards.
+
+  // In particular, we can not use move semantics to get the next element, which is bad because
+  // lattice points are not copyable. (This is a known issue with std::priority_queue)
+  // As a solution, we store pointers to lattice points in the priority queue (which we can copy)
+  // (Alternatively, use const_cast; while it is extremely likely to work, this depends on the
+  // implementation details of priority_queue and might be UB. Also, we would need to overwrite
+  // norm2 in the lattice to its old value, because the pop() operation (i.e. delete the top
+  // element) of priority_queue might perform comparisons with the to-be-deleted element to update
+  // its data structure, depending on the data structure it keeps)
+
+  // Comparator is a local nested class that encapsulate the function by which to order.
+  // Note that std::priority_queue defaults to < and allows access to the largest element,
+  // so we have to reverse the ordering.
+  struct Comparator
+  {
+    bool operator()(DataType * const &lhs, DataType* const &rhs) { return *lhs > *rhs; }
+  };
+  using QueueType = std::priority_queue< DataType*, std::vector<DataType*>, Comparator >;
 #else
   using QueueType = std::queue<DataType>;
 #endif
