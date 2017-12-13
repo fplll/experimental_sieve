@@ -113,10 +113,10 @@ class DefaultSieveTraits
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3, 64+6}};
 
   // for 3-sieve exact check, squared, normalized
-  constexpr static double x1x2_target = .1111;
-  constexpr static double x2x3_target = .1111;
-  //constexpr static double x1x2_target = .0911;
-  //constexpr static double x2x3_target = .0911;
+  //constexpr static double x1x2_target = .1111;
+  //constexpr static double x2x3_target = .1111;
+  constexpr static double x1x2_target = .0911;
+  constexpr static double x2x3_target = .0911;
 
 //  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
 
