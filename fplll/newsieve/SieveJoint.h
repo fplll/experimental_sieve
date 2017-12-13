@@ -126,9 +126,8 @@ public:
     /*DATA TYPES*/
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
-  using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>; //FIXME
-//  using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
-  // CHKMAINLIST
+  using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  // using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using MainListType     = GaussListWithBitApprox<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using LatticeBasisType = SieveLatticeBasis<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;

@@ -12,29 +12,30 @@
 namespace GaussSieve
 {
 
-//constructor
+// constructor, single-threaded version
 template<class SieveTraits>
-GaussQueue<SieveTraits,false>::GaussQueue( Sieve<SieveTraits,false> * const caller_sieve,
-  GlobalStaticDataInitializer const &static_data)
-:
-init_data_type(static_data),
-init_ret_type(static_data),
-main_queue(),
-gauss_sieve(caller_sieve),
-sampler(nullptr)
+GaussQueue<SieveTraits,false>::GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
+                                          GlobalStaticDataInitializer const &static_data,
+                                          Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler)
+    : init_data_type(static_data),
+      init_ret_type(static_data),
+      main_queue(),
+      gauss_sieve(caller_sieve),
+      sampler(user_sampler),
+      sampler_owned(user_sampler == nullptr)
 {
 #ifdef DEBUG_SIEVE_STANDALONE_QUEUE
   assert(caller_sieve==nullptr);
 #else
   assert(caller_sieve!=nullptr);
 #endif
-
-  std::seed_seq seed{1,2,4}; //just some arbitrary numbers
-  std::cout << "Initializing Sampler" << std::endl << std::flush;
-  sampler = new GPVSampler<SieveTraits,false, std::mt19937_64, std::seed_seq> (seed);
-  //sampler = new GPVSamplerExtended<SieveTraits,false,std::mt19937_64, std::seed_seq> (seed, 10); //run Babai on the last 12 dims
-//    std::cout << "Finished Initializing Sampler" << std::endl << std::flush;
-  assert(sampler!=nullptr);
+  if (sampler == nullptr)
+  {
+    std::seed_seq seed{1,2,4}; //just some arbitrary numbers
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing our own sampler. Using GPVSampler")
+    sampler = new GPVSampler<SieveTraits, false, std::mt19937_64, std::seed_seq>(seed);
+  }
+  assert(sampler != nullptr);
 }
 
 //template<class ET>
@@ -88,73 +89,7 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
   }
 }
 
-//template<class ET>
-//typename GaussQueue<ET,true>::RetType GaussQueue<ET,true>::true_pop()
-//{
-//    mutex_guard lock(queue_mutex); //global lock. TODO : Enable concurrent sampling.
-//    if(main_queue.empty())
-//    {
-//        ++ (gauss_sieve->number_of_points_sampled); //atomic
-//        ++ (gauss_sieve->number_of_points_constructed); //atomic
-//        return gauss_sieve->sampler->sample();
-//    }
-//    else
-//    {
-//        #ifndef USE_REGULAR_QUEUE
-//        LPType next_point = *(main_queue.top());
-//        delete main_queue.top();
-//        #else
-//        LPType next_point = * (main_queue.front());
-//        delete main_queue.front();
-//        #endif // USE_REGULAR_QUEUE
-//        main_queue.pop();
-//        return next_point;
-//    }
-//}
 
-
-//template<class ET>
-//typename GaussQueue<ET,false>::RetType* GaussQueue<ET,false>::pop_take_ownership()
-//{
-//    if(main_queue.empty())
-//    {
-//    ++ (gauss_sieve->number_of_points_sampled);
-//    ++ (gauss_sieve->number_of_points_constructed);
-//    LPType *next_point_ptr = new LPType (gauss_sieve->sampler->sample());
-//    return next_point_ptr;
-//    }
-//    else
-//    {
-//        #ifndef USE_REGULAR_QUEUE
-//        LPType* next_point_ptr = main_queue.top();
-//        #else
-//        LPType* next_point_ptr = main_queue.front();
-//        #endif // USE_REGULAR_QUEUE
-//        main_queue.pop(); //remove pointer from queue.
-//        return next_point_ptr;
-//    }
-//}
-//
-//template<class ET>
-//typename GaussQueue<ET,true>::RetType* GaussQueue<ET,true>::pop_take_ownership()
-//{
-//    assert(false); //currently disabled
-//}
-//
-//template<class ET>
-//void GaussQueue<ET,false>::push(LPType const & val)
-//{
-//    LPType * new_lp = new LPType (val);
-//    main_queue.push(new_lp);
-//}
-//
-//template<class ET>
-//void GaussQueue<ET,true>::push(LPType const & val)
-//{
-//    mutex_guard lock(queue_mutex);
-//    LPType * new_lp = new LPType (val);
-//    main_queue.push(new_lp);
-//}
 
 
 template<class SieveTraits>
@@ -164,73 +99,25 @@ void GaussQueue<SieveTraits,false>::push(DataType && val)
   main_queue.push(new_lp);
 }
 
-/*
-Commented out, we avoid pointers at this interface level.
-(or name the function differently)
 
-template<class ET, int nfixed>
-void GaussQueue<ET,false,nfixed>::push(DataType * &val)
-{
-    main_queue.push(val);
-    val = nullptr;
-}
-
-*/
-
-//template<class ET>
-//void GaussQueue<ET,true>::push(LPType && val)
-//{
-//    mutex_guard lock(queue_mutex);
-//    LPType * new_lp = new LPType (std::move(val) );
-//    main_queue.push(new_lp);
-//}
-
-
-//template<class ET>
-//void GaussQueue<ET,false>::give_ownership(LPType * const valptr)
-//{
-//    main_queue.push(valptr);
-//}
-
-
-//template<class ET>
-//void GaussQueue<ET,true>::give_ownership(LPType * const valptr)
-//{
-//assert(false);
-//}
 
 template<class SieveTraits> GaussQueue<SieveTraits,false>::~GaussQueue()
 {
-//TODO: Delete sampler if owned.
-    while(! main_queue.empty() )
-    {
-        #ifndef USE_REGULAR_QUEUE
-        delete main_queue.top();
-        #else
-        delete main_queue.front();
-        #endif // USE_REGULAR_QUEUE
-        main_queue.pop();
-    }
+  while(! main_queue.empty() )
+  {
+#ifndef USE_REGULAR_QUEUE
+  delete main_queue.top();
+#else
+  delete main_queue.front();
+#endif // USE_REGULAR_QUEUE
+  main_queue.pop();
+  }
+  if (sampler_owned)
+  {
     delete sampler;
+  }
 }
 
-//template<class ET> //making a second bool template argument does not work. You can not partially specialize member functions. (Workaround is possible, but its syntax is ridiculous).
-//GaussQueue<ET,true>::~GaussQueue()
-//{
-////TODO: Delete sampler if owned.
-//    while(! main_queue.empty() )
-//    {
-//        #ifndef USE_REGULAR_QUEUE
-//        delete main_queue.top();
-//        #else
-//        delete main_queue.front();
-//        #endif // USE_REGULAR_QUEUE
-//        main_queue.pop();
-//    }
-//}
+}  // end namespace GaussSieve
 
-//template class GaussQueue<fplll::Z_NR<long>,false,-1>;
-
-}
-
-#endif
+#endif  // include guard

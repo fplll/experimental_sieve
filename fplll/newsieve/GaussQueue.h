@@ -5,7 +5,6 @@
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-//#include "EllipticSampler.h"
 #include "Sampler.h"
 #include "GlobalStaticData.h"
 
@@ -25,6 +24,17 @@
   NOTE: The Queue's constructor takes a pointer to the caller sieve, in order to access some of its
         data (notably, it needs to forward these to the sampler, which might be user-provided, so we
         do not know which data it needs)
+        For unit testing, there is the debug symbol DEBUG_SIEVE_STANDALONE_QUEUE that allows
+        (forces, actually) to use nullptr for that pointer. It deactivates some features, naturally.
+  TODO: Enable user-provided samplers (infrastructure for this feature exists)
+*/
+
+/**
+  Note: Due to circular dependencies between the Queue and the main sieve object, most functionality
+        is implemented in GaussQueue_impl.h
+        ( Since everything is header-only, there is some uglyness involved here:
+          Notably, GaussQueue_impl must be included *only* at the root of the inclusion tree,
+          *after* all non-impl_h files. )
 */
 
 namespace GaussSieve{
@@ -65,89 +75,51 @@ public:
   GaussQueue& operator= (GaussQueue &&)      = delete;
 
   // Sole constructor:
-  // we take take a pointer to the caller sieve as an argument
-  // to initialize the sampler and to access statistics.
+  // we take take a pointer to the caller sieve as an argument to initialize the sampler and to
+  // access statistics. static_data is needed to initialize the used lattice point classes.
+
   // TODO: Consider storing a reference to the statistics class instead.
-  //
   explicit inline GaussQueue(Sieve<SieveTraits,false>* const caller_sieve,
-                               GlobalStaticDataInitializer const &static_data);
+                             GlobalStaticDataInitializer const &static_data,
+                             Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler=nullptr);
   inline ~GaussQueue();
 
     // we might as well always return false (or make this private)!
     // if the internal queue is empty, we just sample a new vector.
   [[deprecated("The queue is never empty from the users point of view.")]]
-  inline bool empty() const  {return main_queue.empty();};
+  NODISCARD inline bool empty() const  { return main_queue.empty(); }
 
-    //returns size of queue (used for diagnostics and statistics only)
-  inline long long size() const {return main_queue.size();}; //TODO: MAY BE MORE THAN LONGLONG
-  void push(DataType const &val) = delete; //puts a copy of val in the queue : deleted
-  inline void push(DataType && val);     //uses move semantics for that.
+  // returns size of queue (used for diagnostics and statistics only)
+  typename QueueType::size_type size() const {return main_queue.size(); }
 
-    // allow pushing via pointer?
-  inline auto true_pop() -> RetType; //removes front element from queue *and returns it*.
+  // since we cannot / do not copy point, you have to use (possibly explicit) move semantics
+  // (i.e. push(std::move(point)), which makes point unusable for the caller.
+  inline void push(DataType const &val) = delete;  // puts a copy of val in the queue : deleted
+  inline void push(DataType      &&val);           // uses move semantics for that.
+
+  //removes front element from queue *and returns it*.
+  inline auto true_pop() -> RetType;
 
 private:
   StaticInitializer<DataType> const init_data_type;
   StaticInitializer<RetType>  const init_ret_type;
   QueueType main_queue;           //actual queue of lattice points to be processed.
   Sieve<SieveTraits,false>* const gauss_sieve;   //pointer to caller object.
+
+  // NOTE: the sampler is public, because some modules of the sieve need to communicate with the
+  // sampler (e.g. when using progressive rank).
+  // TODO: Make private, add friends.
 public:
-  Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> * sampler; //or a type derived from it.
+  // a pointer to the Sampler. Note that we store a pointer, because we want to allow
+  // user-provided samplers (which we do not own). Note that the Sampler class has
+  // virtual members and *sampler might be a type derived from it.
+  Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> *sampler;
+  bool sampler_owned;  // Is the above pointer owning. Required to correctly delete it.
+                       // (because we should not for user-provided ones).
+                       // TODO: Use smart pointers instead.
 };
 
-
-// clang-format off
-
-
-/*
-template<class ET> //multi-threaded version:
-class GaussQueue<ET,true>
-{
-public:
-    using LengthType = ET; //entries of lattice points
-    using LPType = LatticePoint<ET>; //Type of Data internally stored
-    using RetType= LatticePoint<ET>; //Type of Data returned
-    using mutex_guard = std::lock_guard<std::mutex>;
-    #ifndef USE_REGULAR_QUEUE
-    using QueueType =      std::priority_queue< LPType* , std::vector<LPType* >, IsLongerVector_classPtr<ET> >;
-    #else
-    using QueueType =      std::queue<LPType*>;
-    #endif
-    using size_type = typename QueueType::size_type;
-    //using SamplerType =    KleinSampler<typename ET::underlying_data_type, FP_NR<double> > ;
-
-    GaussQueue()=delete;
-    GaussQueue(Sieve<ET,true> *caller_sieve); //only constructor, not thread-safe
-    GaussQueue(GaussQueue const &old) = delete;
-    GaussQueue(GaussQueue &&old) = delete;
-    GaussQueue& operator= (GaussQueue const &old)=delete;
-    GaussQueue& operator= (GaussQueue &&old) = delete;
-    ~GaussQueue(); //not thread-safe
-
-    //TODO: Fix const - correctness
-
-    bool empty()                      {mutex_guard lock(queue_mutex); return main_queue.empty();}; //checks whether the queue is currently empty. Blocks
-    size_type size()                  {mutex_guard lock(queue_mutex); return main_queue.size();};  //returns size of queue (used for diagnostics and statistics only). Blocks
-    void push(LPType const &val); //puts a copy of val in the queue
-    void push(LPType && val);     //uses move semantics for that.
-    [[deprecated("Ownership transfer clashes with compressed storage.")]]
-    void give_ownership(LPType * const valptr); //takes a pointer to a list point and puts the point into the queue, moves ownership (avoids copying)
-    RetType  true_pop(); //removes front element from queue *and returns it*.
-    [[deprecated("Use copy elison rather than ownership transfer.")]]
-    RetType* pop_take_ownership() ; //removes front elements from queue and returns handle to it.
-                                   //Transfers ownership to the caller. Return type might change, but should be dereferencable, deleteable.
-                                   //might become deprecated
-
-private:
-    QueueType main_queue;
-    Sieve<ET,true>* gauss_sieve; //caller object.
-    std::mutex queue_mutex; //global lock. We do not differentiate reads and writes.
-    //SamplerType *sampler; //controlled by the GaussSieve currently. TODO: Change that
-};
-
-*/
-
-}
-
+}  // end namespace GaussSieve
 #endif // GAUSS_QUEUE_H
+
 //clang-format on
