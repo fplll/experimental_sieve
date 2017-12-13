@@ -65,7 +65,8 @@ class SieveLatticeBasis< SieveTraits, MT,true> //TODO: LAST ARGUMENT: NOT CORREC
   using InputET_NOZNR  = typename IsZZMatClass<InputBasisType>::GetET;
   using InputET        = fplll::Z_NR<InputET_NOZNR>;
   // Same as ET_NOZNR, but ET_NOZNRFixed may be mpz_class instead of mpz_t
-  using InputET_NOZNRFixed = typename UnZNR<InputET>::type;
+//  using InputET_NOZNRFixed = typename UnZNR<InputET>::type;
+  using InputET_NOZNRFixed = PossiblyMpztToMpzClass<InputET_NOZNR>;
 
   using OutputET       = typename SieveTraits::LengthType;
 

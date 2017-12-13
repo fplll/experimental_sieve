@@ -15,8 +15,6 @@
 		</Build>
 		<Unit filename="../nr/numvect.h" />
 		<Unit filename="ApproximatedPoint.h" />
-		<Unit filename="BitApproximationNew.h" />
-		<Unit filename="BitApproximationNew_impl.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
@@ -30,10 +28,7 @@
 		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
 		<Unit filename="GaussQueue_impl.h" />
-		<Unit filename="GlobalBitApproxData.h" />
 		<Unit filename="GlobalStaticData.h" />
-		<Unit filename="HashedLatticePoint.h" />
-		<Unit filename="HyperplaneLSH.h" />
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
@@ -46,8 +41,6 @@
 		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
-		<Unit filename="ShiSampler.h" />
-		<Unit filename="ShiSampler_impl.h" />
 		<Unit filename="SieveGauss.h" />
 		<Unit filename="SieveGauss_main.h" />
 		<Unit filename="SieveJoint.h" />

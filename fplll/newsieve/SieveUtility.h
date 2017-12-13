@@ -17,6 +17,8 @@
 
 namespace GaussSieve
 {
+
+// forward declarations
 template <class T> class IgnoreArg;
 class IgnoreAnyArg;
 template<class T> class IsZNRClass;
@@ -46,11 +48,11 @@ namespace GaussSieve
 {
 
 // class that ignores its argument. Can be used to optimize away unused parameters in function
-// templates...
+// Can probably go away...
 class IgnoreAnyArg
 {
 public:
-  template <class T> constexpr IgnoreAnyArg(T val){};
+  template <class T> constexpr IgnoreAnyArg(T) noexcept {};
   constexpr IgnoreAnyArg() = default;
 };
 
@@ -58,10 +60,15 @@ public:
 template <class T> class IgnoreArg
 {
 public:
-  inline constexpr IgnoreArg(T val){};
+  inline constexpr IgnoreArg(T) noexcept {};
   constexpr IgnoreArg() = default;
 };
 
+
+// MaybeFixed<-1> encapsulates a nonnegative runtime integer
+// MaybeFixed<nfixed> encapsulates a compile-time known integer nfixed.
+// This is used as a template parameter to propagate a fixed dimension through
+// a lot of our classes. Some data structures make use of a known dimension.
 template <int nfixed = -1, class UIntClass = unsigned int> class MaybeFixed;
 
 template <class UIntClass> class MaybeFixed<-1,UIntClass>
@@ -71,17 +78,18 @@ public:
   static constexpr bool IsFixed = false;
   using IsFixed_t  = std::false_type;
   using type = UIntClass;
-  constexpr MaybeFixed(UIntClass const new_val) : value(new_val){};
+  constexpr MaybeFixed(UIntClass const new_val) noexcept : value(new_val){}
   MaybeFixed() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
-                          // that we want the same interface in both cases.
-  inline operator UIntClass() const { return value; };
+                           // that we want the same interface in both cases.
+  inline operator UIntClass() const { return value; }
+  inline constexpr UIntClass const & get_num() { return value; }
   UIntClass value;
 };
 
 template <int nfixed, class UIntClass> class MaybeFixed
 {
-static_assert(std::is_unsigned<UIntClass>::value,"MaybeFixed only works with unsigned types.");
-static_assert(nfixed>=0,"nfixed negative and / or wrong specialization used.");
+  static_assert(std::is_unsigned<UIntClass>::value, "MaybeFixed only works with unsigned types.");
+  static_assert(nfixed >= 0, "nfixed negative and / or wrong specialization used.");
 public:
   using type = UIntClass;
   static constexpr bool IsFixed = true;
@@ -91,10 +99,11 @@ public:
 //#ifdef DEBUG_SIEVE_LP_MATCHDIM
 //  constexpr  MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
 //#else
-  template<class Integer, typename std::enable_if<std::is_integral<Integer>::value,int>::type =0>
-  constexpr MaybeFixed(Integer const){};
+  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  constexpr MaybeFixed(Integer const) {}
 //#endif
-  inline constexpr operator UIntClass() const { return nfixed; };
+  FORCE_INLINE inline constexpr operator UIntClass() const { return nfixed; }
+  static inline constexpr UIntClass get_num() { return nfixed; }
   static constexpr UIntClass value = nfixed;
 };
 
@@ -102,33 +111,40 @@ public:
 // We turn any Trait class T with T::value==false into a standard std::false_type
 // and T::value==true into a standard std::true_type
 // Note that such non-standard classes T encapsulating a bool constexpr may appear due to
-// processing such types. In particular, there are issues with the TRAIT_CHECK* macros:
-// These internally use a std::is_same< > and the checker classes generated may not be standard.
-// (This may be unnecessariy after recent changes to the checker classes)
-// These classes help to remedy that:
+// processing such types, depending on post-processing of types.
+// Note: Currently used, but not really needed due to changes to trait getters.
+template<class T> using NormalizeTrait = mystd::bool_constant<static_cast<bool>(T::value)>;
 
-template<bool> struct TypeNormalize_Helper;
-template<> struct TypeNormalize_Helper<true >{using type=std::true_type; };
-template<> struct TypeNormalize_Helper<false>{using type=std::false_type;};
-template<class T> using NormalizeTrait = typename TypeNormalize_Helper<static_cast<bool>(T::value)>::type;
 
 // MaybeConst<true,  T> = T const;
 // MaybeConst<false, T> = T;
 template<bool IsConst, class T>
-using MaybeConst = typename std::conditional<IsConst,typename std::add_const<T>::type,T>::type;
+using MaybeConst = mystd::conditional_t<IsConst,typename std::add_const<T>::type,T>;
 
 // Z_NR - detection and modification...
 
 /**
-  Detects whether a class T is of the form Z_NR<ET> and allows to obtain ET.
+  IsZNRClass detects whether a class T is of the form Z_NR<ET> and allows to obtain ET.
+  IsZZMatClass detects whether a class T is of the form ZZ_Mat<ET> and allows to obtain ET.
+
+  PossiblyRemoveZNR  changes Z_NR<ET> into ET, leaving non-Z_NR<...> class untouched.
+  PossiblyMpztToMpzClass changes mpz_t into mpz_class, leaving other classes untouched.
+  PossiblyMpzClassToMpzt is the other way round.
+  AddZNR turns ET into Z_NR<ET>, changing mpz_class to mpz_t as needed.
+  AddZNR checks that ET is one of double, long or mpz_*.
+
+  Except for IsZNRClass / IsZZMatClass, these are used as Result = Transform<Input>, no typename or ::type needed.
 */
 
+/**
+  Detects whether a class T is of the form Z_NR<ET> and allows to obtain ET.
+*/
 template<class T> class IsZNRClass
 {
 public:
   using type = std::false_type;
   static bool constexpr value = false;
-  constexpr operator bool() const { return false; };
+  constexpr operator bool() const { return false; }
 };
 
 template<class T> class IsZNRClass<fplll::Z_NR<T>>
@@ -136,86 +152,13 @@ template<class T> class IsZNRClass<fplll::Z_NR<T>>
 public:
   using type = std::true_type;
   static bool constexpr value = true;
-  constexpr operator bool() const { return true; };
+  constexpr operator bool() const { return true; }
   using GetUnderlyingType = T;
 };
 
 /**
-  Turns a Z_NR<long> into a long,
-          Z_NR<double> into a double and
-          Z_NR<mpz_t> into a mpz_class.
-          The latter conversion is to get an arithmetic type that supports +, *, etc.
-          If you want mpz_t, just use typename IsZNRClass<...>::GetUnderlyingType.
-
-          Other types are unchanged.
-
-          Usage: using NewType = typename UnZNR<OldType>::type
+  Detects whether T is of the form T = ZZ_mat<ET> and allows to recover ET.
 */
-
-
-
-template<class T> class UnZNR
-{
-  public: using type = T;
-};
-
-template<> class UnZNR<fplll::Z_NR<long>>
-{
-  public: using type = long;
-};
-
-template<> class UnZNR<fplll::Z_NR<double>>
-{
-  public: using type = double;
-};
-
-template<> class UnZNR<fplll::Z_NR<mpz_t>>
-{
-  public: using type = mpz_class;
-};
-
-/**
-  Turns T into Z_NR<T>
-  mpz_class is turned into Z_NR<mpz_t>
-*/
-
-template<class T> class AddZNR
-{
-  static_assert(std::is_same<T,long>::value || std::is_same<T,double>::value,
-                "Unsupported type for ZNR");
-  public: using type = fplll::Z_NR<T>;
-};
-
-template<> class AddZNR<mpz_t>
-{
-  public: using type = fplll::Z_NR<mpz_t>;
-};
-
-template<> class AddZNR<mpz_class>
-{
-  public: using type = fplll::Z_NR<mpz_t>;
-};
-
-/**
-  Turns mpz_class into mpz_t
-  Other classes are unchanged.
-*/
-
-template<class T> class FixMpz_classToMpz_t
-{
-  public: using type = T;
-};
-
-template<> class FixMpz_classToMpz_t<mpz_class>
-{
-  public: using type = mpz_t;
-};
-
-/**
-  Detects whether T is of the form T = ZZ_mat<ET>
-  and allows to recover ET.
-*/
-
 template<class T> class IsZZMatClass
 {
   public:
@@ -233,8 +176,30 @@ template<class ET> class IsZZMatClass<fplll::ZZ_mat<ET>>
   using GetET = ET;
 };
 
+namespace MpzConversionHelper  // implementation details
+{
+template<class T> class RemoveZNRHelper
+{
+  public: using type = T;
+};
+template<class T> class RemoveZNRHelper<fplll::Z_NR<T>>
+{
+  public: using type = T;
+};
+template<class T> class VerifyValidZNRArg
+{
+  static_assert(std::is_same<T,double>::value || std::is_same<T,mpz_t>::value || std::is_same<T, long>::value, "Invalid Argument to Z_NR");
+  public: using type = T;
+};
+}  // end namespace MpzConversionHelper
+
+template<class T> using PossiblyRemoveZNR      = typename MpzConversionHelper::RemoveZNRHelper<T>::type;
+template<class T> using PossiblyMpzClassToMpzt = mystd::conditional_t< std::is_same<T,mpz_class>::value, mpz_t, T>;
+template<class T> using PossiblyMpztToMpzClass = mystd::conditional_t< std::is_same<T,mpz_t>::value, mpz_class, T>;
+template<class T> using AddZNR = fplll::Z_NR<  typename MpzConversionHelper::VerifyValidZNRArg< PossiblyMpzClassToMpzt<T> >::type  >;
+
 /**
-  Conversion to double
+  Conversion to double that works with both mpz_class and anything convertible to double.
 */
 
 //template<class Source> double convert_to_double(Source const & source);

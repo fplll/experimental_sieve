@@ -159,7 +159,7 @@ class AddBitApproximationToLP
     elp.write_lp_to_stream(os, include_norm2,include_approx);
     if (include_approx)
     {
-      os << sim_hashes;
+      os << " SimHash: " << sim_hashes;
     }
     return os;
   }

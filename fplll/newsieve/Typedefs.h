@@ -54,7 +54,7 @@ template<class ELP, class CooSelection>  class AddBitApproximationToLP;
 template
 <
   class ET, bool MT, int nfixed,
-  class InputBT = typename fplll::ZZ_mat< typename FixMpz_classToMpz_t<ET>::type>
+  class InputBT = typename fplll::ZZ_mat< PossiblyMpzClassToMpzt<ET> >
 >
 class DefaultSieveTraits
 {
