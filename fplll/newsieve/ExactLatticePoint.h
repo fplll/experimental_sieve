@@ -1,6 +1,7 @@
 /**
   Very simple lattice point class that stores precomputed values for its length.
   Otherwise, just a wrapper around a vector, really.
+  Dimension is static (i.e. the same for all objects)
 */
 
 #ifndef EXACT_LATTICE_POINT_H
@@ -17,36 +18,53 @@
 #define FOR_FIXED_DIM    template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy >= 0)>
 #define FOR_VARIABLE_DIM template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy == -1)>
 
+// to make some functions C++11-constexpr
+#ifdef DEBUG_SIEVE_LP_INIT
+  #define CONSTEXPR_IN_NON_DEBUG_LP_INIT CPP14CONSTEXPR
+#else
+  #define CONSTEXPR_IN_NON_DEBUG_LP_INIT
+#endif
+
 namespace GaussSieve
 {
 
-// most simple Lattice Point that just wraps around a vector / array of ET's.
-// dimension is static
+// forward declaration
 template <class ET, int nfixed> class ExactLatticePoint;
 
-// result of bitwise approximate scalar product
-// wraps around int_fast32_t
-
+/**
+  lattice point traits for ExactLatticePoint:
+*/
 template <class ET, int nfixed> struct LatticePointTraits<ExactLatticePoint<ET,nfixed>>
 {
 public:
+  // set appropriate traits:
   using Trait_ScalarProductStorageType= ET;
-  using Trait_AbsoluteCoos            = std::true_type;
   using Trait_CoordinateType          = ET;
-  using Trait_CheapNorm2              = std::true_type;
-  using Trait_CheapNegate             = std::true_type;
+  using Trait_CheapNorm2              = std::true_type;  // promises that Norm2 is precomputed
+  using Trait_CheapNegate             = std::true_type;  // no update of Norm2 if we flip the sign
 
+  // These traits just mean that we have an RW-operator[] that outputs absolute coordinate
+  // (i.e. with respects to the ambient space) and these determine the point uniquely.
+  using Trait_AbsoluteCoos            = std::true_type;
   using Trait_InternalRepIsAbsolute   = std::true_type;
   using Trait_InternalRepByCoos       = std::true_type;
   using Trait_InternalRepLinear       = std::true_type;
   using Trait_InternalRep_RW          = std::true_type;
-  using Trait_AccessNorm2             = std::true_type;
-//  using Trait_BitApprox               = std::false_type;
 };
 
-// Note: I renamed Approx to BitApprox here. We have two types of Approximations and everything related to Bits should have
-// BitApprox in its name to reduce confusion. -- Gotti
-// That, or SimHash
+/**
+  ExactLatticePoint<ET,nfixed> is a lattice point class that wraps around a vector / array of ET's.
+  The parameter ET determines the type of the entries.
+  The parameter nfixed determines whether the dimension is fixed at compile-time or run-time.
+  If nfixed >= 0, it is fixed to that value at compile time.
+  If nfixed == -1,it is fixed at runtime.
+  Even in the latter case, the dimension of all ExactLatticePoint<ET,-1> objects (for given ET) is
+  the same at any given point in time, because dimension is static
+  (it is set by the static initializer)
+  ExactlatticePoints store and maintain a precomputed norm^2.
+  For most of the functionality, we use the default implementation from the parent class
+  GeneralLatticePoint<ET,nfixed> (cf. LatticePointGeneric.h)
+*/
 
 template <class ET, int nfixed>
 class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET,nfixed> >
@@ -61,42 +79,44 @@ public:
             // Note : The nfixed >=0 ? nfixed : 0 is always nfixed, of course.
             // The ?: expression is only needed to silence compiler errors/warnings.
 
+  // get dimension
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
   {
-    static_assert(nfixed_copy == nfixed, "");  // nfixed_copy from FOR_FIXED_DIM
+    static_assert(nfixed_copy == nfixed, "");  // nfixed_copy defined in FOR_FIXED_DIM
     return MaybeFixed<nfixed>(nfixed);
   }
 
   FOR_VARIABLE_DIM
-  static MaybeFixed<-1> get_dim()
+  static constexpr MaybeFixed<-1> const &get_dim()
   {
     static_assert(nfixed == -1, "");
     return dim;
   }
 
-  FOR_FIXED_DIM
-  constexpr explicit ExactLatticePoint() noexcept
-  {
-    // The extra () are needed, because assert is a macro and the argument contains a ","
-//    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
-    // TODO: Turn into an exception and make constexpr.
-  }
+  FOR_FIXED_DIM  // This introduces template params, so we do not =default
+  constexpr explicit ExactLatticePoint() {}
 
+  // Gotti: If this gives problems on clang, remove the
+  // CONSTEXPR_IN_NON_DEBUG_LP_INIT
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint() :
-  data(static_cast<unsigned int>(get_dim()))
+  CONSTEXPR_IN_NON_DEBUG_LP_INIT explicit ExactLatticePoint()
+      : data(static_cast<unsigned int>(get_dim()))
   {
-    // The extra () are needed, because assert is a macro and the argument contains a ","
+#ifdef DEBUG_SIEVE_LP_INIT
+    // double (( )) because assert is a macro and it mis-parses the ,
     assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
+#endif
   }
 
   // TODO: Remove these constructors?
   FOR_FIXED_DIM
-  explicit ExactLatticePoint(MaybeFixed<nfixed>) : ExactLatticePoint() {}
+  constexpr explicit ExactLatticePoint(MaybeFixed<nfixed>)
+      : ExactLatticePoint() {}
 
   FOR_VARIABLE_DIM
-  explicit ExactLatticePoint(MaybeFixed<nfixed> dim) : ExactLatticePoint()
+  CONSTEXPR_IN_NON_DEBUG_LP_INIT explicit ExactLatticePoint(MaybeFixed<nfixed> dim)
+      : ExactLatticePoint()
   {
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
     assert(dim == get_dim());
@@ -105,25 +125,32 @@ public:
 
 // TODO: Debug output and validation.
 
-  explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point)
-  :
-  data(std::move(plain_point.data))
+  explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point) noexcept
+      : data(std::move(plain_point.data))
   {
     sanitize();
   }
 
+  // lattice points are moveable but not copyable (by design, to catch unwanted copying)
+  // (note that these declarations just make that explicit, if we did not write these,
+  // the auto-generated copy constructor would be deleted, because the parent's is.)
   ExactLatticePoint(ExactLatticePoint const &old) = delete;
   ExactLatticePoint(ExactLatticePoint &&old)      = default;
   ExactLatticePoint &operator=(ExactLatticePoint const &other) = delete;
   ExactLatticePoint &operator=(ExactLatticePoint &&other) = default;
-  ET &operator[](uint_fast16_t idx) { return data[idx]; };
-  ET const &operator[](uint_fast16_t idx) const { return data[idx]; };
-  static std::string class_name() { return "Exact Lattice Point"; };
 
+  // behaves just like a normal container and can be used as such
+  ET &operator[](uint_fast16_t idx) { return data[idx]; }
+  ET const &operator[](uint_fast16_t idx) const { return data[idx]; }
+  static std::string class_name() { return "Exact Lattice Point"; }
+
+  // brings the internal data into the correct state, i.e. we recompute the norm.
   void sanitize()
   {
     sanitize(compute_sc_product(*this, *this));
   }
+
+  // version where we already know norm2
   void sanitize( ET const &new_norm2 )
   {
     norm2 = new_norm2;
@@ -131,30 +158,41 @@ public:
 
   ET get_norm2() const { return norm2; }
 
-//  std::ostream& write_lp_to_stream (std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
-
-
-
+  // Compute scalar product with another point.
+  // We implicitly assert the other point has a "compatible" type
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ET do_compute_sc_product(LatP2 const &lp2) const
   {
+  // Compute the sum of (*this)[i]  * lp2[i] over i.
+  // Naively, we would start with res = 0 and increment
+  // res+= (*this)[i] * lp2[i] in a loop over i.
+
+  // Instead, we split the computation of res into a sum of 4 sub-terms, corresponding to the
+  // contribution from a subset of the coordinates (depending on i mod 4).
+  // The reason is that inside the for-loop,
+  // the res1+= ,... res4+= statements can be computed in parallel by SIMD.
+  // with only a single res, this is not the case, because each +=operation has to wait
+  // for the previous one to finish.
+  // whether this helps or not depends on compiler / architecture.
+  // Note that to get the "naive" implementation, just comment out this function altogether,
+  // the default inherited from the parent will do exactly that.
   ET res1 = 0;
   ET res2 = 0;
   ET res3 = 0;
   ET res4 = 0;
   uint_fast16_t dim = get_dim();
-  for(uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4)
+  for(uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4) // perform 4 += in one go
   {
-    res1 += (*this)[i+0] * lp2[i+0];
-    res2 += (*this)[i+1] * lp2[i+1];
-    res3 += (*this)[i+2] * lp2[i+2];
-    res4 += (*this)[i+3] * lp2[i+3];
+    res1 += (*this)[i+0] * lp2.get_absolute_coo(i+0);
+    res2 += (*this)[i+1] * lp2.get_absolute_coo(i+1);
+    res3 += (*this)[i+2] * lp2.get_absolute_coo(i+2);
+    res4 += (*this)[i+3] * lp2.get_absolute_coo(i+3);
   }
-  for(uint_fast8_t i= (dim / 4) * 4; i < dim; ++i)
+  for(uint_fast16_t i= (dim / 4) * 4; i < dim; ++i) // rest of the loop if dim is not divisible by 4
   {
-    res1+= (*this)[i] * lp2[i];
+    res1+= (*this)[i] * lp2.get_absolute_coo(i);
   }
-  res1+=res2;
+  res1+=res2; // add up the sub-sums.
   res1+=res3;
   res1+=res4;
   return res1;
@@ -216,5 +254,6 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 
 #undef FOR_FIXED_DIM
 #undef FOR_VARIABLE_DIM
+#undef CONSTEXPR_IN_NON_DEBUG_LP_INIT
 
 #endif
