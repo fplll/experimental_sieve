@@ -212,7 +212,7 @@ start_over:
   filtered_list.clear();
 
 //  auto it = main_list.cbegin();
-  double approx_norm2_p = convert_to_double(p.get_norm2());
+  //double approx_norm2_p = convert_to_double(p.get_norm2());
 
   // this part of the outer loop is for the case where p is the largest of the triple
   for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
@@ -237,7 +237,6 @@ start_over:
     // TODO: Check whether that computation is actually necessary.
     LengthType const sc_prod_px1 = compute_sc_product(p, *it_x1);
     statistics.increment_number_of_scprods_level1();
-    bool const sign_px1 = (sc_prod_px1 > 0);
 
     // check for 2-reduction. We already computed the (exact) scalar product anyway.
     LengthType const abs_sc_prod_px1 = abs(sc_prod_px1);
@@ -283,6 +282,7 @@ start_over:
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
+    bool const sign_px1 = (sc_prod_px1 > 0);
     for (auto & filtp_x2 : filtered_list) // Note that we know ||p|| >= ||*it_x1|| >= ||x2||
     {
 
@@ -293,25 +293,26 @@ start_over:
       {
         continue;
       }
+      
 
       // Note: We do not check approximately, just like the old code below.
       LengthType sc_prod_x1x2 = (filtp_x2.sign_flip==sign_px1)
                                     ?  compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact))
                                     : -compute_sc_product(*it_x1, *(filtp_x2.ptr_to_exact));
       statistics.increment_number_of_scprods_level2();
-      // Recall cond_x1 == 2|<p,x_1> - ||x_1||^2.
+      //      cond_x1 == 2|<p,x_1>| - ||x_1||^2.
       // filp_x2.cond == 2|<p,x_2>| - ||x_2||^2, which we computed and stored in a previous
       // iteration. The condition is equivalent to ||p+/-x_1 +/- x_2||^2 < ||p||^2,
       // where we have a minus sign @x1 iff sign_px1 == true
       // and                        @x2 iff filtp_x2.sign_flip == true
-      if (sc_prod_x1x2 < cond_x1 + filtp_x2.cond)  // perform 3-reduction:
+      if (2*sc_prod_x1x2 < cond_x1 + filtp_x2.cond)  // perform 3-reduction:
       {
-        LengthType const debug_test = p.get_norm2();
+        //LengthType const debug_test = p.get_norm2();
         if (sign_px1)           { p-=*it_x1; }
         else                    { p+=*it_x1; }
         if (filtp_x2.sign_flip) { p-=*(filtp_x2.ptr_to_exact); }
         else                    { p+=*(filtp_x2.ptr_to_exact); }
-        assert(p.get_norm2() <= debug_test);  // make sure we are making progress.
+        //assert(p.get_norm2() <= debug_test);  // make sure we are making progress.
         if (p.is_zero())  { statistics.increment_number_of_collisions(); return; }
         p.update_bitapprox();
         statistics.increment_number_of_3reds();
@@ -411,10 +412,10 @@ start_over:
       statistics.increment_number_of_scprods_level2();
       // Note that the correct condition here has cond_x1_p = 2|<p,x_1>| - ||p||^2.
       // This differs from the case above, because now x_1 is larger than p.
-      if (sc_prod_x1x2 < cond_x1_p + filtp_x2.cond)  // perform 3-reduction on x1
+      if (2*sc_prod_x1x2 < cond_x1_p + filtp_x2.cond)  // perform 3-reduction on x1
       {
         statistics.increment_number_of_3reds();
-        LengthType const debug_test = it_x1->get_norm2();
+        //LengthType const debug_test = it_x1->get_norm2();
         if (it_x1 == it_comparison_flip) { ++it_comparison_flip; }
         auto v_new = main_list.true_pop_point(it_x1);  // also performs ++it_x1 !
         // Note: sign_px1 says whether we need to change x1 (i.e.
@@ -425,7 +426,7 @@ start_over:
         // If sign_px1 == true, we need to invert the sign of x2 because of the global sign flip.
         if (filtp_x2.sign_flip != sign_px1) { v_new-=*(filtp_x2.ptr_to_exact); }
         else                                { v_new+=*(filtp_x2.ptr_to_exact); }
-        assert(v_new.get_norm2() < debug_test);  // make sure we are making progress.
+        //assert(v_new.get_norm2() < debug_test);  // make sure we are making progress.
         if (v_new.is_zero())
         {
           statistics.increment_number_of_collisions();

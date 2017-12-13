@@ -28,7 +28,8 @@ struct GaussSieveStatistics<SieveTraits,false>
     number_of_scprods_level2(0),
     number_of_scprods_level3(0),
     number_of_2reds(0),
-
+    number_of_3reds(0),
+    
     number_of_exact_scprods(0),
     number_of_mispredictions(0)
     {}
