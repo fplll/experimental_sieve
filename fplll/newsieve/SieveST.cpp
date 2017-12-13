@@ -126,6 +126,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
     typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
     sieve_3_iteration(p);
+    //sieve_3_iteration_new(p);
 
     ++i; //TODO: move '1000' to TypeDefs
     if (( i % 1000 == 0) && (verbosity >=2))

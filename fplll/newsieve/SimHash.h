@@ -290,6 +290,40 @@ FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
   }
   return true;
 }
+  
+/*
+  same as above but also returns (in case of true) which of the if-conditions was satisfied
+  I.e., tell whether the two points are close or far apart
+  If (approx_scprod <= lb[level]), bool is_close is set to true
+ */
+template<class CoordinateSelection, class LHS, class RHS,
+ class LowerThresholds, class UpperThresholds>
+FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product_ext(
+                                                                            LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub, bool &is_close)
+{
+  uint_fast16_t approx_scprod = 0;  // holds accumulated XOR - value
+  for (unsigned int level = 0;
+       level < GlobalBitApproxData<CoordinateSelection>::coo_selection.get_sim_hash_num(); ++level)
+  {
+    approx_scprod += ( Helpers::ObtainSimHashBlock<CoordinateSelection>::get(lhs,level)
+                      ^Helpers::ObtainSimHashBlock<CoordinateSelection>::get(rhs,level) ).count();
+    if (approx_scprod >= ub[level])
+    {
+      is_close = false;
+      continue;  // We are outside of the bounds, so we go to the next iteration of for loop
+    }
+    else if (approx_scprod <= lb[level])
+    {
+      is_close = true;
+      continue;
+    }
+    else  // otherwise, we are inside the bounds and already know we return false.
+    {
+      return false;
+    }
+  }
+  return true;
+}
 
 }  // end namespace GaussSieve
 

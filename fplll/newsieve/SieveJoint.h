@@ -242,6 +242,7 @@ public:
   //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
   void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
+  void sieve_3_iteration_new (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
   template<class IT>
   bool check_sc_prod_outer (FastAccess_Point const &x1, IT &&x2, LengthType & sc_prod_x1x2);

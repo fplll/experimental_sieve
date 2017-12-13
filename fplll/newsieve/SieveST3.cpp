@@ -195,6 +195,161 @@ bool Sieve<SieveTraits,false>::check_triple (ARG1 &&x1, ARG2 &&x2,
 
 
 template<class SieveTraits>
+void Sieve<SieveTraits,false>::sieve_3_iteration_new (typename SieveTraits::FastAccess_Point &p)
+{
+  using std::abs;
+  using std::round;
+  
+start_over:
+  auto it_comparison_flip = main_list.cend();
+  
+  static FilteredListType filtered_list;
+  filtered_list.reserve(filtered_list_size_max);
+  
+  bool px1_sign   = false;
+  bool x1x2_sign  = false;
+  
+  for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
+  {
+    if (p  < (*it_x1) )  // TODO: use approx_norm2_p
+    {
+      it_comparison_flip = it_x1;
+      break; // we proceed to the case where p is no longer the largest point of the triple
+    }
+    
+    if (!check_simhash_scalar_product_ext<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                     p, it_x1,
+                                                                                     SieveTraits::threshold_lvls_3sieve_lb_out,
+                                                                                     SieveTraits::threshold_lvls_3sieve_ub_out,
+                                                                                     px1_sign))
+    {
+      continue;
+    }
+    
+    /* checking whether px1_sign gives the correct sc_prod sign */
+    // Almost, check once again
+    /*
+    std::cout <<"is_px1_close: " << px1_sign << "  <p,x1>: " << compute_sc_product(p, *it_x1) << std::endl;
+    if ( (px1_sign && compute_sc_product(p, *it_x1)<0) || (!px1_sign && compute_sc_product(p, *it_x1)>0) )
+    {
+      assert(false);
+    }
+    */
+    
+    
+    for (auto & filtp_x2 : filtered_list) // ||p|| >= ||*it_x1|| >= ||x2||
+    {
+      
+      if (!check_simhash_scalar_product_ext<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                       it_x1, filtp_x2.sim_hashes,
+                                                                                       SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                                                                       SieveTraits::threshold_lvls_3sieve_ub_inn,
+                                                                                       x1x2_sign))
+      {
+        continue;
+      }
+      
+      // if (<p,x1> * <p,x2> * <x1,x2>) > 0, no 3-reduction
+      // this corresponds to (px1_sign xor x1x2_sign xor px2_sign) == 1
+      if ( px1_sign ^ x1x2_sign ^ filtp_x2.sign_flip)
+      {
+        continue;
+      }
+      
+      typename SieveTraits::FastAccess_Point p_new = p.make_copy();
+      if (px1_sign)           {p_new-=*it_x1; }
+      else                    {p_new+=*it_x1; }
+      if (filtp_x2.sign_flip) {p_new-=*(filtp_x2.ptr_to_exact); }
+      else                    {p_new+=*(filtp_x2.ptr_to_exact); }
+      
+      if(p_new.is_zero())
+      {
+        statistics.increment_number_of_collisions();
+        return;
+      }
+      
+      if (p_new.get_norm2() < p.get_norm2() )
+      {
+        p = std::move(p_new);
+        p.update_bitapprox();
+        goto start_over;
+      }
+      
+    } // for-loop over filtered_list
+    filtered_list.emplace_back( it_x1, px1_sign, 0 );
+  } // for-loop over the list-elements that are shorter than p
+  
+  for( auto it_x1 = it_comparison_flip; it_x1 != main_list.cend(); )  // ++it inside loop body.
+  {
+    
+    if (!check_simhash_scalar_product_ext<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                     p, it_x1,
+                                                                                     SieveTraits::threshold_lvls_3sieve_lb_out,
+                                                                                     SieveTraits::threshold_lvls_3sieve_ub_out,
+                                                                                     px1_sign))
+    {
+      ++it_x1;
+      continue;
+    }
+    
+    for (auto & filtp_x2 : filtered_list) // ||p|| >= ||*it_x1|| >= ||x2||
+    {
+      
+      if (!check_simhash_scalar_product_ext<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                           it_x1, filtp_x2.sim_hashes,
+                                                                                           SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                                                                           SieveTraits::threshold_lvls_3sieve_ub_inn,
+                                                                                           x1x2_sign))
+      {
+        ++it_x1;
+        continue;
+      }
+      
+      if ( px1_sign ^ x1x2_sign ^ filtp_x2.sign_flip)
+      {
+        ++it_x1;
+        continue;
+      }
+      
+      auto v_new =(*it_x1).make_copy();
+      if (px1_sign)           {v_new-=p; }
+      else                    {v_new+=p; }
+      if (filtp_x2.sign_flip) {v_new-=*(filtp_x2.ptr_to_exact); }
+      else                    {v_new+=*(filtp_x2.ptr_to_exact); }
+      
+      if(v_new.is_zero())
+      {
+        statistics.increment_number_of_collisions();
+      }
+      
+      if (v_new.get_norm2() < it_x1->get_norm2() )
+      {
+        if (it_x1 == it_comparison_flip) { ++it_comparison_flip; }
+        main_list.erase(it_x1); // also performs ++it_x1 !
+        main_queue.push(std::move(v_new));
+        goto end_of_x1_loop;;
+      }
+      
+    } // for-loop over filtered_list
+    
+    filtered_list.emplace_back( it_x1, px1_sign, 0);
+    ++it_x1;
+    end_of_x1_loop: ;
+  }
+  
+  if(update_shortest_vector_found(p))
+  {
+    if(verbosity>=2)
+    {
+      std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
+    }
+  }
+  main_list.insert_before(it_comparison_flip,std::move(p));
+  
+}
+
+
+template<class SieveTraits>
 void Sieve<SieveTraits,false>::sieve_3_iteration (typename SieveTraits::FastAccess_Point &p)
 {
 //  std::cout << "Starting Iteration" << std::endl << std::flush;
@@ -410,7 +565,7 @@ start_over:
         if (filtp_x2.sign_flip != sign_px1) { v_new-=*(filtp_x2.ptr_to_exact); }
         else                                { v_new+=*(filtp_x2.ptr_to_exact); }
         assert(v_new.get_norm2() < debug_test);  // make sure we are making progress.
-        if (p.is_zero())
+        if (v_new.is_zero())
         {
           statistics.increment_number_of_collisions();
         }

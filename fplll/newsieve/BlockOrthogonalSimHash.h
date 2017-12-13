@@ -135,7 +135,7 @@ class BlockOrthogonalSimHash
 {
 public:
   using IsCooSelection = std::true_type;                // Satisfies the CoordinateSelection concept
-  static unsigned int constexpr num_of_transforms = 3;  // affects the "quality" vs. speed tradeoff
+  static unsigned int constexpr num_of_transforms = 2;  // affects the "quality" vs. speed tradeoff
 
   // required to tell users the type of outputs, required by the interface specified in
   // SimHash.h
