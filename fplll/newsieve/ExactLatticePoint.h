@@ -4,15 +4,17 @@
   Dimension is static (i.e. the same for all objects)
 */
 
+// clang-format checked and adjusted manually -- Gotti
+// clang-format off
+
 #ifndef EXACT_LATTICE_POINT_H
 #define EXACT_LATTICE_POINT_H
 
-
 #include "DefaultIncludes.h"
-#include "LatticePointConcept.h"
-#include "SieveUtility.h"
-#include "PlainLatticePoint.h" // for conversions
 #include "GlobalStaticData.h"
+#include "LatticePointConcept.h"
+#include "PlainLatticePoint.h"  // for conversions
+#include "SieveUtility.h"
 
 // local defines, undef at the end of file, used to enable functions only for (non-)fixed dimension.
 #define FOR_FIXED_DIM    template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy >= 0)>
@@ -29,27 +31,27 @@ namespace GaussSieve
 {
 
 // forward declaration
-template <class ET, int nfixed> class ExactLatticePoint;
+template<class ET, int nfixed> class ExactLatticePoint;
 
 /**
   lattice point traits for ExactLatticePoint:
 */
-template <class ET, int nfixed> struct LatticePointTraits<ExactLatticePoint<ET,nfixed>>
+template<class ET, int nfixed> struct LatticePointTraits< ExactLatticePoint<ET,nfixed> >
 {
 public:
   // set appropriate traits:
-  using Trait_ScalarProductStorageType= ET;
-  using Trait_CoordinateType          = ET;
-  using Trait_CheapNorm2              = std::true_type;  // promises that Norm2 is precomputed
-  using Trait_CheapNegate             = std::true_type;  // no update of Norm2 if we flip the sign
+  using Trait_ScalarProductStorageType = ET;
+  using Trait_CoordinateType           = ET;
+  using Trait_CheapNorm2               = std::true_type;  // promises that Norm2 is precomputed
+  using Trait_CheapNegate              = std::true_type;  // no update of Norm2 if we flip the sign
 
   // These traits just mean that we have an RW-operator[] that outputs absolute coordinate
   // (i.e. with respects to the ambient space) and these determine the point uniquely.
-  using Trait_AbsoluteCoos            = std::true_type;
-  using Trait_InternalRepIsAbsolute   = std::true_type;
-  using Trait_InternalRepByCoos       = std::true_type;
-  using Trait_InternalRepLinear       = std::true_type;
-  using Trait_InternalRep_RW          = std::true_type;
+  using Trait_AbsoluteCoos             = std::true_type;
+  using Trait_InternalRepIsAbsolute    = std::true_type;
+  using Trait_InternalRepByCoos        = std::true_type;
+  using Trait_InternalRepLinear        = std::true_type;
+  using Trait_InternalRep_RW           = std::true_type;
 };
 
 /**
@@ -71,13 +73,14 @@ class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET
 {
 public:
   friend StaticInitializer< ExactLatticePoint<ET,nfixed> >;
-  using LatticePointTag         = std::true_type;
+  using LatticePointTag = std::true_type;
   // Container type used to store the actual point
-  using Container = mystd::conditional_t< (nfixed >= 0),
-            std::array <ET, (nfixed >=0 ? nfixed : 0)>,  // if nfixed >= 0
-            std::vector<ET>  >;                          // if nfixed <0
-            // Note : The nfixed >=0 ? nfixed : 0 is always nfixed, of course.
-            // The ?: expression is only needed to silence compiler errors/warnings.
+  using Container =
+      mystd::conditional_t<(nfixed >= 0),                               // depends on nfixed:
+                           std::array<ET, (nfixed >= 0 ? nfixed : 0)>,  // if nfixed >= 0
+                           std::vector<ET>>;                            // if nfixed <0
+  // Note : The nfixed >=0 ? nfixed : 0 is always nfixed, of course.
+  // The ?: expression is only needed to silence compiler errors/warnings.
 
   // get dimension
   FOR_FIXED_DIM
@@ -105,14 +108,13 @@ public:
   {
 #ifdef DEBUG_SIEVE_LP_INIT
     // double (( )) because assert is a macro and it mis-parses the ,
-    assert((StaticInitializer<ExactLatticePoint<ET,nfixed>>::is_initialized));
+    assert((StaticInitializer< ExactLatticePoint<ET,nfixed> >::is_initialized));
 #endif
   }
 
   // TODO: Remove these constructors?
   FOR_FIXED_DIM
-  constexpr explicit ExactLatticePoint(MaybeFixed<nfixed>)
-      : ExactLatticePoint() {}
+  constexpr explicit ExactLatticePoint(MaybeFixed<nfixed>) : ExactLatticePoint() {}
 
   FOR_VARIABLE_DIM
   CONSTEXPR_IN_NON_DEBUG_LP_INIT explicit ExactLatticePoint(MaybeFixed<nfixed> dim)
@@ -123,7 +125,7 @@ public:
 #endif
   }
 
-// TODO: Debug output and validation.
+  // TODO: Debug output and validation.
 
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point) noexcept
       : data(std::move(plain_point.data))
@@ -134,10 +136,10 @@ public:
   // lattice points are moveable but not copyable (by design, to catch unwanted copying)
   // (note that these declarations just make that explicit, if we did not write these,
   // the auto-generated copy constructor would be deleted, because the parent's is.)
-  ExactLatticePoint(ExactLatticePoint const &old) = delete;
-  ExactLatticePoint(ExactLatticePoint &&old)      = default;
-  ExactLatticePoint &operator=(ExactLatticePoint const &other) = delete;
-  ExactLatticePoint &operator=(ExactLatticePoint &&other) = default;
+  ExactLatticePoint(ExactLatticePoint const  &old) = delete;
+  ExactLatticePoint(ExactLatticePoint       &&old) = default;
+  ExactLatticePoint &operator=(ExactLatticePoint const  &other) = delete;
+  ExactLatticePoint &operator=(ExactLatticePoint       &&other) = default;
 
   // behaves just like a normal container and can be used as such
   ET       &operator[](uint_fast16_t idx)       { return data[idx]; }
@@ -151,7 +153,7 @@ public:
   }
 
   // version where we already know norm2
-  void sanitize( ET const &new_norm2 )
+  void sanitize(ET const &new_norm2)
   {
     norm2 = new_norm2;
   }
@@ -163,68 +165,69 @@ public:
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ET do_compute_sc_product(LatP2 const &lp2) const
   {
-  // Compute the sum of (*this)[i]  * lp2[i] over i.
-  // Naively, we would start with res = 0 and increment
-  // res+= (*this)[i] * lp2[i] in a loop over i.
+    // Compute the sum of (*this)[i]  * lp2[i] over i.
+    // Naively, we would start with res = 0 and increment
+    // res+= (*this)[i] * lp2[i] in a loop over i.
 
-  // Instead, we split the computation of res into a sum of 4 sub-terms, corresponding to the
-  // contribution from a subset of the coordinates (depending on i mod 4).
-  // The reason is that inside the for-loop,
-  // the res1+= ,... res4+= statements can be computed in parallel by SIMD.
-  // with only a single res, this is not the case, because each +=operation has to wait
-  // for the previous one to finish.
-  // whether this helps or not depends on compiler / architecture.
-  // Note that to get the "naive" implementation, just comment out this function altogether,
-  // the default inherited from the parent will do exactly that.
-  ET res1 = 0;
-  ET res2 = 0;
-  ET res3 = 0;
-  ET res4 = 0;
-  uint_fast16_t dim = get_dim();
-  for(uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4) // perform 4 += in one go
-  {
-    res1 += (*this)[i+0] * lp2.get_absolute_coo(i+0);
-    res2 += (*this)[i+1] * lp2.get_absolute_coo(i+1);
-    res3 += (*this)[i+2] * lp2.get_absolute_coo(i+2);
-    res4 += (*this)[i+3] * lp2.get_absolute_coo(i+3);
-  }
-  for(uint_fast16_t i= (dim / 4) * 4; i < dim; ++i) // rest of the loop if dim is not divisible by 4
-  {
-    res1+= (*this)[i] * lp2.get_absolute_coo(i);
-  }
-  res1+=res2; // add up the sub-sums.
-  res1+=res3;
-  res1+=res4;
-  return res1;
+    // Instead, we split the computation of res into a sum of 4 sub-terms, corresponding to the
+    // contribution from a subset of the coordinates (depending on i mod 4).
+    // The reason is that inside the for-loop,
+    // the res1+= ,... res4+= statements can be computed in parallel by SIMD.
+    // with only a single res, this is not the case, because each +=operation has to wait
+    // for the previous one to finish.
+    // whether this helps or not depends on compiler / architecture.
+    // Note that to get the "naive" implementation, just comment out this function altogether,
+    // the default inherited from the parent will do exactly that.
+    ET res1 = 0;
+    ET res2 = 0;
+    ET res3 = 0;
+    ET res4 = 0;
+    uint_fast16_t dim = get_dim();
+    for (uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4)  // perform 4 += in one go
+    {
+      res1 += (*this)[i + 0] * lp2.get_absolute_coo(i + 0);
+      res2 += (*this)[i + 1] * lp2.get_absolute_coo(i + 1);
+      res3 += (*this)[i + 2] * lp2.get_absolute_coo(i + 2);
+      res4 += (*this)[i + 3] * lp2.get_absolute_coo(i + 3);
+    }
+    for (uint_fast16_t i = (dim / 4) * 4; i < dim;
+         ++i)  // rest of the loop if dim is not divisible by 4
+    {
+      res1 += (*this)[i] * lp2.get_absolute_coo(i);
+    }
+    res1 += res2;  // add up the sub-sums.
+    res1 += res3;
+    res1 += res4;
+    return res1;
   }
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
-  Container data;  // either a vector or an array that stores the actual point.
-  ET norm2;       // stores the precomputed norm2
+  Container data;                 // either a vector or an array that stores the actual point.
+  ET norm2;                       // stores the precomputed norm2
 };
 
 // define (and compile-time initialize) static data of template classes:
 template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET,nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
-/***********************
-    Static Initializer
-***********************/
+/************************************************************
+    Static Initializer: This class sets the dimension of the point
+************************************************************/
 
 template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
-    final : public DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>
+    final : public DefaultStaticInitializer< ExactLatticePoint<ET,nfixed> >
 {
-  using Parent = DefaultStaticInitializer<ExactLatticePoint<ET,nfixed>>;
-  public:
+  using Parent = DefaultStaticInitializer< ExactLatticePoint<ET,nfixed> >;
 
-  template<class T,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
-  StaticInitializer(T const & initializer) : StaticInitializer(initializer.dim) {}
+public:
+  template<class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
+  StaticInitializer(T const &initializer) : StaticInitializer(initializer.dim) {}
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
     assert(Parent::user_count > 0);
-    if(Parent::user_count>1)
+    if (Parent::user_count > 1)
     {
       assert((new_dim == ExactLatticePoint<ET,nfixed>::dim));
       // TODO: Throw exception!
@@ -232,16 +235,17 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
     else
     {
       ExactLatticePoint<ET,nfixed>::dim = new_dim;
-
     }
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed = " << nfixed << " REALDIM = " << new_dim << " Counter is" << Parent::user_count )
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed = "
+                                      << nfixed << " REALDIM = " << new_dim << " Counter is"
+                                      << Parent::user_count)
   }
-
   ~StaticInitializer()
   {
-  DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = " << nfixed << " Counter is " << Parent::user_count)
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Deinitializing ExactLatticePoint with nfixed = "
+                                      << nfixed << " Counter is " << Parent::user_count)
   }
-}; // end of static initializer
+};  // end of static initializer
 
 }  // end of namespace
 
@@ -249,4 +253,6 @@ template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfix
 #undef FOR_VARIABLE_DIM
 #undef CONSTEXPR_IN_NON_DEBUG_LP_INIT
 
-#endif
+#endif  // include guard
+
+// clang-format on

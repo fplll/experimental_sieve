@@ -20,36 +20,28 @@
 
 namespace GaussSieve{
 
-//template <class ET, int nfixed> class ExactLatticePoint;
-//template <class ET, int nfixed> class HashedLatticePoint;
-
-//template <class SieveTraits, class ET> class FilteredPoint;
 template<class SieveTraits, bool MT> class FilteredPoint;
 
-// Template parameters are:
-//  ET: entry type
-//  nfixed: indicates whether the dimension is fixed or not
-//  SC: scalar-product type
-
+/**
+  Old version, unused atm.
+*/
 template<class SieveTraits>
 class FilteredPoint<SieveTraits, false>
-//template <class SieveTraits, class ET>
-//class FilteredPoint
 {
 public:
 
-  using LengthType    = typename SieveTraits::LengthType;
-  using StoredData    = STNode<SieveTraits>;
+  using LengthType = typename SieveTraits::LengthType;
+  using StoredData = STNode<SieveTraits>;
 
-  FilteredPoint()                       = delete;
-  FilteredPoint(const FilteredPoint &)  = delete;
-  FilteredPoint(FilteredPoint &&)       = default;
+  FilteredPoint()                        = delete;
+  FilteredPoint(FilteredPoint const  &)  = delete;
+  FilteredPoint(FilteredPoint       &&)  = default;
 
   explicit constexpr FilteredPoint(StoredData const * pt, LengthType const & sc_pr) noexcept
       : point(pt), sc_prod(sc_pr) {}
 
-  FilteredPoint& operator=(FilteredPoint const &) = delete;
-  FilteredPoint& operator=(FilteredPoint &&     ) = default;
+  FilteredPoint& operator=(FilteredPoint const  &) = delete;
+  FilteredPoint& operator=(FilteredPoint       &&) = default;
 
   ~FilteredPoint()  = default; // Note: Pointer is NOT owning.
 
@@ -64,6 +56,10 @@ private:
   StoredData const * point;
   LengthType sc_prod;
 };
+
+/**
+  New implementation:
+*/
 
 template<class SieveTraits, bool MT> class GaussListWithBitApprox;
 template<class SieveTraits, bool MT> class GaussIteratorBitApprox;
@@ -80,7 +76,7 @@ struct FilteredPoint2<SieveTraits,false>
   SimHashes sim_hashes;   // stores sim_hashes to *ptr_to_exact if sign_flip == false
                           // otherwise, stores bit-negated sim_hashes to *ptr_to_exact
   bool sign_flip;
-  typename SieveTraits::GaussList_StoredPoint const * ptr_to_exact; // non-owning pointer
+  typename SieveTraits::GaussList_StoredPoint const *ptr_to_exact; // non-owning pointer
   LengthType cond;  // stores -||x||^2 - 2 * <p, +/-x>
                     // where  x==*ptr_to_exact and p is the point with respect
                     // to which the filtered list is computed.
