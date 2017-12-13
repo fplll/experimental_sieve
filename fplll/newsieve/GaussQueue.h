@@ -63,7 +63,7 @@ private: // aliases to avoid typing long names
   //  using QueueType = DOES NOT WORK : std::priority_queue< DataType* ,
   //      std::vector<DataType* >, IsLongerVector_ExactPtr<ET,false,nfixed> >;
 #else
-  using QueueType = std::queue<DataType*>;
+  using QueueType = std::queue<DataType>;
 #endif
 
 public:
@@ -95,8 +95,11 @@ public:
   // returns size of queue (used for diagnostics and statistics only)
   typename QueueType::size_type size() const {return main_queue.size(); }
 
-  // since we cannot / do not copy point, you have to use (possibly explicit) move semantics
+  // since we cannot / do not copy point, users have to use (possibly explicit) move semantics
   // (i.e. push(std::move(point)), which makes point unusable for the caller.
+  // Note that there is a potential conversion at the call site.
+  // TODO: Allow to push other lattice point types and explicitly convert.
+  // (this one only sees implicit conversions)
   inline void push(DataType const &val) = delete;  // puts a copy of val in the queue : deleted
   inline void push(DataType      &&val);           // uses move semantics for that.
 

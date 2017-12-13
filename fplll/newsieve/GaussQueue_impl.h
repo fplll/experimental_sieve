@@ -55,22 +55,17 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
     assert(sampler!=nullptr);
     RetType ret{sampler->sample()};
     return ret;
-    //return static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
   }
   else  // Queue is not empty, just return "next" stored element.
         // (for std::priority_queue, this is called front(), for normal std::queue(), it's top().
   {
 #ifndef USE_REGULAR_QUEUE
-    RetType ret{std::move(*(main_queue.top())};  // move from the queue.
-    // Note: The top of the queue still holds a valid pointer to a lattice point
-    // the std::move above just put that lattice point into an unspecified and unusable state.
-    // we still need to free its memory.
-    delete main_queue.top();
+    RetType ret{std::move(main_queue.top()};  // move from the queue.
 #else   // analogous
-    RetType ret{std::move(*(main_queue.front()))};
-    delete main_queue.front();
+    RetType ret{std::move(main_queue.front())};
 #endif // USE_REGULAR_QUEUE
-    main_queue.pop();  //This removes the pointer itself from the queue.
+    // the top/front element of the queue is now possibly in an unspecified unusable state.
+    main_queue.pop();  // This actually remove the element from the queue.
     return ret;
   }
 }
@@ -78,27 +73,17 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
 template<class SieveTraits>
 void GaussQueue<SieveTraits,false>::push(DataType && val)
 {
-  DataType * new_lp = new DataType (std::move(val) );
-  main_queue.push(new_lp);
+  main_queue.push(std::move(val));
 }
-
-
 
 template<class SieveTraits> GaussQueue<SieveTraits,false>::~GaussQueue()
 {
-  while(! main_queue.empty() )
-  {
-#ifndef USE_REGULAR_QUEUE
-  delete main_queue.top();
-#else
-  delete main_queue.front();
-#endif // USE_REGULAR_QUEUE
-  main_queue.pop();
-  }
-  if (sampler_owned)
+  if (sampler_owned)  // delete the sampler we constructed
   {
     delete sampler;
   }
+  // else we were given a sampler from the caller and it is his job to clean up.
+  // Note that the sampler might in fact outlive the GaussSieve in that case.
 }
 
 }  // end namespace GaussSieve
