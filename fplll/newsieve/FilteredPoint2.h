@@ -20,11 +20,14 @@
 
 namespace GaussSieve{
 
-template<class SieveTraits, bool MT> class FilteredPoint;
 
 /**
   Old version, unused atm.
 */
+
+// Might not work due to changes to NodeST internals.
+/*
+template<class SieveTraits, bool MT> class FilteredPoint;
 template<class SieveTraits>
 class FilteredPoint<SieveTraits, false>
 {
@@ -56,6 +59,7 @@ private:
   StoredData const * point;
   LengthType sc_prod;
 };
+*/
 
 /**
   New implementation:

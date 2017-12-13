@@ -11,6 +11,8 @@
 namespace GaussSieve
 {
 
+class SimHashArgTag {}; // empty class, purely used to disambiguate function signatures.
+
 template<class ELP, class CooSelection> class AddBitApproximationToLP;
 //
 //std::ostream & operator<<(std::ostream &os, std::array<std::bitset<64ul>, 2ul> const &);
@@ -71,8 +73,25 @@ class AddBitApproximationToLP
       : elp(std::move(v)),
         sim_hashes(GlobalBitApproxData<CooSelection>::coo_selection.compute_all_bitapproximations(*this)) {}
 
-  constexpr       operator ELP() const & {return elp;}
-  CPP14CONSTEXPR  operator ELP()      && {return std::move(elp);}
+  constexpr       operator ELP() const & { return elp; }
+  CPP14CONSTEXPR  operator ELP()      && { return std::move(elp); }
+
+  template<class Arg1,
+           TEMPL_RESTRICT_DECL((std::is_same< mystd::decay_t<Arg1>, SimHashArgTag >::value==false)),
+           class... Args>
+  CPP14CONSTEXPR AddBitApproximationToLP(Arg1 &&arg1, Args &&... args)
+      : elp(std::forward<Arg1>(arg1), std::forward<Args>(args)...),
+        sim_hashes(GlobalBitApproxData<CooSelection>::coo_selection.compute_all_bitapproximations(*this)) {}
+
+  // Note: There is some serious danger here to accidentally invoke the perferct forward above.
+  //       SimHashArgTag's sole purpose is disambiguation and causing easier-to-understand errors.
+  CPP14CONSTEXPR AddBitApproximationToLP(SimHashArgTag, ELP && v, SimHashes const & new_sim_hashes)
+      : elp(std::move(v)),
+        sim_hashes(new_sim_hashes) {}
+
+  CPP14CONSTEXPR AddBitApproximationToLP(SimHashArgTag, ELP && v, SimHashes && new_sim_hashes)
+      : elp(std::move(v)),
+        sim_hashes(std::move(new_sim_hashes)) {}
 
   void update_bitapprox()
   {
