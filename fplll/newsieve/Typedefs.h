@@ -93,8 +93,8 @@ class DefaultSieveTraits
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+8}};
 
   //for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-8}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+6}};
 
   //for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32+7}};
