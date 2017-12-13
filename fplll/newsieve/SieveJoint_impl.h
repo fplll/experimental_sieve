@@ -321,7 +321,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_enough_short_vec
   // check if the current list is long enough and contains enough short vectors
 
   //TODO:
-  double log_bound = 1.16* double(this->get_progressive_rank())*(this->get_target_list_size());
+  double log_bound = 1.23* double(this->get_progressive_rank())*(this->get_target_list_size());
   unsigned long int bound = pow(2, log_bound);
   return (this->statistics.get_current_list_size() > bound);
 }

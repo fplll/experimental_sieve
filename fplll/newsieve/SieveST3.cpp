@@ -224,6 +224,8 @@ start_over:
     }
 
     // if the sim_hash - scalar product between p and it_x1 is bad, don't bother with this x1:
+    
+    
     if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
                                                  p, it_x1,
                                                  SieveTraits::threshold_lvls_3sieve_lb_out,
@@ -231,6 +233,7 @@ start_over:
     {
       continue;
     }
+     
     // TODO: Check whether that computation is actually necessary.
     LengthType const sc_prod_px1 = compute_sc_product(p, *it_x1);
     statistics.increment_number_of_scprods_level1();
@@ -253,6 +256,7 @@ start_over:
       }
       // we changed p and have to start the current iteration all over:
       // Note that this is faster than main_queue.push(std::move(p)); return;
+      statistics.increment_number_of_2reds();
       p.update_bitapprox();
       goto start_over;
     }
@@ -262,10 +266,13 @@ start_over:
     assert(sc_prod_px1_normalized >= 0); //  old code had an abs here.
 
     // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
+    
+    
     if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
     {
       continue;  // for loop over it_x1;
     }
+     
     /*
     typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
     if(sign_px1)
@@ -307,6 +314,7 @@ start_over:
         assert(p.get_norm2() <= debug_test);  // make sure we are making progress.
         if (p.is_zero())  { statistics.increment_number_of_collisions(); return; }
         p.update_bitapprox();
+        statistics.increment_number_of_3reds();
         goto start_over;
       }
     }
@@ -351,6 +359,7 @@ start_over:
       if (it_x1 == it_comparison_flip) { ++it_comparison_flip; }
       auto v_new = main_list.true_pop_point(it_x1);  // also performs ++it_x1 !
       v_new.sub_multiply(p, scalar);
+      statistics.increment_number_of_2reds();
       if (v_new.is_zero())
       {
         statistics.increment_number_of_collisions();
@@ -366,11 +375,13 @@ start_over:
                   / ( convert_to_double(p.get_norm2()) * convert_to_double(it_x1->get_norm2()) );
     assert(sc_prod_px1_normalized >= 0); //  old code had an abs here.
     // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
+    
     if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
     {
       ++it_x1;
       continue;  // for loop over it_x1;
     }
+     
     /*
     typename SieveTraits::SimHashes x1_sims = it_x1.get_all_bitapproximations();
     if(sign_px1)
@@ -402,6 +413,7 @@ start_over:
       // This differs from the case above, because now x_1 is larger than p.
       if (sc_prod_x1x2 < cond_x1_p + filtp_x2.cond)  // perform 3-reduction on x1
       {
+        statistics.increment_number_of_3reds();
         LengthType const debug_test = it_x1->get_norm2();
         if (it_x1 == it_comparison_flip) { ++it_comparison_flip; }
         auto v_new = main_list.true_pop_point(it_x1);  // also performs ++it_x1 !

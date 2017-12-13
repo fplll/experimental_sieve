@@ -65,7 +65,7 @@ class DefaultSieveTraits
   using DimensionType           = MaybeFixed<nfixed>;
 
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
-  static std::size_t constexpr sim_hash_num = 1;   // number of simhash blocks/levels per vector
+  static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType>;
@@ -101,16 +101,16 @@ class DefaultSieveTraits
 
   //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
 
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-8}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+8}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-7, 64-15}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+7, 64+15}};
 
   //for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-6}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-6, 64-10}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+6, 64+10}};
 
   //for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32+7}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32-7}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-2, 64-6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+2, 64+6}};
 
   // for 3-sieve exact check, squared, normalized
   constexpr static double x1x2_target = .1111;
