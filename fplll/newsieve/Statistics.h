@@ -28,6 +28,7 @@ struct GaussSieveStatistics<SieveTraits,false>
     number_of_scprods_level2(0),
     number_of_scprods_level3(0),
     number_of_2reds(0),
+    number_of_3reds(0),
 
     number_of_exact_scprods(0),
     number_of_mispredictions(0)
@@ -84,18 +85,18 @@ struct GaussSieveStatistics<SieveTraits,false>
   unsigned long long int number_of_approx_scprods_level2; //for k=2,3 cases
   inline unsigned long long get_number_of_approx_scprods_level2() const {return number_of_approx_scprods_level2;}
   inline void increment_number_of_approx_scprods_level2() {++number_of_approx_scprods_level2;}
-  
+
   /* for 3-sieve, to compare number of 2-reds vs. 3-reds */
 
   unsigned int number_of_2reds;
   unsigned int get_number_of_2reds() const  {return number_of_2reds;}
   inline void increment_number_of_2reds() {++number_of_2reds;}
-  
-  
+
+
   unsigned int number_of_3reds;
   unsigned int get_number_of_3reds() const  {return number_of_3reds;}
   inline void increment_number_of_3reds() {++number_of_3reds;}
-  
+
 
   unsigned long long int number_of_exact_scprods;
   unsigned long long int number_of_mispredictions; //could not reduce in spite of approximation saying so
@@ -371,7 +372,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
   if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
   if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
   if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
-  
+
   if(howverb>=1) of << "Number of 2-reductions inside 3-sieve=" << number_of_2reds << endl;
   if(howverb>=1) of << "Number of 3-reductions inside 3-sieve=" << number_of_3reds << endl;
 

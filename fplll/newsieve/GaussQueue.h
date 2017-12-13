@@ -78,9 +78,12 @@ public:
   // we take take a pointer to the caller sieve as an argument to initialize the sampler and to
   // access statistics. static_data is needed to initialize the used lattice point classes.
 
+  // user_sampler is a pointer to a user-provided samplers. If == nullptr, we create our own
+  // seed_sampler is only used if we create our own sampler.
   // TODO: Consider storing a reference to the statistics class instead.
   explicit inline GaussQueue(Sieve<SieveTraits,false>* const caller_sieve,
                              GlobalStaticDataInitializer const &static_data,
+                             int seed_sampler,
                              Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler=nullptr);
   inline ~GaussQueue();
 
@@ -115,7 +118,7 @@ public:
   // virtual members and *sampler might be a type derived from it.
   Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> *sampler;
   bool sampler_owned;  // Is the above pointer owning. Required to correctly delete it.
-                       // (because we should not for user-provided ones).
+                       // (because we should not do that for user-provided ones).
                        // TODO: Use smart pointers instead.
 };
 

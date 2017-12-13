@@ -2,7 +2,6 @@
 #define GAUSS_QUEUE_CPP
 
 #include "GaussQueue.h"
-//#include "SieveGauss.cpp"
 #include "GPVSampler.h"
 #include "UniformSampler.h"
 #include "GPVSamplerExtended.h"
@@ -16,6 +15,7 @@ namespace GaussSieve
 template<class SieveTraits>
 GaussQueue<SieveTraits,false>::GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
                                           GlobalStaticDataInitializer const &static_data,
+                                          int seed_sampler,
                                           Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler)
     : init_data_type(static_data),
       init_ret_type(static_data),
@@ -31,23 +31,14 @@ GaussQueue<SieveTraits,false>::GaussQueue(Sieve<SieveTraits,false> * const calle
 #endif
   if (sampler == nullptr)
   {
-    std::seed_seq seed{1,2,4}; //just some arbitrary numbers
+    // Use seed_sampler to init the rng. The other numbers spell "SAMPLER" in ASCII, they are here
+    //  because we use the seed elsewhere as well.
+    std::seed_seq seed{83, 65, 77, 80, 76, 69, 82, seed_sampler};
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing our own sampler. Using GPVSampler")
     sampler = new GPVSampler<SieveTraits, false, std::mt19937_64, std::seed_seq>(seed);
   }
   assert(sampler != nullptr);
 }
-
-//template<class ET>
-//GaussQueue<ET,true>::GaussQueue( Sieve<ET,true> *caller_sieve)
-//:
-//main_queue(),
-//gauss_sieve(caller_sieve),
-//queue_mutex()
-////sampler(nullptr)
-//{
-//    assert(caller_sieve!=nullptr);
-//}
 
 template<class SieveTraits>
 auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
@@ -61,36 +52,28 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
     gauss_sieve->statistics.increment_number_of_points_sampled();
     gauss_sieve->statistics.increment_number_of_points_constructed();
 #endif
-//        return gauss_sieve->sampler->sample();
     assert(sampler!=nullptr);
-
-    //I'VE COMMENTED OUT THIS STATIC ASSERT: we convert from what sampler returns to what queue stores here -- EK
-
-    //static_assert(std::is_same<typename SieveTraits::GaussSampler_ReturnType, RetType>::value,
-    //  "Sampler must currently return the same type as the queue.");
-//    typename SieveTraits::GaussSampler_ReturnType const ret = sampler->sample();
-//    return ret;
-//        return sampler->sample();
-    typename SieveTraits::GaussList_StoredPoint ret = static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
+    RetType ret{sampler->sample()};
     return ret;
     //return static_cast<typename SieveTraits::GaussList_StoredPoint>(sampler->sample());
   }
-  else // Queue is not empty, just return stored element.
+  else  // Queue is not empty, just return "next" stored element.
+        // (for std::priority_queue, this is called front(), for normal std::queue(), it's top().
   {
 #ifndef USE_REGULAR_QUEUE
-    DataType next_point = std::move( *(main_queue.top()));
+    RetType ret{std::move(*(main_queue.top())};  // move from the queue.
+    // Note: The top of the queue still holds a valid pointer to a lattice point
+    // the std::move above just put that lattice point into an unspecified and unusable state.
+    // we still need to free its memory.
     delete main_queue.top();
-#else
-    DataType next_point = std::move( *(main_queue.front()));
+#else   // analogous
+    RetType ret{std::move(*(main_queue.front()))};
     delete main_queue.front();
 #endif // USE_REGULAR_QUEUE
-    main_queue.pop(); //This just removes the pointer.
-    return next_point;
+    main_queue.pop();  //This removes the pointer itself from the queue.
+    return ret;
   }
 }
-
-
-
 
 template<class SieveTraits>
 void GaussQueue<SieveTraits,false>::push(DataType && val)

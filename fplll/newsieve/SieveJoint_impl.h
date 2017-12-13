@@ -178,7 +178,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
     original_basis(B),
     lattice_basis(B,global_static_data),
     main_list(global_static_data),
-    main_queue(this,global_static_data),
+    main_queue(this,global_static_data, seed_sampler),
     lattice_rank(B.get_rows()),
     multi_threaded_wanted(GAUSS_SIEVE_IS_MULTI_THREADED),
     #if GAUSS_SIEVE_IS_MULTI_THREADED == true

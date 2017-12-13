@@ -174,3 +174,15 @@ void GaussQueue<ET,false,nfixed>::push(DataType * &val)
 
 //template class GaussQueue<fplll::Z_NR<long>,false,-1>;
 
+////////////////
+
+//template<class ET>
+//GaussQueue<ET,true>::GaussQueue( Sieve<ET,true> *caller_sieve)
+//:
+//main_queue(),
+//gauss_sieve(caller_sieve),
+//queue_mutex()
+////sampler(nullptr)
+//{
+//    assert(caller_sieve!=nullptr);
+//}

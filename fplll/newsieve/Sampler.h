@@ -69,6 +69,7 @@ IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any
             any associated sieve. (This latter case need not work with user-defined samplers)
 */
 
+
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
 
 template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
