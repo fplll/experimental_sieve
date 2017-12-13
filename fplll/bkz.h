@@ -164,43 +164,6 @@ public:
   bool svp_reduction(int kappa, int block_size, const BKZParam &param, bool dual = false);
 
   /**
-   * @brief Same as svp_reduction(), but catches exceptions and returns with
-   * error status.
-   *
-   * Essentially does the same as svp_reduction() with two differences:
-   *    1) it has as additional parameter a clean flag, which is set instead of returned.
-   *    2) it catches failures in the reductions and instead of throwing an exception and
-   *        returns false in case of a failure (true in case of success).
-   *
-   * @param kappa
-   *    start of the block
-   * @param block_size
-   *    size of the block
-   * @param param
-   *    parameter object (may be different from the one in the constructor)
-   * @param clean
-   *    clean flag which is set to false if the first (last dual) vector is reduced.
-   *    Otherwise the flag is left unchanged.
-   * @param dual
-   *    flag specifying if the block is to be SVP or dual SVP reduced.
-   * @returns
-   *    true if the reduction did no throw an error, otherwise false.
-   */
-  bool svp_reduction_ex(int kappa, int block_size, const BKZParam &param, bool &clean,
-                        bool dual = false)
-  {
-    try
-    {
-      clean = svp_reduction(kappa, block_size, param, dual);
-      return true;
-    }
-    catch (RedStatus &e)
-    {
-      return set_status(e);
-    }
-  }
-
-  /**
    * @brief Runs a BKZ tour.
    *
    * Runs a BKZ tour from min_row to max_row by successively calling svp_reduction.
@@ -222,45 +185,6 @@ public:
   bool tour(const int loop, int &kappa_max, const BKZParam &param, int min_row, int max_row);
 
   /**
-   * @brief Same as tour(), but catches exceptions and returns with
-   * error status.
-   *
-   * Essentially does the same as tour() with two differences:
-   *    1) it has as additional parameter a clean flag, which is set instead of returned.
-   *    2) it catches failures in the reductions and instead of throwing an exception and
-   *        returns false in case of a failure (true in case of success).
-   * @param loop
-   *    counter indicating the iteration, only for reporting purposes
-   * @param kappa_max
-   *    the largest kappa s.t. the block from min_row to kappa is BKZ reduced, also
-   *    only for reporting purposes
-   * @param param
-   *    parameter object
-   * @param min_row
-   *    start of the tour
-   * @param max_row
-   *    end of the tour
-   * @param clean
-   *    clean flag which is set to false if the first (last dual) vector is reduced.
-   *    Otherwise the flag is left unchanged.
-   * @returns
-   *    true if the tour did no throw an error, otherwise false.
-   */
-  bool tour_ex(const int loop, int &kappa_max, const BKZParam &param, int min_row, int max_row,
-               bool &clean)
-  {
-    try
-    {
-      clean = tour(loop, kappa_max, param, min_row, max_row);
-      return true;
-    }
-    catch (RedStatus &e)
-    {
-      return set_status(e);
-    }
-  }
-
-  /**
    * @brief Runs a SD-BKZ tour.
    *
    * Runs a dual BKZ tour from max_row to min_row and a BKZ tour from min_row to max_row
@@ -278,42 +202,6 @@ public:
    *    false if it made progress, true otherwise
    */
   bool sd_tour(const int loop, const BKZParam &param, int min_row, int max_row);
-
-  /**
-   * @brief Same as sd_tour(), but catches exceptions and returns with
-   * error status.
-   *
-   * Essentially does the same as sd_tour() with two differences:
-   *    1) it has as additional parameter a clean flag, which is set instead of returned.
-   *    2) it catches failures in the reductions and instead of throwing an exception and
-   *        returns false in case of a failure (true in case of success).
-   *
-   * @param loop
-   *    counter indicating the iteration, only for reporting purposes
-   * @param param
-   *    parameter object
-   * @param min_row
-   *    start of the tour
-   * @param max_row
-   *    end of the tour
-   * @param clean
-   *    clean flag which is set to false if the first (last dual) vector is reduced.
-   *    Otherwise the flag is left unchanged.
-   * @returns
-   *    true if the tour did no throw an error, otherwise false.
-   */
-  bool sd_tour_ex(const int loop, const BKZParam &param, int min_row, int max_row, bool &clean)
-  {
-    try
-    {
-      clean = sd_tour(loop, param, min_row, max_row);
-      return true;
-    }
-    catch (RedStatus &e)
-    {
-      return set_status(e);
-    }
-  }
 
   /**
    * @brief HKZ reduces a block.
@@ -335,43 +223,6 @@ public:
   bool hkz(int &kappa_max, const BKZParam &param, int min_row, int max_row);
 
   /**
-   * @brief Same as hkz(), but catches exceptions and returns with
-   * error status.
-   *
-   * Essentially does the same as hkz() with two differences:
-   *    1) it has as additional parameter a clean flag, which is set instead of returned.
-   *    2) it catches failures in the reductions and instead of throwing an exception and
-   *        returns false in case of a failure (true in case of success).
-   *
-   * @param kappa_max
-   *    the largest kappa s.t. the block from min_row to kappa is BKZ reduced, also
-   *    only for reporting purposes
-   * @param param
-   *    parameter object
-   * @param min_row
-   *    start of the reduction
-   * @param max_row
-   *    end of the reduction
-   * @param clean
-   *    clean flag which is set to false if the first (last dual) vector is reduced.
-   *    Otherwise the flag is left unchanged.
-   * @returns
-   *    true if the reduction did no throw an error, otherwise false.
-   */
-  bool hkz_ex(int &kappa_max, const BKZParam &param, int min_row, int max_row, bool &clean)
-  {
-    try
-    {
-      clean = hkz(kappa_max, param, min_row, max_row);
-      return true;
-    }
-    catch (RedStatus &e)
-    {
-      return set_status(e);
-    }
-  }
-
-  /**
    * @brief Runs a tour of slide reduction.
    *
    * Runs a tour of slide reduction from min_row to max_row by
@@ -390,42 +241,6 @@ public:
    *    false if it made progress, true otherwise
    */
   bool slide_tour(const int loop, const BKZParam &param, int min_row, int max_row);
-
-  /**
-   * @brief Same as slide_tour(), but catches exceptions and returns with
-   * error status.
-   *
-   * Essentially does the same as slide_tour()with two differences:
-   *    1) it has as additional parameter a clean flag, which is set instead of returned.
-   *    2) it catches failures in the reductions and instead of throwing an exception and
-   *        returns false in case of a failure (true in case of success).
-   *
-   * @param loop
-   *    counter indicating the iteration, only for reporting purposes
-   * @param param
-   *    parameter object
-   * @param min_row
-   *    start of the tour
-   * @param max_row
-   *    end of the tour
-   * @param clean
-   *    clean flag which is set to false if the first (last dual) vector is reduced.
-   *    Otherwise the flag is left unchanged.
-   * @returns
-   *    true if the tour did no throw an error, otherwise false.
-   */
-  bool slide_tour_ex(const int loop, const BKZParam &param, int min_row, int max_row, bool &clean)
-  {
-    try
-    {
-      clean = slide_tour(loop, param, min_row, max_row);
-      return true;
-    }
-    catch (RedStatus &e)
-    {
-      return set_status(e);
-    }
-  }
 
   /**
    * @brief Runs the main loop of block reduction.
@@ -468,7 +283,9 @@ public:
    *    flag specifying if the shape should be appended to the file (or if the file
    *    should be overwritten)
    * **/
-  void dump_gso(const std::string &filename, const std::string &prefix, bool append = true);
+
+  void dump_gso(const std::string &filename, bool append, const std::string &step, const int loop,
+                const double time);
 
   /**
    * Status of reduction (see defs.h)
@@ -486,7 +303,7 @@ private:
 
   bool set_status(int new_status);
 
-  const Pruning &get_pruning(int kappa, int block_size, const BKZParam &par) const;
+  const PruningParams &get_pruning(int kappa, int block_size, const BKZParam &par) const;
 
   // handles the general case of inserting a vector into the (dual) basis, i.e.
   // when none of the coefficients are \pm 1
@@ -501,7 +318,6 @@ private:
 
   const BKZParam &param;
   int num_rows;
-
   MatGSO<ZT, FT> &m;
   LLLReduction<ZT, FT> &lll_obj;
   // evaluator passed to the enumeration object to handle solutions found
@@ -538,7 +354,7 @@ private:
  * @return
  *    the status of the reduction (see defs.h for more information on the status)
  */
-int bkz_reduction(IntMatrix *B, IntMatrix *U, const BKZParam &param,
+int bkz_reduction(ZZ_mat<mpz_t> *B, ZZ_mat<mpz_t> *U, const BKZParam &param,
                   FloatType float_type = FT_DEFAULT, int precision = 0);
 
 /**
@@ -561,7 +377,7 @@ int bkz_reduction(IntMatrix *B, IntMatrix *U, const BKZParam &param,
  * @return
  *    the status of the reduction (see defs.h for more information on the status)
  */
-int bkz_reduction(IntMatrix &b, int block_size, int flags = BKZ_DEFAULT,
+int bkz_reduction(ZZ_mat<mpz_t> &b, int block_size, int flags = BKZ_DEFAULT,
                   FloatType float_type = FT_DEFAULT, int precision = 0);
 
 /**
@@ -586,7 +402,7 @@ int bkz_reduction(IntMatrix &b, int block_size, int flags = BKZ_DEFAULT,
  * @return
  *    the status of the reduction (see defs.h for more information on the status)
  */
-int bkz_reduction(IntMatrix &b, IntMatrix &u, int block_size, int flags = BKZ_DEFAULT,
+int bkz_reduction(ZZ_mat<mpz_t> &b, ZZ_mat<mpz_t> &u, int block_size, int flags = BKZ_DEFAULT,
                   FloatType float_type = FT_DEFAULT, int precision = 0);
 
 /**
@@ -607,7 +423,7 @@ int bkz_reduction(IntMatrix &b, IntMatrix &u, int block_size, int flags = BKZ_DE
  * @return
  *    the status of the reduction (see defs.h for more information on the status)
  */
-int hkz_reduction(IntMatrix &b, int flags = HKZ_DEFAULT, FloatType float_type = FT_DEFAULT,
+int hkz_reduction(ZZ_mat<mpz_t> &b, int flags = HKZ_DEFAULT, FloatType float_type = FT_DEFAULT,
                   int precision = 0);
 
 FPLLL_END_NAMESPACE
