@@ -9,8 +9,7 @@ namespace GaussSieve
 {
 
 template<class SieveTraits>
-template<class dummy=typename GaussListWithBitApprox<SieveTraits,false>::ReturnType,
-        TEMPL_RESTRICT_IMPL2(mystd::negation<Has_BitApprox<dummy>>)>
+template<class dummy, TEMPL_RESTRICT_IMPL2(mystd::negation<Has_BitApprox<dummy>>)>
 auto GaussListWithBitApprox<SieveTraits,false>::true_pop_point(Iterator &pos) -> ReturnType
 {
   ReturnType retval = static_cast<ReturnType>(std::move(*(pos.it->ptr_to_exact))) ;
@@ -19,8 +18,7 @@ auto GaussListWithBitApprox<SieveTraits,false>::true_pop_point(Iterator &pos) ->
 }
 
 template<class SieveTraits>
-template<class dummy=typename GaussListWithBitApprox<SieveTraits,false>::ReturnType,
-         TEMPL_RESTRICT_IMPL2(Has_BitApprox<dummy>)>
+template<class dummy, TEMPL_RESTRICT_IMPL2(Has_BitApprox<dummy>)>
 auto GaussListWithBitApprox<SieveTraits,false>::true_pop_point(Iterator &pos) -> ReturnType
 {
   ReturnType retval = ReturnType{ SimHashArgTag{},
