@@ -128,7 +128,7 @@ public:
   explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point) noexcept
       : data(std::move(plain_point.data))
   {
-    sanitize();
+    sanitize();  // compute norm2
   }
 
   // lattice points are moveable but not copyable (by design, to catch unwanted copying)
@@ -140,7 +140,7 @@ public:
   ExactLatticePoint &operator=(ExactLatticePoint &&other) = default;
 
   // behaves just like a normal container and can be used as such
-  ET &operator[](uint_fast16_t idx) { return data[idx]; }
+  ET       &operator[](uint_fast16_t idx)       { return data[idx]; }
   ET const &operator[](uint_fast16_t idx) const { return data[idx]; }
   static std::string class_name() { return "Exact Lattice Point"; }
 
@@ -200,20 +200,13 @@ public:
 
 private:
   static MaybeFixed<nfixed> dim;  // note that for nfixed != -1, this variable is actually unused.
-
-  Container data;
-  ET norm2;
+  Container data;  // either a vector or an array that stores the actual point.
+  ET norm2;       // stores the precomputed norm2
 };
 
-// initialize static data:
+// define (and compile-time initialize) static data of template classes:
 template <class ET, int nfixed>
 MaybeFixed<nfixed> ExactLatticePoint<ET,nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
-
-template <class ET, int nfixed>
-std::ostream& operator<<(std::ostream &os, ExactLatticePoint<ET, nfixed> const &LatP)
-{
-  return LatP.write_lp_to_stream(os, true, true);
-}
 
 /***********************
     Static Initializer
