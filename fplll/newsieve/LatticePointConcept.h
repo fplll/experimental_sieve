@@ -2,13 +2,12 @@
 #define LATTICE_POINT_CONCEPT_H
 
 #include "DefaultIncludes.h"
+#include "GlobalStaticData.h"
 #include "SieveUtility.h"
 #include <gmpxx.h>
-#include "GlobalStaticData.h"
 
-// clang-format off
-
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 /**
   GeneralLatticePoint defines an interface for the various classes of lattice points we use.
@@ -34,31 +33,30 @@ namespace GaussSieve{
 
 template<class LatticePoint> struct LatticePointTraits
 {
-  public:
-
-  using Invalid=std::true_type; // do not set this at all in an specialization.
+public:
+  using Invalid = std::true_type;  // do not set this at all in an specialization.
   LatticePointTraits(...) = delete;
   // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
 
-  using Trait_ScalarProductStorageType = void;
+  using Trait_ScalarProductStorageType      = void;
   using Trait_ScalarProductStorageType_Full = void;
-  using Trait_ExposesCoos = std::false_type;
-  using Trait_CoordinateType = void;
-  using Trait_Coos_RW = std::false_type;
-  using Trait_AbsoluteCooType = void;
-  using Trait_RepCooType = void;
-  using Trait_ExposesInternalRep = std::false_type;
-  using Trait_InternalRepLinear = std::false_type;
-  using Trait_InternalRep_RW = std::false_type;
-  using Trait_InternalRepByCoos = std::false_type;
-  using Trait_InternalRepIsAbsolute = std::false_type;
-  using Trait_AbsoluteCoos = std::false_type;
-  using Trait_CheapNorm2 = std::false_type;
-  using Trait_CheapNegate = std::false_type;
-  using Trait_BitApprox = std::false_type;
+  using Trait_ExposesCoos                   = std::false_type;
+  using Trait_CoordinateType                = void;
+  using Trait_Coos_RW                       = std::false_type;
+  using Trait_AbsoluteCooType               = void;
+  using Trait_RepCooType                    = void;
+  using Trait_ExposesInternalRep            = std::false_type;
+  using Trait_InternalRepLinear             = std::false_type;
+  using Trait_InternalRep_RW                = std::false_type;
+  using Trait_InternalRepByCoos             = std::false_type;
+  using Trait_InternalRepIsAbsolute         = std::false_type;
+  using Trait_AbsoluteCoos                  = std::false_type;
+  using Trait_CheapNorm2                    = std::false_type;
+  using Trait_CheapNegate                   = std::false_type;
+  using Trait_BitApprox                     = std::false_type;
 
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
-  using Trait_Leveled = std::false_type;
+  using Trait_Leveled                       = std::false_type;
 
 };
 
@@ -247,10 +245,10 @@ template<class T> using HasNoLPTraits                    = mystd::is_detected<Tr
 // Make actual getter for TraitName with a Default:
 #define GAUSS_SIEVE_MAKE_TRAIT_GETTER(TraitName, Default) \
 template<class T> using Get_##TraitName = mystd::detected_or_t<Default, TraitHelpers::Obtain_##TraitName, T>
-GAUSS_SIEVE_MAKE_TRAIT_GETTER(CoordinateType,void);
-GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType,void);
-GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType_Full,Get_ScalarProductStorageType<T>);
-GAUSS_SIEVE_MAKE_TRAIT_GETTER(AbsoluteCooType,Get_CoordinateType<T>);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(CoordinateType, void);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType, void);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType_Full, Get_ScalarProductStorageType<T>);
+GAUSS_SIEVE_MAKE_TRAIT_GETTER(AbsoluteCooType, Get_CoordinateType<T>);
 GAUSS_SIEVE_MAKE_TRAIT_GETTER(RepCooType, Get_CoordinateType<T>);
 
 // "," in macro argument would cause trouble, so we just write it out:
@@ -328,17 +326,17 @@ class GeneralLatticePoint
   static_assert(!Has_ExposesCoos<LatP>::value || DoesDeclareCoordinateType<LatP>::value,
                   "Lattice Point exposes coos, but does not tell its type.");
 
-  friend LatP; // makes children able to access private (in addition to protected) members.
-                 // since the constructor is private, this enforces correct usage.
-                 // (Note that it may prevent multi-level inheritance)
-  public:
-  using ScalarProductStorageType      = Get_ScalarProductStorageType<LatP>;
-  using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<LatP>;
-  using CooType         = Get_CoordinateType<LatP>; //may be void
-  using CoordinateType  = Get_CoordinateType<LatP>; //may be void
-  using AbsCooType      = Get_AbsoluteCooType<LatP>;
-  using AbsoluteCooType = Get_AbsoluteCooType<LatP>;
-  using RepCooType      = Get_RepCooType<LatP>;
+  friend LatP;  // makes children able to access private (in addition to protected) members.
+                // since the constructor is private, this enforces correct usage.
+                // (Note that it may prevent multi-level inheritance)
+public:
+  using ScalarProductStorageType            = Get_ScalarProductStorageType<LatP>;
+  using ScalarProductStorageType_Full       = Get_ScalarProductStorageType_Full<LatP>;
+  using CooType                             = Get_CoordinateType<LatP>;  // may be void
+  using CoordinateType                      = Get_CoordinateType<LatP>;  // may be void
+  using AbsCooType                          = Get_AbsoluteCooType<LatP>;
+  using AbsoluteCooType                     = Get_AbsoluteCooType<LatP>;
+  using RepCooType                          = Get_RepCooType<LatP>;
   static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::value;
   static_assert((Has_Leveled<LatP>::value == true) || (ApproxLevel==0 ),"Has ApproxLevel>0, but does not declare Trait_Leveled.");
 
@@ -415,14 +413,14 @@ public:
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
   inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
 
-  template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  template<class LatP2, class Impl = LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline bool operator==(LatP2 const &x2) const; // default implementation asserts internal rep
 
   template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline LatP& operator*=(Integer const multiplier); // default implementation asserts linearity
   inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
 
-  inline LatP operator-() &&; //unary-
+  inline LatP operator-() &&; // unary-
   // operator+ is entirely defined in terms of +=
   // operator- is entirely defined in terms of -=
   // operator* is entirely defined in terms of *=
@@ -437,29 +435,28 @@ public:
   template<class Impl=LatP> // default implementation asserts Has_InternalRep
   inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
 
-  template<class Arg, class Impl=LatP>
-  inline RepCooType const & get_internal_rep(Arg &&arg) const;
+  template<class Arg, class Impl = LatP>
+  inline RepCooType const &get_internal_rep(Arg &&arg) const;
 
-  template<class Arg, class Impl=LatP>
+  template<class Arg, class Impl = LatP>
   inline RepCooType & get_internal_rep(Arg &&arg);
 
-  template<class Arg, class Impl=LatP>
+  template<class Arg, class Impl = LatP>
   inline AbsoluteCooType get_absolute_coo(Arg &&arg) const;
 
   void get_dim() const = delete; // Note that the overload shall NOT have void return type. It may be static / constexpr.
-                                   // It's just not possible to specific it here w/o C++14 auto.
 
 /**
   Used for output to stream. Note that operator<< calls this (or an overloaded version)
   Supposed to be overloaded for the specific class.
 */
 
-  inline std::ostream& write_lp_to_stream(std::ostream &os, bool const include_norm2=true, bool const include_approx=true) const;
+  inline std::ostream &write_lp_to_stream(std::ostream &os, bool const include_norm2 = true, bool const include_approx = true) const;
 
-  template<class Impl=LatP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
-  inline std::ostream& write_lp_rep_to_stream(std::ostream &os) const;
+  template<class Impl = LatP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
+  inline std::ostream &write_lp_rep_to_stream(std::ostream &os) const;
 
-  std::istream& read_from_stream(std::istream &is) = delete;
+  std::istream &read_from_stream(std::istream &is) = delete;
 
 /**
   Fills a lattice point with zeros.
@@ -468,18 +465,18 @@ public:
   The latter depends subtly on the constructors used (empty vs. default constructor...)
   May be overloaded by Derived class.
 */
-  template<class Impl=LatP> inline void fill_with_zero();
+  template<class Impl = LatP> inline void fill_with_zero();
 
 /**
   Changes vector from v to -v. May be overloaded.
 */
-  template<class Impl=LatP> inline void make_negative();
+  template<class Impl = LatP> inline void make_negative();
 
 /**
   Tests whether a lattice point is all-zero.
   May be overloaded.
 */
-  template<class Impl=LatP> inline bool is_zero() const;
+  template<class Impl = LatP> inline bool is_zero() const;
 
 /**
   Makes an (explicit) copy of the current point.
@@ -491,7 +488,7 @@ public:
   May be overloaded.
 */
 
-  template<class Impl=LatP> inline LatP make_copy() const &;
+  template<class Impl = LatP> inline LatP make_copy() const &;
   [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
 
 
@@ -531,15 +528,15 @@ public:
   but need to be convertible to ScalarProductStorageType.
 */
 
-  template<unsigned int level, class Impl=LatP>
+  template<unsigned int level, class Impl = LatP>
   inline ScalarProductStorageType get_norm2_at_level() const
   {
     IMPL_IS_LATP;
-    static_assert(level==0,"Default only has level 0");
+    static_assert(level == 0, "Default only has level 0");
     return CREALTHIS->get_norm2();
   }
 
-  template<class Impl=LatP>
+  template<class Impl = LatP>
   inline ScalarProductStorageType_Full get_norm2_full() const
   {
     static_assert(Has_Leveled<Impl>::value == false, "Need to overload");
@@ -555,30 +552,30 @@ public:
   template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ScalarProductStorageType do_compute_sc_product(LatP2 const &x2) const;
 
-  template<unsigned int level,class Impl=LatP, class LatP2>
+  template<unsigned int level,class Impl = LatP, class LatP2>
   inline ScalarProductStorageType do_compute_sc_product_at_level(LatP2 const &x2) const
   {
     IMPL_IS_LATP;
-    static_assert(level==0, "Default only has level 0");
+    static_assert(level == 0, "Default only has level 0");
     return CREALTHIS->do_compute_sc_product(x2);
   }
-  template<class Impl=LatP, class LatP2>
+  template<class Impl = LatP, class LatP2>
   inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP2 const &x2) const
   {
     IMPL_IS_LATP;
-    static_assert(Has_Leveled<Impl>::value==false, "Need to overload");
+    static_assert(Has_Leveled<Impl>::value == false, "Need to overload");
     return CREALTHIS->do_compute_sc_product(x2);
   }
-public:
 
+public:
   void access_bitapproximation(unsigned int level) = delete;  // need to overload
   void take_bitapproximations() && = delete; // need to overload
   void update_bitapprox() = delete;
 };
 
- /**
-  Non-member functions
-  */
+/**
+ Non-member functions
+ */
 
 // compute scalar products. These are the functions that users of lattice points should use.
 // Users should only ever have to use the plain compute_sc_product and the _bitapprox versions.
@@ -588,20 +585,22 @@ public:
 // The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
 // The _at_level<level> variant computes the approximation at the given level (0 for exact)
 
-template<class LP1,class LP2, TEMPL_RESTRICT_DECL2(
-    IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
+                                                    IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
     -> decltype( std::declval<LP1>().do_compute_sc_product(std::declval<LP2>() ) )
 { return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
 
-template<unsigned int level, class LP1, class LP2, TEMPL_RESTRICT_DECL2(
-    IsALatticePoint<mystd::decay_t<LP1>>, IsALatticePoint<mystd::decay_t<LP2>> )>
+template<unsigned int level, class LP1, class LP2,
+    TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>, IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_at_level(LP1 &&lp1, LP2 &&lp2)
-    -> decltype(   std::declval<LP1>().do_compute_sc_product_at_level<level>( std::declval<LP2>() )   )
-{ return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2)); }
+    -> decltype(std::declval<LP1>().do_compute_sc_product_at_level<level>(std::declval<LP2>()))
+{
+  return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2));
+}
 
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(
-    IsALatticePoint<mystd::decay_t<LP1>>,IsALatticePoint<mystd::decay_t<LP2>>)>
+template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
+                                                    IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
     -> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
 { return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
@@ -613,18 +612,18 @@ inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
 // Note: Return type does not take part in template argument deduction.
 // Usage: make_from_any_vector<TargetType>(source_container, dim).
 
-template<class LP, class SomeContainer, class DimType, TEMPL_RESTRICT_DECL2(
-         IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
+template<class LP, class SomeContainer, class DimType,
+         TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
   using ET = Get_CoordinateType<LP>;
-  DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name() )
+  DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name())
   LP result(dim);
-//  auto dim = result.get_dim();
-  for(uint_fast16_t i = 0; i < dim; ++i)
+  //  auto dim = result.get_dim();
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
-    result[i] = static_cast<ET>( container[i] );
+    result[i] = static_cast<ET>(container[i]);
   }
   result.sanitize();
   return result;
@@ -632,23 +631,23 @@ LP make_from_any_vector(SomeContainer const &container, DimType dim)
 
 // Same as above, but un-Z_NR's the container.
 
-template<class LP, class SomeZNRContainer, class DimType, TEMPL_RESTRICT_DECL2(
-         IsALatticePoint<LP>, IsRepLinear_RW<LP> )>
+template<class LP, class SomeZNRContainer, class DimType,
+         TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
   using ET = Get_CoordinateType<LP>;
-  DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name() )
+  DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name())
   LP result(dim);
-  for(uint_fast16_t i = 0; i < dim; ++i)
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
-    result[i] = ConvertMaybeMPZ<ET>::convert_to_inttype( container[i].get_data() );
+    result[i] = ConvertMaybeMPZ<ET>::convert_to_inttype(container[i].get_data());
   }
   result.sanitize();
   return result;
 }
 
-} // end namespace GaussSieve
+}  // end namespace GaussSieve
 
 #include "LatticePointGeneric.h"
 
@@ -664,4 +663,4 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 
 #endif
 
-//clang-format on
+// clang-format on
