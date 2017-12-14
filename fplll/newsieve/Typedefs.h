@@ -98,19 +98,21 @@ class DefaultSieveTraits
 //#endif
 
 
-
-  //using ThresholdType           = std::array<unsigned int, sim_hash_num>;
-
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-7, 64-12}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+7, 64+12}};
 
-  //for 3-sieve: outer loop
+  // for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-5, 64-11}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+5, 64+11}};
 
-  //for 3-sieve: outer loop
+  // for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-3, 64-6}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3, 64+6}};
+  
+  // for 3-sieve: FilteredList is implemented as vector
+  // we reserve filtered_list_size_max inside for its length
+  
+  constexpr static int filtered_list_size_max = 500;
 
   // for 3-sieve exact check, squared, normalized
   //constexpr static double x1x2_target = .1111;
