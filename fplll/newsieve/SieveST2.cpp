@@ -53,6 +53,13 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
   return true;
 }
 
+/*
+  main 2-sieve iteration
+  the input point p is checked againts all the points from main_list for a 2-reduction
+  modified list-points are removed from main_list and pushed into the queue
+  p is inserted into the list at the end.
+  This routines also checks for collisions (0-vector after any of the modifications).
+*/
 
 template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAccess_Point &p)
@@ -150,6 +157,7 @@ start_over:
   }
 
   // insert p into the list
+  // could be done between the two for-loops, but it would require making a copy of p
   main_list.insert_before(it_comparison_flip, std::move(p));
 }
 
