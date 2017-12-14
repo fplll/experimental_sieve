@@ -3,14 +3,15 @@
 */
 
 // clang-format adjustments finished -- Gotti
-// clang-format off
 
 #ifndef GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_IMPL_H
 #define GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_IMPL_H
 
+// clang-format off
 #ifndef GAUSS_SIEVE_BLOCK_ORTHOGONAL_SIM_HASH_H
   #error wrong usage
 #endif
+// clang-format on
 
 namespace GaussSieve
 {
@@ -19,9 +20,12 @@ namespace GaussSieve
   Constructor of BlockOrthogonalSimHash from a dimension and a random seed
 */
 
-template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
+// We consistently break after the :: for overlong declarations within this file
+// clang-format off
+template <std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
+BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
     BlockOrthogonalSimHash(DimensionType const dim, unsigned int random_seed)
+// clang-format on
 {
   std::mt19937 rng;  // Mersenne twister random engine. We don't really care about quality anyway.
   rng.seed(random_seed);  // seed with the input random seed
@@ -65,11 +69,13 @@ BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
 */
 
 // Note: input is passed by-value. We modify the local copy.
-template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-template<class T>
+// clang-format off
+template <std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
+template <class T>
 inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
     fast_partial_walsh_hadamard(std::vector<T> input) const
     -> std::vector<T>
+// clang-format on
 {
   unsigned int const len = fast_walsh_hadamard_len;
   using std::swap;
@@ -90,8 +96,10 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
     {
       // Note: static_cast<T> is required to be able to use mpz_class, because mpz_class internally
       // uses expression templates (so the types of a+b and a-b don't match for mpz_classes a,b)
+      // clang-format off
       output[j] = ((j / i) % 2 != 0) ? static_cast<T>(input[j - i] - input[j]    )   // for j/i odd
                                      : static_cast<T>(input[j]     + input[i + j]);  // for j/i even
+      // clang-format on
     }
     swap(input, output);
   }
@@ -115,8 +123,8 @@ inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_ar
   This version is much faster than the above one.
 */
 
-template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-template<class T>
+template <std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
+template <class T>
 void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
     faster_almost_partial_walsh_hadamard_inplace(std::vector<T> &input) const
 {
@@ -175,7 +183,9 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
         // Note all + in the indices are the same as XOR's
         tmp = input[higher_bits + 0 + lower_bits];
         input[higher_bits + 0 + lower_bits] += input[higher_bits + i + lower_bits];
-//        input[higher_bits+i+lower_bits] = tmp - input[higher_bits+i+lower_bits];   // <- WH trafo
+
+        // WH trafo would perform
+        // input[higher_bits+i+lower_bits] = tmp - input[higher_bits+i+lower_bits];
         input[higher_bits + i + lower_bits] -= tmp;  //  <- 5-10% faster.
       }
     }
@@ -228,10 +238,12 @@ void inline BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
  computes sim_hash of a lattice point
 */
 
-template<std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
-template<class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
-inline auto BlockOrthogonalSimHash<sim_hash_len,sim_hash_num,MT,DimensionType_arg>::
+// clang-format off
+template <std::size_t sim_hash_len, std::size_t sim_hash_num, bool MT, class DimensionType_arg>
+template <class LatP, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP>)>
+inline auto BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType_arg>::
     compute_all_bitapproximations(LatP const &point) const -> SimHashes
+// clang-format on
 {
   unsigned int const dim = static_cast<unsigned int>(point.get_dim());
   // Note: we currently do not check whether this dim is the same as the dim used to initialize
@@ -307,7 +319,7 @@ PMatrix::PMatrix(unsigned int dim, std::mt19937 &rng)
 /**
   Applies stored permutation to a vector.
 */
-template<class T> inline void PMatrix::apply(std::vector<T> &vec) const
+template <class T> inline void PMatrix::apply(std::vector<T> &vec) const
 {
   auto const dim = vec.size();
   assert(dim == permutation.size());
@@ -358,7 +370,7 @@ DMatrix::DMatrix(unsigned int const dim, std::mt19937 &rng)
 /**
   Applies such a diagonal matrix on a vector (i.e. flip some signs in vec).
 */
-template<class T> inline void DMatrix::apply(std::vector<T> &vec) const
+template <class T> inline void DMatrix::apply(std::vector<T> &vec) const
 {
   auto const dim = vec.size();
   assert(dim == diagonal.size());
@@ -387,4 +399,3 @@ inline void DMatrix::print(std::ostream &os) const
 }  // end namespace GaussSieve
 
 #endif  // include guard
-// clang-format on

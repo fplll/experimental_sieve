@@ -29,11 +29,13 @@ namespace GaussSieve
 */
 
 // last template parameter is a dummy paramter.
-template<class SieveTraits, bool MT, bool Enabled = true> class SieveLatticeBasis;
+template <class SieveTraits, bool MT, bool Enabled = true> class SieveLatticeBasis;
 
 // unusable default, until someone implements more general GSOs...
+// clang-format off
 template<class SieveTraits, bool MT, bool Enabled>
 class SieveLatticeBasis
+// clang-format on
 {
   // This must never be instantiated anyway, but if SieveTraits is ill-formed, the SFINAE selections
   // below may fail.
@@ -58,14 +60,14 @@ public:
 
 // TODO: Make GSO object local to constructor.
 
-template<class SieveTraits, bool MT>
-class SieveLatticeBasis< SieveTraits, MT, true>  // TODO: LAST ARGUMENT: NOT CORRECT
+template <class SieveTraits, bool MT>
+class SieveLatticeBasis<SieveTraits, MT, true>  // TODO: LAST ARGUMENT: NOT CORRECT
 {
   static_assert(IsZZMatClass<typename SieveTraits::InputBasisType>::value, "");
 
 private:
-
-  // Transform the
+  // clang-format off
+  // Transform the received InputBasisType into something appropriate...
   using InputBasisType     = typename SieveTraits::InputBasisType;
 
   // Note : InputET_NOZNR is not Z_NR - wrapped (because of the way ZZMat works...)
@@ -74,13 +76,13 @@ private:
 
   // Same as ET_NOZNR, but ET_NOZNRFixed may be mpz_class instead of mpz_t
   using InputET_NOZNRFixed = PossiblyMpztToMpzClass<InputET_NOZNR>;
-
-  using OutputET = typename SieveTraits::LengthType;
+  using OutputET           = typename SieveTraits::LengthType;
+  // clang-format on
 
   using DimensionType               = typename SieveTraits::DimensionType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
 
-  // This one is hard-coded to PlainLatticePoint
+  // This one is hard-coded to a PlainLatticePoint
   using BasisVectorType = PlainLatticePoint<OutputET, SieveTraits::get_nfixed>;
 
   using GSOType = fplll::MatGSO<InputET, fplll::FP_NR<double>>;
@@ -88,16 +90,20 @@ private:
 public:
   // Note: We copy the basis into originial_basis.
   // This is because the GSO object actually uses a reference and modifies original_basis.
-  explicit SieveLatticeBasis(InputBasisType const &input_basis, GlobalStaticDataInitializer const &static_data)
+  // clang-format off
+  explicit SieveLatticeBasis(InputBasisType const &input_basis,
+                             GlobalStaticDataInitializer const &static_data)
       : original_basis(input_basis),
-        ambient_dimension(input_basis.get_cols()),
+ 	ambient_dimension(input_basis.get_cols()),
         init_basis_vector_type(static_data),
-        lattice_rank(input_basis.get_rows()),
+	lattice_rank(input_basis.get_rows()),
         // u,u_inv intentionally uninitialized
-        //    GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
+        // will be initialized in call to
+        // GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
         mu_matrix(lattice_rank, std::vector<double>(lattice_rank)),
         g_matrix(lattice_rank, std::vector<InputET_NOZNRFixed>(lattice_rank)),
         basis_vectors(nullptr)
+  // clang-format on
   {
     fplll::Matrix<InputET> u, u_inv;  //, g;
     GSOType GSO(original_basis, u, u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM);
@@ -118,10 +124,12 @@ public:
     compute_minkowski_bound(GSO);
   }
 
+  // clang-format off
   SieveLatticeBasis(SieveLatticeBasis const &)            = delete;
   SieveLatticeBasis(SieveLatticeBasis &&)                 = default;
   SieveLatticeBasis &operator=(SieveLatticeBasis const &) = delete;
   SieveLatticeBasis &operator=(SieveLatticeBasis &&)      = default;
+  // clang-format on
 
   ~SieveLatticeBasis() { delete[] basis_vectors; }
 
@@ -220,8 +228,10 @@ private:
   //  fplll::Matrix<InputET> u, u_inv; //, g;
   //  fplll::MatGSO<InputET, fplll::FP_NR<double>> GSO;
   // precomputed on demand:
-  std::vector<std::vector<double>> mu_matrix;
+  // clang-format off
+  std::vector<std::vector<double            >> mu_matrix;
   std::vector<std::vector<InputET_NOZNRFixed>> g_matrix;
+  // clang-format on
   InputET_NOZNRFixed mink_bound;
 
   // Note: We use a dynamically allocated array here rather than std::vector.
@@ -229,7 +239,7 @@ private:
   // before we (even default-) construct any PlainLatticePoint.
   // This includes constructing PlainLatticePoints from the initializer list of SieveLatticeBasis.
 
-  // TODO: This argument should no longer apply with RAII style initializers.
+  // TODO: This argument should no longer apply with our RAII style initializers.
   BasisVectorType *basis_vectors;
   double maxbistar2;
 };
