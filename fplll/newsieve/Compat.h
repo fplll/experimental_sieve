@@ -231,7 +231,18 @@ template <class T> constexpr const T &constexpr_min(const T &x1, const T &x2)
 #if __cpp_lib_void_t >= 201411
   template <class... Args> using void_t = std::void_t<Args...>;
 #else
+  // proper definition:
+  /*
   template <class... Args> using void_t = void;
+  */
+
+  // workaround for compiler bug in GCC4.9
+  namespace Void_tHelper
+  {
+    template <class... > struct make_void { using type = void; };
+  }
+  template <class... T> using void_t = typename Void_tHelper::make_void<T...>::type;
+
 #endif
 // clang-format on
 

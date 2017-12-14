@@ -279,73 +279,86 @@ using Get_ApproxLevel = mystd::detected_or_t<std::integral_constant<unsigned int
 // clang-format off
 template<class T> using Has_ExposesCoos =
     mystd::disjunction< TraitHelpers::T_ExposesCoos<T>,
-			TraitHelpers::T_InternalRepByCoos<T>,
-                        mystd::negation<std::is_void<Get_CoordinateType<T>>>,
+                        TraitHelpers::T_InternalRepByCoos<T>,
+                        mystd::negation< std::is_void<Get_CoordinateType<T>> >,
                         TraitHelpers::T_Coos_RW<T>,
-			TraitHelpers::T_AbsoluteCoos<T> >;
+                        TraitHelpers::T_AbsoluteCoos<T> >;
 
 template<class T> using Has_Coos_RW =
-    mystd::disjunction<  TraitHelpers::T_Coos_RW<T>,
-        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_InternalRep_RW<T> >  >;
+    mystd::disjunction< TraitHelpers::T_Coos_RW<T>,
+                        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
+                                            TraitHelpers::T_InternalRep_RW<T> > >;
 
 template<class T> using Has_ExposesInternalRep =
     mystd::disjunction< TraitHelpers::T_ExposesInternalRep<T>,
-			TraitHelpers::T_InternalRepLinear<T>,
+                        TraitHelpers::T_InternalRepLinear<T>,
                         TraitHelpers::T_InternalRep_RW<T>,
-			TraitHelpers::T_InternalRepByCoos<T>,
+                        TraitHelpers::T_InternalRepByCoos<T>,
                         TraitHelpers::T_InternalRepIsAbsolute<T> >;
 
 template<class T> using Has_InternalRepLinear = TraitHelpers::T_InternalRepLinear<T>;
 
 template<class T> using Has_InternalRep_RW =
-    mystd::disjunction<  TraitHelpers::T_InternalRep_RW<T>,
-        		 mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
-			  		     TraitHelpers::T_Coos_RW<T> >  >;
+    mystd::disjunction< TraitHelpers::T_InternalRep_RW<T>,
+                        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
+                                            TraitHelpers::T_Coos_RW<T> > >;
 
 template<class T> using Has_InternalRepByCoos = TraitHelpers::T_InternalRepByCoos<T>;
 
 template<class T> using Has_InternalRepIsAbsolute =
-    mystd::disjunction<  TraitHelpers::T_InternalRepIsAbsolute<T>,
-        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_AbsoluteCoos<T> >  >;
+    mystd::disjunction< TraitHelpers::T_InternalRepIsAbsolute<T>,
+                        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
+                                            TraitHelpers::T_AbsoluteCoos<T> > >;
 
 template<class T> using Has_AbsoluteCoos =
     mystd::disjunction< TraitHelpers::T_AbsoluteCoos<T>,
-        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_InternalRepIsAbsolute<T> >  >;
+                        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
+                                            TraitHelpers::T_InternalRepIsAbsolute<T> > >;
 
 template<class T> using Has_CheapNorm2  = TraitHelpers::T_CheapNorm2<T>;
 template<class T> using Has_CheapNegate = TraitHelpers::T_CheapNegate<T>;
 template<class T> using Has_Leveled     = TraitHelpers::T_Leveled<T>;
 template<class T> using Has_BitApprox   = TraitHelpers::T_BitApprox<T>;
 
-// Deprecated
-template<class LatP> using IsRepLinear_RW = mystd::bool_constant<
-Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
+// Deprecated. Note is is and AND of things above, not an OR.
+template<class LatP> using IsRepLinear_RW =
+    mystd::conjunction< Has_InternalRepLinear<LatP>, Has_InternalRep_RW<LatP> >;
+// clang-format on
 
 // For approximations.
 // TODO: Move this somewhere else. It's not really a lattice point trait.
 
+// clang-format off
 template<class T> using Obtain_ApproxLevel = std::integral_constant<unsigned int, T::ApproxLevel>;
-template<class T> using ApproxLevelOf =
-    mystd::detected_or_t< std::integral_constant<unsigned int,0>, Obtain_ApproxLevel, T >;
-
+template<class T> using ApproxLevelOf      = mystd::detected_or_t<std::integral_constant<unsigned int,0>,
+								  Obtain_ApproxLevel, T>;
 // clang-format on
 
-#define IMPL_IS_LATP \
-static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type.")
+// have template<class Impl = Latp> in the declarations below. This is to ensure
+// only the default is ever used. See below for an explanation.
+// clang-format off
+#define IMPL_IS_LATP                                                                               \
+  static_assert(std::is_same<Impl, LatP>::value, 						   \
+	       "Using template member function with wrong type.")
+// clang-format on
 
 // unsure whether to use reinterpret_casts here...
 
+// clang-format off
 #define CREALTHIS static_cast<LatP const*>(this)
 #define REALTHIS  static_cast<LatP*>(this)
+// clang-format on
 
+// clang-format off
 template<class LatP>
 class GeneralLatticePoint
+// clang-format on
 {
   static_assert(!HasNoLPTraits<LatP>::value, "Trait class not specialized.");
   static_assert(DeclaresScalarProductStorageType<LatP>::value,
-                  "Lattice Point class does not typedef its scalar product type");
+                "Lattice Point class does not typedef its scalar product type");
   static_assert(!Has_ExposesCoos<LatP>::value || DoesDeclareCoordinateType<LatP>::value,
-                  "Lattice Point exposes coos, but does not tell its type.");
+                "Lattice Point exposes coos, but does not tell its type.");
 
   friend LatP;  // makes children able to access private (in addition to protected) members.
                 // since the constructor is private, this enforces correct usage.
@@ -359,89 +372,99 @@ public:
   using AbsoluteCooType                     = Get_AbsoluteCooType<LatP>;
   using RepCooType                          = Get_RepCooType<LatP>;
   static constexpr unsigned int ApproxLevel = Get_ApproxLevel<LatP>::value;
-  static_assert((Has_Leveled<LatP>::value == true) || (ApproxLevel==0 ),"Has ApproxLevel>0, but does not declare Trait_Leveled.");
+  static_assert((Has_Leveled<LatP>::value == true) || (ApproxLevel == 0),
+                "Has ApproxLevel>0, but does not declare Trait_Leveled.");
 
 private:
   // Empty base class, only callable from its friends (i.e. from LatP)
-  explicit constexpr GeneralLatticePoint()=default;
-public:
+  explicit constexpr GeneralLatticePoint() = default;
 
+public:
   // This is just to match the implementation of a typical instantiation.
   // Note the the deleted copy constructors and copy assignments prevents default copying
   // derived classes (since the (empty) base class must be copied as well).
-  GeneralLatticePoint(GeneralLatticePoint const &other)=delete;
-  GeneralLatticePoint(GeneralLatticePoint &&other)=default;
-  GeneralLatticePoint& operator=(GeneralLatticePoint const & other) = delete;
-  GeneralLatticePoint& operator=(GeneralLatticePoint && other) = default;
+  // clang-format off
+  GeneralLatticePoint(GeneralLatticePoint const &)            = delete;
+  GeneralLatticePoint(GeneralLatticePoint &&)                 = default;
+  GeneralLatticePoint &operator=(GeneralLatticePoint const &) = delete;
+  GeneralLatticePoint &operator=(GeneralLatticePoint &&)      = default;
 protected:
-  ~GeneralLatticePoint()=default;
+  ~GeneralLatticePoint()                                      = default;
+  // clang-format on
 public:
+  // This one should be overloaded by every derived class. Used for diagnostic.
+  static std::string class_name() { return "General Lattice Point."; }
 
-// This one should be overloaded by every derived class. Used for diagnostic.
-  static std::string class_name() {return "General Lattice Point.";};
+  // This may exists in an overload (if Has_ExposesCoo is true).
+  template <class Arg> inline void operator[](Arg &&arg) = delete;
 
-  template<class Arg>
-  void operator[](Arg &&arg) = delete; // This may exists in an overload (if Has_ExposesCoo is true).
+  // comparison with < or > are by length (by default).
+  // Note that == or != are intendend to mean actual equality comparisons,
+  // so P1 <= P2 <= P1 does not imply P1 == P2.
 
-// comparison with < or > are by length (by default).
-// Note that == or != are intendend to mean actual equality comparisons,
-// so P1 <= P2 <= P1 does not imply P1==P2.
+  // We require < and > to be strict weak orderings.
+  // MAKE SURE THIS IS A STRICT WEAK ORDERING EVEN IF LatP HAS APPROXIMATIONS.
 
-// We require < and > to be strict weak orderings.
-// MAKE SURE THIS IS A STRICT WEAK ORDERING EVEN IF LatP HAS APPROXIMATIONS.
+  // Be aware that P1.get_norm2() < P2.get_norm2() *may* give a different result than
+  // P1 < P2 due to approximation errors.
+  // (currently, these types of approximations are not used)
 
-// Be aware that P1.get_norm2() < P2.get_norm2() *may* give a different result than
-// P1 < P2 due to approximation errors.
+  // You should not overload <, >, <=, >=, !=
+  // You may overload +=, -=, *=, unary-, ==
 
-// You should not overload <, >, <=, >=, !=
-// You may overload +=, -=, *=, unary-, ==
+  // clang-format off
+  template <class LatP2> inline bool operator< (LatP2 const &rhs) const;
+  template <class LatP2> inline bool operator> (LatP2 const &rhs) const;
+  template <class LatP2> inline bool operator<=(LatP2 const &rhs) const;
+  template <class LatP2> inline bool operator>=(LatP2 const &rhs) const;
+  // clang-format on
+  // arithmetic:
 
-  template<class LatP2> inline bool operator< ( LatP2 const &rhs ) const;
-  template<class LatP2> inline bool operator> ( LatP2 const &rhs ) const;
-  template<class LatP2> inline bool operator<=( LatP2 const &rhs ) const;
-  template<class LatP2> inline bool operator>=( LatP2 const &rhs ) const;
-// arithmetic:
+  // Remark: The class Impl=LatP paramter serves the single purpose that the argument
+  // to TEMPL_RESTRICT_DECL is not always false for any possible set of template arguments.
+  // (Only the template parameters of the member count, not of the class, so LatP is a fixed type
+  // is this context and not a template argument)
+  // Otherwise, the SFINAE techniques behind it won't work.
+  // More specifically, when the compiler is instantiation the class GeneralLatticePoint<LatP> for a
+  // fixed LatP, it will already know LatP. If, based on that information, the compiler is able to
+  // short-circuit the argument to TEMPL_RESTRICT_* to false / false_type, you may get an error.
+  // This is prevented by the Impl=LatP, because LatP is only the default and it does not know
+  // whether we stick to that.
+  // Of course, we never use these templates with
+  // Impl!=LatP and we usually even static_assert(Impl==LatP) inside the implementation.
 
-// Remark: The class Impl=LatP paramter serves the single purpose that the argument
-// to TEMPL_RESTRICT_DECL is not always false for any possible set of template arguments.
-// (Note that LatP is a fixed type is this context and not a template argument)
-// Otherwise, the SFINAE magic behind it won't work.
-// More specifically, when the compiler is instantiation the class GeneralLatticePoint<LatP> for a
-// fixed LatP, it will already know LatP. If, based on that information, the compiler is able to
-// short-circuit the argument to TEMPL_RESTRICT_* to false / false_type, you may get an error.
-// This is prevented by the Impl=LatP, because LatP is only the default and it does not know whether
-// we stick to that.
-// Of course, we never use these templates with
-// Impl!=LatP and we usually even static_assert(Impl==LatP) inside the implementation.
+  template <class LatP2, class Impl = LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  inline LatP &operator+=(LatP2 const &x2);  // default implementation asserts linearity
 
-  template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
-  inline LatP& operator+=(LatP2 const &x2); // default implementation asserts linearity
-
-  template<class LatP2, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
-  inline LatP& operator-=(LatP2 const &x2); // default implementation asserts linearity
+  template <class LatP2, class Impl = LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  inline LatP &operator-=(LatP2 const &x2);  // default implementation asserts linearity
 
   // add_multiply performs the same as +=(x2*multiplier), but is possibly more efficient.
   // sub_multiply performs the same as -=(x2*mutliplier), but is possibly more efficient.
   // The default implementation has the same restrictions as += resp. -=
   // TODO : may consider variant where the scalar product of *this and x2 is known.
-  template<class LatP2, class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+  template <class LatP2, class Integer, class Impl = LatP,
+            TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
   inline void add_multiply(LatP2 const &x2, Integer const multiplier);
 
-  template<class LatP2, class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+  template <class LatP2, class Integer, class Impl = LatP,
+            TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
   inline void sub_multiply(LatP2 const &x2, Integer multiplier);
 
+  template <class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
+  inline bool operator!=(LatP2 &&x2) const
+  {
+    return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));
+  };
 
-  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatP2>>)>
-  inline bool operator!=(LatP2 && x2) const {return !(CREALTHIS->operator==(std::forward<LatP2>(x2)));};
+  template <class LatP2, class Impl = LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  inline bool operator==(LatP2 const &x2) const;  // default implementation asserts internal rep
 
-  template<class LatP2, class Impl = LatP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
-  inline bool operator==(LatP2 const &x2) const; // default implementation asserts internal rep
+  template <class Integer, class Impl = LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline LatP &operator*=(Integer const multiplier);  // default implementation asserts linearity
+  inline LatP &operator*=(mpz_class const &multiplier) = delete;  // not implemented yet
 
-  template<class Integer, class Impl=LatP, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-  inline LatP& operator*=(Integer const multiplier); // default implementation asserts linearity
-  inline LatP& operator*=(mpz_class const &multiplier) = delete; // not implemented yet
-
-  inline LatP operator-() &&; // unary-
+  inline LatP operator-() &&;  // unary-
   // operator+ is entirely defined in terms of +=
   // operator- is entirely defined in terms of -=
   // operator* is entirely defined in terms of *=
@@ -453,103 +476,114 @@ public:
 
   // get_dim must be overloaded.
   // get_internal_rep_size may be overloaded.
-  template<class Impl=LatP> // default implementation asserts Has_InternalRep
-  inline auto get_internal_rep_size() const -> decltype( std::declval<Impl>().get_dim() ); // Note: Overload may have different return type.
 
-  template<class Arg, class Impl = LatP>
+  // Note: Overload may have different return type.
+  template <class Impl = LatP>  // default implementation asserts Has_InternalRep
+  inline auto get_internal_rep_size() const -> decltype(std::declval<Impl>().get_dim());
+
+  template <class Arg, class Impl = LatP>
   inline RepCooType const &get_internal_rep(Arg &&arg) const;
 
-  template<class Arg, class Impl = LatP>
-  inline RepCooType & get_internal_rep(Arg &&arg);
+  // clang-format off
+  template <class Arg, class Impl = LatP>
+  inline RepCooType &get_internal_rep(Arg &&arg);
 
-  template<class Arg, class Impl = LatP>
+  template <class Arg, class Impl = LatP>
   inline AbsoluteCooType get_absolute_coo(Arg &&arg) const;
+  // clang-format on
 
-  void get_dim() const = delete; // Note that the overload shall NOT have void return type. It may be static / constexpr.
+  // Note that the overload shall NOT have void return type. It may be static / constexpr.
+  void get_dim() const = delete;
 
-/**
-  Used for output to stream. Note that operator<< calls this (or an overloaded version)
-  Supposed to be overloaded for the specific class.
-*/
+  /**
+    Used for output to stream. Note that operator<< calls this (or an overloaded version)
+    Supposed to be overloaded for the specific class.
+  */
 
-  inline std::ostream &write_lp_to_stream(std::ostream &os, bool const include_norm2 = true, bool const include_approx = true) const;
+  inline std::ostream &write_lp_to_stream(std::ostream &os, bool const include_norm2 = true,
+                                          bool const include_approx = true) const;
 
-  template<class Impl = LatP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
+  template <class Impl = LatP, TEMPL_RESTRICT_DECL2(Has_ExposesInternalRep<Impl>)>
   inline std::ostream &write_lp_rep_to_stream(std::ostream &os) const;
 
   std::istream &read_from_stream(std::istream &is) = delete;
 
-/**
-  Fills a lattice point with zeros.
-  Note that freshly constructed lattice points may contain uninitialized values unless this function is used.
+  /**
+    Fills a lattice point with zeros.
+    Note that freshly constructed lattice points may contain uninitialized values unless this
+    function is used.
 
-  The latter depends subtly on the constructors used (empty vs. default constructor...)
-  May be overloaded by Derived class.
-*/
-  template<class Impl = LatP> inline void fill_with_zero();
+    The latter depends subtly on the constructors used (empty vs. default constructor
+    and whether we use POD types) May be overloaded by Derived class.
+  */
+  template <class Impl = LatP> inline void fill_with_zero();
 
-/**
-  Changes vector from v to -v. May be overloaded.
-*/
-  template<class Impl = LatP> inline void make_negative();
+  /**
+    Changes vector from v to -v. May be overloaded.
+  */
+  template <class Impl = LatP> inline void make_negative();
 
-/**
-  Tests whether a lattice point is all-zero.
-  May be overloaded.
-*/
-  template<class Impl = LatP> inline bool is_zero() const;
+  /**
+    Tests whether a lattice point is all-zero.
+    May be overloaded.
+  */
+  template <class Impl = LatP> inline bool is_zero() const;
 
-/**
-  Makes an (explicit) copy of the current point.
+  /**
+    Makes an (explicit) copy of the current point.
 
-  Default: Copying components as a vector and sanitize additional data.
-  (The latter probably means needless recomputing of data that the original already had)
-  With the intended semantics of [] and entries, this results in a deep copy.
+    Default: Copying components as a vector and sanitize additional data.
+    (The latter probably means needless recomputing of data that the original already had)
+    With the intended semantics of [] and entries, this results in a deep copy.
 
-  May be overloaded.
-*/
+    May be overloaded.
+  */
 
-  template<class Impl = LatP> inline LatP make_copy() const &;
-  [[deprecated]] constexpr inline LatP make_copy() const && {return *CREALTHIS;} // Calling this is probably an error.
+  // Calling this is probably an error.
+  template <class Impl = LatP> inline LatP make_copy() const &;
+  [[deprecated]] constexpr inline LatP make_copy() const && { return *CREALTHIS; }
 
+  /**
+    brings the lattice point into a defined state. Defaults to "do nothing".
 
-/**
-  brings the lattice point into a defined state. Defaults to "do nothing".
+    Note that this function must *not* be const, since it actually changes observable behaviour:
+    For efficiency reasons, sanitize is not called upon write access to LatP[]; rather,
+    sanitize is called from outside the class.
+    As such, the user can leave LatP in an invalid state and sanitize remedies that.
 
-  Note that this function must *not* be const, since it actually changes observable behaviour:
-  For efficiency reasons, sanitize is not called upon write access to LatP[]; rather,
-  sanitize is called from outside the class.
-  As such, the user can leave LatP in an invalid state and sanitize remedies that.
+    The second version takes norm2 as an argument (to avoid recomputing it).
+  */
 
-  The second version takes norm2 as an argument (to avoid recomputing it).
-*/
+  void sanitize(){};
+  inline void sanitize(ScalarProductStorageType const &norm2) { REALTHIS->sanitize(); }
 
+  // must be overloaded if meaningful
+  // (i.e. if ScalarProductStorageType_Full != ScalarProductStorageType)
+  template <class Impl = LatP,
+            TEMPL_RESTRICT_DECL(!(std::is_same<Get_ScalarProductStorageType<Impl>,
+                                               Get_ScalarProductStorageType_Full<Impl>>::value))>
+  inline void sanitize(ScalarProductStorageType_Full const &norm2_full) = delete;
 
-  void sanitize() {};
-  inline void sanitize(ScalarProductStorageType const &norm2) { REALTHIS->sanitize(); };
-
-  template<class Impl=LatP,TEMPL_RESTRICT_DECL(!(std::is_same<Get_ScalarProductStorageType<Impl>,Get_ScalarProductStorageType_Full<Impl>>::value))>
-  inline void sanitize(ScalarProductStorageType_Full const &norm2_full) = delete; // must be overloaded if meaningful.
-
-/**
-  obtains the squared length.
-  By default, we use the scalar product to compute it.
-  Usually norm2 will be precomputed, so this function should be overridden by LatP.
-  Overload may have different return type, but convertible to ScalarProductStorageType.
-  If Trait_CheapNorm2 is set, this function *must* be overloaded.
-*/
+  /**
+    obtains the squared length.
+    By default, we use the scalar product to compute it.
+    Usually norm2 will be precomputed, so this function should be overridden by LatP.
+    Overload may have different return type, but convertible to ScalarProductStorageType.
+    If Trait_CheapNorm2 is set, this function *must* be overloaded.
+  */
 
   inline ScalarProductStorageType get_norm2() const;
 
-/**
-  The functions below are overloaded in ApproximatedPoint.h for points with (non-bit) Approximations.
-  The _at_level variant gets the value at the given approximation level.
-  The _full variant gets an object holding all levels.
-  Note that for the plain and _exact variants, the return types might differ in the overloads,
-  but need to be convertible to ScalarProductStorageType.
-*/
+  /**
+    The functions below are overloaded in ApproximatedPoint.h for points with (non-bit)
+    Approximations.
+    The _at_level variant gets the value at the given approximation level.
+    The _full variant gets an object holding all levels.
+    Note that for the plain and _exact variants, the return types might differ in the overloads,
+    but need to be convertible to ScalarProductStorageType.
+  */
 
-  template<unsigned int level, class Impl = LatP>
+  template <unsigned int level, class Impl = LatP>
   inline ScalarProductStorageType get_norm2_at_level() const
   {
     IMPL_IS_LATP;
@@ -557,8 +591,7 @@ public:
     return CREALTHIS->get_norm2();
   }
 
-  template<class Impl = LatP>
-  inline ScalarProductStorageType_Full get_norm2_full() const
+  template <class Impl = LatP> inline ScalarProductStorageType_Full get_norm2_full() const
   {
     static_assert(Has_Leveled<Impl>::value == false, "Need to overload");
     return CREALTHIS->get_norm2();
@@ -570,17 +603,17 @@ public:
   // TODO: Make protected and befriend compute_* functions
   // TODO: Better std::forwarding (note const-ness)
 
-  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  template <class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ScalarProductStorageType do_compute_sc_product(LatP2 const &x2) const;
 
-  template<unsigned int level,class Impl = LatP, class LatP2>
+  template <unsigned int level, class Impl = LatP, class LatP2>
   inline ScalarProductStorageType do_compute_sc_product_at_level(LatP2 const &x2) const
   {
     IMPL_IS_LATP;
     static_assert(level == 0, "Default only has level 0");
     return CREALTHIS->do_compute_sc_product(x2);
   }
-  template<class Impl = LatP, class LatP2>
+  template <class Impl = LatP, class LatP2>
   inline ScalarProductStorageType_Full do_compute_sc_product_full(LatP2 const &x2) const
   {
     IMPL_IS_LATP;
@@ -590,8 +623,8 @@ public:
 
 public:
   void access_bitapproximation(unsigned int level) = delete;  // need to overload
-  void take_bitapproximations() && = delete; // need to overload
-  void update_bitapprox() = delete;
+  void take_bitapproximations() &&                 = delete;  // need to overload
+  void update_bitapprox()                          = delete;
 };
 
 /**
@@ -603,28 +636,35 @@ public:
 
 // the other variants are only relevant when having approximations:
 // Notably: compute_sc_product may return a Wrapper than encapsulates a lazy evalution.
-// The _full variant computes an exact and an approximate scalar product and returns a type capable of holding both.
+// The _full variant computes an exact and an approximate scalar product and returns a type capable
+// of holding both.
 // The _at_level<level> variant computes the approximation at the given level (0 for exact)
 
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
-                                                    IsALatticePoint<mystd::decay_t<LP2>>)>
+template <class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
+                                                     IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product(LP1 &&lp1, LP2 &&lp2)
-    -> decltype( std::declval<LP1>().do_compute_sc_product(std::declval<LP2>() ) )
-{ return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2)); }
+    -> decltype(std::declval<LP1>().do_compute_sc_product(std::declval<LP2>()))
+{
+  return std::forward<LP1>(lp1).do_compute_sc_product(std::forward<LP2>(lp2));
+}
 
-template<unsigned int level, class LP1, class LP2,
-    TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>, IsALatticePoint<mystd::decay_t<LP2>>)>
+template <unsigned int level, class LP1, class LP2,
+          TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
+                               IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_at_level(LP1 &&lp1, LP2 &&lp2)
     -> decltype(std::declval<LP1>().do_compute_sc_product_at_level<level>(std::declval<LP2>()))
 {
-  return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(std::forward<LP2>(lp2));
+  return std::forward<LP1>(lp1).template do_compute_sc_product_at_level<level>(
+      std::forward<LP2>(lp2));
 }
 
-template<class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
-                                                    IsALatticePoint<mystd::decay_t<LP2>>)>
+template <class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LP1>>,
+                                                     IsALatticePoint<mystd::decay_t<LP2>>)>
 inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
-    -> decltype( std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>() ) )
-{ return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2)); }
+    -> decltype(std::declval<LP1>().do_compute_sc_product_full(std::declval<LP2>()))
+{
+  return std::forward<LP1>(lp1).do_compute_sc_product_full(std::forward<LP2>(lp2));
+}
 
 // this function can be used to initialize an LP with container types that allow []-access.
 // Note that there is an explicit static_cast to LP's entry types.
@@ -633,8 +673,8 @@ inline auto compute_sc_product_full(LP1 &&lp1, LP2 &&lp2)
 // Note: Return type does not take part in template argument deduction.
 // Usage: make_from_any_vector<TargetType>(source_container, dim).
 
-template<class LP, class SomeContainer, class DimType,
-         TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
+template <class LP, class SomeContainer, class DimType,
+          TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
@@ -652,8 +692,8 @@ LP make_from_any_vector(SomeContainer const &container, DimType dim)
 
 // Same as above, but un-Z_NR's the container.
 
-template<class LP, class SomeZNRContainer, class DimType,
-         TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
+template <class LP, class SomeZNRContainer, class DimType,
+          TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>, IsRepLinear_RW<LP>)>
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
@@ -682,6 +722,4 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 #undef CREALTHIS
 #undef REALTHIS
 
-#endif
-
-// clang-format on
+#endif  // include guard

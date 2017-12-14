@@ -9,15 +9,13 @@
 #error do not include this directly.
 #endif
 
-#define FOR_LATTICE_POINT_LP \
-template<class LP, typename std::enable_if<IsALatticePoint<LP>::value, int>::type=0>
+#define FOR_LATTICE_POINT_LP template <class LP, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP>)>
 
-#define FOR_LATTICE_POINTS_LP1_LP2 \
-template<class LP1, class LP2, typename std::enable_if< \
-         IsALatticePoint<LP1>::value && IsALatticePoint<LP2>::value,int>::type=0>
+#define FOR_LATTICE_POINTS_LP1_LP2                                                                 \
+  template <class LP1, class LP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LP1>, IsALatticePoint<LP2>)>
 
-
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 /**********************
   operators
@@ -27,32 +25,34 @@ namespace GaussSieve{
   comparison operators
 **********************/
 
-template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
+template <class LatP>
+template <class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
 inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
 {
   IMPL_IS_LATP;
   // This *might* actually not be an error. However, it is extremely likely.
-  static_assert(std::is_same< Get_CoordinateType<LatP>, Get_CoordinateType<LatP2> >::value,
-      "Different coordinate types. Probably an error.");
-  static_assert(Has_ExposesInternalRep<Impl>::value,"Cannot compare using ==. Maybe you forget a trait or overloading == ");
-  DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name() )
+  static_assert(std::is_same<Get_CoordinateType<LatP>, Get_CoordinateType<LatP2>>::value,
+                "Different coordinate types. Probably an error.");
+  static_assert(Has_ExposesInternalRep<Impl>::value,
+                "Cannot compare using ==. Maybe you forget a trait or overloading == ");
+  DEBUG_TRACEGENERIC("Generically comparing " << LatP::class_name() "and" << LatP2::class_name())
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
   assert(dim1 == dim2);
-#endif // DEBUG_SIEVE_LP_MATCHDIM
-
+#endif  // DEBUG_SIEVE_LP_MATCHDIM
+  // clang-format off
   CPP17CONSTEXPRIF (Has_CheapNorm2<LatP2>::value && Has_CheapNorm2<LatP>::value)
   {
-    if(CREALTHIS->get_norm2() != x2.get_norm2() )
+    if (CREALTHIS->get_norm2() != x2.get_norm2())
     {
       return false;
     }
   }
+  // clang-format on
 
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i = 0; i < dim; ++i)
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     if (CREALTHIS->get_internal_rep(i) != x2.get_internal_rep(i))
     {
@@ -62,65 +62,66 @@ inline bool GeneralLatticePoint<LatP>::operator==(LatP2 const &x2) const
   return true;
 }
 
-
-template<class LatP>
-template<class LatP2>
+template <class LatP>
+template <class LatP2>
 inline bool GeneralLatticePoint<LatP>::operator<(LatP2 const &rhs) const
 {
-  DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name() )
+  DEBUG_TRACEGENERIC("Generically comparing < for" << LatP::class_name())
   return CREALTHIS->template get_norm2_at_level<0>() < rhs.template get_norm2_at_level<0>();
 }
 
-template<class LatP>
-template<class LatP2>
-inline bool GeneralLatticePoint<LatP>::operator>( LatP2 const &rhs) const
+template <class LatP>
+template <class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>(LatP2 const &rhs) const
 {
-  DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name() )
+  DEBUG_TRACEGENERIC("Generically comparing > for" << LatP::class_name())
   return CREALTHIS->template get_norm2_at_level<0>() > rhs.template get_norm2_at_level<0>();
 }
 
-template<class LatP>
-template<class LatP2>
-inline bool GeneralLatticePoint<LatP>::operator<= ( LatP2 const &rhs ) const
+template <class LatP>
+template <class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator<=(LatP2 const &rhs) const
 {
-  DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name() )
+  DEBUG_TRACEGENERIC("Generically comparing <= for" << LatP::class_name())
   return CREALTHIS->template get_norm2_at_level<0>() <= rhs.template get_norm2_at_level<0>();
 }
 
-template<class LatP>
-template<class LatP2>
-inline bool GeneralLatticePoint<LatP>::operator>= ( LatP2 const &rhs ) const
+template <class LatP>
+template <class LatP2>
+inline bool GeneralLatticePoint<LatP>::operator>=(LatP2 const &rhs) const
 {
-  DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name() )
+  DEBUG_TRACEGENERIC("Generically comparing >= for" << LatP::class_name())
   return CREALTHIS->template get_norm2_at_level<0>() >= rhs.template get_norm2_at_level<0>();
 }
-
 
 /******************************************
   arithmetic operators modifying the point
 ******************************************/
 
-template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
-inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
+template <class LatP>
+template <class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
+inline LatP &GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
-  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload +=");
-  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to += invalid: Maybe you forgot a trait or did not overload +=");
-  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to += invalid: Maybe you forgot a trait or did not overload +=");
-  DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
-  // Note: We do not check traits for LatP2 here.
-  // TODO: Should we?
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  static_assert(Has_InternalRep_RW<Impl>::value,
+                "Cannot write to lattice point: Maybe you forgot a trait or did not overload +=");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "2nd argument to += invalid: Maybe you forgot a trait or did not overload +=");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "1st argument to += invalid: Maybe you forgot a trait or did not overload +=");
+  DEBUG_TRACEGENERIC("generically adding" << LatP::class_name() << " and " << LatP2::class_name())
+// Note: We do not check traits for LatP2 here.
+// TODO: Should we?
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
-  assert( dim1 == dim2 );
+  assert(dim1 == dim2);
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
-  #endif
+#endif
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i = 0; i < dim; ++i )
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) += x2.get_internal_rep(i);
   }
@@ -129,25 +130,28 @@ inline LatP& GeneralLatticePoint<LatP>::operator+=(LatP2 const &x2)
 }
 
 // pretty much the same as +=
-template<class LatP>
-template<class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
-inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
+template <class LatP>
+template <class LatP2, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>)>
+inline LatP &GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
 {
   IMPL_IS_LATP;
-  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload -=");
-  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to -= invalid: Maybe you forgot a trait or did not overload -=");
-  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to -= invalid: Maybe you forgot a trait or did not overload -=");
-  DEBUG_TRACEGENERIC( "generically adding" << LatP::class_name() << " and " << LatP2::class_name() )
-  // Note: We do not check traits for LatP2 here.
-  // TODO: Should we?
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  static_assert(Has_InternalRep_RW<Impl>::value,
+                "Cannot write to lattice point: Maybe you forgot a trait or did not overload -=");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "2nd argument to -= invalid: Maybe you forgot a trait or did not overload -=");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "1st argument to -= invalid: Maybe you forgot a trait or did not overload -=");
+  DEBUG_TRACEGENERIC("generically adding" << LatP::class_name() << " and " << LatP2::class_name())
+// Note: We do not check traits for LatP2 here.
+// TODO: Should we?
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
-  assert( dim1 == dim2 );
+  assert(dim1 == dim2);
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
-  #endif
+#endif
   auto const dim = CREALTHIS->get_internal_rep_size();
   for (uint_fast16_t i = 0; i < dim; ++i)
   {
@@ -157,88 +161,105 @@ inline LatP& GeneralLatticePoint<LatP>::operator-=(LatP2 const &x2)
   return *REALTHIS;
 }
 
-template<class LatP>
-template<class LatP2, class Integer, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+template <class LatP>
+template <class LatP2, class Integer, class Impl,
+          TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
 inline void GeneralLatticePoint<LatP>::add_multiply(LatP2 const &x2, Integer const multiplier)
 {
   IMPL_IS_LATP;
-  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload");
-  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
-  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
-  DEBUG_TRACEGENERIC( "generically addmultiplying" << LatP::class_name() << " and " << LatP2::class_name() )
-  // Note: We do not check traits for LatP2 here.
-  // TODO: Should we?
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+  // clang-format off
+  static_assert(Has_InternalRep_RW<Impl>::value,
+                "Cannot write to lattice point: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "2nd argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+	        "1st argument to addmultiply invalid: Maybe you forgot a trait or did not overload");
+  // clang-format on
+  DEBUG_TRACEGENERIC("generically addmultiplying" << LatP::class_name() << " and "
+                                                  << LatP2::class_name())
+// Note: We do not check traits for LatP2 here.
+// TODO: Should we?
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
-  assert( dim1 == dim2 );
+  assert(dim1 == dim2);
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
-  #endif
+#endif
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i = 0; i < dim; ++i )
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) += x2.get_internal_rep(i) * multiplier;
   }
   REALTHIS->sanitize();
 }
 
-template<class LatP>
-template<class LatP2, class Integer, class Impl, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
+template <class LatP>
+template <class LatP2, class Integer, class Impl,
+          TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatP2>, std::is_integral<Integer>)>
 inline void GeneralLatticePoint<LatP>::sub_multiply(LatP2 const &x2, Integer const multiplier)
 {
   IMPL_IS_LATP;
-  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point: Maybe you forgot a trait or did not overload");
-  static_assert(Has_InternalRepLinear<Impl>::value,"Second argument to submultiply invalid: Maybe you forgot a trait or did not overload");
-  static_assert(Has_InternalRepLinear<Impl>::value,"First argument to submultiply invalid: Maybe you forgot a trait or did not overload");
-  DEBUG_TRACEGENERIC( "generically addmultiplying" << LatP::class_name() << " and " << LatP2::class_name() )
+  // clang-format off
+  static_assert(Has_InternalRep_RW<Impl>::value,
+		"Cannot write to lattice point: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+		"2nd argument to submultiply invalid: Maybe you forgot a trait or did not overload");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+		"1st argument to submultiply invalid: Maybe you forgot a trait or did not overload");
+  DEBUG_TRACEGENERIC("generically addmultiplying" << LatP::class_name() << " and "
+                                                  << LatP2::class_name())
+
   // Note: We do not check traits for LatP2 here.
   // TODO: Should we?
-  #ifdef DEBUG_SIEVE_LP_MATCHDIM
+// clang-format on
+#ifdef DEBUG_SIEVE_LP_MATCHDIM
   auto const dim1 = CREALTHIS->get_internal_rep_size();
   auto const dim2 = x2.get_internal_rep_size();
-  assert( dim1 == dim2 );
+  assert(dim1 == dim2);
   auto const real_dim1 = CREALTHIS->get_dim();
   auto const real_dim2 = x2.get_dim();
   assert(real_dim1 == real_dim2);
-  #endif
+#endif
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i = 0; i < dim; ++i )
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) -= x2.get_internal_rep(i) * multiplier;
   }
   REALTHIS->sanitize();
 }
 
-
-
-// Note: *= - multiplication by mpz_class currently not implemented
-template<class LatP>
-template<class Integer, class Impl, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
-inline LatP& GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
+template <class LatP>
+template <class Integer, class Impl, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
+inline LatP &GeneralLatticePoint<LatP>::operator*=(Integer const multiplier)
 {
   IMPL_IS_LATP;
-  static_assert(Has_InternalRep_RW<Impl>::value,"Cannot write to lattice point. Maybe you forgot a trait or did not overload *=");
-  static_assert(Has_InternalRepLinear<Impl>::value,"Cannot multiply with scalar. Maybe you forgot a trait or did not overload *=");
-  DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name() )
+  static_assert(Has_InternalRep_RW<Impl>::value,
+                "Cannot write to lattice point. Maybe you forgot a trait or did not overload *=");
+  static_assert(Has_InternalRepLinear<Impl>::value,
+                "Cannot multiply with scalar. Maybe you forgot a trait or did not overload *=");
+  DEBUG_TRACEGENERIC("Generically scalar-multiplying for " << LatP::class_name())
   auto const dim = CREALTHIS->get_internal_rep_size();
-  for(uint_fast16_t i=0;i<dim;++i)
+  for (uint_fast16_t i = 0; i < dim; ++i)
   {
     REALTHIS->get_internal_rep(i) *= multiplier;
   }
-  CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)
+  // clang-format off
+  CPP17CONSTEXPRIF (Has_CheapNorm2<LatP>::value)
   {
-    REALTHIS->sanitize(CREALTHIS->template get_norm2_at_level<0>() * multiplier * multiplier );
+    REALTHIS->sanitize(CREALTHIS->template get_norm2_at_level<0>() * multiplier * multiplier);
   }
   else
   {
     REALTHIS->sanitize();
   }
+  // clang-format on
   return *REALTHIS;
 }
 
-//inline LatP& operator*=(mpz_class const &multiplier);
+// Note: *= - multiplication by mpz_class currently not implemented
+// inline LatP& operator*=(mpz_class const &multiplier);
 
 /****************************************
   out-of-class definitions of +,-,* etc.
@@ -260,36 +281,36 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator+(LP1 const &x1, LP2 const &x2)
 {
   LP1 NewLP(x1.make_copy());
-  NewLP+=x2;
+  NewLP += x2;
   return NewLP;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator+(LP1 && x1, LP2 const &x2)
+LP1 operator+(LP1 &&x1, LP2 const &x2)
 {
   auto tmp = std::move(x1);
-  tmp+=x2;
+  tmp += x2;
   return tmp;
 }
 
 // We don't want to return LP2 here...
 // If this causes trouble, the caller should change the order of arguments.
 FOR_LATTICE_POINT_LP
-LP operator+(LP const &x1, LP && x2)
+LP operator+(LP const &x1, LP &&x2)
 {
   auto tmp = std::move(x2);
-  tmp+=x1;
+  tmp += x1;
   return tmp;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator+(LP1 &&x1, LP2 && x2)
+LP1 operator+(LP1 &&x1, LP2 &&x2)
 {
   auto tmp = std::move(x1);
-  tmp+=std::move(x2);
+  tmp += std::move(x2);
   return tmp;
-//LP1 tmp = std::move(x1);
-//return addval(tmp,std::move(x2));
+  // LP1 tmp = std::move(x1);
+  // return addval(tmp,std::move(x2));
 }
 
 // binary minus
@@ -298,39 +319,40 @@ FOR_LATTICE_POINTS_LP1_LP2
 LP1 operator-(LP1 const &x1, LP2 const &x2)
 {
   LP1 NewLP(x1.make_copy());
-  NewLP-=x2;
+  NewLP -= x2;
   return NewLP;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator-(LP1 && x1, LP2 const &x2)
+LP1 operator-(LP1 &&x1, LP2 const &x2)
 {
   LP1 tmp = std::move(x1);
-  tmp-=x2;
+  tmp -= x2;
   return tmp;
 }
 
 FOR_LATTICE_POINT_LP
 LP operator-(LP const &x1, LP &&x2)
 {
-  static_assert(Has_CheapNegate<LP>::value,"Improve this code");
+  static_assert(Has_CheapNegate<LP>::value, "Improve this code");
   LP tmp = std::move(x2);
   tmp.make_negative();
-  tmp+=x1;
+  tmp += x1;
   return tmp;
 }
 
 FOR_LATTICE_POINTS_LP1_LP2
-LP1 operator-(LP1 && x1, LP2 && x2)
+LP1 operator-(LP1 &&x1, LP2 &&x2)
 {
   LP1 tmp = std::move(x1);
-  tmp-=std::move(x2);
+  tmp -= std::move(x2);
   return tmp;
 }
 
 // unary minus
 
-template<class LatP>
+// clang-format off
+template <class LatP>
 inline LatP GeneralLatticePoint<LatP>::operator-() &&
 {
   // TODO: Improve!
@@ -338,11 +360,13 @@ inline LatP GeneralLatticePoint<LatP>::operator-() &&
   tmp.make_negative();
   return tmp;
 }
+// clang-format on
 
 // Note Integer is passed by value, even for mpz_classes. Not optimal...
-template<class LP, class Integer, TEMPL_RESTRICT_DECL2(
-  IsALatticePoint<LP>,
-  mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer,mpz_class> > )>
+template <class LP, class Integer,
+          TEMPL_RESTRICT_DECL2(
+              IsALatticePoint<LP>,
+              mystd::disjunction<std::is_integral<Integer>, std::is_same<Integer, mpz_class>>)>
 inline LP operator*(LP const &x1, Integer const multiplier)
 {
   LP tmp = x1.make_copy();
