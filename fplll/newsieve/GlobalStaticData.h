@@ -5,7 +5,6 @@
 #include "SieveUtility.h"
 
 // clang-format changes applied on a case-by-case basis manually.
-// clang-format off
 
 /**
   This class deals with static initializations of static members of classes.
@@ -107,18 +106,22 @@ namespace TraitHelpers
 // (or similar), hence the ::value. Note that we can get SFINAEd substitution failure in two ways:
 // Either T::StaticInitializerArgTag / T::HasDefaultStaticInitializer might not exists or
 // ::value might not be true and enable_if_t causes SFINAE.
-template<class T> using Predicate_StaticInitializerArg     = mystd::enable_if_t<T::StaticInitializerArgTag::value>;
-template<class T> using Predicate_DefaultStaticInitializer = mystd::enable_if_t<T::HasDefaultStaticInitializer::value>;
+// clang-format off
+template <class T> using Predicate_StaticInitializerArg     = mystd::enable_if_t<T::StaticInitializerArgTag::value>;
+template <class T> using Predicate_DefaultStaticInitializer = mystd::enable_if_t<T::HasDefaultStaticInitializer::value>;
+// clang-format on
 }
+// clang-format off
 template<class T> using IsArgForStaticInitializer =
     mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg, T>;
 template<class T> using IsStaticInitializerDefaulted =
     mystd::is_detected<TraitHelpers::Predicate_DefaultStaticInitializer, T>;
+// clang-format on
 
 // forward declarations:
-template<class T> class StaticInitializer;
-template<class T> class DefaultStaticInitializer;
-template<class DimensionType> struct StaticInitializerArg;
+template <class T> class StaticInitializer;
+template <class T> class DefaultStaticInitializer;
+template <class DimensionType> struct StaticInitializerArg;
 
 /**
   This is the default initializer, which does nothing apart from counting number of instances.
@@ -127,8 +130,10 @@ template<class DimensionType> struct StaticInitializerArg;
   Usage: This class shall only be used by StaticInitializer<T>
 */
 
+// clang-format off
 template<class T>
 class DefaultStaticInitializer
+// clang-format on
 {
   friend StaticInitializer<T>;
 
@@ -153,13 +158,15 @@ private:
   static unsigned int user_count;
   explicit DefaultStaticInitializer() noexcept { ++user_count; }
   // pointless, but anyway...
+  // clang-format off
   explicit DefaultStaticInitializer(DefaultStaticInitializer const &) noexcept { ++user_count; }
   explicit DefaultStaticInitializer(DefaultStaticInitializer &&)      noexcept { ++user_count; }
+  // clang-format on
 
   ~DefaultStaticInitializer() { --user_count; }
 };
 // initialize static data this class:
-template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
+template <class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
 
 /**
   StaticInitializer is a RAII class that manages static initialization of Data.
@@ -184,23 +191,28 @@ template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
 
 // StaticInitializer<T> for classes T that have the IsStaticInitializerDefaulted Trait
 // does essentially nothing. Its parent class' constructor increments a counter that is never used.
-template<class T>
+// clang-format off
+template <class T>
 class StaticInitializer : public DefaultStaticInitializer<T>
 {
   static_assert(IsStaticInitializerDefaulted<T>::value,
                 "Missing Static Initializer or forgot to set HasDefaultStaticInitializer trait.");
   explicit StaticInitializer() = default;
 
-  template<class X, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  explicit StaticInitializer(X const &) noexcept : StaticInitializer() {}
+  template <class X, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
+  explicit StaticInitializer(X const &) noexcept
+      : StaticInitializer() {}
 
   // old versions did not have StaticInitializerArg and were hard-wired to "Dimension"
-  template<class X, TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
-  [[deprecated]] explicit StaticInitializer(X const &) : StaticInitializer() {}
+  template <class X, TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
+  [[deprecated]] explicit StaticInitializer(X const &)
+      : StaticInitializer() {}
 
-  template<int nfixed, class IntType>
-  [[deprecated]] explicit StaticInitializer(MaybeFixed<nfixed,IntType> const &) : StaticInitializer() {}
+  template <int nfixed, class IntType>
+  [[deprecated]] explicit StaticInitializer(MaybeFixed<nfixed, IntType> const &)
+      : StaticInitializer() {}
 };
+// clang-format on
 
 /**
   StaticInitializerArg<DimensionType> encapsulates an argument of type
@@ -209,8 +221,10 @@ class StaticInitializer : public DefaultStaticInitializer<T>
   which the sieve operates.
 */
 
-template<class DimensionType>
+// clang-format off
+template <class DimensionType>
 struct StaticInitializerArg
+// clang-format on
 {
   using StaticInitializerArgTag = std::true_type;
   DimensionType const dim;
@@ -221,5 +235,3 @@ struct StaticInitializerArg
 }  // namespace GaussSieve
 
 #endif
-
-// clang-format on
