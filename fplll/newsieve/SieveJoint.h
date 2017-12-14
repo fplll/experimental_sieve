@@ -77,7 +77,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 //#include "LatticePoint.h"
 //#include "LatticePointsNew.h"
 //#include "PointList.h"
-#include "PointListNew.h"
+//#include "PointListNew.h"
 #include "GaussListBitapprox.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"

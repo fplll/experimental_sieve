@@ -5,8 +5,6 @@ This is done to make sure that (at least if we don't change basis), the set of v
 sampled is at least somewhat consistent among different runs.
 
 This file also contains some basic rejection sampling routines for sampling Gaussians on Z.
-
-Header-only
 */
 
 #ifndef MTPRNG_H
@@ -59,9 +57,7 @@ Z sample_z_gaussian(double s, double const center, Engine &engine, double const 
 template <class Z, class Engine>
 Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &engine,
                         double const maxdeviation);
-template <class Engine>
-int sample_uniform (int max_val, Engine &engine);
-
+template <class Engine> int sample_uniform(int max_val, Engine &engine);
 
 /**
 The class MTPRNG is just a wrapper around a PRNG engine to facilitate switching to multi-threaded.
@@ -94,12 +90,13 @@ engine and not the engine given as template parameter.
 template <class Engine, class Sseq> class MTPRNG<Engine, true, Sseq>
 {
 public:
+  // clang-format off
   // constructs an uninitialized MTPRNG
   explicit MTPRNG(Sseq &_seq) : seeder(_seq), engines(0), num_threads(0)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing (yet-uninitialized) MT RNG engines.")
   };
-
+  // clang-format on
   inline void reseed(Sseq &_seq);
 
   /**
@@ -309,10 +306,9 @@ inline Z sample_z_gaussian_VMD(double const s2pi, double const center, Engine &e
 }
 
 // Samples uniformly at random from the interval [0, max_val];
-template <class Engine>
-inline int sample_uniform(int max_val, Engine &engine)
+template <class Engine> inline int sample_uniform(int max_val, Engine &engine)
 {
-  std::uniform_int_distribution<int> uniform_in_range(0, max_val) ;
+  std::uniform_int_distribution<int> uniform_in_range(0, max_val);
   return uniform_in_range(engine);
 }
 
