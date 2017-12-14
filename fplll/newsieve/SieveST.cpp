@@ -1,4 +1,4 @@
-//clang-format off
+// clang-format on
 
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
@@ -17,8 +17,8 @@ namespace GaussSieve
   Checks if newvector is shorter that the shortest_vector_found
   If yes, updates the shortest_vector_found
  */
-template<class SieveTraits>
-bool Sieve<SieveTraits,false>::update_shortest_vector_found(FastAccess_Point const & newvector)
+template <class SieveTraits>
+bool Sieve<SieveTraits, false>::update_shortest_vector_found(FastAccess_Point const &newvector)
 {
   if (newvector < (*shortest_vector_found))
   {
@@ -32,8 +32,9 @@ bool Sieve<SieveTraits,false>::update_shortest_vector_found(FastAccess_Point con
 /*
   Returns the shortest vector found so far
  */
-template<class SieveTraits>
-typename Sieve<SieveTraits,false>::FastAccess_Point const & Sieve<SieveTraits,false>::get_shortest_vector_found()
+template <class SieveTraits>
+typename Sieve<SieveTraits, false>::FastAccess_Point const &
+Sieve<SieveTraits, false>::get_shortest_vector_found()
 {
   return *shortest_vector_found;
 }
@@ -41,8 +42,8 @@ typename Sieve<SieveTraits,false>::FastAccess_Point const & Sieve<SieveTraits,fa
 /*
  Returns the squared length of shortest vector found so far
  */
-template<class SieveTraits>
-typename Sieve<SieveTraits,false>::LengthType Sieve<SieveTraits,false>::get_best_length2()
+template <class SieveTraits>
+typename Sieve<SieveTraits, false>::LengthType Sieve<SieveTraits, false>::get_best_length2()
 {
   return shortest_vector_found->get_norm2();
 }
@@ -51,7 +52,7 @@ typename Sieve<SieveTraits,false>::LengthType Sieve<SieveTraits,false>::get_best
  Initializes termination conditionsx
  Depending on k={2,3} from user's input, calls the corresponding sieving iteration
 */
-template<class SieveTraits> void Sieve<SieveTraits,false>::run()
+template <class SieveTraits> void Sieve<SieveTraits, false>::run()
 {
   if (verbosity >= 2)
     std::cout << "the shortest vector in the input basis has norm2 = "
@@ -92,7 +93,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run()
 /*
     runs 2-Sieve; after every print_step_2sieve sieve iterations, prints statistics
  */
-template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
+template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
 {
   int i = 0;
 
@@ -116,14 +117,13 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
     // checks if p participates in 2-reduction, inserts p into main_list
     sieve_2_iteration(p);
     ++i;
-    if (( i % SieveTraits::print_step_2sieve == 0) && (verbosity >=2))
+    if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
-    // STAT_MARK
       std::cout << "[" << i << "]"
-      << " |L|=" << statistics.get_current_list_size()
-      << " |Q|=" << main_queue.size()
-      << " #samples = " << statistics.get_number_of_points_sampled()
-      << " |sv|= " <<  get_best_length2() << std::endl << std::flush;
+                << " |L|=" << statistics.get_current_list_size()
+                << " |Q|=" << main_queue.size()  // STAT_MARK
+                << " #samples = " << statistics.get_number_of_points_sampled()
+                << " |sv|= " << get_best_length2() << std::endl;
     }
   }
 }
@@ -131,7 +131,7 @@ template<class SieveTraits> void Sieve<SieveTraits,false>::run_2_sieve()
 /*
  runs 3-Sieve; after every print_step_2sieve sieve iterations, prints statistics
  */
-template<class SieveTraits> void Sieve<SieveTraits,false>::run_3_sieve()
+template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 {
   int i = 0;
 
