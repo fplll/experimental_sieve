@@ -1,4 +1,6 @@
-// clang-format status: OK
+// clang-format status:
+
+//clang-format off
 #define USE_REGULAR_QUEUE // only regular queue is implemented for now
                           // For large dimensions priority queue might be faster
 

@@ -118,7 +118,10 @@ class DefaultSieveTraits
   constexpr static double x1x2_target = .0911;
   constexpr static double x2x3_target = .0911;
 
-//  constexpr std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve = {{0}};
+  /* for printing routines */
+  // print after every print_step_*sieve iterations
+  constexpr static int print_step_2sieve  = 2000;
+  constexpr static int print_step_3sieve  = 1000;
 
 
 
