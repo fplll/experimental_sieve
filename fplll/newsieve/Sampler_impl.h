@@ -1,7 +1,5 @@
 // clang-format status: NOT OK (nested ifdefs)
 
-// clang-format off
-
 /**
  Implementation for some methods of the sampler. These are in a separate file because they need to
  access the header of the main Sieve class
@@ -11,8 +9,8 @@
 #define SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
-#include "Typedefs.h"
 #include "Sampler.h"
+#include "Typedefs.h"
 //#include "SieveGauss.h"
 #include "LatticeBases.h"
 
@@ -45,12 +43,13 @@ void Sampler<SieveTraits, MT, Engine, Sseq>::init(
 #endif
 
 #ifdef PROGRESSIVE
-  #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
-    progressive_rank = sieveptr->get_progressive_rank();
-    std::cout << "initialized progressive rank to " << progressive_rank <<std::endl;
-  #else
-    progressive_rank = input_basis.lattice_rank;
-  #endif
+#ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
+  progressive_rank = sieveptr->get_progressive_rank();
+  std::cout << "initialized progressive rank to " << progressive_rank << std::endl;
+#else
+  // PROGRESSIVE && !STANDALONE :
+  progressive_rank = input_basis.lattice_rank;
+#endif
 #endif
 
   custom_init(input_basis);
@@ -73,7 +72,9 @@ inline std::istream &operator>>(std::istream &is,
   return is;
 }
 
-template class MTPRNG<std::mt19937_64, false, std::seed_seq>;
-}
+// explicit instantiation of template
+// template class MTPRNG<std::mt19937_64, false, std::seed_seq>;
 
-#endif
+}  // end namespace GaussSieve
+
+#endif  // include guards

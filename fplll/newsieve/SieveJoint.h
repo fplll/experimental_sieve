@@ -1,17 +1,17 @@
-// clang-format off
-
 /*
 ------DO NOT INCLUDE THIS FILE MANUALLY.--------
 ------     USE SieveGauss.h INSTEAD     --------
 */
 
-//SIEVE_JOINT_H_ST and SIEVE_JOINT_H_MT are separate include guards.
-//They are set if we already included this file (for the ST / MT case) respectively.
-//There is also an include guard SIEVE_JOINT_H, which is set _after_ we included this file at least once already.
-//Use this to condition on the second pass.
+// SIEVE_JOINT_H_ST and SIEVE_JOINT_H_MT are separate include guards.
+// They are set if we already included this file (for the ST / MT case) respectively.
+// There is also an include guard SIEVE_JOINT_H, which is set _after_ we included this file at least
+// once already.
+// Use this to condition on the second pass.
 
+// clang-format off
 #ifndef GAUSS_SIEVE_IS_MULTI_THREADED
-  #error wrong usage of SieveJoint.h
+#error wrong usage of SieveJoint.h
 #endif
 
 #undef DO_INCLUDE_SIEVE_JOINT_H
@@ -28,13 +28,13 @@
 #define DO_INCLUDE_SIEVE_JOINT_H
 #endif
 #endif
+// clang-format on
 
-#ifdef DO_INCLUDE_SIEVE_JOINT_H
+#ifdef DO_INCLUDE_SIEVE_JOINT_H  // serves as the actual include guard
 
 //
-//end of (most) preprocessor stuff
+// end of (most) preprocessor stuff
 //
-
 
 #ifndef SIEVE_JOINT_H
 /*
@@ -49,51 +49,27 @@ GAUSS_SIEVE_IS_MULTI_THREADED
 NEED TO GO HERE OR TO SieveGauss.h:
 */
 
-/*
-  Forward Declarations
-  These go before includes to allow cyclic dependencies
-*/
-
-
-
-/* TODO: Move these into the files where they are used... */
-
-//template<class ET,bool MultiThreaded> class CompareQueue;
-
 /*INCLUDES */
 
+// clang-format does for some strange reason not reorder includes here...
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
-#include <sys/stat.h>
-#include <fstream>
-#include <exception>
-#include <vector> //only for testing bitapprox, to delete
-#include <iomanip> // only to implement compute_statistics function; to delete
-
-//#include "TermCond.h"
 #include "GaussQueue.h"
-//#include "FilteredPoint.h"
-#include "DefaultTermConds_impl.h" // TODO: Change
-//#include "LatticePoint.h"
-//#include "LatticePointsNew.h"
-//#include "PointList.h"
-//#include "PointListNew.h"
+#include "DefaultTermConds_impl.h"  // TODO: Change
 #include "GaussListBitapprox.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "LatticeBases.h"
-
-//#include "HyperplaneLSH.h"
-//#include "RelevantCoords.h"
 #include "Statistics.h"
 #include "SimHash.h"
 #include "FilteredPoint2.h"
 
-namespace GaussSieve{
-template<class SieveTraits, bool MT> class Sieve;
+namespace GaussSieve
+{
+template <class SieveTraits, bool MT> class Sieve;
 }
 
-#endif //end of ONLY-ONCE part
+#endif  // end of ONLY-ONCE part
 
 /*
 EVERYTHING BELOW HERE IS POTENTIALLY INCLUDED TWICE.
@@ -101,14 +77,16 @@ TEMPLATES WITH TEMPLATE ARGUMENT GAUSS_SIEVE_IS_MULTI_THREADED
 GO HERE.
 */
 
-//The following may be included once or twice (with different values for GAUSS_SIEVE_IS_MULTI_THREADED)
+// The following may be included once or twice (with different values for
+// GAUSS_SIEVE_IS_MULTI_THREADED)
 
-//TODO: Move to where it is actually used.
+// TODO: Move to where it is actually used.
 
-//template<class ET>
-//class CompareQueue<ET, GAUSS_SIEVE_IS_MULTI_THREADED>{
+// template<class ET>
+// class CompareQueue<ET, GAUSS_SIEVE_IS_MULTI_THREADED>{
 //    public:
-//     bool operator() (const FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el1, const FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el2) const
+//     bool operator() (const FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el1, const
+//     FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el2) const
 //     {
 //        return el1.get_sc_prod() > el2.get_sc_prod();  // inner products are in decreasing order
 //    }
@@ -118,40 +96,38 @@ GO HERE.
 #error Something very bad just happened
 #endif
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
-template<class SieveTraits> class Sieve<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>
+template <class SieveTraits> class Sieve<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>
 {
 public:
-    /*DATA TYPES*/
+  /*DATA TYPES*/
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
-  using MainQueueType    = GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
   // using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
-  using MainListType     = GaussListWithBitApprox<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
-  using LatticeBasisType = SieveLatticeBasis<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
-  using LengthType        = typename SieveTraits::LengthType;
+  using LengthType       = typename SieveTraits::LengthType;
   using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
-  using SimHashGlobalData = GlobalBitApproxData<CoordinateSelectionUsed>;
+  using SimHashGlobalData       = GlobalBitApproxData<CoordinateSelectionUsed>;
 
   // TODO: Remove this typedef
-  using Filtered_Point   = FilteredPoint2<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using Filtered_Point = FilteredPoint2<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
 
-  using FilteredListType = std::vector<Filtered_Point>;
+  using FilteredListType            = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
-  using SieveStatistics  = GaussSieveStatistics<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
-  template<class,bool> friend class GaussSieveStatistics;
+  using SieveStatistics = GaussSieveStatistics<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  
+template <class, bool> friend class GaussSieveStatistics;
 
 #ifdef USE_LSH
-  using HashTablesType   = HashTableS<SieveTraits, LengthType>;
-  using HashTableType    = HashTable<SieveTraits, LengthType>;
+  using HashTablesType = HashTableS<SieveTraits, LengthType>;
+  using HashTableType  = HashTable<SieveTraits, LengthType>;
 #endif
-
-// using LatticeBasisType = fplll::ZZ_mat<typename ET::underlying_data_type>; //TODO: Use a different type to internally store the original basis. The ZZ_mat class does not work well with our types.
-
-
 
     //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;
     //using FilteredListType = std::vector<FilteredPoint<ET, float>>; //queue is also fine for our purposes; scalar products are not of type ET, two-templates; float for now; may be changed.
@@ -168,12 +144,6 @@ public:
     //number of elements per block in filtered_list // COULD BE LONG?
 //    using FilterNumOfElems = std::array<int, 100 >;
 
-
-
-//    using AppendixType =  std::priority_queue<FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2>, std::vector<FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> >,  CompareQueue<ET,GAUSS_SIEVE_IS_MULTI_THREADED> >;
-
-
-
     //map where a key is a pair <length_of_list_element, inner-product>
 //    using FilteredListType2 = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2>, CompareFilteredPoint>;
 //    using FilteredListTypeP = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> *, CompareFilteredPoint>;
@@ -183,19 +153,20 @@ public:
   using TermCondType     = TerminationCondition<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
 
 public:
-    /*FRIENDS */
-  friend GaussQueue<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  /*FRIENDS */
+  friend GaussQueue<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
 
   /*CONSTRUCTORS / DESTRUCTORS */
 
-  Sieve() = delete;
-  Sieve(Sieve const &old ) = delete;
-  Sieve(Sieve &&old) = delete;
-  Sieve & operator=(Sieve const & old)=delete;
-  Sieve & operator=(Sieve &&old) = delete; //neither movable nor copyable. (not movable due to mutexes)
+  // neither movable nor copyable. (not movable due to mutexes)
+  Sieve()                         = delete;
+  Sieve(Sieve const &)            = delete;
+  Sieve(Sieve &&)                 = delete;
+  Sieve &operator=(Sieve const &) = delete;
+  Sieve &operator=(Sieve &&)      = delete;
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED == true
-  explicit Sieve( InputBasisType const & B, unsigned int const k=2,
+  explicit Sieve InputBasisType const &B, unsigned int const k=2,
                   unsigned int const num_threads=0, TermCondType * const termcond = nullptr,
                   unsigned int const verbosity_=2, int seed_sampler = 0);
 #else
@@ -365,27 +336,27 @@ private:
 
 
 
-//public:  //made public to avoid complicated (due to template hack) friend - declaration.
-//            //TODO : Change term-cond to a user-provided function.
-//    TerminationConditions<ET> term_cond;
+  //public:  //made public to avoid complicated (due to template hack) friend - declaration.
+  //            //TODO : Change term-cond to a user-provided function.
+  //    TerminationConditions<ET> term_cond;
 private:
-  bool term_cond_owned; // Do we own the following pointer. Required for proper clean-up.
-  TermCondType * term_cond;
+  bool term_cond_owned;  // Do we own the following pointer. Required for proper clean-up.
+  TermCondType *term_cond;
   enum class SieveStatus
   {
-    sieve_status_error  =  -1,      //indicates an error (add error codes as neccessary)
-    sieve_status_init   =  1,       //we have initialized data (and may yet initialize some more, but sieve has not started
-    sieve_status_running=  2,       //sieve is currently running
-    sieve_status_suspended=3,       //sieve is currently suspended. Useful for dumping / cleanup of internal data structures.
-    sieve_status_finished=100       //sieve has finished
-  } sieve_status; //thread safety?
+    sieve_status_error     =  -1,      //indicates an error (add error codes as neccessary)
+    sieve_status_init      =  1,       //we have initialized data (and may yet initialize some more, but sieve has not started
+    sieve_status_running   =  2,       //sieve is currently running
+    sieve_status_suspended =3,       //sieve is currently suspended. Useful for dumping / cleanup of internal data structures.
+    sieve_status_finished  =100       //sieve has finished
+  } sieve_status; // thread safety?
 
   // Note: This is a pointer for now due to initialization order issues.
   // TODO: Create RAII class (this would actually solve several problems...)
   // Note: The latter was actually done...
 
-  FastAccess_Point * shortest_vector_found; //including its length //TODO: Thread-safety
-public: //switched to public to get list-sizes
+  FastAccess_Point *shortest_vector_found; // including its length //TODO: Thread-safety
+public:  // switched to public to get list-sizes
   SieveStatistics statistics;
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
@@ -409,11 +380,9 @@ public: //switched to public to get list-sizes
 // locales are different
 // some subobject changes format flags
 // output loses data (e.g. rounding of floats)
-
-
 }
 
 #define SIEVE_JOINT_H
 #endif // DO_INCLUDE_SIEVE_JOINT_H
 
-//clang-format on
+// clang-format on

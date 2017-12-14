@@ -1,7 +1,5 @@
 // clang-format status: NOT OK (reason: templates)
 
-// clang-format off
-
 /**
  This file provided the interface for the lattice point sampler.
  To this end, this file provides a virtual interface template class Sampler, from which the actual
@@ -18,11 +16,10 @@
 #define SAMPLER_H
 
 #include "DefaultIncludes.h"
+#include "LatticeBases.h"
 #include "MTPRNG.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-#include <random>
-#include "LatticeBases.h"
 
 namespace GaussSieve
 {
@@ -69,23 +66,25 @@ IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any
             any associated sieve. (This latter case need not work with user-defined samplers)
 */
 
-
 // because operator<<< looks bad and it screws up the declarations by inserting line breaks.
+// in fact, clang-format parses it wrongly, leading to operator<< and operator>> getting formatted
+// differently...
+// clang-format off
 
-template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
+template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler
 {
 public:
   using GaussSampler_ReturnType = typename SieveTraits::GaussSampler_ReturnType;
-  friend std::ostream & operator<< <SieveTraits, MT, Engine, Sseq>
-            (std::ostream &os, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
-  friend std::istream & operator>> <SieveTraits, MT, Engine, Sseq>
-            (std::istream &is, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
+  friend std::ostream &operator<< <SieveTraits, MT, Engine, Sseq>(
+      std::ostream &os, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
+  friend std::istream &operator>> <SieveTraits, MT, Engine, Sseq>(
+      std::istream &is, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
   explicit Sampler<SieveTraits, MT, Engine, Sseq>(Sseq &initial_seed)
-          : engine(initial_seed), sieveptr(nullptr)
-    {
-      DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing Sampler (general).")
-    }
+      : engine(initial_seed), sieveptr(nullptr)
+  {
+    DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing Sampler (general).")
+  }
 
   // We call init first, then custom_init (via init).
   inline void init(Sieve<SieveTraits, MT> *const sieve,
@@ -111,7 +110,7 @@ public:
 
   TODO: Dumping / reading is not yet implemented.
   */
-  virtual SamplerType sampler_type() const { return SamplerType::user_defined; };
+  virtual SamplerType sampler_type() const { return SamplerType::user_defined; }
 
   // thread is the index of the calling thread (we need to keep separate PRNGs for each thread)
   virtual GaussSampler_ReturnType sample(int const thread = 0) = 0;
@@ -120,16 +119,14 @@ public:
 
 private:
   // called before any points are sampled. This function is called from init after sieveptr is set.
-  virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
+  virtual void custom_init(SieveLatticeBasis<SieveTraits,MT> const &input_basis)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("No custom initialization for sampler requested.")
-  };
+  }
   // dummy implementation of << operator.
-  virtual std::ostream &dump_to_stream(std::ostream &os) { return os; };
+  virtual std::ostream &dump_to_stream(std::ostream &os) { return os; }
   // dummy implementation of >> operator.
-  virtual std::istream &read_from_stream(std::istream &is) { return is; };
-
-
+  virtual std::istream &read_from_stream(std::istream &is) { return is; }
 
 protected:
   MTPRNG<Engine, MT, Sseq> engine;   // or engines
@@ -138,10 +135,7 @@ protected:
 #ifdef PROGRESSIVE
   uint_fast16_t progressive_rank;  // In case we sample from a sublattice.
 #endif
-
 };
-
-// clang-format on
 
 }  // end namespace
 

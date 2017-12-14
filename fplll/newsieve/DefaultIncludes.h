@@ -25,5 +25,11 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <sys/stat.h>
+#include <fstream>
+#include <exception>
+#include <vector> //only for testing bitapprox, to delete
+#include <iomanip> // only to implement compute_statistics function; to delete
+
 
 #endif

@@ -1,3 +1,6 @@
+// This file does / did purely evil things with includes and defines.
+// Since clang-format reorders #includes, we do let it touch this file
+// TODO: Rewrite / re-document this file and enable clang-format.
 // clang-format off
 
 //This is the header file for the Gauss Sieve (both single-threaded and multi-threaded version).
