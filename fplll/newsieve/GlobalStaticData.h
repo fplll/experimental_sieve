@@ -90,6 +90,9 @@
   (The purpose of these rules is that if a static initializer for Y needs some new input argument,
    you can add a single member to X without having to change any interface of any other class but
    X and Y)
+
+   We have and currently use StaticInitializerArg<DimensionType> that contains and member .dim
+   of type DimensionType. Used to pass the (ambient) dimension around.
 */
 
 
@@ -97,14 +100,15 @@ namespace GaussSieve{
 
 namespace TraitHelpers
 {
-template<class T> using Predicate_StaticInitializerArg = typename T::StaticInitializerArgTag;
-template<class T> using Predicate_DefaultStaticInitializer = typename T::HasDefaultStaticInitializer;
+template<class T> using Predicate_StaticInitializerArg
+    = mystd::enable_if_t<mystd::is_true_type<typename T::StaticInitializerArgTag>::value>;
+template<class T> using Predicate_DefaultStaticInitializer
+    = mystd::enable_if_t<mystd::is_true_type<typename T::HasDefaultStaticInitializer>::value>;
 }
 template<class T> using IsArgForStaticInitializer =
-    mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg,T>;
+    mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg, T>;
 template<class T> using IsStaticInitializerDefaulted =
-    mystd::is_detected<TraitHelpers::Predicate_DefaultStaticInitializer,T>;
-
+    mystd::is_detected<TraitHelpers::Predicate_DefaultStaticInitializer, T>;
 
 // forward declarations:
 template<class T> class StaticInitializer;
@@ -113,7 +117,8 @@ template<class DimensionType> struct StaticInitializerArg;
 
 /**
   This is the default initializer, which does nothing apart from counting number of instances.
-  Note that typically, we inherit from this, which is the reason why it is templated by T.
+  StaticInitializer<T> inherits from this, which is the reason why it is templated by T.
+  (otherwise the instance-count is not specific to a given T)
   Usage: This class shall only be used by StaticInitializer<T>
 */
 
@@ -122,24 +127,29 @@ class DefaultStaticInitializer
 {
   friend StaticInitializer<T>;
   public:
+  // TODO: Fix debug symbol usage here. -> only 1 symbol for all such initializations
+
+
+  // returns whether there exists any object of this class (hence whether the class it is supposed
+  // to to initialize is indeed initialized).
+  // This is supposed to be overloaded by classes that actually do perform some initialization.
+  // The version given here always returns true (unless in debug mode), because in cases when the
+  // initializer does nothing, we do not really need one.
+  // TODO: reconsider this definition (in non-debug mode)
 #ifndef DEBUG_SIEVE_LP_INIT
   static bool constexpr is_initialized() { return true; } // may be overloaded
 #else
   static bool is_initialized(){ return user_count > 0; }; // Does an object exist?
 #endif
+  // counts the number of objects of this type that exist, essentially.
   static unsigned int get_user_count() { return user_count; }
-  static unsigned int user_count; // counts the number of objects of this type that exist, essentially.
-  private:
-  explicit DefaultStaticInitializer(){ ++user_count; };
 
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
-
-
-  template<class X,TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
-  [[deprecated]]explicit DefaultStaticInitializer(X const &) : DefaultStaticInitializer(){}
-  template<int nfixed, class IntType>
-  [[deprecated]]explicit DefaultStaticInitializer(MaybeFixed<nfixed,IntType> const &) : DefaultStaticInitializer(){}
+private:
+  static unsigned int user_count;
+  explicit DefaultStaticInitializer() noexcept { ++user_count; }
+  // pointless, but anyway...
+  explicit DefaultStaticInitializer(DefaultStaticInitializer const &) noexcept { ++user_count; }
+  explicit DefaultStaticInitializer(DefaultStaticInitializer &&)      noexcept { ++user_count; }
 
   ~DefaultStaticInitializer()
   {
@@ -159,35 +169,43 @@ template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
   The implementation below is a default implementation that essentially does nothing.
   It may be specialized for certain T's.
   Safeguard: In order to enable the default implementation, the class T has to declare a
-  public member typedef HasDefaultStaticInitializer, e.g.
+  public member typedef HasDefaultStaticInitializer as std::true_type, e.g.
   using HasDefaultStaticInitializer = std::true_type; otherwise, you get a compilation error.
 
   The type of args may be any integral class (deprecated) or
   any class that has a public typedef StaticInitializerArgTag.
   It is the job of the the specialization to ensure that arg has the required data.
   SieveTraits has a GlobalStaticData class supposed to be usable for all such args.
+
+  (see the explanation above)
 */
 
 // StaticInitializer<T> for classes T that have the IsStaticInitializerDefaulted Trait
+// does essentially nothing. Its parent class' constructor increments a counter that is never used.
 template<class T>
 class StaticInitializer : public DefaultStaticInitializer<T>
 {
-  static_assert(IsStaticInitializerDefaulted<T>::value,"Missing Static Initializer");
+  static_assert(IsStaticInitializerDefaulted<T>::value,
+                "Missing Static Initializer or forgot to set HasDefaultStaticInitializer trait.");
   explicit StaticInitializer() = default;
+
   template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  explicit StaticInitializer(X const &) : StaticInitializer() {}
+  explicit StaticInitializer(X const &) noexcept
+      : StaticInitializer() {}
+
+  // old versions did not have StaticInitializerArg and were hard-wired to "Dimension"
   template<class X,TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
   [[deprecated]] explicit StaticInitializer(X const &) : StaticInitializer() {}
+
   template<int nfixed, class IntType>
   [[deprecated]] explicit StaticInitializer(MaybeFixed<nfixed,IntType> const &) : StaticInitializer() {}
 };
 
-
-
 /**
   StaticInitializerArg<DimensionType> encapsulates an argument of type
   DimensionType.
-  It is meant to be an argument for static initializers.
+  It is meant to be an argument for static initializers, where dim denotes the ambient dimension in
+  which the sieve operates.
 */
 
 template<class DimensionType>
@@ -196,7 +214,7 @@ struct StaticInitializerArg
   using StaticInitializerArgTag = std::true_type;
   DimensionType const dim;
 //  unsigned int const dim_int;
-  constexpr StaticInitializerArg(DimensionType const &new_dim) : dim(new_dim) {}
+  constexpr StaticInitializerArg(DimensionType const &new_dim) noexcept : dim(new_dim) {}
 };
 
 } // namespace

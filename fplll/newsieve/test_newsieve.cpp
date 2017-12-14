@@ -192,7 +192,7 @@ int main(int argc, char **argv)
   Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
   //Sieve<Traits, multithreaded> Test_3Sieve2 (B2, k, 0);
 
-  TerminationCondition<Traits,multithreaded> * termcond;
+  TerminationCondition<Traits, multithreaded> *termcond;
 
   if (target_norm_conv!=0)
   {
@@ -216,6 +216,3 @@ int main(int argc, char **argv)
 
   return 1;
 }
-
-
-

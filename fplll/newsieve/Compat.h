@@ -153,10 +153,14 @@ namespace mystd
 
   // std::max is not (and can't be) constexpr until C++14 (where the def. of constexpr was relaxed).
   // This version is always constexpr, but does not support custom comparators or initializer lists.
+  // Hence, this differs from anything in std::
   template<class T> constexpr const T& constexpr_max(const T &x1, const T &x2)
   { return (x1 < x2) ? x2 : x1; }
   template<class T> constexpr const T& constexpr_min(const T &x1, const T &x2)
   { return (x1 < x2) ? x1 : x2; }
+
+  // for tag-detection (where we expect std::true_type)
+  template<class T> using is_true_type = std::is_same<std::true_type, T>;
 
 #if __cpp_lib_logical_traits >= 201510
   template<class... Bs> using conjunction = std::conjunction<Bs...>;           //AND
