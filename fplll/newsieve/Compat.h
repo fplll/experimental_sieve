@@ -242,7 +242,6 @@ template <class T> constexpr const T &constexpr_min(const T &x1, const T &x2)
     template <class... > struct make_void { using type = void; };
   }
   template <class... T> using void_t = typename Void_tHelper::make_void<T...>::type;
-
 #endif
 // clang-format on
 
