@@ -1,28 +1,24 @@
-// clang-format status: NOT OK (reason: templates)
-
-// clang-format off
+// clang-format status: OK
 
 #ifndef GPV_SAMPLER_EXTENDED_IMPL_H
 #define GPV_SAMPLER_EXTENDED_IMPL_H
 
 #include "DefaultIncludes.h"
-#include "Sampler.h"
 #include "GPVSamplerExtended.h"
+#include "LatticeBases.h"
+#include "Sampler.h"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
-#include <random>
-#include <vector>
-#include <math.h>
-#include "LatticeBases.h"
 
 namespace GaussSieve
 {
-  template<class SieveTraits, bool MT, class Engine, class Sseq>
-  void GPVSamplerExtended<SieveTraits,MT,Engine,Sseq>::custom_init(SieveLatticeBasis<SieveTraits,MT> const & input_basis)
-  {
-    assert(!initialized);
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+void GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::custom_init(
+    SieveLatticeBasis<SieveTraits, MT> const &input_basis)
+{
+  assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
   assert(sieveptr != nullptr);
 #else
@@ -41,12 +37,12 @@ namespace GaussSieve
 
   auto const maxbistar2 = input_basis.get_maxbistar2();
 
-  double st_dev = maxbistar2 * 1.2;  // square of the st.dev guaranteed by GPV
+  double const st_dev = maxbistar2 * 1.2;  // square of the st.dev guaranteed by GPV
 
   for (uint_fast16_t i = 0; i < lattice_rank; ++i)
   {
 
-    double maxdev_nonsc =
+    double const maxdev_nonsc =
         st_dev / convert_to_double(input_basis.get_g(i, i));  // g_(i,i) = ||b^*_i||^2
 
     s2pi[i]          = maxdev_nonsc / GaussSieve::pi;
@@ -105,8 +101,12 @@ GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 
       /* Does the same as below but with a faster for-loop.
          However, requires to store the coos-vector.
+
+         Gotti: actually, the main difference is that
+         the above version allows to operate on a narrow data type for most of the time.
+         The extra storage requirement does not matter if allocation is done only once.
        *
-      for (uint_fast16_t j = lattice_rank-1; j >i; --j)  // adjust shifts
+      for (uint_fast16_t j = lattice_rank-1; j > i; --j)  // adjust shifts
       {
         shifts[i] -= coos[j] * (mu_matrix[j][i]);
       }
@@ -139,6 +139,6 @@ GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;
 }
-}
+}  // end namespace GaussSieve
 
 #endif

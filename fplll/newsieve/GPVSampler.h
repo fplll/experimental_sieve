@@ -1,9 +1,8 @@
-// clang-format status: NOT OK (reason: templates)
+// clang-format status: OK
 
 /**
  Gaussian GPV sampler from Gentry, Peikert, Vaikuntanathan 'How to Use a Short Basis:
  Trapdoors for Hard Lattices and New Cryptographic Constructions'.
-
 */
 
 #ifndef GPV_SAMPLER_H

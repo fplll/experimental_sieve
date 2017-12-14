@@ -6,6 +6,8 @@
 #include "SieveUtility.h"
 #include <gmpxx.h>
 
+// clang-format status: done
+
 namespace GaussSieve
 {
 
@@ -718,7 +720,6 @@ LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 // cleaning up internal macros.
 
 #undef IMPL_IS_LATP
-
 #undef CREALTHIS
 #undef REALTHIS
 

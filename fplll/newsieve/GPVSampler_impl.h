@@ -1,6 +1,4 @@
-// clang-format status: NOT OK (reason: templates)
-
-// clang-format off
+// clang-format status: OK
 
 /**
 Implementation file for the GPV sampler.
@@ -16,30 +14,26 @@ Implementation file for the GPV sampler.
   b = b + x_i & b_i
 
  return b
-
 */
 
 #ifndef GPV_SAMPLER_IMPL_H
 #define GPV_SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
-#include "Sampler.h"
 #include "GPVSampler.h"
+#include "LatticeBases.h"
+#include "Sampler.h"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
-#include <random>
-#include <vector>
-#include <math.h>
-#include "LatticeBases.h"
 
 namespace GaussSieve
 {
 
-template<class SieveTraits, bool MT, class Engine, class Sseq>
-void GPVSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
-    SieveLatticeBasis<SieveTraits,MT> const &input_basis)
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+void GPVSampler<SieveTraits, MT, Engine, Sseq>::custom_init(
+    SieveLatticeBasis<SieveTraits, MT> const &input_basis)
 {
   assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -67,11 +61,12 @@ void GPVSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
     // (and also, double / mpz_class has an expression template as return type, which screws up
     // convert_to_double)
 
-    double res = maxbistar2 / convert_to_double(input_basis.get_g(i, i));
+    double const res = maxbistar2 / convert_to_double(input_basis.get_g(i, i));
 
     // the scaling of 1.0 is somewhat arbitrary but works ok
-    //
-    s2pi[i]          = 1.0 * res / GaussSieve::pi;  // We rescale by pi to avoid doing this during sampling.
+    // We rescale by pi to avoid doing this during sampling
+
+    s2pi[i]          = 1.0 * res / GaussSieve::pi;
     maxdeviations[i] = sqrt(res) * cutoff;
 
     basis[i] = input_basis.get_basis_vector(i).make_copy();
@@ -95,9 +90,9 @@ void GPVSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
   initialized = true;
 }
 
-template<class SieveTraits, bool MT, class Engine, class Sseq>
+template <class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
-GPVSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
+GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 {
   assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -141,6 +136,7 @@ GPVSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;
 }
-}  // end namespace
+
+}  // end namespace GaussSieve
 
 #endif

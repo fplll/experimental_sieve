@@ -24,7 +24,7 @@
   Essentially, we have some global variables this way. While this has certain advantages (simpler
   code, some easier-to-write optimizations), one downside is that we need to care about their
   initialization. Furthermore, this choice implies that
-  * WE MIGHT NOT BE ABLE TO RUN TWO INSTANCES OF THE SIEVE IN PARALLEL*,
+  *** WE MIGHT NOT BE ABLE TO RUN TWO INSTANCES OF THE SIEVE IN PARALLEL***,
   because they will both need to access the same global static data.
   ( It's not that bad: actually, we can, provided the static paramters are the same for all
     instances (which is what happens if you use e.g. extreme pruning). Furthermore, we can
@@ -93,35 +93,47 @@
    you can add a single member to X without having to change any interface of any other class but
    X and Y)
 
-   We have and currently use StaticInitializerArg<DimensionType> that contains and member .dim
-   of type DimensionType. Used to pass the (ambient) dimension around.
+   We have and currently use StaticInitializerArg<DimensionType> that contains a member .dim
+   of type DimensionType. It is used to pass the (ambient) dimension around.
 */
 
 namespace GaussSieve
 {
 
-namespace TraitHelpers
+// forward declarations:
+template <class T> class StaticInitializer;
+template <class T> class DefaultStaticInitializer;
+template <class DimensionType> struct StaticInitializerArg;
+
+
+/**
+  IsArgForStaticInitializer<T>    == std::true_type iff T sets the tag StaticInitializerArgTag.
+  IsStaticInitializerDefaulted<T> == std::true_type iff T sets the tag HasDefaultStaticInitializer.
+
+  See above for their meaning.
+*/
+
+namespace TraitHelpers  // for IsArgForStaticInitializer and IsStaticInitializerDefaulted
 {
+// SFINAE - Utilities for IsArgForStaticInitializer and IsStaticInitializerDefaulted
 // T::StaticInitializerArgTag / T::HasDefaultStaticInitializer should equal std::true_type
-// (or similar), hence the ::value. Note that we can get SFINAEd substitution failure in two ways:
+// (or similar), hence the ::value.
+// Note that we can get SFINAE - substitution failure in two ways:
 // Either T::StaticInitializerArgTag / T::HasDefaultStaticInitializer might not exists or
 // ::value might not be true and enable_if_t causes SFINAE.
 // clang-format off
 template <class T> using Predicate_StaticInitializerArg     = mystd::enable_if_t<T::StaticInitializerArgTag::value>;
 template <class T> using Predicate_DefaultStaticInitializer = mystd::enable_if_t<T::HasDefaultStaticInitializer::value>;
 // clang-format on
-}
+}  // end namespace TraitHelpers
+
+// We use (my)std::is_detected to obtain the actual Trait checkers:
 // clang-format off
 template<class T> using IsArgForStaticInitializer =
     mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg, T>;
 template<class T> using IsStaticInitializerDefaulted =
     mystd::is_detected<TraitHelpers::Predicate_DefaultStaticInitializer, T>;
 // clang-format on
-
-// forward declarations:
-template <class T> class StaticInitializer;
-template <class T> class DefaultStaticInitializer;
-template <class DimensionType> struct StaticInitializerArg;
 
 /**
   This is the default initializer, which does nothing apart from counting number of instances.

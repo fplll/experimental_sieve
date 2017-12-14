@@ -1,6 +1,9 @@
 /**
-  This file provides generic implementation of lattice point classes
+  This file provides generic implementation of lattice point classes.
+  It is the implementation file corresponding to LatticePointConcept.h
 */
+
+// clang-format status: done
 
 #ifndef LATTICE_POINT_GENERIC_H
 #define LATTICE_POINT_GENERIC_H
@@ -513,6 +516,7 @@ GeneralLatticePoint<LatP>::get_internal_rep(Arg &&arg) const
   return CREALTHIS->operator[](std::forward<Arg>(arg));
 }
 
+// non-const version of the above
 // clang-format off
 template <class LatP>
 template <class Arg, class Impl>
