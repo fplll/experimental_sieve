@@ -1,4 +1,4 @@
-// clang-format status: OK
+// clang-format on
 
 #define USE_REGULAR_QUEUE  // only regular queue is implemented for now
 // For large dimensions priority queue might be faster -- no, it's slower -- Gotti
@@ -62,15 +62,15 @@ static void main_usage(char *myself)
 int main(int argc, char **argv)
 {
   char *target_norm_string = NULL;
-  char* input_file_name = NULL;
-  bool flag_file = false;
+  char *input_file_name    = NULL;
+  bool flag_file           = false;
   int opt;
   int dim  = 0;
   int verb = 2;
 
   mpz_class target_norm_conv = 0;
-  int k=2;
-  int beta=0; //beta = 0 means we run LLL
+  int k                      = 2;
+  int beta                   = 0;  // beta = 0 means we run LLL
 
   if (argc < 2)
   {
@@ -113,13 +113,13 @@ int main(int argc, char **argv)
     }
   }
 
-  if (dim==0)
+  if (dim == 0)
   {
     std::cout << "Please, provide the dimension" << std::endl;
     return -1;
   }
 
-  if (target_norm_string!=NULL)
+  if (target_norm_string != NULL)
   {
     target_norm_conv = mpz_class(target_norm_string);
   }
@@ -140,9 +140,9 @@ int main(int argc, char **argv)
   }
   else
   {
-    srand (1);
-    //generates GM lattice
-    B.gen_qary_prime(1, 10*dim);
+    srand(1);
+    // generates GM lattice
+    B.gen_qary_prime(1, 10 * dim);
   }
 
   /* preprocessing of basis */
@@ -186,15 +186,15 @@ int main(int argc, char **argv)
   int dim2 = 50;
   fplll::ZZ_mat<mpz_t> B2;
   B2.resize(dim2, dim2);
-  B2.gen_qary_prime(1, 10*dim2);
+  B2.gen_qary_prime(1, 10 * dim2);
   fplll::lll_reduction(B2, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
 
-  Sieve<Traits, multithreaded> Test_3Sieve (B, k, 0);
-  //Sieve<Traits, multithreaded> Test_3Sieve2 (B2, k, 0);
+  Sieve<Traits, multithreaded> Test_3Sieve(B, k, 0);
+  // Sieve<Traits, multithreaded> Test_3Sieve2 (B2, k, 0);
 
   TerminationCondition<Traits, multithreaded> *termcond;
 
-  if (target_norm_conv!=0)
+  if (target_norm_conv != 0)
   {
     termcond = new LengthTerminationCondition<Traits, multithreaded>(
         ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
@@ -209,9 +209,9 @@ int main(int argc, char **argv)
   test_sieve.run();
   test_sieve.print_status();
 
-  auto finish = std::chrono::high_resolution_clock::now();
-  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-  std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
+  auto finish       = std::chrono::high_resolution_clock::now();
+  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish - start);
+  std::cout << " Time taken: " << microseconds.count() / 1000000.0 << "sec" << std::endl;
   delete termcond;
 
   return 1;

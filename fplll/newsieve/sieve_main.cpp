@@ -1,11 +1,10 @@
 // clang-format status:
 
-//clang-format off
-#define USE_REGULAR_QUEUE // only regular queue is implemented for now
-                          // For large dimensions priority queue might be faster
+#define USE_REGULAR_QUEUE  // only regular queue is implemented for now
+                           // For large dimensions priority queue might be faster
 
-#define PROGRESSIVE   // start using (durint sampling) only dim/2 basis vectors
-                      // progressively increasing the rank up to dim
+#define PROGRESSIVE  // start using (durint sampling) only dim/2 basis vectors
+                     // progressively increasing the rank up to dim
 
 /*
   This provides an implementation of k-tuple Gauss sieving
@@ -54,20 +53,20 @@ static void main_usage(char *myself)
 int main(int argc, char **argv)
 {
   char *target_norm_string = NULL;
-  char* input_file_name = NULL;
-  bool flag_file = false;
+  char *input_file_name    = NULL;
+  bool flag_file           = false;
   int opt;
-  int dim   = 0;
-  int verb  = 2;
+  int dim  = 0;
+  int verb = 2;
 
   mpz_class target_norm_conv = 0;
-  int k=2;
-  int beta=0; //beta = 0 means we run LLL
+  int k                      = 2;
+  int beta                   = 0;  // beta = 0 means we run LLL
 
   if (argc < 2)
   {
-      std::cout << "Please provide the dimension." << std::endl;
-      return -1;
+    std::cout << "Please provide the dimension." << std::endl;
+    return -1;
   }
 
   while ((opt = getopt(argc, argv, "d:t:k:f:b:v:")) != -1)
@@ -105,15 +104,15 @@ int main(int argc, char **argv)
     }
   }
 
-  if (dim==0)
+  if (dim == 0)
   {
     std::cout << "Please, provide the dimension" << std::endl;
     return -1;
   }
 
-  if (target_norm_string!=NULL)
+  if (target_norm_string != NULL)
   {
-      target_norm_conv = mpz_class(target_norm_string);
+    target_norm_conv = mpz_class(target_norm_string);
   }
 
   // ZZ_mat is an integer row-oriented matrix. See /nr/matrix.h
@@ -132,25 +131,25 @@ int main(int argc, char **argv)
   }
   else
   {
-      srand (1);
-      // generates GM lattice
-      B.gen_qary_prime(1, 10*dim);
+    srand(1);
+    // generates GM lattice
+    B.gen_qary_prime(1, 10 * dim);
   }
 
   /* preprocessing of basis */
   clock_t stime = clock();
   if (beta > 0)
-      fplll::bkz_reduction(B, beta, fplll::BKZ_DEFAULT, fplll::FT_DEFAULT, 0);
+    fplll::bkz_reduction(B, beta, fplll::BKZ_DEFAULT, fplll::FT_DEFAULT, 0);
   else
-      fplll::lll_reduction(B, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
+    fplll::lll_reduction(B, fplll::LLL_DEF_DELTA, fplll::LLL_DEF_ETA, fplll::LM_WRAPPER);
 
   clock_t etime = clock();
   double secs   = (etime - stime) / (double)CLOCKS_PER_SEC;
 
   if (beta > 0)
-      std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
+    std::cout << "# [info] BKZ took time " << secs << " s" << std::endl;
   else
-      std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
+    std::cout << "# [info] LLL took time " << secs << " s" << std::endl;
 
 #ifndef USE_REGULAR_QUEUE
   std::cout << "Use Priority Queue" << std::endl;
@@ -163,18 +162,20 @@ int main(int argc, char **argv)
   bool constexpr multithreaded = false;
 
   // Define all the types, consts for the sieve
-  // template params are <entry type for sieving, single/multi-threaded, is_dim_fixed, entry type of reduced B>
+  // template params are
+  // <entry type for sieving, single/multi-threaded, is_dim_fixed, entry type of reduced B>
   // here we assume that the entries of reduced B fit in long or int32_t
 
-  using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, fplll::ZZ_mat< mpz_t>>;
-  //using Traits = GaussSieve::DefaultSieveTraits<long, multithreaded, -1, fplll::ZZ_mat< mpz_t >>;
+  using Traits = GaussSieve::DefaultSieveTraits<int32_t, false, -1, fplll::ZZ_mat<mpz_t>>;
+  // using Traits = GaussSieve::DefaultSieveTraits<long, multithreaded, -1, fplll::ZZ_mat< mpz_t >>;
 
-  //instantiate the Sieve class with the basis, termination conditions(0), k-number of tuples, and verbosity
-	Sieve<Traits, multithreaded> test_sieve (B, k, 0, verb);
+  // instantiate Sieve class with
+  // a basis B, k-number of tuples, termination conditions(0), and verbosity
+  Sieve<Traits, multithreaded> test_sieve(B, k, 0, verb);
 
-  TerminationCondition<Traits,multithreaded> * termcond;
+  TerminationCondition<Traits, multithreaded> *termcond;
 
-  if (target_norm_conv!=0)
+  if (target_norm_conv != 0)
   {
     termcond = new LengthTerminationCondition<Traits, multithreaded>(
         ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
@@ -184,14 +185,14 @@ int main(int argc, char **argv)
     termcond = new MinkowskiTerminationCondition<Traits, multithreaded>;
   }
 
-	test_sieve.set_termination_condition(termcond);
+  test_sieve.set_termination_condition(termcond);
 
   test_sieve.run();
   test_sieve.print_status();
 
-  auto finish = std::chrono::high_resolution_clock::now();
-  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
-  std::cout << " Time taken: " << microseconds.count()/1000000.0 << "sec" << std::endl;
+  auto finish       = std::chrono::high_resolution_clock::now();
+  auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish - start);
+  std::cout << " Time taken: " << microseconds.count() / 1000000.0 << "sec" << std::endl;
   delete termcond;
 
   return 1;
