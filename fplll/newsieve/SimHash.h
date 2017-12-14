@@ -108,9 +108,8 @@ namespace GaussSieve
 {
 
 // To ensure validity of template arguments, in order to give meaningful compiler errors.
-template<class T> using Predicate_IsCooSelection =
-    mystd::enable_if_t<  std::is_same<typename T::IsCooSelection, std::true_type>::value  >;
-template<class T> using IsACoordinateSelection = mystd::is_detected<Predicate_IsCooSelection,T>;
+template <class T> using Predicate_IsCooSelection = mystd::enable_if_t<  std::is_same<typename T::IsCooSelection, std::true_type>::value  >;
+template <class T> using IsACoordinateSelection   = mystd::is_detected<Predicate_IsCooSelection,T>;
 
 /**
   This is a class that encapsulates (as a static member) a singleton of type CooSelection.
@@ -290,16 +289,16 @@ FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
   }
   return true;
 }
-  
+
 /*
   same as above but also returns (in case of true) which of the if-conditions was satisfied
   I.e., tell whether the two points are close or far apart
   If (approx_scprod <= lb[level]), bool is_close is set to true
  */
 template<class CoordinateSelection, class LHS, class RHS,
- class LowerThresholds, class UpperThresholds>
+         class LowerThresholds, class UpperThresholds>
 FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product_ext(
-                                                                            LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub, bool &is_close)
+                                                        LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub, bool &is_close)
 {
   uint_fast16_t approx_scprod = 0;  // holds accumulated XOR - value
   for (unsigned int level = 0;

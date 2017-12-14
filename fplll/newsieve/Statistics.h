@@ -8,74 +8,72 @@
  statistics.
 */
 
-namespace GaussSieve{
-
-template<class SieveTraits,bool MT> class Sieve;
-
-template<class SieveTraits, bool MT> struct GaussSieveStatistics;
-template<class SieveTraits>
-struct GaussSieveStatistics<SieveTraits,false>
+namespace GaussSieve
 {
 
-  GaussSieveStatistics(Sieve<SieveTraits,false>* backptr)
-  : sieveptr(backptr),
-    number_of_collisions(0),
-    number_of_points_sampled(0),
-    number_of_points_constructed(0),
-//    current_list_size(0),
-    filtered_list_size(0),
-    number_of_scprods_level1(0),
-    number_of_scprods_level2(0),
-    number_of_scprods_level3(0),
-    number_of_2reds(0),
-    number_of_3reds(0),
+template <class SieveTraits, bool MT> class Sieve;
 
-    number_of_exact_scprods(0),
-    number_of_mispredictions(0)
-    {}
+template <class SieveTraits, bool MT> struct GaussSieveStatistics;
+
+template <class SieveTraits>
+struct GaussSieveStatistics<SieveTraits, false>
+{
+
+  GaussSieveStatistics(Sieve<SieveTraits,false> *backptr)
+      : sieveptr(backptr),
+        number_of_collisions(0),
+        number_of_points_sampled(0),
+        number_of_points_constructed(0),
+        // current_list_size(0),
+        filtered_list_size(0),
+        number_of_scprods_level1(0),
+        number_of_scprods_level2(0),
+        number_of_scprods_level3(0),
+        number_of_2reds(0),
+        number_of_3reds(0),
+        number_of_exact_scprods(0),
+        number_of_mispredictions(0)
+  {
+  }
 // TODO: Move parts of these statistics into the actual object they relate to.
 // e.g. there is no reason to maintain list sizes outside of the actual list objects...
 // Only the getters should remain.
 
-  Sieve<SieveTraits,false>* const sieveptr;
+  Sieve<SieveTraits, false> *const sieveptr;
 
-  inline unsigned long int get_number_of_collisions() const {return number_of_collisions;};
+  inline unsigned long int get_number_of_collisions() const { return number_of_collisions; }
   unsigned long int number_of_collisions;
-  inline void increment_number_of_collisions() {++number_of_collisions; }
+  inline void increment_number_of_collisions() { ++number_of_collisions; }
 
   unsigned long int number_of_points_sampled;
-  inline unsigned long int get_number_of_points_sampled() const {return number_of_points_sampled;};
+  inline unsigned long int get_number_of_points_sampled() const { return number_of_points_sampled; }
   inline void increment_number_of_points_sampled() { ++number_of_points_sampled; }
 
-  unsigned long long int number_of_points_constructed; //sampling  + succesful pairs
-  inline unsigned long long get_number_of_points_constructed() const {return number_of_points_constructed;};
+  unsigned long long int number_of_points_constructed;  // sampling  + succesful pairs
+  inline unsigned long long get_number_of_points_constructed() const { return number_of_points_constructed; }
   inline void increment_number_of_points_constructed() { ++number_of_points_constructed; }
 
-  unsigned long int get_current_list_size() const {return sieveptr->main_list.size(); };
-//  unsigned long int current_list_size;
-//  inline void increment_current_list_size() {}//  {++current_list_size; }
-//  inline void increment_current_list_size_by(long int const amount){}// {current_list_size+=amount;}
-//  inline void decrement_current_list_size(){}// { --current_list_size; }
+  unsigned long int get_current_list_size() const { return sieveptr->main_list.size(); }
 
   inline unsigned long int get_filtered_list_size() const    {return filtered_list_size;};
-  unsigned long int filtered_list_size; //size of filtered_list
-  inline void set_filtered_list_size(unsigned long int const to) { filtered_list_size = to;}
-  inline void increment_filtered_list_size() {++filtered_list_size;}
+  unsigned long int filtered_list_size;  // size of filtered_list
+  inline void set_filtered_list_size(unsigned long int const to) { filtered_list_size = to; }
+  inline void increment_filtered_list_size() { ++filtered_list_size; }
 
-  unsigned long int get_current_queue_size()                  {return sieveptr->main_queue.size();}; //TODO : fix const-correctness
+  unsigned long int get_current_queue_size()                  { return sieveptr->main_queue.size(); }  //TODO : fix const-correctness
 
 
   /*Stats for exact scalar products*/
-  unsigned long long int number_of_scprods_level1; //for k=2 case
-  unsigned long long get_number_of_scprods_level1() const  {return number_of_scprods_level1;}
-  inline void increment_number_of_scprods_level1() {++number_of_scprods_level1;}
+  unsigned long long int number_of_scprods_level1;  // for k=2 case
+  unsigned long long get_number_of_scprods_level1() const  { return number_of_scprods_level1; }
+  inline void increment_number_of_scprods_level1() { ++number_of_scprods_level1; }
 
-  unsigned long long int number_of_scprods_level2; //for k=2,3 cases
-  inline unsigned long long get_number_of_scprods_level2() const {return number_of_scprods_level2;}
-  inline void increment_number_of_scprods_level2() {++number_of_scprods_level2;}
+  unsigned long long int number_of_scprods_level2;  // for k=2,3 cases
+  inline unsigned long long get_number_of_scprods_level2() const { return number_of_scprods_level2; }
+  inline void increment_number_of_scprods_level2() { ++number_of_scprods_level2; }
 
-  unsigned long long int number_of_scprods_level3; //for k=2,3,4 cases
-  inline unsigned long long get_number_of_scprods_level3() const {return number_of_scprods_level3;}
+  unsigned long long int number_of_scprods_level3; // for k=2,3,4 cases
+  inline unsigned long long get_number_of_scprods_level3() const { return number_of_scprods_level3; }
 
   /* Stats for approximate scalar products */
   unsigned long long int number_of_approx_scprods_level1; //for k=2 case
@@ -363,27 +361,27 @@ template<class SieveTraits>
 inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::ostream &of, int howverb)
 {
   using std::endl;
-  if(howverb>=1) of << "Number of collisions=" << number_of_collisions << endl;
-  if(howverb>=1) of << "Number of points Sampled=" << number_of_points_sampled << endl;
-  if(howverb>=1) of << "Number of points Constructed=" << number_of_points_constructed << endl;
-  //if(howverb>=1) of << "Number of approx. scalar products=" << number_of_scprods << endl;
+  if(howverb >=1 ) of << "Number of collisions=" << number_of_collisions << endl;
+  if(howverb >=1 ) of << "Number of points Sampled=" << number_of_points_sampled << endl;
+  if(howverb >=1 ) of << "Number of points Constructed=" << number_of_points_constructed << endl;
+  // if(howverb >=1 ) of << "Number of approx. scalar products=" << number_of_scprods << endl;
 
-  if(howverb>=1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
-  if(howverb>=1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
-  if(howverb>=1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
-  if(howverb>=1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
+  if(howverb >= 1) of << "Number of exact scalar products=" << number_of_exact_scprods << endl;
+  if(howverb >= 1) of << "Number of scalar products level 1=" << number_of_scprods_level1 << endl;
+  if(howverb >= 1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
+  if(howverb >= 1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
 
-  if(howverb>=1) of << "Number of 2-reductions inside 3-sieve=" << number_of_2reds << endl;
-  if(howverb>=1) of << "Number of 3-reductions inside 3-sieve=" << number_of_3reds << endl;
+  if(howverb >= 1) of << "Number of 2-reductions inside 3-sieve=" << number_of_2reds << endl;
+  if(howverb >= 1) of << "Number of 3-reductions inside 3-sieve=" << number_of_3reds << endl;
 
-  if(howverb>=1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
-  if(howverb>=1) of << "Final List Size=" << get_current_list_size() << endl;
-  if(howverb>=1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
+  if(howverb >= 1) of << "Number of mispredictions=" << number_of_mispredictions << endl;
+  if(howverb >= 1) of << "Final List Size=" << get_current_list_size() << endl;
+  if(howverb >= 1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
 
-
+// clang-format off
   //ONLY TO TEST BITAPPROX. TO BE DELETED
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-    if(howverb>=1)
+    if(howverb >= 1)
     {
                    of << "No reduction: ";
                    for (unsigned int i=0; i!=no_red_stat.size(); ++i) of <<no_red_stat[i] << " ";
@@ -423,6 +421,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     compute_and_print_statistics_all(of);
     compute_and_print_statistics_all_innloop(of);
     #endif
+// clang-format on
 }
 
 } // end namespace GaussSieve

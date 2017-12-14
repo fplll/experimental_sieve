@@ -1,55 +1,54 @@
-// clang-format off
-
 //SIEVE_JOINT_CPP_ST and
 //SIEVE_JOINT_CPP_MT are separate include guards for the single and multi-threaded pass over this file.
 //SIEVE_JOINT_CPP is set *after* we have passed over this file once. Use it to condition on the second run.
 
 #undef DO_INCLUDE_SIEVE_JOINT_CPP
 #ifndef GAUSS_SIEVE_IS_MULTI_THREADED
-    #error wrong usage of SieveJoint.cpp --1
+  #error wrong usage of SieveJoint.cpp --1
 #endif
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED == false
-    #if !defined(SIEVE_GAUSS_SINGLE_THREADED)
-        #error wrong usage of SieveJoint.cpp -- 2
-    #endif
+  #if !defined(SIEVE_GAUSS_SINGLE_THREADED)
+    #error wrong usage of SieveJoint.cpp -- 2
+  #endif
 
-    #ifndef SIEVE_JOINT_CPP_ST
-        #define SIEVE_JOINT_CPP_ST
-        #define DO_INCLUDE_SIEVE_JOINT_CPP
-    #endif
+  #ifndef SIEVE_JOINT_CPP_ST
+    #define SIEVE_JOINT_CPP_ST
+      #define DO_INCLUDE_SIEVE_JOINT_CPP
+  #endif
 #elif GAUSS_SIEVE_IS_MULTI_THREADED == true
-    #if !defined(SIEVE_GAUSS_MULTI_THREADED)
-        #error wrong usage of SieveJoint.cpp -- 3
-    #endif
-    #ifndef SIEVE_JOINT_CPP_MT
-        #define SIEVE_JOINT_CPP_MT
-        #define DO_INCLUDE_SIEVE_JOINT_CPP
-    #endif
+  #if !defined(SIEVE_GAUSS_MULTI_THREADED)
+    #error wrong usage of SieveJoint.cpp -- 3
+  #endif
+  #ifndef SIEVE_JOINT_CPP_MT
+    #define SIEVE_JOINT_CPP_MT
+    #define DO_INCLUDE_SIEVE_JOINT_CPP
+  #endif
 #endif
 
 #ifdef DO_INCLUDE_SIEVE_JOINT_CPP
 
-//actual code starts here.
-//Be aware that code may be read twice.
+// actual code starts here.
+// Be aware that code may be read twice.
 
-#ifndef SIEVE_JOINT_CPP //code in this block only read once.
+#ifndef SIEVE_JOINT_CPP  // code in this block only read once.
 
-//#include "Sampler_impl.h"
-//#include "GaussQueue_impl.h"
-//#include "PointListNew.cpp"
+// #include "Sampler_impl.h"
+// #include "GaussQueue_impl.h"
+// #include "PointListNew.cpp"
 
-//End of things included only once.
+// End of things included only once.
 #endif // SIEVE_JOINT_CPP
 
 //#define SIEVE_GAUSS_H //This means that SieveGauss.h is already included. SieveGauss really is a wrapper around SieveJoint.h, and here we have to call SieveJoint.h direcly.
 //#include "SieveJoint.h" //will include it with GAUSS_SIEVE_IS_MULTI_THREADED set correctly. This file is actually allowed to include SieveJoint.h directly.
 
 #define SIEVE_FILE_ID "kTuple-Sieve dump file"
-//version string for dump file
+// version string for dump file
 #define SIEVE_VER_STR "Version TEST1"
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 template<class SieveTraits>
 void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_file(std::string const &outfilename, bool overwrite)
