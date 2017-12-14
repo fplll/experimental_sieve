@@ -8,9 +8,6 @@
 #include "SieveUtility.h"
 #include "Typedefs.h"
 
-// clang-format changes applied on a case-by-case basis manually.
-// clang-format off
-
 /**
   This file defines a class for the queue that stores the yet-unprocessed points of the Sieve.
   It essentially wraps around a std::(priority?)queue, with the added feature that
@@ -43,9 +40,9 @@
 namespace GaussSieve
 {
 
-//forward-declarations:
-template<class SieveTraits, bool MT> class Sieve;
-template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
+// forward-declarations:
+template <class SieveTraits, bool MT> class Sieve;
+template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
 
 // declares GaussQueue class, to be specialized.
 template <class SieveTraits, bool MT> class GaussQueue;
@@ -87,11 +84,13 @@ private:  // aliases to avoid typing long names
 
 public:
   // We only ever want 1 queue. No copying / moving / assigning.
+  // clang-format off
   GaussQueue()                              = delete;
   GaussQueue(GaussQueue const &)            = delete;
   GaussQueue(GaussQueue &&)                 = delete;
   GaussQueue &operator=(GaussQueue const &) = delete;
   GaussQueue &operator=(GaussQueue &&)      = delete;
+  // clang-format on
 
   // Sole constructor:
   // we take take a pointer to the caller sieve as an argument to initialize the sampler and to
@@ -100,16 +99,20 @@ public:
   // user_sampler is a pointer to a user-provided samplers. If == nullptr, we create our own
   // seed_sampler is only used if we create our own sampler.
   // TODO: Consider storing a reference to the statistics class instead.
-  explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
+  // clang-format off
+  explicit inline GaussQueue(Sieve<SieveTraits, false> *const caller_sieve,
                              GlobalStaticDataInitializer const &static_data,
                              int seed_sampler,
-                             Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler = nullptr);
+                             Sampler<SieveTraits, false, std::mt19937_64, std::seed_seq> *user_sampler = nullptr);
+  // clang-format on
   inline ~GaussQueue();
 
   // we might as well always return false (or make this private)!
   // if the internal queue is empty, we just sample a new vector.
+  // clang-format off
   [[deprecated("The queue is never empty from the users point of view.")]]
   NODISCARD inline bool empty() const
+  // clang-format on
   {
     return main_queue.empty();
   }
@@ -122,17 +125,21 @@ public:
   // Note that there is a potential conversion at the call site.
   // TODO: Allow to push other lattice point types and explicitly convert.
   // (this one only sees implicit conversions)
+  // clang-format off
   inline void push(DataType const &val) = delete;  // puts a copy of val in the queue : deleted
   inline void push(DataType      &&val);           // uses move semantics for that.
+  // clang-format on
 
   // removes front element from queue *and returns it*.
   inline auto true_pop() -> RetType;
 
 private:
+  // clang-format off
   StaticInitializer<DataType> const init_data_type;
-  StaticInitializer<RetType> const init_ret_type;
-  QueueType main_queue;                         // actual queue of lattice points to be processed.
-  Sieve<SieveTraits,false> *const gauss_sieve;  // pointer to caller object.
+  StaticInitializer<RetType>  const init_ret_type;
+  QueueType main_queue;                          // actual queue of lattice points to be processed.
+  Sieve<SieveTraits, false> *const gauss_sieve;  // pointer to caller object.
+  // clang-format on
 
   // NOTE: the sampler is public, because some modules of the sieve need to communicate with the
   // sampler (e.g. when using progressive rank).
@@ -149,5 +156,3 @@ public:
 
 }  // end namespace GaussSieve
 #endif  // GAUSS_QUEUE_H
-
-// clang-format on

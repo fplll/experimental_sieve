@@ -8,24 +8,23 @@
 #include "Sampler.h"
 #include "UniformSampler.h"
 
-// clang-format changes applied on a case-by-case basis manually.
-// clang-format off
-
 namespace GaussSieve
 {
 
 // constructor, single-threaded version
-template<class SieveTraits>
-GaussQueue<SieveTraits,false>::GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
+// clang-format off
+template <class SieveTraits>
+GaussQueue<SieveTraits, false>::GaussQueue(Sieve<SieveTraits, false> *const caller_sieve,
                                           GlobalStaticDataInitializer const &static_data,
                                           int seed_sampler,
-                                          Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler)
+                                          Sampler<SieveTraits, false, std::mt19937_64, std::seed_seq> *user_sampler)
     : init_data_type(static_data),
       init_ret_type(static_data),
       main_queue(),
       gauss_sieve(caller_sieve),
       sampler(user_sampler),
       sampler_owned(user_sampler == nullptr)
+// clang-format on
 {
 #ifdef DEBUG_SIEVE_STANDALONE_QUEUE
   assert(caller_sieve == nullptr);
@@ -43,8 +42,7 @@ GaussQueue<SieveTraits,false>::GaussQueue(Sieve<SieveTraits,false> * const calle
   assert(sampler != nullptr);
 }
 
-template<class SieveTraits>
-auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
+template <class SieveTraits> auto GaussQueue<SieveTraits, false>::true_pop() -> RetType
 {
   if (main_queue.empty())  // Queue is empty, sample a new element.
   {
@@ -63,6 +61,7 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
   else  // Queue is not empty, just return "next" stored element.
         // (for std::priority_queue, this is called front(), for normal std::queue(), it's top().
   {
+// clang-format off
 #ifndef USE_REGULAR_QUEUE
     RetType ret{std::move(*(main_queue.top()))};  // move from the queue.
     // Note: The top of the queue still holds a valid pointer to a lattice point
@@ -71,13 +70,14 @@ auto GaussQueue<SieveTraits,false>::true_pop() -> RetType
     delete main_queue.top();
 #else
     RetType ret{std::move(main_queue.front())};
-#endif // USE_REGULAR_QUEUE
+#endif  // USE_REGULAR_QUEUE
+// clang-format off
     main_queue.pop();  // This just removes the pointer.
     return ret;
   }
 }
 
-
+// clang-format off
 template<class SieveTraits>
 void GaussQueue<SieveTraits, false>::push(DataType &&val)
 {
@@ -89,7 +89,8 @@ void GaussQueue<SieveTraits, false>::push(DataType &&val)
 #endif
 }
 
-template<class SieveTraits> GaussQueue<SieveTraits, false>::~GaussQueue()
+template <class SieveTraits>
+GaussQueue<SieveTraits, false>::~GaussQueue()
 {
 // free memory if the queue stores pointers
 #ifndef USE_REGULAR_QUEUE
@@ -104,6 +105,7 @@ template<class SieveTraits> GaussQueue<SieveTraits, false>::~GaussQueue()
     delete sampler;
   }
 }
+// clang-format on
 
 }  // end namespace GaussSieve
 

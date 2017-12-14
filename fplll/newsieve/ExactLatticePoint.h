@@ -149,7 +149,7 @@ public:
   // the auto-generated copy constructor would be deleted, because the parent's is.)
   // clang-format off
   ExactLatticePoint(ExactLatticePoint const &)            = delete;
-  ExactLatticePoint(ExactLatticePoint &&)       	  = default;
+  ExactLatticePoint(ExactLatticePoint &&)       	        = default;
   ExactLatticePoint &operator=(ExactLatticePoint const &) = delete;
   ExactLatticePoint &operator=(ExactLatticePoint &&)      = default;
   // clang-format on
