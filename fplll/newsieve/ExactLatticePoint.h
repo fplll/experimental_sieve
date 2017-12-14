@@ -5,7 +5,6 @@
 */
 
 // clang-format checked and adjusted manually -- Gotti
-// clang-format off
 
 #ifndef EXACT_LATTICE_POINT_H
 #define EXACT_LATTICE_POINT_H
@@ -17,29 +16,34 @@
 #include "SieveUtility.h"
 
 // local defines, undef at the end of file, used to enable functions only for (non-)fixed dimension.
+// clang-format off
 #define FOR_FIXED_DIM    template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy >= 0)>
 #define FOR_VARIABLE_DIM template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy == -1)>
+// clang-format on
 
 // to make some functions C++11-constexpr
+// clang-format off
 #ifdef DEBUG_SIEVE_LP_INIT
   #define CONSTEXPR_IN_NON_DEBUG_LP_INIT CPP14CONSTEXPR
 #else
   #define CONSTEXPR_IN_NON_DEBUG_LP_INIT
 #endif
+// clang-format on
 
 namespace GaussSieve
 {
 
 // forward declaration
-template<class ET, int nfixed> class ExactLatticePoint;
+template <class ET, int nfixed> class ExactLatticePoint;
 
 /**
   lattice point traits for ExactLatticePoint:
 */
-template<class ET, int nfixed> struct LatticePointTraits< ExactLatticePoint<ET,nfixed> >
+template <class ET, int nfixed> struct LatticePointTraits<ExactLatticePoint<ET, nfixed>>
 {
 public:
   // set appropriate traits:
+  // clang-format off
   using Trait_ScalarProductStorageType = ET;
   using Trait_CoordinateType           = ET;
   using Trait_CheapNorm2               = std::true_type;  // promises that Norm2 is precomputed
@@ -52,6 +56,7 @@ public:
   using Trait_InternalRepByCoos        = std::true_type;
   using Trait_InternalRepLinear        = std::true_type;
   using Trait_InternalRep_RW           = std::true_type;
+  // clang-format on
 };
 
 /**
@@ -69,10 +74,10 @@ public:
 */
 
 template <class ET, int nfixed>
-class ExactLatticePoint final : public GeneralLatticePoint< ExactLatticePoint<ET,nfixed> >
+class ExactLatticePoint final : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
 {
 public:
-  friend StaticInitializer< ExactLatticePoint<ET,nfixed> >;
+  friend StaticInitializer<ExactLatticePoint<ET, nfixed>>;
   using LatticePointTag = std::true_type;
   // Container type used to store the actual point
   using Container =
@@ -97,18 +102,24 @@ public:
     return dim;
   }
 
+  // The macro confuses clang-format completely...
+  // clang-format off
   FOR_FIXED_DIM  // This introduces template params, so we do not =default
   constexpr explicit ExactLatticePoint() {}
+  // clang-format on
 
   // Gotti: If this gives problems on clang, remove the
   // CONSTEXPR_IN_NON_DEBUG_LP_INIT
   FOR_VARIABLE_DIM
-  CONSTEXPR_IN_NON_DEBUG_LP_INIT explicit ExactLatticePoint()
+  CONSTEXPR_IN_NON_DEBUG_LP_INIT explicit ExactLatticePoint()  // make noexcept?
       : data(static_cast<unsigned int>(get_dim()))
   {
 #ifdef DEBUG_SIEVE_LP_INIT
-    // double (( )) because assert is a macro and it mis-parses the ,
+    // For some reason, clang-format messes up the indentations of its own clang-format commands...
+    // clang-format off
+    // double (( )) because assert is a macro and it mis-parses the ","
     assert((StaticInitializer< ExactLatticePoint<ET,nfixed> >::is_initialized));
+// clang-format on
 #endif
   }
 
@@ -127,7 +138,7 @@ public:
 
   // TODO: Debug output and validation.
 
-  explicit ExactLatticePoint(PlainLatticePoint<ET,nfixed> &&plain_point) noexcept
+  explicit ExactLatticePoint(PlainLatticePoint<ET, nfixed> &&plain_point) noexcept
       : data(std::move(plain_point.data))
   {
     sanitize();  // compute norm2
@@ -136,33 +147,36 @@ public:
   // lattice points are moveable but not copyable (by design, to catch unwanted copying)
   // (note that these declarations just make that explicit, if we did not write these,
   // the auto-generated copy constructor would be deleted, because the parent's is.)
-  ExactLatticePoint(ExactLatticePoint const  &old) = delete;
-  ExactLatticePoint(ExactLatticePoint       &&old) = default;
-  ExactLatticePoint &operator=(ExactLatticePoint const  &other) = delete;
-  ExactLatticePoint &operator=(ExactLatticePoint       &&other) = default;
+  // clang-format off
+  ExactLatticePoint(ExactLatticePoint const &)            = delete;
+  ExactLatticePoint(ExactLatticePoint &&)       	  = default;
+  ExactLatticePoint &operator=(ExactLatticePoint const &) = delete;
+  ExactLatticePoint &operator=(ExactLatticePoint &&)      = default;
+  // clang-format on
 
   // behaves just like a normal container and can be used as such
+  // clang-format off
   ET       &operator[](uint_fast16_t idx)       { return data[idx]; }
   ET const &operator[](uint_fast16_t idx) const { return data[idx]; }
+  // clang-format on
   static std::string class_name() { return "Exact Lattice Point"; }
 
   // brings the internal data into the correct state, i.e. we recompute the norm.
+  // clang-format off
   void sanitize()
   {
     sanitize(compute_sc_product(*this, *this));
   }
+  // clang-format on
 
   // version where we already know norm2
-  void sanitize(ET const &new_norm2)
-  {
-    norm2 = new_norm2;
-  }
+  void sanitize(ET const &new_norm2) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
 
   // Compute scalar product with another point.
   // We implicitly assert the other point has a "compatible" type
-  template<class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
+  template <class LatP2, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatP2>)>
   inline ET do_compute_sc_product(LatP2 const &lp2) const
   {
     // Compute the sum of (*this)[i]  * lp2[i] over i.
@@ -182,6 +196,7 @@ public:
     ET res2 = 0;
     ET res3 = 0;
     ET res4 = 0;
+
     uint_fast16_t dim = get_dim();
     for (uint_fast16_t i = 0; i < (dim / 4) * 4; i += 4)  // perform 4 += in one go
     {
@@ -209,32 +224,36 @@ private:
 
 // define (and compile-time initialize) static data of template classes:
 template <class ET, int nfixed>
-MaybeFixed<nfixed> ExactLatticePoint<ET,nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
+MaybeFixed<nfixed> ExactLatticePoint<ET, nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
 
 /************************************************************
     Static Initializer: This class sets the dimension of the point
 ************************************************************/
 
-template<class ET, int nfixed> class StaticInitializer<ExactLatticePoint<ET,nfixed>>
-    final : public DefaultStaticInitializer< ExactLatticePoint<ET,nfixed> >
+// clang-format off
+template <class ET, int nfixed>
+class StaticInitializer< ExactLatticePoint<ET,nfixed> > final
+    : public DefaultStaticInitializer<ExactLatticePoint<ET, nfixed>>
 {
   using Parent = DefaultStaticInitializer< ExactLatticePoint<ET,nfixed> >;
-
+  // clang-format on
 public:
-  template<class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
-  StaticInitializer(T const &initializer) : StaticInitializer(initializer.dim) {}
+  template <class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
+  StaticInitializer(T const &initializer) : StaticInitializer(initializer.dim)
+  {
+  }
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
     assert(Parent::user_count > 0);
     if (Parent::user_count > 1)
     {
-      assert((new_dim == ExactLatticePoint<ET,nfixed>::dim));
+      assert((new_dim == ExactLatticePoint<ET, nfixed>::dim));
       // TODO: Throw exception!
     }
     else
     {
-      ExactLatticePoint<ET,nfixed>::dim = new_dim;
+      ExactLatticePoint<ET, nfixed>::dim = new_dim;
     }
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing ExactLatticePoint with nfixed = "
                                       << nfixed << " REALDIM = " << new_dim << " Counter is"
