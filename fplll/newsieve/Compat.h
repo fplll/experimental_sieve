@@ -2,12 +2,6 @@
 
 // clang-format adjustments finished -- Gotti
 
-// clang-format off
-// clang-format makes readability worse:
-// It does not like indentation of #if's or {} for empty classes.
-// It breaks the manual hoizontal alignment chosen for readability and completely messes up some
-// macros
-
 /**
   This file defines some compatibility macros / workaround for C++-14 / C++-17 features.
   Notably, it defines the namespace GaussSieve::mystd::, which contains alternative
@@ -48,6 +42,10 @@
 // Note that undefined symbols in an #if get replaced by 0, so this works even if
 // __cpp_constexpr is not even defined.
 
+// unfortunately, clang-format does not like indendation of nested #ifdefs,
+// which means it's deactivated 90% of this file.
+// clang-format off
+
 #if __cpp_constexpr >= 201304
   #define CPP14CONSTEXPR constexpr
 #else
@@ -86,6 +84,7 @@
   #warning "Your compiler does support have feature testing for attributes."
 #endif
 
+// clang-format on
 
 /**
   Poor man's "requires" (C++20 / concepts-lite TS):
@@ -128,11 +127,13 @@
         there has to be a set of template arguments for the function, such that this holds.
 */
 
-#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type = 0
-#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<static_cast<bool>(condition),int>::type
+#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<condition, int>::type = 0
+#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<condition, int>::type
 
-#define TEMPL_RESTRICT_DECL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type = 0
-#define TEMPL_RESTRICT_IMPL2(...) typename std::enable_if<static_cast<bool>(GaussSieve::mystd::conjunction<__VA_ARGS__>::value),int>::type
+#define TEMPL_RESTRICT_DECL2(...)                                                                  \
+  typename std::enable_if<GaussSieve::mystd::conjunction<__VA_ARGS__>::value, int>::type = 0
+#define TEMPL_RESTRICT_IMPL2(...)                                                                  \
+  typename std::enable_if<GaussSieve::mystd::conjunction<__VA_ARGS__>::value, int>::type
 
 /**
   Replacements for C++14 (and beyond) standard library features that are missing in C++11.
@@ -143,53 +144,61 @@ namespace GaussSieve
 {
 namespace mystd
 {
-  // some often-used shorthands to avoid having to use typename ...
-  // completely identical to the corresponding std::conditonal_t etc.
-  template<bool b, class T, class F> using conditional_t = typename std::conditional<b,T,F>::type;
-  template<class T>                  using decay_t       = typename std::decay<T>::type;
-  template<bool b>                   using bool_constant = std::integral_constant<bool,b>;
-  template<bool b, class T = void>   using enable_if_t   = typename std::enable_if<b,T>::type;
+// some often-used shorthands to avoid having to use typename ...
+// completely identical to the corresponding std::conditonal_t etc.
+// clang-format off
+template<bool b, class T, class F> using conditional_t   = typename std::conditional<b, T, F>::type;
+template<class T>                  using decay_t         = typename std::decay<T>::type;
+template<bool b>                   using bool_constant   = std::integral_constant<bool,b>;
+template<bool b, class T = void>   using enable_if_t     = typename std::enable_if<b, T>::type;
+template<class T>                  using make_unsigend_t = typename std::make_unsigned<T>::type;
+// clang-format o
 
+// std::max is not (and can't be) constexpr until C++14 (where the def. of constexpr was relaxed).
+// This version is always constexpr, but does not support custom comparators or initializer lists.
+// Hence, this differs from anything in std::
+template <class T> constexpr const T &constexpr_max(const T &x1, const T &x2)
+{
+  return (x1 < x2) ? x2 : x1;
+}
+template <class T> constexpr const T &constexpr_min(const T &x1, const T &x2)
+{
+  return (x1 < x2) ? x1 : x2;
+}
 
-  // std::max is not (and can't be) constexpr until C++14 (where the def. of constexpr was relaxed).
-  // This version is always constexpr, but does not support custom comparators or initializer lists.
-  // Hence, this differs from anything in std::
-  template<class T> constexpr const T& constexpr_max(const T &x1, const T &x2)
-  { return (x1 < x2) ? x2 : x1; }
-  template<class T> constexpr const T& constexpr_min(const T &x1, const T &x2)
-  { return (x1 < x2) ? x1 : x2; }
-
-  // for tag-detection (where we expect std::true_type)
-  template<class T> using is_true_type = std::is_same<std::true_type, T>;
-
+// clang-format off
 #if __cpp_lib_logical_traits >= 201510
-  template<class... Bs> using conjunction = std::conjunction<Bs...>;           //AND
-  template<class... Bs> using disjunction = std::disjunction<Bs...>;           //OR
-  template<class B>     using negation    = std::negation<B>;                  //NOT
+  template <class... Bs> using conjunction = std::conjunction<Bs...>;  // AND
+  template <class... Bs> using disjunction = std::disjunction<Bs...>;  // OR
+  template <class B>     using negation    = std::negation<B>;         // NOT
 #else
   // just implement std::conjunction, disjunction and negation myself:
-  template<class...> struct conjunction     : std::true_type{};
-  template<class B1> struct conjunction<B1> : B1 {};
-  template<class B1,class... Bs> struct conjunction<B1,Bs...>
-    : conditional_t< static_cast<bool>(B1::value), conjunction<Bs...>, B1 > {};
+  template <class...> struct conjunction     : std::true_type {};
+  template <class B1> struct conjunction<B1> : B1 {};
+  template <class B1,class... Bs> struct conjunction<B1,Bs...>
+      : conditional_t<static_cast<bool>(B1::value), conjunction<Bs...>, B1 > {};
 
-  template<class...> struct disjunction     : std::false_type{};
-  template<class B1> struct disjunction<B1> : B1 {};
-  template<class B1, class... Bs> struct disjunction<B1,Bs...>
-    : conditional_t< static_cast<bool>(B1::value), B1, disjunction<Bs...> > {};
+  template <class...> struct disjunction     : std::false_type {};
+  template <class B1> struct disjunction<B1> : B1 {};
+  template <class B1, class... Bs> struct disjunction<B1,Bs...>
+      : conditional_t<static_cast<bool>(B1::value), B1, disjunction<Bs...>> {};
 
-  template<class B> struct negation : bool_constant<!static_cast<bool>(B::value)>{};
+  template <class B> struct negation : bool_constant<!static_cast<bool>(B::value)> {};
 #endif
 
+// clang-format on
+
+// clang-format off
+
 #if __cpp_lib_integer_sequence >= 201304
-// index_sequence<size_t... Ints> and friends are aliases for integer_sequence<size_t, Ints...>
-// (i.e. integer_sequence with type std::size_t). Look up std::integer_sequence if you cannot
-// find std::index_sequence
-  template<std::size_t... Ints> using index_sequence      = std::index_sequence<Ints...>;
-  template<std::size_t N>       using make_index_sequence = std::make_index_sequence<N>;
-  template<class... T>          using index_sequence_for  = std::index_sequence_for<T...>;
+  // index_sequence<size_t... Ints> and friends are aliases for integer_sequence<size_t, Ints...>
+  // (i.e. integer_sequence with type std::size_t). Look up std::integer_sequence if you cannot
+  // find std::index_sequence
+  template <std::size_t... Ints> using index_sequence      = std::index_sequence<Ints...>;
+  template <std::size_t N>       using make_index_sequence = std::make_index_sequence<N>;
+  template <class... T>          using index_sequence_for  = std::index_sequence_for<T...>;
 #else
-  template<std::size_t... Ints> class index_sequence
+  template <std::size_t... Ints> class index_sequence
   {
   public:
     static constexpr std::size_t size() noexcept { return sizeof...(Ints); }
@@ -197,26 +206,34 @@ namespace mystd
   };
   namespace IndexSeqHelper
   {
-  // encapsulates a integer sequence 0,...,N-1, RestArgs
-    template<std::size_t N, std::size_t... RestArgs> struct GenIndexSeq
-        : GenIndexSeq<N - 1,N - 1,RestArgs...> {};
-    template<std::size_t... RestArgs> struct GenIndexSeq<0,RestArgs...>
-    {
-      using type = index_sequence<RestArgs...>;
-    };
-  }
-  template<std::size_t N> using make_index_sequence = typename IndexSeqHelper::GenIndexSeq<N>::type;
-  template<class... T>    using index_sequence_for  = make_index_sequence<sizeof...(T)>;
+  // encapsulates a integer sequence 0, ..., N-1, RestArgs
+  template <std::size_t N, std::size_t... RestArgs>
+  struct GenIndexSeq : GenIndexSeq<N - 1, N - 1, RestArgs...>
+  {
+  };
+  template <std::size_t... RestArgs>
+  struct GenIndexSeq<0, RestArgs...>
+  {
+    using type = index_sequence<RestArgs...>;
+  };
+  }  // end namespace IndexSeqHelper
+  template <std::size_t N> using make_index_sequence = typename IndexSeqHelper::GenIndexSeq<N>::type;
+  template <class... T>    using index_sequence_for  = make_index_sequence<sizeof...(T)>;
 #endif
+
+// clang-format on
 
 // void_t takes any number of arguments and ignores them.
 // The point is that arguments have to be valid (to be used in SFINAE contexts).
 // This is seemingly trivial, but actually extremely useful.
+
+// clang-format off
 #if __cpp_lib_void_t >= 201411
-  template<class... Args> using void_t = std::void_t<Args...>;
+  template <class... Args> using void_t = std::void_t<Args...>;
 #else
-  template<class... Args> using void_t = void;
+  template <class... Args> using void_t = void;
 #endif
+// clang-format on
 
 // std::experimental::*_detected_* - features.
 // Part of Library fundamentals V2 TS.
@@ -224,18 +241,19 @@ namespace mystd
 // Used for traits checking (More elegant than the old macros)
 // Taken from http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4502.pdf
 
+// clang-format off
 #if __cpp_lib_experimental_detect >= 201505
 
   using nonesuch = std::experimental::nonesuch;
 
-  template<template<class...> class Op, class... Args>
-  using is_detected = std::experimental::is_detected<Op,Args...>;
+  template <template<class...> class Op, class... Args>
+  using is_detected = std::experimental::is_detected<Op, Args...>;
 
   template<template<class...> class Op, class... Args>
-  using detected_t  = std::experimental::detected_t <Op,Args...>;
+  using detected_t  = std::experimental::detected_t<Op, Args...>;
 
   template<class Default, template<class...> class Op, class... Args>
-  using detected_or   = std::experimental::detected_or<Default,Op,Args...>;
+  using detected_or = std::experimental::detected_or<Default, Op, Args...>;
 
   template<class Default, template<class...> class Op, class... Args>
   using detected_or_t = std::experimental::detected_or_t<Default,Op,Args...>;
@@ -252,8 +270,8 @@ namespace mystd
 
   namespace detection_impl
   {
-    template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
-    struct detector
+  template <class Default, class AlwaysVoid, template<class...> class Op, class... Args>
+  struct detector
   {
     using value_t = std::false_type;
     using type    = Default;
@@ -265,25 +283,25 @@ namespace mystd
     using value_t = std::true_type;
     using type    = Op<Args...>;
   };
-  } // end namespace detection_impl
+  }  // end namespace detection_impl
 
   template<template<class...> class Op, class... Args>
-  using is_detected = typename detection_impl::detector<void, void, Op, Args...>::value_t;
+  using is_detected   = typename detection_impl::detector<void, void, Op, Args...>::value_t;
 
   template<template<class...> class Op, class... Args>
-  using detected_t  = typename detection_impl::detector<mystd::nonesuch, void, Op, Args...>::type;
+  using detected_t    = typename detection_impl::detector<mystd::nonesuch, void, Op, Args...>::type;
 
   template<class Default, template<class...> class Op, class... Args>
-  using detected_or = typename detection_impl::detector<Default, void, Op, Args...>;
+  using detected_or   = typename detection_impl::detector<Default, void, Op, Args...>;
 
   template<class Default, template<class...> class Op, class... Args>
   using detected_or_t = typename detected_or<Default, Op, Args...>::type;
 
 #endif  // __cpp_lib_experimental_detect >= 201505
 
+// clang-format on
+
 }  // end namespace mystd
 }  // end namespace GaussSieve
 
-#endif
-
-// clang-format on
+#endif  // include-guards

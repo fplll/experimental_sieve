@@ -6,9 +6,6 @@
 #ifndef DEBUG_ALL_H
 #define DEBUG_ALL_H
 
-// clang-format kills the indenting for #defines, which does not help here.
-// clang-format off
-
 /**
   We recognize the following debug symbols:
   DEBUG_SIEVE_SILENT_ALL
@@ -71,6 +68,9 @@
 
 //#define DEBUG_SIEVE_LAZY_ALL
 
+// clang-format kills the indentation for #defines, which does not help here.
+// clang-format off
+
 
 #ifdef DEBUG_SIEVE_SILENT_ALL
   #define DEBUG_SIEVE_LP_INIT
@@ -86,12 +86,10 @@
   #define DEBUG_SIEVE_STANDALONE_QUEUE
 #endif
 
-
 #ifdef DEBUG_SIEVE_LAZY_ALL
   #define DEBUG_SIEVE_LAZY_TRACE_CONSTRUCTIONS
   #define DEBUG_SIEVE_LAZY_TRACE_EVALS
 #endif
-
 
 // Outputs late-initializations of modules from GaussSieve
 //#define DEBUG_SIEVE_INITIALIZATIONS
@@ -101,7 +99,6 @@
 #else
   #define DEBUG_SIEVE_TRACEINITIATLIZATIONS(STR)
 #endif
-
 
 #ifdef DEBUG_SIEVE_LP_TRACEGENERIC
   #define (STR) std::cout << STR << std::endl << std::flush;

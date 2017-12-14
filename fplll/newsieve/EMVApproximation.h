@@ -1,3 +1,5 @@
+#warning This file is not supposed to be used at the moment
+
 #ifndef EMV_APPROXIMATION_H
 #define EMV_APPROXIMATION_H
 
@@ -32,7 +34,7 @@
 namespace GaussSieve
 {
 
-template<int nfixed> class EMVApproximation;
+template <int nfixed> class EMVApproximation;
 class EMVApproximationTraits;
 class EMVScalar;
 
@@ -70,59 +72,75 @@ public:
 
   int exponent;
   MantissaType mantissa;
-  inline double get_double() const  { return std::ldexp(mantissa, exponent); }
-  explicit operator double()        { return std::ldexp(mantissa, exponent); }
-  explicit operator float()         { return std::ldexp(mantissa, exponent); }
+  // clang-format off
+  inline double get_double() const { return std::ldexp(mantissa, exponent); }
+  explicit operator double()       { return std::ldexp(mantissa, exponent); }
+  explicit operator float()        { return std::ldexp(mantissa, exponent); }
+  // clang-format on
 
   // constructors
   constexpr explicit EMVScalar(int const new_exponent, MantissaType const new_mantissa)
-      : exponent(new_exponent), mantissa(new_mantissa) {};
+      : exponent(new_exponent), mantissa(new_mantissa){};
   // default copy constructors (they are automatic anyway)
   // constexpr EMVScalar(EMVScalar const &) = default;
   // EMVScalar(EMVScalar &&) = default;
 
   // construct from integral or floating type
-  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   explicit EMVScalar(Integer const source_arithmetic);
 
-  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
+  template <class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   explicit EMVScalar(FloatType source_float);
 
   explicit EMVScalar(mpz_class const &source_mpz);
 
   constexpr EMVScalar operator-() const & { return EMVScalar{exponent, -mantissa}; }
-  EMVScalar operator-() &&      { mantissa = -mantissa; return *this;    }
+  EMVScalar operator-() &&
+  {
+    mantissa = -mantissa;
+    return *this;
+  }
 
-  // TODO: Return value of operators
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-  inline void operator>>=(Integer const &shift) { exponent -= shift; }
+  // TODO: Return value of operators does not adhere usual conventions.
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline void operator>>=(Integer const &shift)
+  {
+    exponent -= shift;
+  }
 
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
-  inline void operator<<=(Integer const &shift) { exponent += shift; }
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  inline void operator<<=(Integer const &shift)
+  {
+    exponent += shift;
+  }
 
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator>>(Integer const &shift) const &
   {
-    EMVScalar retval{*this}; retval >>= shift; return retval;
+    EMVScalar retval{*this};
+    retval >>= shift;
+    return retval;
   }
 
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator>>(Integer const &shift) &&
   {
-    (*this) >>= shift; return *this;
+    (*this) >>= shift;
+    return *this;
   }
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator<<(Integer const &shift) const &
   {
-    EMVScalar retval{*this}; retval <<= shift; return retval;
+    EMVScalar retval{*this};
+    retval <<= shift;
+    return retval;
   }
-  template<class Integer,TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   inline EMVScalar operator<<(Integer const &shift) &&
   {
-    (*this) <<= shift; return *this;
+    (*this) <<= shift;
+    return *this;
   }
-
-
 
   inline friend EMVScalar abs(EMVScalar const &arg)
   {
@@ -136,34 +154,36 @@ public:
     return arg;
   }
 
-
   // helper functions: included as static functions tied to the class:
 
   // get_exponent(source) Returns an exponent, such that source = 2^exponent * x,
   // where 1/2 - eps <= |x| < 1.
   // (eps > 0 is a small error term that only occurs due to numerical issues in the current
   // for Integral source.)
-  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   static signed int get_exponent(Integer const source_int);
-  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
+  template <class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static signed int get_exponent(FloatType const source_float);
   static signed int get_exponent(mpz_class const &source_mpz);
 
   // divides by 2^exp. In the integer and mpz_class version, we assume that exp is positive
-  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   constexpr static Integer divide_by_power_of_2(Integer const source_int, unsigned int exponent);
-  template<class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
+  template <class FloatType, TEMPL_RESTRICT_DECL2(std::is_floating_point<FloatType>)>
   static FloatType divide_by_power_of_2(FloatType const source_float, int exponent);
   static mpz_class divide_by_power_of_2(mpz_class const &source_mpz, unsigned int exponent);
 };
 
+// clang-format off
 #define FOR_FIXED_DIM    template<int dummy_nfixed = nfixed, TEMPL_RESTRICT_DECL(dummy_nfixed >= 0)>
 #define FOR_VARIABLE_DIM template<int dummy_nfixed = nfixed, TEMPL_RESTRICT_DECL(dummy_nfixed ==-1)>
+// clang-format on
 
 /************************
 Approximation to a vector
 ************************/
 
+// clang-format off
 template<int nfixed>
 class EMVApproximation
 {
@@ -175,20 +195,22 @@ private:
   using ApproxEntryType = typename EMVApproximationTraits::ApproxEntryType;
   using ApproxNorm2Type = typename EMVApproximationTraits::ApproxNorm2Type;
 
-  using Container = mystd::conditional_t< (nfixed >= 0),
-                        std::array<ApproxEntryType, (nfixed >=0 ? nfixed:0)>,  // if nfixed >= 0
-                        std::vector<ApproxEntryType> >;                        // if nfixed <  0
-
+  using Container = mystd::conditional_t<  (nfixed >= 0),
+                        std::array<ApproxEntryType, (nfixed >= 0 ? nfixed : 0)>,  // if nfixed >= 0
+                        std::vector<ApproxEntryType>  >;                          // if nfixed <  0
+  // clang-format on
 public:
-  template<class LatticePoint, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>)>
+  template <class LatticePoint, TEMPL_RESTRICT_DECL2(IsALatticePoint<LatticePoint>)>
   explicit EMVApproximation(LatticePoint const &exact_point);
 
-  EMVApproximation() = delete;
-  EMVApproximation(EMVApproximation const &) = delete;
-  EMVApproximation(EMVApproximation && ) = default;
-  EMVApproximation& operator=(EMVApproximation const &) = delete;
-  EMVApproximation& operator=(EMVApproximation &&) = default;
-  ~EMVApproximation() {};
+  // clang-format off
+  EMVApproximation()                         		= delete;
+  EMVApproximation(EMVApproximation const &) 		= delete;
+  EMVApproximation(EMVApproximation &&)      		= default;
+  EMVApproximation &operator=(EMVApproximation const &) = delete;
+  EMVApproximation &operator=(EMVApproximation &&) 	= default;
+  ~EMVApproximation(){};
+  // clang-format on
 
   ApproxEntryType &operator[](uint_fast16_t idx) { return data[idx]; };
   ApproxEntryType const &operator[](uint_fast16_t idx) const { return data[idx]; };
@@ -204,17 +226,20 @@ public:
 
   FOR_VARIABLE_DIM
   inline void reserve_size() { data.reserve(static_cast<typename Container::size_type>(dim)); }
-
-public:  // unsure
-
+  // clang-format off
+public:  // unsure about data members
   signed int exponent;  // shared exponent
   Container data;       // array or vector of 16-bit ints
   // Note: Might want to avoid storing exponent twice.
   EMVScalar get_norm2() const { return approx_norm2; }
+  // clang-format on
 
 private:
   EMVScalar approx_norm2;
-  inline static bool is_class_initialized() { return StaticInitializer<EMVApproximation<nfixed>>::is_initialized(); }
+  inline static bool is_class_initialized()  // checks static initialization
+  {
+    return StaticInitializer<EMVApproximation<nfixed>>::is_initialized();
+  }
   static MaybeFixed<nfixed> dim;  // dimension of data
   static unsigned int max_bits;   // maximum number of bits inside each entry.
                                   // This depends on the bitlenght of both ApproxEntryType
@@ -222,18 +247,24 @@ private:
 };
 
 // initialization of static data of template class.
-template<int nfixed> MaybeFixed<nfixed> EMVApproximation<nfixed>::dim = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
-template<int nfixed> unsigned int EMVApproximation<nfixed>::max_bits  = 0;
+// clang-format off
+template<int nfixed> MaybeFixed<nfixed> EMVApproximation<nfixed>::dim      = MaybeFixed<nfixed>(nfixed < 0 ? 0 : nfixed);
+template<int nfixed> unsigned int       EMVApproximation<nfixed>::max_bits = 0;
+// clang-format on
 
 // Static Initializer:
-template<int nfixed> class StaticInitializer< EMVApproximation<nfixed> >
-    : public DefaultStaticInitializer< EMVApproximation<nfixed> >
+template <int nfixed>
+class StaticInitializer<EMVApproximation<nfixed>> final
+    : public DefaultStaticInitializer<EMVApproximation<nfixed>>
 {
 public:
-  using Parent = DefaultStaticInitializer< EMVApproximation<nfixed> >;
+  using Parent = DefaultStaticInitializer<EMVApproximation<nfixed>>;
 
-  template<class X, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  StaticInitializer(X const & init_arg) : StaticInitializer(init_arg.dim) {}
+  // clang-format off
+  template <class InitArg, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<InitArg>)>
+  StaticInitializer(InitArg const &init_arg)
+      : StaticInitializer(init_arg.dim) {}
+  // clang-format on
 
   StaticInitializer(MaybeFixed<nfixed> const new_dim)
   {
@@ -241,32 +272,34 @@ public:
     assert(Parent::user_count > 0);
     if (Parent::user_count > 1)
     {
-      assert((new_dim == EMVApproximation<nfixed>::dim)); // TODO: Throw exception!
+      assert((new_dim == EMVApproximation<nfixed>::dim));  // TODO: Throw exception!
     }
     else
     {
       EMVApproximation<nfixed>::dim = new_dim;
-
-      static_assert (std::numeric_limits<typename EMVApproximationTraits::ApproxEntryType>::is_specialized, "bad ApproxType");
-      static_assert (std::numeric_limits<typename EMVApproximationTraits::ApproxNorm2Type>::is_specialized, "bad ApproxTypeNorm2");
+      // clang-format off
+      static_assert(std::numeric_limits<typename EMVApproximationTraits::ApproxEntryType>::is_specialized, "bad ApproxType");
+      static_assert(std::numeric_limits<typename EMVApproximationTraits::ApproxNorm2Type>::is_specialized, "bad ApproxTypeNorm2");
 
       unsigned int constexpr entry_digits  = std::numeric_limits<typename EMVApproximationTraits::ApproxEntryType>::digits;
       unsigned int constexpr result_digits = std::numeric_limits<typename EMVApproximationTraits::ApproxNorm2Type>::digits;
+      // clang-format on
 
       // We need to ensure that (2^max_bits - 1)^2 * dim <= 2^result_digits
       // and max_bits <= entry_digits
       // in order to avoid overflows.
-      unsigned int const extra_bits  = std::floor(std::log2(static_cast<int>(new_dim)));
-      assert(result_digits - extra_bits>=0);
-      EMVApproximation<nfixed>::max_bits = std::min(entry_digits, static_cast<unsigned int>(( result_digits - extra_bits) / 2) ) ;
+      // TODO: Use const-expr-compatible computation (Note std::min is not in C++11)
+      unsigned int const extra_bits = std::floor(std::log2(static_cast<int>(new_dim)));
+      assert(result_digits - extra_bits >= 0);
+      EMVApproximation<nfixed>::max_bits =
+          std::min(entry_digits, static_cast<unsigned int>((result_digits - extra_bits) / 2));
     }
   }
 
   ~StaticInitializer() {}
 
-  inline static bool is_initialized(){ return Parent::user_count > 0; }; // Does an object exist?
+  inline static bool is_initialized() { return Parent::user_count > 0; };  // Does an object exist?
 };
-
 
 /*******************
  * Implementations *
@@ -278,7 +311,7 @@ public:
 
 // static helper functions.
 
-template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
+template <class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 signed int EMVScalar::get_exponent(Integer const source_int)
 {
   static_assert(std::numeric_limits<Integer>::radix == 2, "Should never happen");
@@ -287,12 +320,12 @@ signed int EMVScalar::get_exponent(Integer const source_int)
   // Alas, there is no easy, fast and portable way to obtain the (signed) msb in c++ (c++17, even!)
   // If this is time-critical, consider __builtin's (Clang and gcc offer them for this!)
 
-  // The issue with rounding is that if source_int is a 64 bit long slightly smaller than a large power of 2,
-  // then the result is too large.
+  // The issue with rounding is that if source_int is a 64 bit long slightly smaller than a large
+  // power of 2, then the result is too large.
   return ret;
 }
 
-template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
+template <class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 signed int EMVScalar::get_exponent(FloatType const source_float)
 {
   signed int ret;
@@ -302,18 +335,18 @@ signed int EMVScalar::get_exponent(FloatType const source_float)
 
 signed int EMVScalar::get_exponent(mpz_class const &source_mpz)
 {
-  long ret; // mpz_get_d_2exp requires long
+  long ret;  // mpz_get_d_2exp requires long
   mpz_get_d_2exp(&ret, source_mpz.get_mpz_t());
   return ret;
 }
 
-template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
+template <class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 constexpr Integer EMVScalar::divide_by_power_of_2(Integer const source_int, unsigned int exponent)
 {
-  return source_int / (1 << exponent); // Note: We don't right-shift source_int, because it might be
-                                     // negative
+  return source_int / (1 << exponent);  // Note: We don't right-shift source_int, because it
+                                        // might be negative
 }
-template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
+template <class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 FloatType EMVScalar::divide_by_power_of_2(FloatType const source_float, int exponent)
 {
   return std::ldexp(source_float, -exponent);
@@ -326,10 +359,9 @@ mpz_class EMVScalar::divide_by_power_of_2(mpz_class const &source_mpz, unsigned 
   return ret;
 }
 
-
 // constructors of EMVScalar
 
-template<class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
+template <class Integer, TEMPL_RESTRICT_IMPL2(std::is_integral<Integer>)>
 EMVScalar::EMVScalar(Integer const source_integer)
 {
   static_assert(std::numeric_limits<Integer>::radix == 2, "Should never happen");
@@ -344,12 +376,13 @@ EMVScalar::EMVScalar(Integer const source_integer)
   }
   else
   {
+    // clang-format off
     // inefficient, but works:
-    bool const sign = (source_integer < 0);
-    typename std::make_unsigned<Integer>::type tmp = sign ? -source_integer : source_integer;
-//    assert(tmp >=0);
+    bool const                               sign = (source_integer < 0);
+    typename mystd::make_unsigned_t<Integer> tmp  = sign ? -source_integer : source_integer;
+    // clang-format on
     exponent = 0;
-    while (tmp > (std::numeric_limits<MantissaType>::max()) )
+    while (tmp > (std::numeric_limits<MantissaType>::max()))
     {
       ++exponent;
       tmp >>= 1;
@@ -358,7 +391,7 @@ EMVScalar::EMVScalar(Integer const source_integer)
   }
 }
 
-template<class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
+template <class FloatType, TEMPL_RESTRICT_IMPL2(std::is_floating_point<FloatType>)>
 EMVScalar::EMVScalar(FloatType source_float)
 {
   // This is probably slow...
@@ -366,27 +399,29 @@ EMVScalar::EMVScalar(FloatType source_float)
   static_assert(std::numeric_limits<MantissaType>::radix == 2, "Should never happen");
   constexpr int mantissa_digits = std::numeric_limits<MantissaType>::digits;
 
-  source_float = std::frexp(source_float, &exponent); // This means that 2^exponent * source_float stores the correct value and abs(source_float) is in [1/2,1)
+  // The following means that 2^exponent * source_float stores the correct value and
+  // abs(source_float) is in the range [1/2,1)
+  source_float = std::frexp(source_float, &exponent);
 
   source_float = std::ldexp(source_float, mantissa_digits);
   exponent -= mantissa_digits;
   // 2^exponent * mantissa is still correct.
-  mantissa = std::trunc(source_float); // Note : Rounding towards zero is required to prevent overflow in corner cases.
+  mantissa = std::trunc(source_float);  // Note : Rounding towards zero is required to prevent
+                                        // overflow in corner cases.
 }
 
-EMVScalar::EMVScalar(mpz_class const & source_mpz)
+EMVScalar::EMVScalar(mpz_class const &source_mpz)
 {
   static_assert(std::numeric_limits<MantissaType>::radix == 2, "Should never happen");
   constexpr int mantissa_digits = std::numeric_limits<MantissaType>::digits;
 
-
   // This is equivalent to source_float  = std::frexp(source_float, & exponent) above:
   long tmp_exponent;
   double source_float = mpz_get_d_2exp(&tmp_exponent, source_mpz.get_mpz_t());
-  exponent = tmp_exponent; // convert to int.
+  exponent            = tmp_exponent;  // convert to int.
 
   exponent -= mantissa_digits;
-  mantissa = std::trunc( std::ldexp(source_float, mantissa_digits) );
+  mantissa = std::trunc(std::ldexp(source_float, mantissa_digits));
 }
 
 /*************************************
@@ -395,10 +430,10 @@ Non-member functions:
 
 // comparison operators
 
-inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
+inline bool operator<(EMVScalar const &lhs, EMVScalar const &rhs)
 {
-// We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
-// The following works, but might need improvement:
+  // We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
+  // The following works, but might need improvement:
 
   if (lhs.exponent > rhs.exponent)
   {
@@ -410,90 +445,87 @@ inline bool operator< (EMVScalar const & lhs, EMVScalar const & rhs)
   }
 }
 
-inline bool operator<= (EMVScalar const & lhs, EMVScalar const & rhs)
-  {
-    // We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
-    // The following works, but might need improvement:
+inline bool operator<=(EMVScalar const &lhs, EMVScalar const &rhs)
+{
+  // We compare 2^lhs.exponent * mantissa < 2^rhs.exponent * mantissa
+  // The following works, but might need improvement:
 
-    if (lhs.exponent > rhs.exponent)
-    {
-      return lhs.mantissa <= (rhs.mantissa >> (lhs.exponent - rhs.exponent));
-    }
-    else
-    {
-      return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) <= rhs.mantissa;
-    }
+  if (lhs.exponent > rhs.exponent)
+  {
+    return lhs.mantissa <= (rhs.mantissa >> (lhs.exponent - rhs.exponent));
+  }
+  else
+  {
+    return (lhs.mantissa >> (rhs.exponent - lhs.exponent)) <= rhs.mantissa;
+  }
 }
 
 // other cases forward to the two cases above, possibly after conversion:
 
-template<class T, TEMPL_RESTRICT_DECL( !(std::is_same<mystd::decay_t<T>,EMVScalar>::value) )>
-inline bool operator< (EMVScalar const & lhs, T &&rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator<(EMVScalar const &lhs, T &&rhs)
 {
-  return lhs <  static_cast<EMVScalar>(std::forward<T>(rhs));
+  return lhs < static_cast<EMVScalar>(std::forward<T>(rhs));
 }
 
-template<class T, TEMPL_RESTRICT_DECL( !(std::is_same<mystd::decay_t<T>,EMVScalar>::value) )>
-inline bool operator<= (EMVScalar const & lhs, T &&rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator<=(EMVScalar const &lhs, T &&rhs)
 {
-  return lhs <=  static_cast<EMVScalar>(std::forward<T>(rhs));
+  return lhs <= static_cast<EMVScalar>(std::forward<T>(rhs));
 }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator< (T &&lhs, EMVScalar const &rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator<(T &&lhs, EMVScalar const &rhs)
 {
   return static_cast<EMVScalar>(std::forward<T>(lhs)) < rhs;
 }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator<= (T &&lhs, EMVScalar const &rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator<=(T &&lhs, EMVScalar const &rhs)
 {
   return static_cast<EMVScalar>(std::forward<T>(lhs)) <= rhs;
 }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator> (EMVScalar const& lhs, T &&rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator>(EMVScalar const &lhs, T &&rhs)
 {
   return std::forward<T>(rhs) < lhs;
 }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator> (T &&lhs, EMVScalar const &rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator>(T &&lhs, EMVScalar const &rhs)
 {
   return rhs < std::forward<T>(lhs);
 }
 
-inline bool operator> (EMVScalar const &lhs, EMVScalar const rhs)
-{
-  return rhs < lhs;
-}
+inline bool operator>(EMVScalar const &lhs, EMVScalar const rhs) { return rhs < lhs; }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator>= (EMVScalar const &lhs, T &&rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator>=(EMVScalar const &lhs, T &&rhs)
 {
   return std::forward<T>(rhs) <= lhs;
 }
 
-template<class T, TEMPL_RESTRICT_DECL(! (std::is_same<mystd::decay_t<T>,EMVScalar>::value))>
-inline bool operator>= (T &&lhs, EMVScalar const &rhs)
+template <class T, TEMPL_RESTRICT_DECL(!(std::is_same<mystd::decay_t<T>, EMVScalar>::value))>
+inline bool operator>=(T &&lhs, EMVScalar const &rhs)
 {
   return rhs <= std::forward<T>(lhs);
 }
 
-inline bool operator>= (EMVScalar const &lhs, EMVScalar const rhs)
+// clang-format off
+inline bool operator>=(EMVScalar const &lhs, EMVScalar const rhs)
 {
   return rhs <= lhs;
 }
-
+// clang-format on
 
 // output of EMVScalars
 
-inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated_number)
+inline std::ostream &operator<<(std::ostream &os, EMVScalar const &approximated_number)
 {
   os << approximated_number.mantissa << "x2^" << approximated_number.exponent;
   return os;
 }
-
 
 /**
   EMVApproximation implementation
@@ -501,22 +533,24 @@ inline std::ostream & operator<<(std::ostream &os, EMVScalar const &approximated
 
 // Constructor:
 
-template<int nfixed>
-template<class LatticePoint, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatticePoint>)>
+// clang-format off
+template <int nfixed>
+template <class LatticePoint, TEMPL_RESTRICT_IMPL2(IsALatticePoint<LatticePoint>)>
 EMVApproximation<nfixed>::EMVApproximation(LatticePoint const &exact_point)
     : exponent(0),
       data(),
-      approx_norm2( static_cast<EMVScalar>(exact_point.get_norm2()) )
+      approx_norm2(static_cast<EMVScalar>(exact_point.get_norm2()))
 {
   // TODO: static_assert() Traits for LatticePoint?
+  // clang-format on
   reserve_size();
   auto const dimension = get_dim();
 #ifdef DEBUG_SIEVE_LP_MATCHDIM
-  assert(dimension == exact_point.get_dim() );
+  assert(dimension == exact_point.get_dim());
 //  assert(dimension == exact_point.get_internal_rep_size() );
 #endif
 #ifdef DEBUG_SIEVE_LP_INIT
-  assert(is_class_initialized() );
+  assert(is_class_initialized());
 #endif
   using AbsoluteCooType = Get_AbsoluteCooType<LatticePoint>;
   using std::abs;
@@ -524,21 +558,23 @@ EMVApproximation<nfixed>::EMVApproximation(LatticePoint const &exact_point)
   AbsoluteCooType max_entry = 0;
   for (uint_fast16_t i = 0; i < dimension; ++i)
   {
-    // The static_cast<CooType> is there to disable lazy evaluation (via expression templates) done
-    // in mpz_class. The issue is that this confuses template argument deduction for std::max.
-    max_entry = std::max(max_entry, static_cast<AbsoluteCooType>(abs(exact_point.get_absolute_coo(i) )) );
+    // clang-format off
+    // The static_cast<AbsoluteCooType> is there to disable lazy evaluation (via expression templates)
+    // done inside mpz_class. The issue is that this confuses template argument deduction for std::max.
+    max_entry = std::max(max_entry, static_cast<AbsoluteCooType>(abs(exact_point.get_absolute_coo(i))));
+    // clang-format on
   }
 
-  if( max_entry == 0 )
+  if (max_entry == 0)
   {
     exponent = 0;
-    for(uint_fast16_t i = 0; i < dimension; ++i)
+    for (uint_fast16_t i = 0; i < dimension; ++i)
     {
       data[i] = 0;
     }
-    //std::cerr << "Warning: approximating all-zero vector." << std::endl; // TODO : Remove
+    // std::cerr << "Warning: approximating all-zero vector." << std::endl; // TODO : Remove
   }
-  else // max_entry !=0
+  else  // max_entry !=0
   {
     exponent = EMVScalar::get_exponent(max_entry) - max_bits;
 
@@ -554,23 +590,24 @@ EMVApproximation<nfixed>::EMVApproximation(LatticePoint const &exact_point)
     for (uint_fast16_t i = 0; i < dimension; ++i)
     {
       data[i] = ConvertMaybeMPZ<ApproxEntryType>::convert_to_inttype(
-            EMVScalar::divide_by_power_of_2(exact_point.get_absolute_coo(i),exponent) );
+          EMVScalar::divide_by_power_of_2(exact_point.get_absolute_coo(i), exponent));
     }
   }
 }
 
 // actual scalar product
 
-template<int nfixed>
-inline auto compute_sc_product(EMVApproximation<nfixed> const &lhs, EMVApproximation<nfixed> const &rhs)
-    -> EMVScalar
+template <int nfixed>
+inline auto compute_sc_product(EMVApproximation<nfixed> const &lhs,
+                               EMVApproximation<nfixed> const &rhs) -> EMVScalar
 {
-  static_assert(std::is_same< EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType >::value, "");
+  static_assert(
+      std::is_same<EMVScalar, typename EMVApproximation<nfixed>::ScalarProductType>::value, "");
 
   using ProductType = typename EMVApproximationTraits::ApproxNorm2Type;
 
-  ProductType scp =0;
-  auto const dim = rhs.get_dim();
+  ProductType scp = 0;
+  auto const dim  = rhs.get_dim();
   for (uint_fast16_t i = 0; i < dim; ++i)
   {
     scp += lhs[i] * rhs[i];
@@ -580,16 +617,17 @@ inline auto compute_sc_product(EMVApproximation<nfixed> const &lhs, EMVApproxima
 
 // output
 
-template<int nfixed>
-inline std::ostream & operator<<(std::ostream &os, EMVApproximation<nfixed> const &approximated_vector)
+template <int nfixed>
+inline std::ostream &operator<<(std::ostream &os,
+                                EMVApproximation<nfixed> const &approximated_vector)
 {
-  os << "Approximation :2^" << approximated_vector.exponent <<" x [";
+  os << "Approximation :2^" << approximated_vector.exponent << " x [";
   auto const dim = approximated_vector.get_dim();
   for (uint_fast16_t i = 0; i < dim; ++i)
   {
     os << approximated_vector.data[i] << " ";
   }
-  os << "]"; // std::endl by caller;
+  os << "]";  // std::endl by caller;
   return os;
 }
 

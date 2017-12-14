@@ -103,10 +103,12 @@ namespace GaussSieve
 
 namespace TraitHelpers
 {
-template<class T> using Predicate_StaticInitializerArg =
-    mystd::enable_if_t<mystd::is_true_type<typename T::StaticInitializerArgTag>::value>;
-template<class T> using Predicate_DefaultStaticInitializer =
-    mystd::enable_if_t<mystd::is_true_type<typename T::HasDefaultStaticInitializer>::value>;
+// T::StaticInitializerArgTag / T::HasDefaultStaticInitializer should equal std::true_type
+// (or similar), hence the ::value. Note that we can get SFINAEd substitution failure in two ways:
+// Either T::StaticInitializerArgTag / T::HasDefaultStaticInitializer might not exists or
+// ::value might not be true and enable_if_t causes SFINAE.
+template<class T> using Predicate_StaticInitializerArg     = mystd::enable_if_t<T::StaticInitializerArgTag::value>;
+template<class T> using Predicate_DefaultStaticInitializer = mystd::enable_if_t<T::HasDefaultStaticInitializer::value>;
 }
 template<class T> using IsArgForStaticInitializer =
     mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg, T>;
