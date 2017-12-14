@@ -64,8 +64,16 @@ class DefaultSieveTraits
 
   using DimensionType           = MaybeFixed<nfixed>;
 
+#if defined(OVERRIDE_SIM_HASH_LEN)
+  static std::size_t constexpr sim_hash_len = OVERRIDE_SIM_HASH_LEN;  // number of bits per simhash block
+#else
   static std::size_t constexpr sim_hash_len = 64;  // number of bits per simhash block
+#endif
+#if defined(OVERRIDE_SIM_HASH_NUM)
+  static std::size_t constexpr sim_hash_num = OVERRIDE_SIM_HASH_NUM;   // number of simhash blocks/levels per vector
+#else
   static std::size_t constexpr sim_hash_num = 2;   // number of simhash blocks/levels per vector
+#endif
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
   using CoordinateSelectionUsed = BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType>;
@@ -108,10 +116,10 @@ class DefaultSieveTraits
   // for 3-sieve: outer loop
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-3, 64-6}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3, 64+6}};
-  
+
   // for 3-sieve: FilteredList is implemented as vector
   // we reserve filtered_list_size_max inside for its length
-  
+
   constexpr static int filtered_list_size_max = 500;
 
   // for 3-sieve exact check, squared, normalized

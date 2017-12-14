@@ -31,9 +31,10 @@ namespace GaussSieve
 
 // Cf. ExacLatticePoint.h for an example of how a concrete specialization is supposed to look like.
 
-template<class LatticePoint> struct LatticePointTraits
+template <class LatticePoint> struct LatticePointTraits
 {
 public:
+  // clang-format off
   using Invalid = std::true_type;  // do not set this at all in an specialization.
   LatticePointTraits(...) = delete;
   // static_assert(false) is invalid due to subtleties of C++, even if it may work on some compilers
@@ -57,7 +58,7 @@ public:
 
   using Trait_ApproxLevel = std::integral_constant<unsigned int, 0>;
   using Trait_Leveled                       = std::false_type;
-
+  // clang-format on
 };
 
 /**
@@ -71,9 +72,10 @@ public:
 
   TODO: Implications between traits may not be up-to-date (both in documentation and in code)
 
-  ScalarProductStorageType: A type that can hold the result of a scalar product computation. Mandatory.
-                           Note that the result from a scalar product computation might actually differ.
-                           (due to delayed evaluation)
+  ScalarProductStorageType: A type that can hold the result of a scalar product computation.
+                            THIS TRAIT IS MANDATORY.
+                            Note that the result from a scalar product computation might actually
+                            differ. (due to delayed evaluation)
 
   ScalarProductStorageType_Full:  A type that can hold the result of a scalar product computation.
                                   In case the Point has approximations, will contain an approximate
@@ -95,7 +97,8 @@ public:
   ExposesInternalRep :  Indicates that get_internal_rep(i), get_internal_rep_size() exist.
                         get_internal_rep(i) may be read for 0<= i < get_internal_rep_size().
                         We are guaranteed that these entries determine the point.
-                        implied by InternalRepVector_R, InternalRepVector_RW, InternalRepByCoos, InternalRepIsAbsolute
+                        implied by InternalRepVector_R, InternalRepVector_RW, InternalRepByCoos,
+                        InternalRepIsAbsolute
 
   RepCooType      : return type of get_internal_rep (if available)
                     defaults to CoordinateType
@@ -121,7 +124,7 @@ public:
               This gives the following promises to the user:
               There are public typedefs:
                   using SimHashBlock (equal to std::bitset<lenght> or compatible)
-                  using SimHashes    (a container of std::bitsets, i.e. sim_hashes[i] is a SimHashBlock)
+                  using SimHashes    (a container of SimHashBlocks)
               There are public member functions:
 
               SimHashBlock [const &] access_bitapproximation(unsigned int level);
@@ -131,10 +134,10 @@ public:
               access_bitapproximation(i) gives const-access to the i'th sim_hash.
               take_bitapproximations() moves the bitapproximations out of the point
               update_bitapprox() recomputes the bitapproximations.
-              NOTE: For efficiency reasons, bitapproximations are NOT recomputed when
-              modifying the point by += etc. It is currently the caller's job to trigger recomputation.
+              NOTE: For efficiency reasons, bitapproximations are NOT recomputed when modifying the
+              point by += etc. It is currently the caller's job to trigger recomputation.
               (The reason is that recomputation is too slow)
-              NOTE: This is subject to change.
+              NOTE: This may be subject to change.
 
   CheapNegate: Set to true_type to indicate that negation needs no sanitize().
 
@@ -157,11 +160,11 @@ public:
                       Use ApproxLevelOf<Some_Class>::value to obtain Some_Class::ApproxLevel
                       (with a default of 0 if Some_Class::ApproxLevel does not exist)
 
-    NOTE: Leveled and ApproxLevel do NOT relate to Bitapproximation.
+  NOTE: Leveled and ApproxLevel do NOT relate to Bitapproximation.
 */
 
 // forward declaration
-template<class Implementation> class GeneralLatticePoint;
+template <class Implementation> class GeneralLatticePoint;
 
 /**
   Trait getters
@@ -178,34 +181,37 @@ template<class Implementation> class GeneralLatticePoint;
 
 // In order to define e.g. Has_CoosRW, we use 3 steps (some traits only require 2):
 // First, we need to give the "map" LatP -> LatticePointTraits<LatP>::Trait_CoosRW a name.
-// I.e. we need to define template<class T> using Predicate_CoosRW = LatticePointTraits<T>::Trait_CoosRW;
-// Second we use (my)std::is_detected to turn this into a "map" T -> true/false. More precisely, we define
+// For this define template<class T> using Predicate_CoosRW = LatticePointTraits<T>::Trait_CoosRW;
+// Second we use (my)std::is_detected to turn this into a "map" T -> true/false.
+// More precisely, we define
 // template<class T> using T_CoosRW = mystd::is_detected<Predicate_CoosRW,T>;
-// (is_detected<Op,Arg1,Arg2,...> equals true_type iff Op<Arg1,Arg2,...> is valid, false_type otherwise).
+// (is_detected<Op,Args,...> equals true_type iff Op<Args,...> is valid, false_type otherwise)
 // Third, we post-process T_CoosRW into the actual Get_CoosRW by taking dependencies into account
-// Notably, if ExposesCoos && InternalRepByCoos && InternalRep_RW are all true, CoosRW is true as well.
+// Notably, if ExposesCoos && InternalRepByCoos && InternalRep_RW are all true, CoosRW is true as
+// well.
 // The intermediate steps 1 and 2 are contained in a helper namespace.
 
 namespace TraitHelpers
 {
 // These are "predicates" expressed as templates Predicate<T> depending on a type T,
 // where Predicate<T> is a valid expression iff the predicate holds true. This is used in SFINAE.
-// With is_detected<Predicate,T>, such a predicate is be turned into std::true_type/std::false_type
-template<class T> using IsTrueType = mystd::enable_if_t< std::is_same<std::true_type,T>::value >;
-template<class T> using LatticePointPredicate = IsTrueType<typename T::LatticePointTag>;
+// With is_detected<Predicate,T>, such a predicate can be turned into std::true_type/std::false_type
+template <class T> using IsTrueType = mystd::enable_if_t<std::is_same<std::true_type, T>::value>;
+template <class T> using LatticePointPredicate = IsTrueType<typename T::LatticePointTag>;
 
 // Declares alias for LatticePointTraits<T>::Trait_TraitName. Required to use is_detected.
-#define GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(TraitName) \
-template<class T> using Obtain_##TraitName = typename LatticePointTraits<T>::Trait_##TraitName
+#define GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(TraitName)                                             \
+  template <class T> using Obtain_##TraitName = typename LatticePointTraits<T>::Trait_##TraitName
 
 // Defines Predicate_TraitName as a check whether Trait_TraitName is set to true_type
-#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName) \
-template<class T> using Predicate_##TraitName= IsTrueType<typename LatticePointTraits<T>::Trait_##TraitName>
+#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName)                                              \
+  template <class T>                                                                               \
+  using Predicate_##TraitName = IsTrueType<typename LatticePointTraits<T>::Trait_##TraitName>
 
 // uses (my)std::is_detected to turn the latter into a true/false T_TraitName
-#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(TraitName) \
-GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName); \
-template<class T> using T_##TraitName = mystd::is_detected<Predicate_##TraitName,T>
+#define GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(TraitName)                                          \
+  GAUSS_SIEVE_BINARY_TRAIT_PREDICATE(TraitName);                                                   \
+  template <class T> using T_##TraitName = mystd::is_detected<Predicate_##TraitName, T>
 
 GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(ExposesCoos);
 GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(Coos_RW);
@@ -223,7 +229,7 @@ GAUSS_SIEVE_BINARY_TRAIT_PREDICATE_GET(BitApprox);
 
 // "Invalid" is set to true_type in the default instantiation of LatticePointTraits. This is used to
 // detect whether we use a specialization.
-template<class T> using Invalid_SieveTrait = IsTrueType<typename LatticePointTraits<T>::Invalid>;
+template <class T> using Invalid_SieveTrait = IsTrueType<typename LatticePointTraits<T>::Invalid>;
 
 // For Get_Trait<LatticePoint>
 GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(ScalarProductStorageType);
@@ -237,14 +243,17 @@ GAUSS_SIEVE_OBTAIN_TRAIT_EXPRESSION(RepCooType);
 #undef GAUSS_SIEVE_BINARY_TRAIT_PREDICATE
 #undef GAUSS_SIEVE_OBTAIN_TRAIT_PREDICATE
 }
-template<class T> using IsALatticePoint                  = mystd::is_detected<TraitHelpers::LatticePointPredicate,T>;
-template<class T> using DeclaresScalarProductStorageType = mystd::is_detected<TraitHelpers::Obtain_ScalarProductStorageType,T>;
-template<class T> using DoesDeclareCoordinateType        = mystd::is_detected<TraitHelpers::Obtain_CoordinateType,T>;
-template<class T> using HasNoLPTraits                    = mystd::is_detected<TraitHelpers::Invalid_SieveTrait,T>;
+// clang-format off
+template<class T> using IsALatticePoint                  = mystd::is_detected<TraitHelpers::LatticePointPredicate, T>;
+template<class T> using DeclaresScalarProductStorageType = mystd::is_detected<TraitHelpers::Obtain_ScalarProductStorageType, T>;
+template<class T> using DoesDeclareCoordinateType        = mystd::is_detected<TraitHelpers::Obtain_CoordinateType, T>;
+template<class T> using HasNoLPTraits                    = mystd::is_detected<TraitHelpers::Invalid_SieveTrait, T>;
+// clang-format on
 
 // Make actual getter for TraitName with a Default:
-#define GAUSS_SIEVE_MAKE_TRAIT_GETTER(TraitName, Default) \
-template<class T> using Get_##TraitName = mystd::detected_or_t<Default, TraitHelpers::Obtain_##TraitName, T>
+#define GAUSS_SIEVE_MAKE_TRAIT_GETTER(TraitName, Default)                                          \
+  template <class T>                                                                               \
+  using Get_##TraitName = mystd::detected_or_t<Default, TraitHelpers::Obtain_##TraitName, T>
 GAUSS_SIEVE_MAKE_TRAIT_GETTER(CoordinateType, void);
 GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType, void);
 GAUSS_SIEVE_MAKE_TRAIT_GETTER(ScalarProductStorageType_Full, Get_ScalarProductStorageType<T>);
@@ -252,7 +261,9 @@ GAUSS_SIEVE_MAKE_TRAIT_GETTER(AbsoluteCooType, Get_CoordinateType<T>);
 GAUSS_SIEVE_MAKE_TRAIT_GETTER(RepCooType, Get_CoordinateType<T>);
 
 // "," in macro argument would cause trouble, so we just write it out:
-template<class T> using Get_ApproxLevel = mystd::detected_or_t< std::integral_constant<unsigned int,0>, TraitHelpers::Obtain_ApproxLevel, T >;
+template <class T>
+using Get_ApproxLevel = mystd::detected_or_t<std::integral_constant<unsigned int, 0>,
+                                             TraitHelpers::Obtain_ApproxLevel, T>;
 
 #undef GAUSS_SIEVE_MAKE_TRAIT_GETTER
 
@@ -263,25 +274,33 @@ template<class T> using Get_ApproxLevel = mystd::detected_or_t< std::integral_co
 // TODO: Ensure that if we use implications to set Has_TraitName to true, then Trait_TraitName
 //       is not manually set to false_type
 
+// Alas, there is no way to format this nicely.
+// We manually make the linebreaks at least internally consistent.
+// clang-format off
 template<class T> using Has_ExposesCoos =
-    mystd::disjunction< TraitHelpers::T_ExposesCoos<T>, TraitHelpers::T_InternalRepByCoos<T>,
+    mystd::disjunction< TraitHelpers::T_ExposesCoos<T>,
+			TraitHelpers::T_InternalRepByCoos<T>,
                         mystd::negation<std::is_void<Get_CoordinateType<T>>>,
-                        TraitHelpers::T_Coos_RW<T>, TraitHelpers::T_AbsoluteCoos<T> >;
+                        TraitHelpers::T_Coos_RW<T>,
+			TraitHelpers::T_AbsoluteCoos<T> >;
 
 template<class T> using Has_Coos_RW =
     mystd::disjunction<  TraitHelpers::T_Coos_RW<T>,
         mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_InternalRep_RW<T> >  >;
 
 template<class T> using Has_ExposesInternalRep =
-    mystd::disjunction< TraitHelpers::T_ExposesInternalRep<T>, TraitHelpers::T_InternalRepLinear<T>,
-                        TraitHelpers::T_InternalRep_RW<T>, TraitHelpers::T_InternalRepByCoos<T>,
+    mystd::disjunction< TraitHelpers::T_ExposesInternalRep<T>,
+			TraitHelpers::T_InternalRepLinear<T>,
+                        TraitHelpers::T_InternalRep_RW<T>,
+			TraitHelpers::T_InternalRepByCoos<T>,
                         TraitHelpers::T_InternalRepIsAbsolute<T> >;
 
 template<class T> using Has_InternalRepLinear = TraitHelpers::T_InternalRepLinear<T>;
 
 template<class T> using Has_InternalRep_RW =
     mystd::disjunction<  TraitHelpers::T_InternalRep_RW<T>,
-        mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>, TraitHelpers::T_Coos_RW<T> >  >;
+        		 mystd::conjunction< TraitHelpers::T_InternalRepByCoos<T>,
+			  		     TraitHelpers::T_Coos_RW<T> >  >;
 
 template<class T> using Has_InternalRepByCoos = TraitHelpers::T_InternalRepByCoos<T>;
 
@@ -308,6 +327,8 @@ Has_InternalRepLinear<LatP>::value && Has_InternalRep_RW<LatP>::value>;
 template<class T> using Obtain_ApproxLevel = std::integral_constant<unsigned int, T::ApproxLevel>;
 template<class T> using ApproxLevelOf =
     mystd::detected_or_t< std::integral_constant<unsigned int,0>, Obtain_ApproxLevel, T >;
+
+// clang-format on
 
 #define IMPL_IS_LATP \
 static_assert(std::is_same<Impl,LatP>::value,"Using template member function with wrong type.")
