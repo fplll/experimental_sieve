@@ -2,6 +2,8 @@
   DefaultTermConds.h
 
   This file provides default and example termination conditions.
+  These inherit from TerminationCondition, declared in TermCondNew.h
+  See that file for an explanation of the interface.
 */
 
 // clang-format: currently adheres to clang-format
@@ -15,14 +17,10 @@
 namespace GaussSieve
 {
 
-// computes a meaningful Minkowski bound for the length of the shortest vector
-// Removed, because it is provided by LatticeBases now.
-// inline fplll::Z_NR<mpz_t> compute_mink_bound(fplll::ZZ_mat<mpz_t> const &basis);
-
 // default Termination Conditions here:
 
 /**
-  This Termination condition never terminates.
+  This Termination condition never triggers.
 */
 
 template <class SieveTraits, bool MT>
@@ -96,7 +94,7 @@ private:
   The length is computed from the basis by a reasonable version of Minkowski's bound.
 
   Currently only works for certain data types of bases.
-  Consider refactoring templates...
+  Consider refactoring template dependencies...
 */
 
 template <class SieveTraits, bool MT>
@@ -108,18 +106,20 @@ public:
   // target_length may be unitialised. We are guaranteed that init() is run before use.
   MinkowskiTerminationCondition() : target_length(){};
 
-  // returns (sieve -> get_best_length2()<=target_length)?1:0;
+  // returns (sieve -> get_best_length2() <= target_length ) ? 1 : 0;
   virtual inline int check(Sieve<SieveTraits, MT> *const sieve) override;
 
   virtual int check_vec(Sieve<SieveTraits, MT> *const sieve, LengthType const &length2) override
   {
     return (length2 <= target_length) ? 1 : 0;
-  };
+  }
   virtual bool is_simple() const override { return true; };
+
+  // serves as run-time type information:
   virtual TerminationConditionType termination_condition_type() const override
   {
     return TerminationConditionType::minkowski_condition;
-  };  // run-time type information.
+  }
   virtual ~MinkowskiTerminationCondition(){};
   inline virtual void init(Sieve<SieveTraits, MT> *const sieve) override;
 

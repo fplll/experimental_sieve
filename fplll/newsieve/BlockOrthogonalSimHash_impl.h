@@ -274,10 +274,7 @@ inline auto BlockOrthogonalSimHash<sim_hash_len, sim_hash_num, MT, DimensionType
     {
       pmatrices[i][j].apply(blocks[i]);
       dmatrices[i][j].apply(blocks[i]);
-      if (j < num_of_transforms - 1)  // on the last iteration, we do not perform a WH - trafo
-      {
-        faster_almost_partial_walsh_hadamard_inplace(blocks[i]);
-      }
+      faster_almost_partial_walsh_hadamard_inplace(blocks[i]);
     }
   }
 

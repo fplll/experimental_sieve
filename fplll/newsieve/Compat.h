@@ -34,15 +34,15 @@
   This is the state-of-the-art in C++11, which is extremely annoying and clutters the code.)
   Unfortunately, to support the fallback to normal if, we cannot use CPP17CONSTEXPRIF that way.
   Instead, CPP17CONSTEXPRIF is supposed to be used for if's that should depend on compile-time
-  expressions in order to trigger compiler errors if this is not the case. Efficiency-wise,
-  there is no difference if the compile is able to elimate if(false){ ... } code (which seems a safe
-  assumption).
+  expressions in order to trigger compiler errors if this is not the case and to document intent.
+  Efficiency-wise, there is no benefit if the compile is able to elimate if(false){ ... } code
+  (which seems a safe assumption).
 */
 
 // Note that undefined symbols in an #if get replaced by 0, so this works even if
 // __cpp_constexpr is not even defined.
 
-// unfortunately, clang-format does not like indendation of nested #ifdefs,
+// unfortunately, clang-format does not like indendation of (nested) #ifdefs,
 // which means it's deactivated 90% of this file.
 // clang-format off
 
@@ -62,26 +62,37 @@
   #define CPP17CONSTEXPRIF if
 #endif
 
+// attributes
+
 #if defined(__has_cpp_attribute)
   #if __has_cpp_attribute(nodiscard)
+    // indicates that return value must not be discarded.
+    // standardized attribute starting from C++17
     #define NODISCARD [[nodiscard]]
   #else
     #define NODISCARD
   #endif
   #if __has_cpp_attribute(gnu::always_inline)
+    // Enforces that the function gets inlined.
+    // Note that we only use it if any reasonable compiler *ought* to inline anyway
+    // (1-line perfect-forward dispatch functions mimicking constexpr if, for example)
+    // The purpose is that we want the compiler to yell at us if it cannot.
+    // relevant for some expression-template constructions, where failure to inline can become very
+    // expensive.
     #define FORCE_INLINE [[gnu::always_inline]]
   #else
     #define FORCE_INLINE
   #endif
 #else
-  // Note: per C++ standard, unrecognized attributes are ignored (it may generate warnings, though)
+  // Note: per C++ standard, unrecognized attributes are ignored (it may generate warnings, though).
+  // This is exactly the behaviour we want.
   // So in case the compiler does not support __has_cpp_attribute, we might also just go ahead and
   // define those as above.
   // Case in point is some clang-versions, which recognize gnu::foo attributes, but do not have
   // __has_cpp_attribute
-  #define NODISCARD
-  #define FORCE_INLINE
-  #warning "Your compiler does support have feature testing for attributes."
+  #define NODISCARD    [[nodiscard]]
+  #define FORCE_INLINE [[gnu::always_inline]]
+  #warning "Compiler does support feature testing for attributes."
 #endif
 
 // clang-format on
@@ -120,11 +131,39 @@
 /**
   NOTE: If you get an compiler error "no type named "type" in std::enable_if<false,int>,
         then you are using TEMPL_RESTRICT_* wrongly. Due to some choices in the C++ standard
-        (to ensure backwards compatibility with certain internal workings of compilers),
         the condition argument(s) to TEMPL_RESTRIC_* must evaluate to true for at least one possible
-        choice of template arguments. In case of template member functions of template classes,
-        this means that for each instantiations of the class (i.e. class template parameters fixed),
-        there has to be a set of template arguments for the function, such that this holds.
+        choice of template arguments.
+
+        In the important case of member functions templates of class templates, this means that for
+        each instantiations of the class (i.e. class template parameters fixed), there has to be a
+        set of template arguments for the function, such that this holds.
+
+        A workaround to use template arguments of the class is as follows:
+        Instead of using
+
+        template<class ClassArg>
+        class Myclass
+        {
+          template<TEMPL_RESTRICT_DECL2(Condition<ClassArg>)> foo()
+          {
+            ...
+          }
+        };
+
+        you need to use
+
+        template<class ClassArg>
+        class Myclass
+        {
+          template<class dummy = ClassArg, TEMPL_RESTRICT_DECL2(Condition<dummy>)> foo ()
+          {
+            // you might want to static_assert(std::is_same<dummy,ClassArg>::value, "");
+            // because the caller might set the dummy template parameter explitly by calling
+            // foo<Bar>()
+            // (If foo has other template paramters as well, there could be a mix-up)
+            ...
+          }
+        };
 */
 
 #define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<condition, int>::type = 0

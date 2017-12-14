@@ -19,8 +19,8 @@
       bottleneck for the 2-sieve, this matters a lot.
 
   We also try to maintain the same interface for the single- and multi-threaded versions.
-  Since this is a bottleneck for the algorithm, we allow somewhat weird interface definitions for
-  the sake of efficiency to some point.
+  Since this is a bottleneck for the algorithm, we allow somewhat weird interface definitions (at
+  least to some extent) for the sake of efficiency.
   NOTE: The interface is NOT stable at all.
 */
 
@@ -40,6 +40,7 @@ template <class SieveTraits, bool MT> class GaussIteratorBitApprox;
 // we directly store an approximation (which is actually exact in most cases) to norm2 in the list
 // nodes. The class storing this should have a fixed size in memory (no dynamic allocation!)
 // and NOT depend on the input data types.
+// Currently, this is not used.
 using SimHashApproxNorm2 = double;
 
 /**
@@ -53,7 +54,7 @@ using SimHashApproxNorm2 = double;
   STNode currently stores an approximation to a point (sim_hashes and an approximation to the norm2)
   and an (owning) pointer to the exact lattice point.
 
-  The class used for the latter pointer is GaussList_StoredPoint (given by SieveTraits), and is
+  The class used for the latter is GaussList_StoredPoint (given by SieveTraits), and is
   supposed NOT to have a bitapproximation.
 */
 
@@ -62,15 +63,20 @@ namespace GaussListDetails
 
 // clang-format off
 template <class SieveTraits>
-struct STNode
+class STNode
 {
+  friend GaussListWithBitApprox<SieveTraits, false>;
+  friend GaussIteratorBitApprox<SieveTraits, false>;
   // retrieve typedefs to avoid having to write long names.
+
+private:  // shorthands
   using CoordinateSelectionUsed = typename SieveTraits::CoordinateSelectionUsed;
   using SimHashes               = typename CoordinateSelectionUsed::SimHashes;
   using GlobalSimHashClass      = GlobalBitApproxData<CoordinateSelectionUsed>;
   // This would store 2 independently maintained sim_hashes.
   static_assert(Has_BitApprox<typename SieveTraits::GaussList_StoredPoint>::value == false, "");
 
+public:
   // we should never need to copy. If we do, we want the compiler to tell us.
   STNode(STNode const  &)          = delete;
   STNode(STNode       &&) noexcept = default;
@@ -119,10 +125,12 @@ struct STNode
 
   ~STNode() noexcept { delete ptr_to_exact; }
 
+private:
   SimHashes bit_approximations;
   SimHashApproxNorm2 approx_norm2;  // currently a double, consider making it a float
   typename SieveTraits::GaussList_StoredPoint *ptr_to_exact;  // owning pointer
 
+public:
   // we keep the list sorted according to length. We define operator< to use sort() from std::list.
   // (Note that comparions for the lattice points *ptr_to_exact are by norm2)
   bool operator<(STNode const &other) const { return *ptr_to_exact < *(other.ptr_to_exact); }
@@ -253,6 +261,8 @@ private:
 template<class SieveTraits>
 class GaussIteratorBitApprox<SieveTraits, false>
 {
+friend GaussListWithBitApprox<SieveTraits, false>;
+
 private:
   using ListType                = GaussListWithBitApprox<SieveTraits, false>;
 
@@ -271,8 +281,6 @@ private:
 private:
   CUnderlyingIterator it;
 
-  friend GaussListWithBitApprox<SieveTraits, false>;
-
 public:
   // clang-format off
   GaussIteratorBitApprox()                                          = delete;
@@ -282,12 +290,15 @@ public:
   GaussIteratorBitApprox &operator=(GaussIteratorBitApprox &&)      = default;
   // clang-format on
 
-  // we can convert from a "plain" iterator to the underlying list. Only used internally.
+  // we can convert from a "plain" iterator to the underlying list. Only used internally or by
+  // the list class.
+private:
   // clang-format off
   constexpr GaussIteratorBitApprox( UnderlyingIterator const &new_it) noexcept : it(new_it) {}
   constexpr GaussIteratorBitApprox(CUnderlyingIterator const &new_it) noexcept : it(new_it) {}
   // clang-format on
 
+public:
   // comparison, needed for for-loops (i.e. compare against list.cend() )
   bool operator==(GaussIteratorBitApprox const &other) const { return it == other.it; }
   bool operator!=(GaussIteratorBitApprox const &other) const { return it != other.it; }
@@ -354,7 +365,10 @@ struct ConvertIteratorToPoint_Helper
     return arg;
   }
 };
+
 // partial specialization is for iterators : get dereferences
+// Note: clang actually warns about compliance with FORCE_INLINE here.
+// (It might depend on the template arguments; needs further investigation)
 template <class SieveTraits, bool MT>
 struct ConvertIteratorToPoint_Helper<GaussIteratorBitApprox<SieveTraits, MT>>
 {

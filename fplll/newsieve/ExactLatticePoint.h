@@ -76,9 +76,12 @@ public:
 template <class ET, int nfixed>
 class ExactLatticePoint final : public GeneralLatticePoint<ExactLatticePoint<ET, nfixed>>
 {
-public:
   friend StaticInitializer<ExactLatticePoint<ET, nfixed>>;
+
+public:
   using LatticePointTag = std::true_type;
+
+private:
   // Container type used to store the actual point
   using Container =
       mystd::conditional_t<(nfixed >= 0),                               // depends on nfixed:
@@ -87,6 +90,7 @@ public:
   // Note : The nfixed >=0 ? nfixed : 0 is always nfixed, of course.
   // The ?: expression is only needed to silence compiler errors/warnings.
 
+public:
   // get dimension
   FOR_FIXED_DIM
   static constexpr MaybeFixed<nfixed> get_dim()
@@ -169,7 +173,7 @@ public:
   }
   // clang-format on
 
-  // version where we already know norm2
+  // version of the above where we already know norm2
   void sanitize(ET const &new_norm2) { norm2 = new_norm2; }
 
   ET get_norm2() const { return norm2; }
@@ -236,6 +240,7 @@ class StaticInitializer< ExactLatticePoint<ET,nfixed> > final
     : public DefaultStaticInitializer<ExactLatticePoint<ET, nfixed>>
 {
   using Parent = DefaultStaticInitializer< ExactLatticePoint<ET,nfixed> >;
+
   // clang-format on
 public:
   template <class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
@@ -273,5 +278,3 @@ public:
 #undef CONSTEXPR_IN_NON_DEBUG_LP_INIT
 
 #endif  // include guard
-
-// clang-format on

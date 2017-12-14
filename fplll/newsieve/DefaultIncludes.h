@@ -9,7 +9,10 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <exception>
 #include <forward_list>
+#include <fstream>
+#include <iomanip>  // only to implement compute_statistics function; to delete
 #include <iostream>
 #include <istream>
 #include <limits>
@@ -21,15 +24,10 @@
 #include <stack>
 #include <stdexcept>
 #include <string>
+#include <sys/stat.h>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <sys/stat.h>
-#include <fstream>
-#include <exception>
-#include <vector> //only for testing bitapprox, to delete
-#include <iomanip> // only to implement compute_statistics function; to delete
-
 
 #endif
