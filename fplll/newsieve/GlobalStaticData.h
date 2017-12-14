@@ -4,6 +4,9 @@
 #include "DefaultIncludes.h"
 #include "SieveUtility.h"
 
+// clang-format changes applied on a case-by-case basis manually.
+// clang-format off
+
 /**
   This class deals with static initializations of static members of classes.
   For reasons of efficiency, keep certain data as *static* members of our classes.
@@ -95,15 +98,15 @@
    of type DimensionType. Used to pass the (ambient) dimension around.
 */
 
-
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 namespace TraitHelpers
 {
-template<class T> using Predicate_StaticInitializerArg
-    = mystd::enable_if_t<mystd::is_true_type<typename T::StaticInitializerArgTag>::value>;
-template<class T> using Predicate_DefaultStaticInitializer
-    = mystd::enable_if_t<mystd::is_true_type<typename T::HasDefaultStaticInitializer>::value>;
+template<class T> using Predicate_StaticInitializerArg =
+    mystd::enable_if_t<mystd::is_true_type<typename T::StaticInitializerArgTag>::value>;
+template<class T> using Predicate_DefaultStaticInitializer =
+    mystd::enable_if_t<mystd::is_true_type<typename T::HasDefaultStaticInitializer>::value>;
 }
 template<class T> using IsArgForStaticInitializer =
     mystd::is_detected<TraitHelpers::Predicate_StaticInitializerArg, T>;
@@ -126,20 +129,20 @@ template<class T>
 class DefaultStaticInitializer
 {
   friend StaticInitializer<T>;
-  public:
-  // TODO: Fix debug symbol usage here. -> only 1 symbol for all such initializations
 
+public:
+// TODO: Fix debug symbol usage here. -> only 1 symbol for all such initializations
 
-  // returns whether there exists any object of this class (hence whether the class it is supposed
-  // to to initialize is indeed initialized).
-  // This is supposed to be overloaded by classes that actually do perform some initialization.
-  // The version given here always returns true (unless in debug mode), because in cases when the
-  // initializer does nothing, we do not really need one.
-  // TODO: reconsider this definition (in non-debug mode)
+// returns whether there exists any object of this class (hence whether the class it is supposed
+// to to initialize is indeed initialized).
+// This is supposed to be overloaded by classes that actually do perform some initialization.
+// The version given here always returns true (unless in debug mode), because in cases when the
+// initializer does nothing, we do not really need one.
+// TODO: reconsider this definition (in non-debug mode)
 #ifndef DEBUG_SIEVE_LP_INIT
-  static bool constexpr is_initialized() { return true; } // may be overloaded
+  static bool constexpr is_initialized() { return true; }  // may be overloaded
 #else
-  static bool is_initialized(){ return user_count > 0; }; // Does an object exist?
+  static bool is_initialized() { return user_count > 0; };  // Does an object exist?
 #endif
   // counts the number of objects of this type that exist, essentially.
   static unsigned int get_user_count() { return user_count; }
@@ -151,10 +154,7 @@ private:
   explicit DefaultStaticInitializer(DefaultStaticInitializer const &) noexcept { ++user_count; }
   explicit DefaultStaticInitializer(DefaultStaticInitializer &&)      noexcept { ++user_count; }
 
-  ~DefaultStaticInitializer()
-  {
-    --user_count;
-  }
+  ~DefaultStaticInitializer() { --user_count; }
 };
 // initialize static data this class:
 template<class T> unsigned int DefaultStaticInitializer<T>::user_count = 0;
@@ -189,12 +189,11 @@ class StaticInitializer : public DefaultStaticInitializer<T>
                 "Missing Static Initializer or forgot to set HasDefaultStaticInitializer trait.");
   explicit StaticInitializer() = default;
 
-  template<class X,TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
-  explicit StaticInitializer(X const &) noexcept
-      : StaticInitializer() {}
+  template<class X, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<X>)>
+  explicit StaticInitializer(X const &) noexcept : StaticInitializer() {}
 
   // old versions did not have StaticInitializerArg and were hard-wired to "Dimension"
-  template<class X,TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
+  template<class X, TEMPL_RESTRICT_DECL2(std::is_integral<X>)>
   [[deprecated]] explicit StaticInitializer(X const &) : StaticInitializer() {}
 
   template<int nfixed, class IntType>
@@ -213,10 +212,12 @@ struct StaticInitializerArg
 {
   using StaticInitializerArgTag = std::true_type;
   DimensionType const dim;
-//  unsigned int const dim_int;
+  //  unsigned int const dim_int;
   constexpr StaticInitializerArg(DimensionType const &new_dim) noexcept : dim(new_dim) {}
 };
 
-} // namespace
+}  // namespace GaussSieve
 
 #endif
+
+// clang-format on

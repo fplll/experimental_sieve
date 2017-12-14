@@ -3,10 +3,13 @@
 /* defines the classes used for the main Queues in the Gauss Sieve */
 
 #include "DefaultIncludes.h"
+#include "GlobalStaticData.h"
+#include "Sampler.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
-#include "Sampler.h"
-#include "GlobalStaticData.h"
+
+// clang-format changes applied on a case-by-case basis manually.
+// clang-format off
 
 /**
   This file defines a class for the queue that stores the yet-unprocessed points of the Sieve.
@@ -37,7 +40,8 @@
           *after* all non-impl_h files. )
 */
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 //forward-declarations:
 template<class SieveTraits, bool MT> class Sieve;
@@ -46,10 +50,10 @@ template<class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
 // declares GaussQueue class, to be specialized.
 template <class SieveTraits, bool MT> class GaussQueue;
 
-template<class SieveTraits> //single-threaded version:
-class GaussQueue<SieveTraits,false>
+template <class SieveTraits>  // single-threaded version:
+class GaussQueue<SieveTraits, false>
 {
-private: // aliases to avoid typing long names
+private:  // aliases to avoid typing long names
   using DataType                    = typename SieveTraits::GaussQueue_DataType;
   using RetType                     = typename SieveTraits::GaussQueue_ReturnType;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
@@ -74,20 +78,20 @@ private: // aliases to avoid typing long names
   // so we have to reverse the ordering.
   struct Comparator
   {
-    bool operator()(DataType * const &lhs, DataType* const &rhs) { return *lhs > *rhs; }
+    bool operator()(DataType *const &lhs, DataType *const &rhs) { return *lhs > *rhs; }
   };
-  using QueueType = std::priority_queue< DataType*, std::vector<DataType*>, Comparator >;
+  using QueueType = std::priority_queue<DataType *, std::vector<DataType *>, Comparator>;
 #else
   using QueueType = std::queue<DataType>;
 #endif
 
 public:
   // We only ever want 1 queue. No copying / moving / assigning.
-  GaussQueue()                               = delete;
-  GaussQueue(GaussQueue const &)             = delete;
-  GaussQueue(GaussQueue &&)                  = delete;
-  GaussQueue& operator= (GaussQueue const &) = delete;
-  GaussQueue& operator= (GaussQueue &&)      = delete;
+  GaussQueue()                              = delete;
+  GaussQueue(GaussQueue const &)            = delete;
+  GaussQueue(GaussQueue &&)                 = delete;
+  GaussQueue &operator=(GaussQueue const &) = delete;
+  GaussQueue &operator=(GaussQueue &&)      = delete;
 
   // Sole constructor:
   // we take take a pointer to the caller sieve as an argument to initialize the sampler and to
@@ -96,19 +100,22 @@ public:
   // user_sampler is a pointer to a user-provided samplers. If == nullptr, we create our own
   // seed_sampler is only used if we create our own sampler.
   // TODO: Consider storing a reference to the statistics class instead.
-  explicit inline GaussQueue(Sieve<SieveTraits,false>* const caller_sieve,
+  explicit inline GaussQueue(Sieve<SieveTraits,false> * const caller_sieve,
                              GlobalStaticDataInitializer const &static_data,
                              int seed_sampler,
-                             Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler=nullptr);
+                             Sampler<SieveTraits,false,std::mt19937_64,std::seed_seq> *user_sampler = nullptr);
   inline ~GaussQueue();
 
-    // we might as well always return false (or make this private)!
-    // if the internal queue is empty, we just sample a new vector.
+  // we might as well always return false (or make this private)!
+  // if the internal queue is empty, we just sample a new vector.
   [[deprecated("The queue is never empty from the users point of view.")]]
-  NODISCARD inline bool empty() const  { return main_queue.empty(); }
+  NODISCARD inline bool empty() const
+  {
+    return main_queue.empty();
+  }
 
   // returns size of queue (used for diagnostics and statistics only)
-  typename QueueType::size_type size() const {return main_queue.size(); }
+  typename QueueType::size_type size() const { return main_queue.size(); }
 
   // since we cannot / do not copy point, users have to use (possibly explicit) move semantics
   // (i.e. push(std::move(point)), which makes point unusable for the caller.
@@ -118,14 +125,14 @@ public:
   inline void push(DataType const &val) = delete;  // puts a copy of val in the queue : deleted
   inline void push(DataType      &&val);           // uses move semantics for that.
 
-  //removes front element from queue *and returns it*.
+  // removes front element from queue *and returns it*.
   inline auto true_pop() -> RetType;
 
 private:
   StaticInitializer<DataType> const init_data_type;
-  StaticInitializer<RetType>  const init_ret_type;
-  QueueType main_queue;           //actual queue of lattice points to be processed.
-  Sieve<SieveTraits,false>* const gauss_sieve;   //pointer to caller object.
+  StaticInitializer<RetType> const init_ret_type;
+  QueueType main_queue;                         // actual queue of lattice points to be processed.
+  Sieve<SieveTraits,false> *const gauss_sieve;  // pointer to caller object.
 
   // NOTE: the sampler is public, because some modules of the sieve need to communicate with the
   // sampler (e.g. when using progressive rank).
@@ -134,13 +141,13 @@ public:
   // a pointer to the Sampler. Note that we store a pointer, because we want to allow
   // user-provided samplers (which we do not own). Note that the Sampler class has
   // virtual members and *sampler might be a type derived from it.
-  Sampler<SieveTraits,false,std::mt19937_64, std::seed_seq> *sampler;
+  Sampler<SieveTraits, false, std::mt19937_64, std::seed_seq> *sampler;
   bool sampler_owned;  // Is the above pointer owning. Required to correctly delete it.
                        // (because we should not do that for user-provided ones).
                        // TODO: Use smart pointers instead.
 };
 
 }  // end namespace GaussSieve
-#endif // GAUSS_QUEUE_H
+#endif  // GAUSS_QUEUE_H
 
-//clang-format on
+// clang-format on
