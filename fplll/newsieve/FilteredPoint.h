@@ -4,7 +4,6 @@
 //
 //  Created by Elena on 06/03/17.
 //
-//
 
 /**
   In the k-sieve for k>=3, we need to create sub-lists of the main list insider the iteration.
@@ -93,14 +92,16 @@ struct FilteredPoint2<SieveTraits,false>
                          // otherwise, stores bit-negated sim_hashes to *ptr_to_exact
   bool sign_flip;
   GaussList_StoredPoint const *ptr_to_exact;  // non-owning pointer
-  LengthType cond;  // stores -||x||^2 - 2 * <p, +/-x>
-                    // where  x==*ptr_to_exact and p is the point with respect
-                    // to which the filtered list is computed.
-                    // This expression is optimized for the algorithm and known at the call site.
-                    // Note: The name cond is because this quantity determines whether a
-                    // two-reduction is possible. In particular, cond will always be <= 0.
-                    // (Otherwise, we performe a 2-reduction directly and not need to use this data
-                    // structure)
+
+  /*
+    cond stores -||x||^2 - 2 * <p, +/-x>, where  x==*ptr_to_exact and p is the point with respect to
+    which the filtered list is computed. This expression is optimized for the algorithm and known at
+    the call site.
+    Note: The name cond is because this quantity determines whether a two-reduction is possible. In
+    particular, cond will always be <= 0. (Otherwise, we perform a 2-reduction directly and do not
+    need to use FilteredPoint)
+  */
+  LengthType cond;
   FilteredPoint2()                       = delete;
   FilteredPoint2(FilteredPoint2 const &) = delete;
   FilteredPoint2(FilteredPoint2 &&)      = default;
@@ -109,8 +110,8 @@ struct FilteredPoint2<SieveTraits,false>
   // we take an iterator to the main lists as an argument rather than a point itself, because
   // the iterator actually holds more data (like sim_hashes)
   // flip determines whether the stored point implicitly has a - sign.
-  // by flipping the inside the list of filtered points, we do not need to perform a case
-  // distinction when iteration over pairs from the filtered list.
+  // by flipping the sign inside the list of filtered points, we do not need to perform a case
+  // distinction when iterating over pairs from the filtered list.
   // precompute equals -||x||^2 -/+ 2<p,x>, which we record for later use.
   explicit constexpr FilteredPoint2(GaussIteratorBitApprox<SieveTraits, false> const &list_iterator,
                                     bool const flip,
@@ -127,4 +128,4 @@ struct FilteredPoint2<SieveTraits,false>
 
 }  // end namespace GaussSieve
 
-#endif
+#endif  // include guards

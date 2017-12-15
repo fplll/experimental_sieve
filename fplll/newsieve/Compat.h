@@ -105,12 +105,12 @@
   To improve readability and making the intent clearer, we define some macros
   TEMPL_RESTRICT_DECL, TEMPL_RESTRICT_IMPL
   Usage:
-  template<class Integer, TEMPL_RESTRICT_DECL((std::is_integral<Integer>::value))> some_declaration;
-  template<class Integer, TEMPL_RESTRCIT_IMPL((std::is_integral<Integer>::value))> some_definition;
+  template<class Integer, TEMPL_RESTRICT_DECL(std::is_integral<Integer>::value)> some_declaration;
+  template<class Integer, TEMPL_RESTRCIT_IMPL(std::is_integral<Integer>::value)> some_definition;
 
   This restricts the template to only be instantiatable if the argument to TEMPL_RESTRICT_DECL/IMPL
   is convertible to boolean true at compile time. Use as the last template argument.
-  (For variadic templates, you should know what you are doing)
+  (To use this to restrict variadic templates, you should know what you are doing)
 
   The variants TEMPL_RESTRICT_DECL2 and TEMPL_RESTRICT_IMPL2 are similar, but take a comma-separated
   list of *types* T_1,T_2,... encapsulating a boolean value instead.
@@ -123,9 +123,19 @@
   you use a separate file to then define the function, you need to use IMPL -- This is because DECL
   sets default parameters and IMPL does not)
 
-  NOTE: Since these are macros, be aware of unshielded commas in template parameters. Use ((arg))
-  for the TEMPL_RESTRICT_DECL/IMPL((arg)) variants. The DECL2/IMPL2 variant automagically work.
-  (The arguments are actually chopped up by the preprocessor, but it still works)
+  NOTE: It is generally preferable to just static_assert the condition inside the class template /
+        function, provided this is an option. This gives better error messages.
+
+        The purpose of these macros is to restrict the viable candidates for overload resolution,
+        not to assert that some condition is satisfied. Use cases are when you have several
+        overloads or specializations.
+        A typical use case is for templated overloads of operators where you might conflict with
+        other pre-existing overloads or overloads that might be added later.
+
+  NOTE: The TEMPL_RESTRICT_DECL/IMPL(arg) macros only take one "real" argument. However, since these
+        are macros and the C preprocessor does not recognize template angle-brackets < > as
+        delimeters, commas inside template parameter lists can (and do!) often get misparsed.
+        For this reason, it is declared as a variadic macro with an arbitrary number of arguments.
 */
 
 /**
@@ -166,8 +176,8 @@
         };
 */
 
-#define TEMPL_RESTRICT_DECL(condition) typename std::enable_if<condition, int>::type = 0
-#define TEMPL_RESTRICT_IMPL(condition) typename std::enable_if<condition, int>::type
+#define TEMPL_RESTRICT_DECL(...) typename std::enable_if<__VA_ARGS__, int>::type = 0
+#define TEMPL_RESTRICT_IMPL(...) typename std::enable_if<__VA_ARGS__, int>::type
 
 #define TEMPL_RESTRICT_DECL2(...)                                                                  \
   typename std::enable_if<GaussSieve::mystd::conjunction<__VA_ARGS__>::value, int>::type = 0

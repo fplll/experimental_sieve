@@ -1,6 +1,8 @@
 #ifndef GAUSS_QUEUE_H
 #define GAUSS_QUEUE_H
-/* defines the classes used for the main Queues in the Gauss Sieve */
+/**
+ This file declares the classes used for the main Queues in the Gauss Sieve
+*/
 
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
@@ -10,7 +12,7 @@
 
 /**
   This file defines a class for the queue that stores the yet-unprocessed points of the Sieve.
-  It essentially wraps around a std::(priority?)queue, with the added feature that
+  It essentially wraps around a std::(priority?) queue, with the added feature that
   whenever the queue is empty, we call the sampler to get a fresh point.
 
   Note that for compatibility with multi-threading, we provide a function true_pop that obtains the
@@ -18,15 +20,17 @@
   separate operations, but for multi-threaded data structures, it is better to make it one)
 
   TODO: Currently, we use an (unsorted) queue if USE_REGULAR_QUEUE is set, a (sorted) priority queue
-        otherwise (in the single-threaded case). At the moment, only the unsorted case works.
+        otherwise (in the single-threaded case). The unsorted queue is faster overall.
   TODO: Make the decision a template argument?
 
   NOTE: The Queue's constructor takes a pointer to the caller sieve, in order to access some of its
-        data (notably, it needs to forward these to the sampler, which might be user-provided, so we
-        do not know which data it needs)
+        data (notably, it needs to forward that pointer to the sampler, which might be
+        user-provided, so we do not know which data it needs)
         For unit testing, there is the debug symbol DEBUG_SIEVE_STANDALONE_QUEUE that allows
         (forces, actually) to use nullptr for that pointer. It deactivates some features, naturally.
-  TODO: Enable user-provided samplers (infrastructure for this feature exists)
+  TODO: Enable user-provided samplers
+        (The infrastructure for this feature exists, we just need to add parameter to constructors
+        and ways to set the sampler)
 */
 
 /**
@@ -35,6 +39,7 @@
         ( Since everything is header-only, there is some uglyness involved here:
           Notably, GaussQueue_impl must be included *only* at the root of the inclusion tree,
           *after* all non-impl_h files. )
+  TODO: Revise / merge the above DOC into a global structure readme.
 */
 
 namespace GaussSieve

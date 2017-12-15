@@ -206,6 +206,7 @@ public:
 
   // Inserts the lattice point pointed to by a pointer. The list takes ownership of the pointee.
   // TODO: Consider using unique_ptr
+  // Untested
   Iterator insert_before(Iterator const &pos, StoredPoint *&&point_ptr)
   {
     return actual_list.emplace(pos.it, std::move(point_ptr));

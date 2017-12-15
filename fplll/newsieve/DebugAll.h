@@ -64,6 +64,9 @@
       Logs usage of generic implementations of lattice points.
       Extremely verbose output.
       -> Determines whether DEBUG_TRACEGENERIC(output string) is a no-op
+
+TODO: Some of these need revision / usage clarification.
+Their use is not very consistent.
 */
 
 //#define DEBUG_SIEVE_LAZY_ALL

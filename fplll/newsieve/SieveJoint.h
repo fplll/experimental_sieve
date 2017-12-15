@@ -62,7 +62,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "LatticeBases.h"
 #include "Statistics.h"
 #include "SimHash.h"
-#include "FilteredPoint2.h"
+#include "FilteredPoint.h"
 
 namespace GaussSieve
 {

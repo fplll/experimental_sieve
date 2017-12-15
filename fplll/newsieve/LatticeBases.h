@@ -53,7 +53,7 @@ class SieveLatticeBasis
 // clang-format on
 {
   // This must never be instantiated.
-  static_assert(std::is_void<Enabled>::value == false, ""); // this will always trigger!
+  static_assert(std::is_void<Enabled>::value == false, "");  // this will always trigger!
   static_assert(SieveTraits::IsSieveTraitsClass::value, "Invalid Traits class");
 
 public:
@@ -75,9 +75,11 @@ public:
 
 // TODO: Make GSO object local to constructor.
 
+// clang-format off
 template <class SieveTraits, bool MT>
-class SieveLatticeBasis<SieveTraits, MT,
+class SieveLatticeBasis<SieveTraits, MT,  // next param selectively enables this specialization:
     mystd::enable_if_t<IsZZMatClass<typename SieveTraits::InputBasisType>::value> >
+// clang-format on
 {
 
 private:

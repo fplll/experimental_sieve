@@ -2,6 +2,8 @@
   Very simple lattice point class that stores precomputed values for its length.
   Otherwise, just a wrapper around a vector, really.
   Dimension is static (i.e. the same for all objects)
+  It is a lattice point, so has to follow the interface specified in
+  LatticePointConcept.h
 */
 
 // clang-format checked and adjusted manually -- Gotti
@@ -21,7 +23,10 @@
 #define FOR_VARIABLE_DIM template<int nfixed_copy = nfixed, TEMPL_RESTRICT_DECL(nfixed_copy == -1)>
 // clang-format on
 
-// to make some functions C++11-constexpr
+// to make some functions C++14-constexpr (if supported)
+// depends on DEBUG_SYMBOL
+// TODO: remove this macro and write it out everywhere, disambiguate
+// C++11 and C++14 constexpr
 // clang-format off
 #ifdef DEBUG_SIEVE_LP_INIT
   #define CONSTEXPR_IN_NON_DEBUG_LP_INIT CPP14CONSTEXPR
