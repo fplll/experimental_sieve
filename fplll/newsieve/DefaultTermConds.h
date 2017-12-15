@@ -55,7 +55,9 @@ private:  // shorthands
 
 public:
   explicit LengthTerminationCondition(LengthType const &init_target_norm2)
-      : target_norm2(init_target_norm2) {}
+      : target_norm2(init_target_norm2)
+  {
+  }
   virtual inline int check_vec(TermCond_QueryType const &lattice_point) override;
   virtual inline int check() override;
 
@@ -70,8 +72,7 @@ public:
     return TermCondDependencyType::new_shortest_vector;
   }
 
-
-  virtual ~LengthTerminationCondition(){}
+  virtual ~LengthTerminationCondition() {}
 
   // exception in reading dumps -- unused
   class bad_dumpread_LengthTermCond : public std::runtime_error
@@ -113,8 +114,7 @@ private:
 */
 
 template <class SieveTraits, bool MT>
-class MinkowskiTerminationCondition final
-    : public TerminationCondition<SieveTraits, MT>
+class MinkowskiTerminationCondition final : public TerminationCondition<SieveTraits, MT>
 {
 private:  // shorthands
   using LengthType         = typename SieveTraits::LengthType;
@@ -139,7 +139,7 @@ public:
     // only needs to be called if a new shortest vector is found.
     return TermCondDependencyType::new_shortest_vector;
   }
-  virtual ~MinkowskiTerminationCondition(){}
+  virtual ~MinkowskiTerminationCondition() {}
 
 private:
   LengthType target_norm2;

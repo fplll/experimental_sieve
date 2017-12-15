@@ -1,6 +1,8 @@
 #ifndef TERM_COND_NEW_H
 #define TERM_COND_NEW_H
 
+// clang-format OK
+
 /**
   This file describes the interface we use for termination conditions that tell the sieve algorithm
   when to stop.
@@ -72,7 +74,8 @@
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
 // forward declarations
 
@@ -80,8 +83,11 @@ template <class SieveTraits, bool MT> class TerminationCondition;
 template <class SieveTraits, bool MT> class NeverTerminationCondition;
 template <class SieveTraits, bool MT> class LengthTerminationCondition;
 template <class SieveTraits, bool MT> class MinkowskiTerminationCondition;
-template <class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os, TerminationCondition<SieveTraits,MT> const &term_cond); //printing
-template <class SieveTraits, bool MT> std::istream & operator>>(std::istream &is, TerminationCondition<SieveTraits,MT> const &term_cond); //reading
+
+template <class SieveTraits, bool MT>
+std::ostream &operator<<(std::ostream &os, TerminationCondition<SieveTraits, MT> const &term_cond);
+template <class SieveTraits, bool MT>
+std::istream &operator>>(std::istream &is, TerminationCondition<SieveTraits, MT> const &term_cond);
 
 // types of Termination Condition recognized. Note that we may have user-provided Termination
 // conditions.
@@ -109,28 +115,29 @@ private:  // shorthand typedefs to avoid "typename ..."
   using TermCond_QueryType = typename SieveTraits::TermCond_QueryType;
 
 public:
-
-  // stream input / output
+  // stream input / output:
+  // these functions just forward to a virtual dump_to_stream / read_from_stream methd
+  // that may be overloaded.
   // clang-format off
   friend std::ostream &operator<< <SieveTraits,MT>(std::ostream &os, TerminationCondition<SieveTraits,MT> const &term_cond);
   friend std::istream &operator>> <SieveTraits,MT>(std::istream &is, TerminationCondition<SieveTraits,MT> const &term_cond);
   // clang-format on
 
   // associates the termination condition with the calling sieve
-  void init(Sieve<SieveTraits,MT> * const ptr_to_caller)
+  void init(Sieve<SieveTraits, MT> *const ptr_to_caller)
   {
     sieveptr = ptr_to_caller;
     this->custom_init();  // dispatch to virtual custom_init, which is probably overloaded.
   }
 
-  virtual void custom_init() { }  // defaults to "do nothing"
+  virtual void custom_init() {}  // defaults to "do nothing"
 
   // check() is called regularly from the sieve to query whether it should terminate.
   virtual int check() = 0;
 
   // variant that is called whenever a new lattice point is found.
   virtual int check_vec(TermCond_QueryType const &lattice_point) { return check(); }
-  virtual ~TerminationCondition()=0;  // needs to be virtual
+  virtual ~TerminationCondition() = 0;  // needs to be virtual
 
   // used to possibly optimize the frequency with which check() / check_vec() is called.
   virtual TermCondDependencyType dependency_type() const { return TermCondDependencyType::any; }
@@ -143,15 +150,23 @@ public:
   }
 
 private:
-    virtual std::ostream & dump_to_stream(std::ostream &os) const {return os; }  //implementation of << operator.
-    virtual std::istream & read_from_stream(std::istream &is)     {return is; }  //implementation of >> operator.
+  // The stream operators<< and >> forward to these. May be overloaded.
+  // The dummy implementation is a no-op.
+  // clang-format off
+  virtual std::ostream &dump_to_stream(std::ostream &os) const { return os; }
+  virtual std::istream &read_from_stream(std::istream &is)     { return is; }
+  // clang-format on
 
-    protected:
-    Sieve<SieveTraits, MT> *sieveptr;  // holds an (observing) pointer to the caller sieve or
-                                       // nullptr if unassociated
+protected:
+  Sieve<SieveTraits, MT> *sieveptr;  // holds an (observing) pointer to the caller sieve or
+                                     // nullptr if unassociated
 };
 
-template <class SieveTraits,bool MT> TerminationCondition<SieveTraits,MT>::~TerminationCondition() {} //actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
+// actually needed, even though destructor is pure virtual as the base class destructor is
+// eventually called implicitly.
+template <class SieveTraits, bool MT> TerminationCondition<SieveTraits, MT>::~TerminationCondition()
+{
+}
 
 template <class SieveTraits, bool MT>
 std::ostream &operator<<(std::ostream &os, TerminationCondition<SieveTraits, MT> const &term_cond)
@@ -159,8 +174,8 @@ std::ostream &operator<<(std::ostream &os, TerminationCondition<SieveTraits, MT>
   return term_cond.dump_to_stream(os);
 }
 
-template <class SieveTraits,bool MT>
-std::istream &operator>>(std::istream &is, TerminationCondition<SieveTraits,MT> &term_cond)
+template <class SieveTraits, bool MT>
+std::istream &operator>>(std::istream &is, TerminationCondition<SieveTraits, MT> &term_cond)
 {
   return term_cond.read_from_stream(is);
 }
