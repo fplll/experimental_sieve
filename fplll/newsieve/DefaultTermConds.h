@@ -12,7 +12,7 @@
 #define DEFAULT_TERM_CONDS_H
 
 #include "DefaultIncludes.h"
-#include "TermCondNew.h"  // consider merging with that file
+#include "TerminationConditions.h"  // consider merging with that file
 
 namespace GaussSieve
 {

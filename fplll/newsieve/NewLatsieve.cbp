@@ -14,16 +14,19 @@
 			</Target>
 		</Build>
 		<Unit filename="../nr/numvect.h" />
-		<Unit filename="ApproximatedPoint.h" />
+		<Unit filename="BlockOrthogonalSimHash.h" />
+		<Unit filename="BlockOrthogonalSimHash_impl.h" />
 		<Unit filename="Compat.h" />
 		<Unit filename="DebugAll.h" />
 		<Unit filename="DefaultIncludes.h" />
 		<Unit filename="DefaultTermConds.h" />
 		<Unit filename="DefaultTermConds_impl.h" />
-		<Unit filename="EMVApproximation.h" />
 		<Unit filename="ExactLatticePoint.h" />
 		<Unit filename="FilteredPoint2.h" />
 		<Unit filename="GPVSampler.h" />
+		<Unit filename="GPVSamplerExtended.h" />
+		<Unit filename="GPVSamplerExtended_impl.h" />
+		<Unit filename="GPVSampler_impl.h" />
 		<Unit filename="GaussListBitapprox.h" />
 		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
@@ -32,13 +35,9 @@
 		<Unit filename="LatticeBases.h" />
 		<Unit filename="LatticePointConcept.h" />
 		<Unit filename="LatticePointGeneric.h" />
-		<Unit filename="Lazy.h" />
-		<Unit filename="Lazy_macros.h" />
 		<Unit filename="MTPRNG.h" />
 		<Unit filename="PlainLatticePoint.h" />
-		<Unit filename="PointListNew.h" />
 		<Unit filename="PointWithBitapprox.h" />
-		<Unit filename="RelevantCoords.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
 		<Unit filename="SieveGauss.h" />
@@ -49,6 +48,7 @@
 		<Unit filename="SieveST2.cpp" />
 		<Unit filename="SieveST3.cpp" />
 		<Unit filename="SieveUtility.h" />
+		<Unit filename="SimHash.h" />
 		<Unit filename="Statistics.h" />
 		<Unit filename="TermCondNew.h" />
 		<Unit filename="Tests/TestApproximations.h" />
@@ -64,7 +64,6 @@
 		<Unit filename="Tests/TestQueue.h" />
 		<Unit filename="Tests/TestShiSampler.h" />
 		<Unit filename="Tests/TestTraitClasses.h" />
-		<Unit filename="TraitChecks.h" />
 		<Unit filename="Typedefs.h" />
 		<Unit filename="classtests.cpp" />
 		<Unit filename="sieve_main.cpp" />
