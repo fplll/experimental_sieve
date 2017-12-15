@@ -133,6 +133,8 @@ GPVSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
     }
   }
 
+  // TODO : Fix Conversion here.
+
   typename SieveTraits::GaussSampler_ReturnType ret;
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;

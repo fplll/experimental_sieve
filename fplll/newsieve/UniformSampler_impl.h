@@ -74,6 +74,8 @@ UniformSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
   }
 
   typename SieveTraits::GaussSampler_ReturnType ret;
+
+  // TODO : Fix conversion here.
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;
 }
