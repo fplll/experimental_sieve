@@ -1,5 +1,3 @@
-// clang-format on
-
 #define USE_REGULAR_QUEUE  // only regular queue is implemented for now
 // For large dimensions priority queue might be faster -- no, it's slower -- Gotti
 
@@ -20,14 +18,14 @@
 // enables all silent checks
 #define DEBUG_SIEVE_SILENT_ALL
 
-#include "fplll.h"
-#include <thread>
-#include <chrono>
 #include "SieveGauss_main.h"
+#include "fplll.h"
+#include <chrono>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 #include <unistd.h>
 
 using namespace GaussSieve;

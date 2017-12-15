@@ -174,4 +174,3 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 #include "SieveST3.cpp"
 
 #endif
-

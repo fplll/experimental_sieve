@@ -1,5 +1,3 @@
-// clang-format on
-
 /*
   MAIN ROUTINES FOR 2-GAUSS SIEVE
 */
@@ -72,7 +70,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAcce
 
 // go here if p is changed (alternatively, we can p into the queue and pop it in the next run)
 start_over:
-  
+
   double approx_norm2 = convert_to_double(p.get_norm2());
   // holds a double-approximation to approx-norm2. Note that the main list stores such an
   // approximation directly inside the nodes. Using these double-approximations should be

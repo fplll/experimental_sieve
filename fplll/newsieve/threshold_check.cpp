@@ -1,7 +1,7 @@
-#define USE_REGULAR_QUEUE //comment out if you use priority-queue
+#define USE_REGULAR_QUEUE  // comment out if you use priority-queue
 
 //#define USE_LSH
-#define PROGRESSIVE // progressive-sieve on
+#define PROGRESSIVE  // progressive-sieve on
 
 //#define USE_APPROXPOINT //<-does not work yet
 
