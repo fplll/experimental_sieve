@@ -34,7 +34,7 @@ GaussQueue<SieveTraits, false>::GaussQueue(Sieve<SieveTraits, false> *const call
   if (sampler == nullptr)
   {
     // Use seed_sampler to init the rng. The other numbers spell "SAMPLER" in ASCII, they are here
-    //  because we use the seed elsewhere as well.
+    //  because we use the very same seed elsewhere as well (Think of sees_seq as a Hash)
     std::seed_seq seed{83, 65, 77, 80, 76, 69, 82, seed_sampler};
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing our own sampler. Using GPVSampler")
     sampler = new GPVSampler<SieveTraits, false, std::mt19937_64, std::seed_seq>(seed);

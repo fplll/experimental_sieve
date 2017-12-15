@@ -11,6 +11,9 @@
   the main sieve stores a pointer to a TerminationCondition<SieveTraits, MT> (or, rather a class
   derived from it).
 
+  Some actual usable classes derived from it, which we are using (that serve also as examples) are
+  found in DefaultTermConds.h
+
   The termination condition itself is initialized with a pointer to the associated sieve, which
   allows to query the status of the sieve.
 

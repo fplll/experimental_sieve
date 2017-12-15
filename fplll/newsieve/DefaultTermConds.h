@@ -2,7 +2,7 @@
   DefaultTermConds.h
 
   This file provides default and example termination conditions.
-  These inherit from TerminationCondition, declared in TermCondNew.h
+  These inherit from TerminationCondition, declared in TerminationConditions.h
   See that file for an explanation of the interface.
 */
 
