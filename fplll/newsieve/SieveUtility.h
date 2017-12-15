@@ -245,6 +245,7 @@ template <class Integer> struct ConvertMaybeMPZ
   static_assert(std::numeric_limits<Integer>::digits <= std::numeric_limits<long>::digits,
                 "Converter does not work properly for types larger than long.");
 
+  // clang-format off
   template <class Source,
   TEMPL_RESTRICT_DECL2(mystd::negation<std::is_same<mystd::decay_t<Source>,mpz_t>>,
                        mystd::negation<std::is_same<mystd::decay_t<Source>,mpz_class>>)>
@@ -252,6 +253,7 @@ template <class Integer> struct ConvertMaybeMPZ
   {
     return static_cast<Integer>(std::forward<Source>(source));
   }
+  // clang-format on
 
   static Integer do_convert(mpz_class const &source)
   {
@@ -286,15 +288,11 @@ template <> struct ConvertMaybeMPZ<mpz_class>
     return static_cast<mpz_class>(source);
   }
   static mpz_class do_convert(mpz_class const &source) { return source; }
-  static mpz_class do_convert(mpz_t const &source)
-  {
-    return static_cast<mpz_class>(source);
-  }
+  static mpz_class do_convert(mpz_t const &source) { return static_cast<mpz_class>(source); }
 };
-} // end namespace ConversionHelpers
+}  // end namespace ConversionHelpers
 
-template<class Target, class Source>
-Target convert_to_inttype(Source &&source)
+template <class Target, class Source> Target convert_to_inttype(Source &&source)
 {
   return ConversionHelpers::ConvertMaybeMPZ<Target>::do_convert(std::forward<Source>(source));
 }
