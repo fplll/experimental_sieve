@@ -94,6 +94,8 @@ class DefaultSieveTraits
   using GaussQueue_ReturnType   = GaussSampler_ReturnType;
   using GaussQueue_DataType     = GaussQueue_ReturnType;
 
+  using TermCond_QueryType      = ExactLatticePoint<ET,nfixed>;
+
 //#ifdef USE_LSH
 //  using GaussSampler_ReturnType = HashedLatticePoint<ET,nfixed>;
 //  using GaussList_StoredPoint   = HashedLatticePoint<ET,nfixed>;

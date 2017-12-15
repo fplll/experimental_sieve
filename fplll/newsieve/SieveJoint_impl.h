@@ -307,7 +307,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::~Sieve()
 template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 {
-  return (term_cond->check(this) != 0)?true:false;
+  return (term_cond->check() != 0) ? true : false;
 };
 
 #ifdef PROGRESSIVE
