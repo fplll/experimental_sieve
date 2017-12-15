@@ -4,7 +4,6 @@
 //
 //  Created by Elena on 06/03/17.
 //
-//
 
 /**
   In the k-sieve for k>=3, we need to create sub-lists of the main list insider the iteration.
@@ -127,4 +126,4 @@ struct FilteredPoint2<SieveTraits,false>
 
 }  // end namespace GaussSieve
 
-#endif
+#endif  // include guards
