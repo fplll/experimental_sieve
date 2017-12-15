@@ -42,12 +42,13 @@ Sieve<SieveTraits, false>::get_shortest_vector_found()
 /*
  Returns the squared length of shortest vector found so far
  */
+/*
 template <class SieveTraits>
 typename Sieve<SieveTraits, false>::LengthType Sieve<SieveTraits, false>::get_best_length2()
 {
   return shortest_vector_found->get_norm2();
 }
-
+*/
 /*
  Initializes termination conditionsx
  Depending on k={2,3} from user's input, calls the corresponding sieving iteration

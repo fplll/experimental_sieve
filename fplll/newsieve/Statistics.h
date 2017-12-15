@@ -2,6 +2,7 @@
 #define GAUSS_SIEVE_STATISTICS_H
 
 #include "DefaultIncludes.h"
+//#include "SimHash.h"
 
 /**
  This file defines the SieveStatistics class that is responsible for collecting various types of
@@ -34,6 +35,19 @@ struct GaussSieveStatistics<SieveTraits, false>
         number_of_exact_scprods(0),
         number_of_mispredictions(0)
   {
+#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
+    unsigned int size_of_stat_arrays = SieveTraits::sim_hash_num * SieveTraits::sim_hash_len+1;
+    
+    for (unsigned int lvl=0; lvl<SieveTraits::sim_hash_num; ++lvl)
+    {
+      
+      (this->red_stat)[lvl].resize(size_of_stat_arrays);
+      this->no_red_stat[lvl].resize(size_of_stat_arrays);
+      
+      this->red_stat_innloop[lvl].resize(size_of_stat_arrays);
+      this->no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
+    }
+#endif
   }
 // TODO: Move parts of these statistics into the actual object they relate to.
 // e.g. there is no reason to maintain list sizes outside of the actual list objects...
@@ -112,11 +126,11 @@ struct GaussSieveStatistics<SieveTraits, false>
     // THIS IS ONLY TO GET STATISTICS FOR BITAPPROX. to be deleted
 
   //#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-  std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat;
-  std::array< std::vector<int>, SimHash::num_of_levels> red_stat;
+  std::array< std::vector<int>, SieveTraits::sim_hash_num> no_red_stat;
+  std::array< std::vector<int>, SieveTraits::sim_hash_num> red_stat;
 
-  std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_innloop;
-  std::array< std::vector<int>, SimHash::num_of_levels> red_stat_innloop;
+  std::array< std::vector<int>, SieveTraits::sim_hash_num> no_red_stat_innloop;
+  std::array< std::vector<int>, SieveTraits::sim_hash_num> red_stat_innloop;
 
   //std::array< std::vector<int>, SimHash::num_of_levels> no_red_stat_layer;
   //std::array< std::vector<int>, SimHash::num_of_levels> red_stat_layer;
@@ -353,8 +367,6 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
   myfile.close();
 
 }
-
-
 #endif
 
 template<class SieveTraits>

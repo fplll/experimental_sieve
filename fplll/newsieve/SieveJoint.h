@@ -106,7 +106,6 @@ public:
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
   using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
-  // using MainListType     = GaussListNew<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
   using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
   using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
@@ -122,34 +121,9 @@ public:
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics = GaussSieveStatistics<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
 
-template <class, bool> friend class GaussSieveStatistics;
+  template <class, bool> friend class GaussSieveStatistics;
 
-#ifdef USE_LSH
-  using HashTablesType = HashTableS<SieveTraits, LengthType>;
-  using HashTableType  = HashTable<SieveTraits, LengthType>;
-#endif
-
-    //using SamplerType      = KleinSampler<typename ET::underlying_data_type, FP_NR<double>> *; //TODO : Should be a class with overloaded operator() or with a sample() - member.;
-    //using FilteredListType = std::vector<FilteredPoint<ET, float>>; //queue is also fine for our purposes; scalar products are not of type ET, two-templates; float for now; may be changed.
-
-
-//    using FilteredListType = std::list<FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2>>;
-
-    //using BlockDivisionType  = std::array< ApproxLatticePoint<ET,GAUSS_SIEVE_IS_MULTI_THREADED> , 100> ;
-//    using LengthDivisionType = std::array< LatticeApproximations::ApproxTypeNorm2, 100 >;
-
-    //stores the last element of each block for filtered_list
-//    using FilterDivisionType = std::array<typename FilteredListType::iterator, 100 >;
-
-    //number of elements per block in filtered_list // COULD BE LONG?
-//    using FilterNumOfElems = std::array<int, 100 >;
-
-    //map where a key is a pair <length_of_list_element, inner-product>
-//    using FilteredListType2 = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2>, CompareFilteredPoint>;
-//    using FilteredListTypeP = std::map<pair <LatticeApproximations::ApproxTypeNorm2, LatticeApproximations::ApproxTypeNorm2>, FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> *, CompareFilteredPoint>;
-    //using FilteredListTest  =  std::map<char,int,classcomp>;
-
-    // Termination condition may be some class *derived from* this.
+  // Termination condition may be some class *derived from* this.
   using TermCondType     = TerminationCondition<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
 
 public:
@@ -175,19 +149,16 @@ public:
                     int seed_sampler = 0);
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 
-  //explicit Sieve(std::string const &infilename); //read from dump file.
+  //explicit Sieve(std::string const &infilename); // read from dump file (NOT IMPLEMENTED)
   ~Sieve();
   static bool constexpr class_multithreaded =  GAUSS_SIEVE_IS_MULTI_THREADED;
-    //class_multithreaded is for introspection, is_multithreaded is what the caller wants (may differ if we dump and re-read with different params)
+  //class_multithreaded is for introspection, is_multithreaded is what the caller wants (may differ if we dump and re-read with different params)
 
-  //void run_sieve(int k); //runs k-sieve
 
-  //LPType get_SVP() = delete;  //obtains Shortest vector and it's length. If sieve has not yet run, start it. Not yet implemented.
+  void run();         //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
 
-  void run();                 //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
-
-  void run_2_sieve(); //actually runs the Gauss Sieve with k=2
-  void run_3_sieve(); //actually runs the Gauss Sieve with k=3
+  void run_2_sieve(); //calls sieve_2_iteration for 2-reduction until the termination conditions are satisfied
+  void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
 #if GAUSS_SIEVE_IS_MULTI_THREADED == true
@@ -198,42 +169,20 @@ public:
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
   template<class LHS, class RHS>
   bool check2red(LHS &&p1, RHS &&p2, int &scalar);
-//  bool check2red (FastAccess_Point const &p1, FastAccess_Point const &p2, int & scalar);
-//  bool check2red_approx (FastAccess_Point const &p1, FastAccess_Point const &p2);
-  //bool check2red_approx(SimHashes<SieveTraits,false> const &lhs,typename MainListType::Iterator const &rhs);
-  //bool check2red_p1max(typename SieveTraits::FastAccess_Point const &p1,
-  //                                           SimHashes<SieveTraits,false> const &p1_bitapprox,
-  //                                           typename MainListType::Iterator            const &p2it,
-  //                                           int &scalar);
-  //bool check2red_p2max(typename SieveTraits::FastAccess_Point const &p1,
-  //                                           SimHashes<SieveTraits,false> const &p1_bitapprox,
-  //                                           typename MainListType::Iterator            const &p2it,
-  //                                           int &scalar);
-  //void hash_sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
 
   void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
-  void sieve_3_iteration_new (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
-  //bool check3red_approx(FastAccess_Point const &p1, FastAccess_Point const &p2);
-  template<class IT>
-  bool check_sc_prod_outer (FastAccess_Point const &x1, IT &&x2, LengthType & sc_prod_x1x2);
-  template<class IT>
-  bool check_sc_prod_inner (Filtered_Point const &x1, IT &&x2, LengthType & sc_prod_x1x2);
-  template<class ARG1, class ARG2>
-  bool check_triple (ARG1 &&x1, ARG2 &&x2, Filtered_Point const &x3, LengthType const &x1x2, LengthType const &x3_X,
-                 int &sgn2, int &sgn3, bool p_is_max);
-
-
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
-
-  void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};      //prints status to out. verb overrides the verbosity unless set to -1.
+  
+  /* PRINTING / DUMPING ROUTINES */
+  
+  //prints status to out. verb overrides the verbosity unless set to -1.
+  void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};
   void dump_status_to_file(std::string const &outfilename, bool overwrite = false);                   //dumps to file (verbosity overridden to 3)
   void dump_status_to_stream(std::ostream &of, int verb=-1);       //dumps to stream. Can be read back if verb>= 3. Otherwise, verbosity determines what is output.
 
-  //computes some stats to determine good sim-hash
-  // here because I'm tired of copy-pasting into spread-sheets. to be deleted
 
-//getter / setter functions
+  /* GETTERS / SETTERS */
 
   int get_verbosity() const                                   {return verbosity;};                //non-thread-safe
   void set_verbosity(int const new_verbosity)                 {verbosity=new_verbosity;return;};  //non-thread-safe
@@ -262,19 +211,12 @@ public:
   bool update_shortest_vector_found(FastAccess_Point const & newvector);
   LatticeBasisType const & get_basis()                        {return lattice_basis;};
   InputBasisType const & get_input_basis()                    {return original_basis;};
-//  LPType get_shortest_vector_found() const                    {return shortest_vector_found;}; //TODO: Thread-safety
   FastAccess_Point const & get_shortest_vector_found();
-//  ET get_best_length2() const                                 {return get_shortest_vector_found().norm2;};
-  LengthType get_best_length2();                               //{return (main_list.cbegin())->get_details().norm2;}; //TODO: Change to above
+  LengthType get_best_length2()                               {return shortest_vector_found->get_norm2();};
   bool check_whether_sieve_is_running() const                 {return (sieve_status==SieveStatus::sieve_status_running);};
   unsigned long get_final_list_size()                         {return main_list.size();};
 
   // STAT_MARK
-
-#ifdef USE_LSH
-  unsigned short get_num_of_hash_tables() const               {return hash_tables.get_num_of_tables();};
-#endif
-
 
   inline void set_termination_condition(TermCondType * const termcond)
   {
@@ -286,31 +228,25 @@ private:
 
 //Use termination Condition to check whether we are done, based on statistics so far.
   bool check_if_done();
-//ET ComputeMinkowski2Bound(); //computes Minkowski bound for the square(!) length. May need to round upwards.
 
 //Note: The member fields of Sieve denote the (global) "internal" status of the sieve during a run or execution.
 //It should be possible to dump the status to harddisk and resume from dump using that information.
 //It should also be possible to suspend the run of the sieve, change (certain) parameters (like k!) and resume.
-  DimensionType ambient_dimension; //consider merging these into a latticespec struct.
 
+  DimensionType ambient_dimension; //consider merging these into a latticespec struct.
+  
   GlobalStaticDataInitializer global_static_data;
   StaticInitializer<SimHashGlobalData> static_init_sim_hash_global_data;
   StaticInitializer<FastAccess_Point> static_init_fast_access_point;
 
 
   InputBasisType original_basis;
-  LatticeBasisType lattice_basis;
+  LatticeBasisType lattice_basis; //coverted variant of original_basis
 
-
-//main data that is changing.
-
+  //main data that is changing.
   MainListType main_list;
-  //MainListType3 main_list_test;
   MainQueueType main_queue;
-
-
-//information about lattice and algorithm we are using
-
+  
   unsigned int lattice_rank;
 
 #ifdef PROGRESSIVE
@@ -322,16 +258,11 @@ private:
   unsigned int num_threads_wanted;        //number of threads that we spawn
 #endif // GAUSS_SIEVE_IS_MULTI_THREADED
 
-#ifdef USE_LSH
-  HashTablesType hash_tables;
-  unsigned short number_of_hash_tables;
-#endif
 
 #ifdef PROGRESSIVE
   double target_list_size;
 #endif
   unsigned int sieve_k; //parameter k of the sieve currently running.
-    //SamplerType sampler; //TODO: Thread-safety. Move control to queue.
   int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
 
 

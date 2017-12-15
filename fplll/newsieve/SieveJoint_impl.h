@@ -100,12 +100,6 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=2) of << "Termination Conditions:" << endl;
     if(howverb>=2) of << (*term_cond);
     if(howverb>=2) of << "Sampler:"<< endl;
-    //if(howverb>=2) of << "Sampler Initialized" << static_cast<bool>(sampler!=nullptr) << endl;
-    //if(sampler!=nullptr)
-    //{
-    //    if(howverb>=3) cerr << "Note : Dumping of internal data of sampler not yet supported" << endl;
-    //    //dump internals of sampler?
-    //}
     if(howverb>=3) of << "Original Basis:" << endl;
     if(howverb>=3) of << original_basis;
     if(howverb>=2) of << "--End of Params--" << endl << endl;
@@ -121,18 +115,6 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
         of << endl;
     }
 
-
-    //of << "Best vector found so far=" << shortest_vector_found << endl; //TODO : Display length seperately
-
-    //TODO: Check output
-    // if(howverb>=1) {of << "sv is: "; main_list.cbegin().get_exact_point().printLatticePoint();} //TODO: Remove (shortest_vector_found above should rather do this).
-	// to check the ratio between the shortest and the longest vectors in the list
-//    if(howverb>=1) {
-//		auto it = main_list.cend();
-//		// operator--() is needed for tests
-//		--(it);
-//		of << "longest vector is: "; it.get_exact_point().printLatticePoint();
-//    }
     if(howverb>=1) of << "--End of Statistics--" << endl << endl;
     if(howverb>=3)
     {
@@ -226,18 +208,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 
 //    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
 
-#ifdef USE_LSH
-    if (verbosity>=2) {std::cout <<"Initializing LSH..." << std::endl;}
-    hash_tables.initialize_hash_tables(ambient_dimension);
-    for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it)
-    {
-            hash_tables.add_to_all_hash_tables(*it);
-    }
-    //TODO
-    //number_of_hash_tables = hash_tables.get_num_of_tables();
-  //if(verbosity>=2)    {hash_tables.print_all_tables();};
-#endif
-//    #if GAUSS_SIEVE_IS_MULTI_THREADED == false
 
 #ifdef PROGRESSIVE
   assert(lattice_rank > 0);
@@ -247,7 +217,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 #endif
   if(verbosity>=2)    {std::cout << "Sorting ...";}
   main_list.sort();
-    //for (auto it = main_list.cbegin(); it!=main_list.cend(); ++it) {std::cout << (*it).get_norm2() << std::endl;}; //check for sort()
 
   if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
@@ -257,8 +226,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
   std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
 
-//    #endif // GAUSS_SIEVE_IS_MULTI_THREADED
-    //TODO : enable sorting for multithreaded case.
+  //TODO : enable sorting for multithreaded case.
 #if GAUSS_SIEVE_IS_MULTI_THREADED==true
   garbage_bins = new GarbageBin<typename MainListType::DataType>[num_threads_wanted]; //maybe init later.
 #endif
@@ -266,33 +234,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
   main_queue.sampler->init(this, lattice_basis);
 
   std::cout << "sampler is initialized " << std::endl << std::flush;
-
-// This should be moved to Statistics.h -- Gotti
-
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-
-  unsigned int size_of_stat_arrays = GaussSieve::SimHash::num_of_levels * GaussSieve::SimHash::sim_hash_len+1;
-
-  for (unsigned int lvl=0; lvl<SimHash::num_of_levels; ++lvl)
-  {
-    statistics.red_stat[lvl].resize(size_of_stat_arrays);
-    statistics.no_red_stat[lvl].resize(size_of_stat_arrays);
-
-    statistics.red_stat_innloop[lvl].resize(size_of_stat_arrays);
-    statistics.no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
-  }
-#endif
-
-/*
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
-  statistics.no_red_stat.resize(this->ambient_dimension+1);
-  statistisc.red_stat.resize(this->ambient_dimension+1);
-#ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_2ND_ORDER
-  statistisc.no_red_stat2.resize(2*this->ambient_dimension+1);
-  statistisc.red_stat2.resize(2*this->ambient_dimension+1);
-#endif
-#endif
- */
 }
 
 template<class SieveTraits>
