@@ -69,6 +69,7 @@ void GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::custom_init(
   initialized = true;
 }
 
+// TODO: Not using thread / Engine / MTPRNG correctly
 template <class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
 GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
@@ -113,7 +114,7 @@ GPVSamplerExtended<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
        */
 
       long const newcoeff = sample_z_gaussian_VMD<long, Engine>(
-          s2pi[i], shifts[i], engine.rnd(), maxdeviations[i]);  // coefficient of b_j in vec.
+          s2pi[i], shifts[i], engine.rnd(thread), maxdeviations[i]);  // coefficient of b_j in vec.
 
       vec += basis[i] * newcoeff;
 

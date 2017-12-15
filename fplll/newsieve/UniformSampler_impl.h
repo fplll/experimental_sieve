@@ -69,8 +69,8 @@ UniformSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
 
   for (unsigned int i = 0; i < sparcity; ++i)
   {
-    vec += basis[sample_uniform<Engine>(dim - 1, engine.rnd())];
-    vec -= basis[sample_uniform<Engine>(dim - 1, engine.rnd())];
+    vec += basis[sample_uniform<Engine>(dim - 1, engine.rnd(thread))];
+    vec -= basis[sample_uniform<Engine>(dim - 1, engine.rnd(thread))];
   }
 
   typename SieveTraits::GaussSampler_ReturnType ret;
