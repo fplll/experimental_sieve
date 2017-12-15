@@ -1,15 +1,22 @@
-// clang-format status: NOT OK (reason: templates)
+// clang-format status: OK
 
 /**
  This file provided the interface for the lattice point sampler.
  To this end, this file provides a virtual interface template class Sampler, from which the actual
- samplers are derived.
+ samplers are derived. We use dynamic (runtime) polymorphism for the sampler.
+
+ Having such a virtual interface class allows us to take a user-provided sampler whose internal
+ workings we do not anticipate. The main sieve class (or possibly the queue stored inside) contains
+ a pointer to a Sampler object (or rather a type derived from Sampler)
+ The overhead of virtual dispatch is negligible for sampling.
+ (Sampling does not dominate the running time and even if we use a slow sampler, the dispatch cost
+ will matter even less)
 
  Dependencies:
  The sampler instance contains a pointer back to the sieve main object, creating circular
- dependencies.
- For this reason, parts of the implementation are in Sampler_impl.h or Sampler.cpp (TODO: Decide
- on whether we want header-only)
+ dependencies (This is done to give user-provided samplers access to the sieve's data).
+ For this reason, parts of the implementation are in Sampler_impl.h, which is included *after* all
+ *.h files in SieveGauss_main.h
 */
 
 #ifndef SAMPLER_H
@@ -27,8 +34,10 @@ namespace GaussSieve
 // forward declarations
 template <class SieveTraits, bool MT> class Sieve;
 
-// declared in this file, as specialization for each possible MT.
-template <class SieveTraits, bool MT, class Engine, class Sseq> class Sampler;
+// Declared in this file, as specialization for each possible MT.
+// Default template arguments are just meaningful defaults. You may choose others.
+template <class SieveTraits, bool MT, class Engine=std::mt19937_64, class Sseq=std::seed_seq>
+class Sampler;
 
 // printing
 template <class SieveTraits, bool MT, class Engine, class Sseq>
@@ -40,6 +49,9 @@ template <class SieveTraits, bool MT, class Engine, class Sseq>
 inline std::istream &operator>>(std::istream &is,
                                 Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
+// samplers that we recognize. This is used as a form of runtime - type - information used when
+// dumping objects (It is also useful if we ever want to support reading back from dump files if
+// the sampler is stateful)
 enum class SamplerType
 {
   user_defined        = 0,
@@ -56,6 +68,9 @@ Sseq is supposed to satisfy the C++ concept "SeedSequence". The standard library
 as a canonical example.
 Engine is supposed to satisfy the C++ concept of a "Random Number Engine". <random> provides several
 of those, e.g. std::mt19937_64.
+(These are selected as default template arguments)
+
+Note that the Sampler parent class manages the randomness source.
 
 IMPORTANT:  The main sieve can take a user-provided sampler, which may be of any possibly
             user-defined class derived from Sampler.
@@ -80,23 +95,49 @@ public:
   friend std::istream &operator>> <SieveTraits, MT, Engine, Sseq>(
       std::istream &is, Sampler<SieveTraits, MT, Engine, Sseq> *const samplerptr);
 
+  // constructor: this associates the Sampler with our sieve.
+  // inital_seed is used to seed our randomness source.
+  // Note that we may construct an unassociated sampler and associate it later.
   explicit Sampler<SieveTraits, MT, Engine, Sseq>(Sseq &initial_seed)
       : engine(initial_seed), sieveptr(nullptr)
   {
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Constructing Sampler (general).")
   }
 
-  // We call init first, then custom_init (via init).
+  // init is called by the sieve when we we start. it associates the sampler with the calling sieve.
+  // we then call custom_init with the input_basis provided by the seed.
+  // custom_init is supposed to be overloaded by user-defined samplers who need to perform some
+  // initialization at this stage.
   inline void init(Sieve<SieveTraits, MT> *const sieve,
                    SieveLatticeBasis<SieveTraits, MT> const &input_basis);
   virtual ~Sampler() = 0;  // needs to be virtual
 
 #ifdef PROGRESSIVE
-  // set_progressive_rank is virtual, so a child might overwrite it, e.g. to update internal data
-  // structures or to output diagnostics whenever the progressive rank changes.
-  virtual void set_progressive_rank(uint_fast16_t const new_progressive_rank)
+  // the sieve maintains a data field progressive_rank that is updated whenever we have enough
+  // lattice vectors. The purpose is that a sampler might wish to sample from a lower dimensional
+  // sublattice to make early progress fast.
+  // This number increases from rank/2 to rank.
+  // whenever it changes, it calls the sampler's update_progressive_rank() function with the
+  // new progressive rank. In the multi-threaded case, the call to this function from within the
+  // sieve is protected by a lock (for convenience of the implementors of Samplers)
+
+  // This function is virtual, so a child might overwrite it,
+  // e.g. to update internal data structures or to output diagnostics whenever the progressive rank
+  // changes.
+  virtual void update_progressive_rank(uint_fast16_t new_progressive_rank)
   {
-    progressive_rank = new_progressive_rank;
+  }
+
+  // Note that the parent sieve keeps its own copy of progressive_rank at the moment, which is
+  // synchronized with the sieve.
+  // TODO: Change that!!!
+  void set_progressive_rank(uint_fast16_t new_progressive_rank)
+  {
+    if (progressive_rank != new_progressive_rank)
+    {
+      progressive_rank = new_progressive_rank;
+      update_progressive_rank(progressive_rank);
+    }
   }
   uint_fast16_t get_progressive_rank() const { return progressive_rank; }
 #endif
@@ -129,7 +170,7 @@ private:
   virtual std::istream &read_from_stream(std::istream &is) { return is; }
 
 protected:
-  MTPRNG<Engine, MT, Sseq> engine;   // or engines
+  MTPRNG<Engine, MT, Sseq> engine;   // independent engines for each thread
   Sieve<SieveTraits, MT> *sieveptr;  // pointer to parent sieve. Set in init();
 
 #ifdef PROGRESSIVE

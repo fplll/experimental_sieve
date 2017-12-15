@@ -11,7 +11,6 @@
 #include "DefaultIncludes.h"
 #include "Sampler.h"
 #include "Typedefs.h"
-//#include "SieveGauss.h"
 #include "LatticeBases.h"
 
 namespace GaussSieve

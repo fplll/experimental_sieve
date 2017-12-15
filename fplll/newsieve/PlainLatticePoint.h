@@ -2,7 +2,6 @@
 #define PLAIN_LATTICE_POINT_H
 
 #include "DefaultIncludes.h"
-
 #include "GlobalStaticData.h"
 #include "LatticePointConcept.h"
 #include "SieveUtility.h"
@@ -187,6 +186,6 @@ public:
   }
 };
 
-}  // end of namespace
+}  // end of namespace GaussSieve
 
 #endif

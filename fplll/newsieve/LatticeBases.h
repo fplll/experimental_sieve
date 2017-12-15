@@ -18,28 +18,42 @@
 #include "fplll/nr/nr_Z.inl"
 #include "gmp.h"
 #include "gmpxx.h"
-#include <mutex>
 
 namespace GaussSieve
 {
 
 /**
   LatticeBasisType is the type used to represent lattice bases.
+  A basis of this type is stored inside the sieve.
   We support converting to an array of PlainLatticePoints and extracting GSO information.
 */
 
-// last template parameter is a dummy paramter.
-template <class SieveTraits, bool MT, bool Enabled = true> class SieveLatticeBasis;
+// NOTE: The last template parameter Enabled is a dummy parameter and is always void.
+// Its purpose is to allow partial specializations that depend on properties of SieveTraits.
+//
+// Notably, you can do partial specializations
+// template<class SieveTraits, bool MT>
+// class SieveLatticeBasis<SieveTraits, MT, mystd::enable_if_t< CONDITION > >
+// {
+// ...
+// };
+// where CONDITION is a bool that depends on SieveTraits and MT.
+// Since template argument deduction takes places before template argument substitution and SFINAE,
+// this has the effect that the specialization is only considered iff CONDITION is true.
 
-// unusable default, until someone implements more general GSOs...
+// This way, we can write various versions, depending on whether we receive Z_NR - input types or
+// not. Currently, we only take ZZ_Mat - classes
+
+template <class SieveTraits, bool MT, class Enabled = void> class SieveLatticeBasis;
+
+// unusable default (by design)
 // clang-format off
-template<class SieveTraits, bool MT, bool Enabled>
+template<class SieveTraits, bool MT, class Enabled>
 class SieveLatticeBasis
 // clang-format on
 {
-  // This must never be instantiated anyway, but if SieveTraits is ill-formed, the SFINAE selections
-  // below may fail.
-  static_assert(Enabled, "");
+  // This must never be instantiated.
+  static_assert(std::is_void<Enabled>::value == false, ""); // this will always trigger!
   static_assert(SieveTraits::IsSieveTraitsClass::value, "Invalid Traits class");
 
 public:
@@ -48,9 +62,10 @@ public:
 
 /**
   Specialization for classes where SieveTraits::InputBasisType is recognized as a ZZMat-class.
+  This is the only implementation we currently have.
   This essentially wraps around the fplll GSO class interfac(es).
 
-  Note that the GSO class interfaces have not been designed with multi-threading in mind.
+  Note that the GSO class interfaces may not have been designed with multi-threading in mind.
   In particular, they perfom lazy evaluation and store values already computed.
   So even what should be read-only operations are probably not thread-safe.
   For that reason, we only use the GSO methods during creation of the SieveLatticeBasis object and
@@ -61,9 +76,9 @@ public:
 // TODO: Make GSO object local to constructor.
 
 template <class SieveTraits, bool MT>
-class SieveLatticeBasis<SieveTraits, MT, true>  // TODO: LAST ARGUMENT: NOT CORRECT
+class SieveLatticeBasis<SieveTraits, MT,
+    mystd::enable_if_t<IsZZMatClass<typename SieveTraits::InputBasisType>::value> >
 {
-  static_assert(IsZZMatClass<typename SieveTraits::InputBasisType>::value, "");
 
 private:
   // clang-format off
@@ -94,9 +109,9 @@ public:
   explicit SieveLatticeBasis(InputBasisType const &input_basis,
                              GlobalStaticDataInitializer const &static_data)
       : original_basis(input_basis),
- 	ambient_dimension(input_basis.get_cols()),
+        ambient_dimension(input_basis.get_cols()),
         init_basis_vector_type(static_data),
-	lattice_rank(input_basis.get_rows()),
+        lattice_rank(input_basis.get_rows()),
         // u,u_inv intentionally uninitialized
         // will be initialized in call to
         // GSO(original_basis, u,u_inv, fplll::MatGSOInterfaceFlags::GSO_INT_GRAM),
@@ -242,7 +257,7 @@ private:
   // TODO: This argument should no longer apply with our RAII style initializers.
   BasisVectorType *basis_vectors;
   double maxbistar2;
-};
+};  // end of class
 
 }  // namespace GaussSieve
 

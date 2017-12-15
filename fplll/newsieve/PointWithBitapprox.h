@@ -6,6 +6,22 @@
 #include "SieveUtility.h"
 #include "SimHash.h"
 
+/**
+  This file declares and defines a class template
+  AddBitApproximationToLP<ELP, CooSelection>
+  that is used to add / combine a bitapproximation to a given lattice point.
+
+  Notably, if ELP is a Lattice Point class (-> LatticePointConcept.h)
+  and CooSelection is a Coordinate Selection ( for SimHashes) (cf. -> SimHash.h)
+
+  then AddBitApproximationToLP<ELP, CooSelection> is another lattice point class
+  that includes a sim_hash (whose paramteres are controlled by CooSelection).
+  This resulting class is convertible to / from ELP.
+*/
+
+// We use class T = ELP dummy parameters for TEMPL_RESTRICT_*
+// (see description of TEMPL_RESTRICT_DECL in Compat.h for the reason why)
+// This macro is undef'd at the end of the file.
 #define T_IS_ELP static_assert(std::is_same<T, ELP>::value, "Wrong template argument")
 
 namespace GaussSieve
@@ -22,6 +38,8 @@ template <class ELP, class CooSelection>
 struct LatticePointTraits<AddBitApproximationToLP<ELP, CooSelection>>
 {
   static_assert(IsALatticePoint<ELP>::value, "ELP is no lattice point");
+  static_assert(IsACoordinateSelection<CooSelection>::value, "Wrong 2nd template arg.");
+
 
 public:
   // forwarding traits from ELP, except for BitApprox
@@ -51,11 +69,22 @@ public:
   // clang-format on
 };
 
+/**
+  This creates a new lattice point with a sim_hash from an old one.
+  Essentially, it has an ELP member and a sim_hash member and just forwards the whole interface
+  (as specified by the lattice point concept) to elp.
+  The only difference to elp are the functions relatied to sim_hashes.
+*/
+
 template <class ELP, class CooSelection>
 class AddBitApproximationToLP final
     : public GeneralLatticePoint<AddBitApproximationToLP<ELP, CooSelection>>
 {
+  static_assert(IsALatticePoint<ELP>::value, "");
+  static_assert(IsACoordinateSelection<CooSelection>::value, "");
+
 public:
+  // forward from ELP / CooSelection
   using LatticePointTag = std::true_type;
   using Myself          = AddBitApproximationToLP<ELP, CooSelection>;
   using SimHashBlock    = typename CooSelection::SimHashBlock;
@@ -67,11 +96,20 @@ public:
   using ScalarProductStorageType_Full = Get_ScalarProductStorageType_Full<Myself>;
 
 private:
+  // sim_hashes are a sim_hash of the point elp.
+  // Note that we do NOT automatically maintain sim_hashes.
+  // We rely on the user to call update_bitapprox()
+  // This is arguably ugly, but update_bitapprox() matters for the runtime.
+  // (The issue is with multiple operations like x+=y; x*=z in a row, where we do not need to
+  // update the sim_hash for the intermediates. While we mostly avoid such intermediates in the
+  // first place, we do not want to rely on that)
   ELP elp;
   SimHashes sim_hashes;
 
 public:
   // clang-format off
+
+  // move-construct from ELP
   AddBitApproximationToLP(ELP const &v) = delete;
   CPP14CONSTEXPR AddBitApproximationToLP(ELP &&v) noexcept
       : elp(std::move(v)),
@@ -80,6 +118,7 @@ public:
   }
   // clang-format on
 
+  // allow conversion back to ELP.
   // clang-format off
   constexpr      operator ELP() const & { return elp; }
   CPP14CONSTEXPR operator ELP()      && { return std::move(elp); }
@@ -94,6 +133,7 @@ public:
     {}
   */
 
+  // a constructor that takes an already known sim_hash, to avoid recomputation.
   // Note: There is some serious danger here to accidentally invoke the perferct forward above.
   //       SimHashArgTag's sole purpose is disambiguation and causing easier-to-understand errors.
   CPP14CONSTEXPR AddBitApproximationToLP(SimHashArgTag, ELP &&v, SimHashes const &new_sim_hashes)
@@ -106,22 +146,28 @@ public:
   {
   }
 
+  // update the stored sim_hashes. Note that it is the users job to call this function!
   void update_bitapprox()
   {
     sim_hashes =
         GlobalBitApproxData<CooSelection>::coo_selection.compute_all_bitapproximations(*this);
   }
 
+  // gives access to a specific block of the sim_hash
   SimHashBlock const &access_bitapproximation(unsigned int level) const
   {
     return sim_hashes[level];
   }
 
+  // allows to retrieve all sim_hashes. Note that this can only be used on temporaries
+  // or with std::move(). The sim_hash stored in the point is invalidated, but elp remains valid.
   SimHashes take_bitapproximations() && { return std::move(sim_hashes); }
 
   // forward functionality of ELP. Note that the this is *not* captured by the conversion operators,
   // because MakeLeveledLatticePoint<ELP> is derived from GeneralLatticePoint, and those defaults
   // will have precendence over any potential conversions.
+
+  // A LOT OF BORING BOILERPLATE CODE FOLLOWS...
 
   static std::string class_name() { return ELP::class_name() + " with Bitapproximations"; }
 
@@ -230,7 +276,7 @@ public:
   // clang-format on
 
   //
-  //  //TODO: read_from_stream
+  // TODO: read_from_stream
   //
 
   void fill_with_zero() { elp.fill_with_zero(); }
@@ -292,6 +338,13 @@ public:
     return elp.do_compute_sc_product_full(std::forward<Arg>(arg));
   }
 };
+
+/**
+  Static initializer for AddBitApproximation<ELP, CooSelection>:
+  We just forward to the static initializer of ELP by wrapping around it.
+  Note that static initialization of CooSelection (or rather of GlobalBitApproxData<CooSelection>)
+  is not our job: According to SimHash.h, this is done by the main sieve.
+*/
 
 // static initializer
 template <class ELP, class CooSelection>
