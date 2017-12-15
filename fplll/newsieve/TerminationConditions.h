@@ -80,8 +80,8 @@ template <class SieveTraits, bool MT> class TerminationCondition;
 template <class SieveTraits, bool MT> class NeverTerminationCondition;
 template <class SieveTraits, bool MT> class LengthTerminationCondition;
 template <class SieveTraits, bool MT> class MinkowskiTerminationCondition;
-template <class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond); //printing
-template <class SieveTraits, bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond); //reading
+template <class SieveTraits, bool MT> std::ostream & operator<<(std::ostream &os, TerminationCondition<SieveTraits,MT> const &term_cond); //printing
+template <class SieveTraits, bool MT> std::istream & operator>>(std::istream &is, TerminationCondition<SieveTraits,MT> const &term_cond); //reading
 
 // types of Termination Condition recognized. Note that we may have user-provided Termination
 // conditions.
@@ -110,9 +110,11 @@ private:  // shorthand typedefs to avoid "typename ..."
 
 public:
 
-  // TODO: Remove pointer
-  friend std::ostream & operator<< <SieveTraits,MT>(std::ostream &os,TerminationCondition<SieveTraits,MT> *const term_cond);
-  friend std::istream & operator>> <SieveTraits,MT>(std::istream &is,TerminationCondition<SieveTraits,MT> *const term_cond);
+  // stream input / output
+  // clang-format off
+  friend std::ostream &operator<< <SieveTraits,MT>(std::ostream &os, TerminationCondition<SieveTraits,MT> const &term_cond);
+  friend std::istream &operator>> <SieveTraits,MT>(std::istream &is, TerminationCondition<SieveTraits,MT> const &term_cond);
+  // clang-format on
 
   // associates the termination condition with the calling sieve
   void init(Sieve<SieveTraits,MT> * const ptr_to_caller)
@@ -141,8 +143,8 @@ public:
   }
 
 private:
-    virtual std::ostream & dump_to_stream(std::ostream &os)   {return os; }  //implementation of << operator.
-    virtual std::istream & read_from_stream(std::istream &is) {return is; }  //implementation of >> operator.
+    virtual std::ostream & dump_to_stream(std::ostream &os) const {return os; }  //implementation of << operator.
+    virtual std::istream & read_from_stream(std::istream &is)     {return is; }  //implementation of >> operator.
 
     protected:
     Sieve<SieveTraits, MT> *sieveptr;  // holds an (observing) pointer to the caller sieve or
@@ -151,8 +153,17 @@ private:
 
 template <class SieveTraits,bool MT> TerminationCondition<SieveTraits,MT>::~TerminationCondition() {} //actually needed, even though destructor is pure virtual as the base class destructor is eventually called implicitly.
 
-template<class SieveTraits,bool MT> std::ostream & operator<<(std::ostream &os,TerminationCondition<SieveTraits,MT>* const term_cond){return term_cond->dump_to_stream(os);};
-template<class SieveTraits,bool MT> std::istream & operator>>(std::istream &is,TerminationCondition<SieveTraits,MT>* const term_cond){return term_cond->read_from_stream(is);};
+template <class SieveTraits, bool MT>
+std::ostream &operator<<(std::ostream &os, TerminationCondition<SieveTraits, MT> const &term_cond)
+{
+  return term_cond.dump_to_stream(os);
+}
+
+template <class SieveTraits,bool MT>
+std::istream &operator>>(std::istream &is, TerminationCondition<SieveTraits,MT> &term_cond)
+{
+  return term_cond.read_from_stream(is);
+}
 
 }  // end namespace GaussSieve
 

@@ -121,7 +121,7 @@ public:
   using FilteredListType            = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
   using SieveStatistics = GaussSieveStatistics<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
-  
+
 template <class, bool> friend class GaussSieveStatistics;
 
 #ifdef USE_LSH
@@ -281,7 +281,7 @@ public:
     if(term_cond_owned && (term_cond!=nullptr)) delete term_cond;
     term_cond_owned = false;
     term_cond = termcond;
-  } //TODO: If we default - initialize (and own in this case), may need to delete previous value.
+  }
 private:
 
 //Use termination Condition to check whether we are done, based on statistics so far.
@@ -335,13 +335,9 @@ private:
   int verbosity;       //ranged from 0 to 3 (0 : silent, 1 : errors only, 2 : more output, 3 : debug
 
 
-
-  //public:  //made public to avoid complicated (due to template hack) friend - declaration.
-  //            //TODO : Change term-cond to a user-provided function.
-  //    TerminationConditions<ET> term_cond;
 private:
   bool term_cond_owned;  // Do we own the following pointer. Required for proper clean-up.
-  TermCondType *term_cond;
+  TermCondType *term_cond;  // consider using smart pointers
   enum class SieveStatus
   {
     sieve_status_error     =  -1,      //indicates an error (add error codes as neccessary)

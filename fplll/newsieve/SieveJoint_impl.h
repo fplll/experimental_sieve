@@ -98,7 +98,7 @@ void Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::dump_status_to_stream(std
     if(howverb>=2) of << "Lattice rank=" << lattice_rank << endl;
     if(howverb>=2) of << "Ambient dimension=" << ambient_dimension << endl;
     if(howverb>=2) of << "Termination Conditions:" << endl;
-    if(howverb>=2) of << term_cond;
+    if(howverb>=2) of << (*term_cond);
     if(howverb>=2) of << "Sampler:"<< endl;
     //if(howverb>=2) of << "Sampler Initialized" << static_cast<bool>(sampler!=nullptr) << endl;
     //if(sampler!=nullptr)
@@ -293,7 +293,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::Sieve(
 #endif
 #endif
  */
-};
+}
 
 template<class SieveTraits>
 Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::~Sieve()
@@ -302,13 +302,13 @@ Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::~Sieve()
   delete[] garbage_bins;
 #endif
   delete shortest_vector_found;
-};
+}
 
 template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>::check_if_done()
 {
   return (term_cond->check() != 0) ? true : false;
-};
+}
 
 #ifdef PROGRESSIVE
 //for progressive sieving

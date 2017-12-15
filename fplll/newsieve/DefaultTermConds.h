@@ -83,7 +83,7 @@ public:
   };  // exception indicating that read from dump failed.
 
   // dumping to stream
-  virtual std::ostream &dump_to_stream(std::ostream &os) override
+  virtual std::ostream &dump_to_stream(std::ostream &os) const override
   {
     os << "Target Norm^2 =" << target_norm2 << std::endl;
     return os;
