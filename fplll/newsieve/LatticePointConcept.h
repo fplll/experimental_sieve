@@ -179,6 +179,7 @@ template <class Implementation> class GeneralLatticePoint;
   LatticePointTraits<...>::... defaults to a compile-time error.
   Furthermore, Has_ExposesCoos<...> is aware of neccessary implications between traits.
   I.e. if a trait is implied by another trait, it is automagically set.
+  TODO: Review / document which implications are set?
 */
 
 // In order to define e.g. Has_CoosRW, we use 3 steps (some traits only require 2):
@@ -322,7 +323,7 @@ template<class T> using Has_CheapNegate = TraitHelpers::T_CheapNegate<T>;
 template<class T> using Has_Leveled     = TraitHelpers::T_Leveled<T>;
 template<class T> using Has_BitApprox   = TraitHelpers::T_BitApprox<T>;
 
-// Deprecated. Note is is and AND of things above, not an OR.
+// Deprecated. Note it is and AND of things above, not an OR.
 template<class LatP> using IsRepLinear_RW =
     mystd::conjunction< Has_InternalRepLinear<LatP>, Has_InternalRep_RW<LatP> >;
 // clang-format on

@@ -36,7 +36,7 @@ template <class SieveTraits, bool MT> class Sieve;
 
 // Declared in this file, as specialization for each possible MT.
 // Default template arguments are just meaningful defaults. You may choose others.
-template <class SieveTraits, bool MT, class Engine=std::mt19937_64, class Sseq=std::seed_seq>
+template <class SieveTraits, bool MT, class Engine = std::mt19937_64, class Sseq = std::seed_seq>
 class Sampler;
 
 // printing

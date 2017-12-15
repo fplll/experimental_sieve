@@ -9,9 +9,9 @@
 #define SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
+#include "LatticeBases.h"
 #include "Sampler.h"
 #include "Typedefs.h"
-#include "LatticeBases.h"
 
 namespace GaussSieve
 {

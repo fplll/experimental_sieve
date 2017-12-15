@@ -40,7 +40,6 @@ struct LatticePointTraits<AddBitApproximationToLP<ELP, CooSelection>>
   static_assert(IsALatticePoint<ELP>::value, "ELP is no lattice point");
   static_assert(IsACoordinateSelection<CooSelection>::value, "Wrong 2nd template arg.");
 
-
 public:
   // forwarding traits from ELP, except for BitApprox
   // Note: NormalizeTraits transforms anything with a bool ::value to a usual
