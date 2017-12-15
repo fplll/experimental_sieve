@@ -22,7 +22,7 @@
 		<Unit filename="DefaultTermConds.h" />
 		<Unit filename="DefaultTermConds_impl.h" />
 		<Unit filename="ExactLatticePoint.h" />
-		<Unit filename="FilteredPoint2.h" />
+		<Unit filename="FilteredPoint.h" />
 		<Unit filename="GPVSampler.h" />
 		<Unit filename="GPVSamplerExtended.h" />
 		<Unit filename="GPVSamplerExtended_impl.h" />
@@ -50,7 +50,7 @@
 		<Unit filename="SieveUtility.h" />
 		<Unit filename="SimHash.h" />
 		<Unit filename="Statistics.h" />
-		<Unit filename="TermCondNew.h" />
+		<Unit filename="TerminationConditions.h" />
 		<Unit filename="Tests/TestApproximations.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestBitApprox.h" />
@@ -65,6 +65,8 @@
 		<Unit filename="Tests/TestShiSampler.h" />
 		<Unit filename="Tests/TestTraitClasses.h" />
 		<Unit filename="Typedefs.h" />
+		<Unit filename="UniformSampler.h" />
+		<Unit filename="UniformSampler_impl.h" />
 		<Unit filename="classtests.cpp" />
 		<Unit filename="sieve_main.cpp" />
 		<Unit filename="test_newsieve.cpp" />
