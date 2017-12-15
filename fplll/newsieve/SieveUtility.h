@@ -107,14 +107,14 @@ public:
   static constexpr bool IsFixed = true;
 
   constexpr MaybeFixed() = default;
-//#ifdef DEBUG_SIEVE_LP_MATCHDIM
-//  constexpr  MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
-//#else
-  template<class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
+  //#ifdef DEBUG_SIEVE_LP_MATCHDIM
+  //  constexpr  MaybeFixed(UIntClass const new_value) { assert(new_value == nfixed); }
+  //#else
+  template <class Integer, TEMPL_RESTRICT_DECL2(std::is_integral<Integer>)>
   constexpr MaybeFixed(Integer const)
   {
   }
-// #endif
+  // #endif
   FORCE_INLINE inline constexpr operator UIntClass() const { return nfixed; }
   static inline constexpr UIntClass get_num() { return nfixed; }
   static constexpr UIntClass value = nfixed;
@@ -199,15 +199,19 @@ template <class T> struct RemoveZNRHelper<fplll::Z_NR<T>>
 };
 template <class T> struct VerifyValidZNRArg
 {
-  static_assert(std::is_same<T, double>::value || std::is_same<T, mpz_t>::value || std::is_same<T, long>::value, "Invalid Argument to Z_NR");
+  static_assert(std::is_same<T, double>::value || std::is_same<T, mpz_t>::value ||
+                    std::is_same<T, long>::value,
+                "Invalid Argument to Z_NR");
   using type = T;
 };
 }  // end namespace MpzConversionHelper
 
+// clang-format off
 template<class T> using PossiblyRemoveZNR      = typename MpzConversionHelper::RemoveZNRHelper<T>::type;
 template<class T> using PossiblyMpzClassToMpzt = mystd::conditional_t< std::is_same<T,mpz_class>::value, mpz_t, T>;
 template<class T> using PossiblyMpztToMpzClass = mystd::conditional_t< std::is_same<T,mpz_t>::value, mpz_class, T>;
 template<class T> using AddZNR = fplll::Z_NR<  typename MpzConversionHelper::VerifyValidZNRArg< PossiblyMpzClassToMpzt<T> >::type  >;
+// clang-format on
 
 /**
   Conversion to double that works with both mpz_class and anything convertible to double.
@@ -215,36 +219,41 @@ template<class T> using AddZNR = fplll::Z_NR<  typename MpzConversionHelper::Ver
 
 // template<class Source> double convert_to_double(Source const & source);
 
-template <class Source>
-double convert_to_double(Source const &source)
+template <class Source> double convert_to_double(Source const &source)
 {
   static_assert(!std::is_same<Source, mpz_class>::value, "Source is mpz_class");
   return static_cast<double>(source);
 }
 
-double convert_to_double(mpz_class const &source)
+double convert_to_double(mpz_class const &source) { return source.get_d(); }
+
+/**
+  Conversion to an integer type or mpz_class that works with both mpz_class and non-mpz types
+*/
+
+// helper class (wrapped in class to enable partial specializations)
+// Used to define ConvertMaybeMPZ<Target>::do_convert<Source>()
+
+namespace ConversionHelpers  // namespace for implementation details
 {
-  return source.get_d();
-}
-
-// ConvertMaybeMPZ<Integer>::convert_to_inttype(source)
-// is a static_cast<Integer>(source) that also works for mpz_class
-template <class Integer> struct ConvertMaybeMPZ;
-
+// Integer is the convertion TARGET. There is specialization for mpz_class below
 template <class Integer> struct ConvertMaybeMPZ
 {
   static_assert(std::is_integral<Integer>::value, "Use only for integral classes.");
+
+  // this restriction comes from mpz_* :
   static_assert(std::numeric_limits<Integer>::digits <= std::numeric_limits<long>::digits,
                 "Converter does not work properly for types larger than long.");
-  // and in fact, there is issues with signed / unsigned.
 
-  template <class Source> static Integer convert_to_inttype(Source const &source)
+  template <class Source,
+  TEMPL_RESTRICT_DECL2(mystd::negation<std::is_same<mystd::decay_t<Source>,mpz_t>>,
+                       mystd::negation<std::is_same<mystd::decay_t<Source>,mpz_class>>)>
+  static Integer do_convert(Source &&source)
   {
-    static_assert(!std::is_same<mystd::decay_t<Source>, mpz_class>::value, "Source is mpz_class");
-    return static_cast<Integer>(source);
+    return static_cast<Integer>(std::forward<Source>(source));
   }
 
-  static Integer convert_to_inttype(mpz_class const &source)
+  static Integer do_convert(mpz_class const &source)
   {
     if (std::numeric_limits<Integer>::is_signed)
     {
@@ -256,7 +265,7 @@ template <class Integer> struct ConvertMaybeMPZ
     }
   }
 
-  static Integer convert_to_inttype(mpz_t const &source)
+  static Integer do_convert(mpz_t const &source)
   {
     if (std::numeric_limits<Integer>::is_signed)
     {
@@ -269,18 +278,26 @@ template <class Integer> struct ConvertMaybeMPZ
   }
 };
 
+// specialization when the target type is mpz_class:
 template <> struct ConvertMaybeMPZ<mpz_class>
 {
-  template <class Source> static mpz_class convert_to_inttype(Source const &source)
+  template <class Source> static mpz_class do_convert(Source const &source)
   {
     return static_cast<mpz_class>(source);
   }
-  static mpz_class convert_to_inttype(mpz_class const &source) { return source; }
-  static mpz_class convert_to_inttype(mpz_t const &source)
+  static mpz_class do_convert(mpz_class const &source) { return source; }
+  static mpz_class do_convert(mpz_t const &source)
   {
     return static_cast<mpz_class>(source);
   }
 };
+} // end namespace ConversionHelpers
+
+template<class Target, class Source>
+Target convert_to_inttype(Source &&source)
+{
+  return ConversionHelpers::ConvertMaybeMPZ<Target>::do_convert(std::forward<Source>(source));
+}
 
 /**
 string_consume(is, str, elim_ws, verbose) reads from stream is.

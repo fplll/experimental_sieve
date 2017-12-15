@@ -36,9 +36,7 @@ inline int MinkowskiTerminationCondition<SieveTraits, MT>::check_vec(
 template <class SieveTraits, bool MT>
 inline void MinkowskiTerminationCondition<SieveTraits, MT>::custom_init()
 {
-  // clang-format off
-  target_norm2 = ConvertMaybeMPZ<LengthType>::convert_to_inttype( sieveptr->get_basis().get_minkowski_bound() );
-  // clang-format on
+  target_norm2 = convert_to_inttype<LengthType>( sieveptr->get_basis().get_minkowski_bound() );
 }
 
 }  // namespace GaussSieve

@@ -177,8 +177,7 @@ int main(int argc, char **argv)
 
   if (target_norm_conv != 0)
   {
-    termcond = new LengthTerminationCondition<Traits, multithreaded>(
-        ConvertMaybeMPZ<long>::convert_to_inttype(target_norm_conv));
+    termcond = new LengthTerminationCondition<Traits, multithreaded>(convert_to_inttype<long>(target_norm_conv));
   }
   else
   {
