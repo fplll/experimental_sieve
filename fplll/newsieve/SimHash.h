@@ -108,15 +108,14 @@ namespace GaussSieve
 {
 
 // To ensure validity of template arguments, in order to give meaningful compiler errors.
-template <class T> using Predicate_IsCooSelection = mystd::enable_if_t<  std::is_same<typename T::IsCooSelection, std::true_type>::value  >;
-template <class T> using IsACoordinateSelection   = mystd::is_detected<Predicate_IsCooSelection,T>;
+template <class T> using Predicate_IsCooSelection = mystd::enable_if_t<T::IsCooSelection::value>;
+template <class T> using IsACoordinateSelection   = mystd::is_detected<Predicate_IsCooSelection, T>;
 
 /**
   This is a class that encapsulates (as a static member) a singleton of type CooSelection.
   Various (otherwise loosely related) have to use the SAME hash function, hence we want a global.
 */
-template<class CooSelection>
-class GlobalBitApproxData
+template <class CooSelection> class GlobalBitApproxData
 {
   static_assert(IsACoordinateSelection<CooSelection>::value, "Invalid template argument");
   friend StaticInitializer<GlobalBitApproxData>;
@@ -138,9 +137,11 @@ public:
 // compile-time initialization of coo_selection. This will be overwritten at runtime before its
 // first use by the StaticInitializer. Note that our StaticInitializer keep a "WasInitialized" bit
 // around, so we do not need one here.
+// clang-format off
 template<class CooSelection> CooSelection                         GlobalBitApproxData<CooSelection>::coo_selection;
 template<class CooSelection> typename CooSelection::DimensionType GlobalBitApproxData<CooSelection>::dim_used;
 template<class CooSelection> unsigned int                         GlobalBitApproxData<CooSelection>::random_seed_used;
+// clang-format on
 
 /**
   Static Initializer for run-time initialization (RAII-style wrapper).
@@ -148,19 +149,22 @@ template<class CooSelection> unsigned int                         GlobalBitAppro
   (cf. GlobalStaticData.h)
  */
 
-template<class CooSelection> class StaticInitializer< GlobalBitApproxData<CooSelection> > final
-    : public DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >
+template <class CooSelection>
+class StaticInitializer<GlobalBitApproxData<CooSelection>> final
+    : public DefaultStaticInitializer<GlobalBitApproxData<CooSelection>>
 {
   static_assert(IsACoordinateSelection<CooSelection>::value, "Invalid template argument");
-  using Parent        = DefaultStaticInitializer< GlobalBitApproxData<CooSelection> >;
+  using Parent        = DefaultStaticInitializer<GlobalBitApproxData<CooSelection>>;
   using DimensionType = typename CooSelection::DimensionType;
 
 public:
   // See GlobalStaticData.h for the meaning of IsArgForStaticInitializer.
   // Essentially, we allow certain types that have a .dim member.
-  template<class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
+  template <class T, TEMPL_RESTRICT_DECL2(IsArgForStaticInitializer<T>)>
   StaticInitializer(T const &initializer, unsigned int random_seed)
-      : StaticInitializer(static_cast<DimensionType>(initializer.dim), random_seed) {}
+      : StaticInitializer(static_cast<DimensionType>(initializer.dim), random_seed)
+  {
+  }
 
   StaticInitializer(DimensionType const new_dim, unsigned int random_seed)
   {
@@ -193,9 +197,9 @@ public:
 /**
  Outputs a SimHash (i.e. an array of bitsets)
 */
-template<std::size_t sim_hash_num, std::size_t sim_hash_len>
-std::ostream & operator<<(std::ostream                                               &os,
-                          std::array< std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
+template <std::size_t sim_hash_num, std::size_t sim_hash_len>
+std::ostream &operator<<(std::ostream &os,
+                         std::array<std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
 {
   for (unsigned int i = 0; i < sim_hash_num; ++i)
   {
@@ -207,9 +211,9 @@ std::ostream & operator<<(std::ostream                                          
 /**
   takes a SimHash and returns a copy of it, with all bits flipped.
 */
-template<std::size_t sim_hash_num, std::size_t sim_hash_len>
-auto flip_all_bits(std::array< std::bitset<sim_hash_len>, sim_hash_num > const &sim_hashes)
-    -> std::array< std::bitset<sim_hash_len>, sim_hash_num >
+template <std::size_t sim_hash_num, std::size_t sim_hash_len>
+auto flip_all_bits(std::array<std::bitset<sim_hash_len>, sim_hash_num> const &sim_hashes)
+    -> std::array<std::bitset<sim_hash_len>, sim_hash_num>
 {
   auto sim_hash_ret = sim_hashes;
   for (size_t i = 0; i < sim_hash_num; ++i)
@@ -228,11 +232,11 @@ auto flip_all_bits(std::array< std::bitset<sim_hash_len>, sim_hash_num > const &
 */
 namespace Helpers
 {
-template<class CooSelection> struct ObtainSimHashBlock
+template <class CooSelection> struct ObtainSimHashBlock
 {
   static_assert(IsACoordinateSelection<CooSelection>::value, "Wrong template argument");
-
-  template<class Arg>
+  // clang-format off
+  template <class Arg>
   FORCE_INLINE static auto get(Arg const &arg, unsigned int const level)
       -> typename CooSelection::SimHashBlock const &
   {
@@ -244,6 +248,7 @@ template<class CooSelection> struct ObtainSimHashBlock
   {
     return arg[level];
   }
+  // clang-format on
 };
 }  // end namespace Helpers
 
@@ -264,11 +269,11 @@ template<class CooSelection> struct ObtainSimHashBlock
         are near-orthogonal.
         In particular, lhs XOR rhs itself becomes *smaller* if the scalar product gets *larger*, so
         the lower thresholds on the XOR means an upper threshold on the scalar product.
-
-
 */
-template<class CoordinateSelection, class LHS, class RHS,
-	 class LowerThresholds, class UpperThresholds>
+
+// clang-format off
+template <class CoordinateSelection, class LHS, class RHS,
+          class LowerThresholds, class UpperThresholds>
 FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
     LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub)
 {
@@ -289,16 +294,19 @@ FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product(
   }
   return true;
 }
+// clang-format on
 
 /*
   same as above but also returns (in case of true) which of the if-conditions was satisfied
   I.e., tell whether the two points are close or far apart
   If (approx_scprod <= lb[level]), bool is_close is set to true
  */
-template<class CoordinateSelection, class LHS, class RHS,
-         class LowerThresholds, class UpperThresholds>
+
+// clang-format off
+template <class CoordinateSelection, class LHS, class RHS,
+          class LowerThresholds, class UpperThresholds>
 FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product_ext(
-                                                        LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub, bool &is_close)
+    LHS const &lhs, RHS const &rhs, LowerThresholds const &lb, UpperThresholds const &ub, bool &is_close)
 {
   uint_fast16_t approx_scprod = 0;  // holds accumulated XOR - value
   for (unsigned int level = 0;
@@ -323,6 +331,7 @@ FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product_ext(
   }
   return true;
 }
+// clang-format on
 
 }  // end namespace GaussSieve
 

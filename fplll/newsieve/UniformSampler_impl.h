@@ -1,25 +1,21 @@
-// clang-format status: NOT OK (reason: templates)
-
-// clang-format off
-
 #ifndef UNIFORM_SAMPLER_IMPL_H
 #define UNIFORM_SAMPLER_IMPL_H
 
 #include "DefaultIncludes.h"
+#include "LatticeBases.h"
 #include "Sampler.h"
 #include "UniformSampler.h"
 #include "fplll/defs.h"
 #include "fplll/gso.h"
 #include "fplll/nr/matrix.h"
 #include "fplll/nr/nr_Z.inl"
-#include "LatticeBases.h"
 
 namespace GaussSieve
 {
 
-template<class SieveTraits, bool MT, class Engine, class Sseq>
-void UniformSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
-    SieveLatticeBasis<SieveTraits,MT> const &input_basis)
+template <class SieveTraits, bool MT, class Engine, class Sseq>
+void UniformSampler<SieveTraits, MT, Engine, Sseq>::custom_init(
+    SieveLatticeBasis<SieveTraits, MT> const &input_basis)
 {
   assert(!initialized);
 #ifndef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -53,9 +49,9 @@ void UniformSampler<SieveTraits,MT,Engine,Sseq>::custom_init(
   initialized = true;
 }
 
-template<class SieveTraits, bool MT, class Engine, class Sseq>
+template <class SieveTraits, bool MT, class Engine, class Sseq>
 typename SieveTraits::GaussSampler_ReturnType
-UniformSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
+UniformSampler<SieveTraits, MT, Engine, Sseq>::sample(int const thread)
 {
   assert(initialized);
 #ifdef DEBUG_SIEVE_STANDALONE_SAMPLER
@@ -79,6 +75,7 @@ UniformSampler<SieveTraits,MT,Engine,Sseq>::sample(int const thread)
   ret = make_from_any_vector<typename SieveTraits::GaussSampler_ReturnType>(vec, dim);
   return ret;
 }
-}
+
+}  // end namespace GaussSieve
 
 #endif
