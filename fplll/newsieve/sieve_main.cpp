@@ -14,7 +14,7 @@
 #include "fplll.h"
 #include <thread>
 #include <chrono>
-#include "SieveGauss_main.h"
+#include "Sieve.h"
 #include <fstream>
 #include <getopt.h>
 #include <iostream>

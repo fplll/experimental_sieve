@@ -10,19 +10,19 @@
 // Use this to condition on the second pass.
 
 // clang-format off
-#ifndef GAUSS_SIEVE_IS_MULTI_THREADED
+#ifndef GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 #error wrong usage of SieveJoint.h
 #endif
 
 #undef DO_INCLUDE_SIEVE_JOINT_H
-#if GAUSS_SIEVE_IS_MULTI_THREADED == false
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == false
 
 #ifndef SIEVE_JOINT_H_ST
 #define SIEVE_JOINT_H_ST
 #define DO_INCLUDE_SIEVE_JOINT_H
 #endif
 
-#elif GAUSS_SIEVE_IS_MULTI_THREADED == true
+#elif GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
 #ifndef SIEVE_JOINT_H_MT
 #define SIEVE_JOINT_H_MT
 #define DO_INCLUDE_SIEVE_JOINT_H
@@ -45,7 +45,7 @@ EVEN IF WE USE BOTH MULTI-THREADED AND SINGLE-THREADED VARIANTS.
 DECLARATIONS MAY GO HERE OR TO SieveGauss.h.
 
 HELPER CLASSES AND FUNCTIONS WHICH ARE NOT TEMPLATES WITH TEMPLATE PARAMETER
-GAUSS_SIEVE_IS_MULTI_THREADED
+GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 NEED TO GO HERE OR TO SieveGauss.h:
 */
 
@@ -73,41 +73,29 @@ template <class SieveTraits, bool MT> class Sieve;
 
 /*
 EVERYTHING BELOW HERE IS POTENTIALLY INCLUDED TWICE.
-TEMPLATES WITH TEMPLATE ARGUMENT GAUSS_SIEVE_IS_MULTI_THREADED
+TEMPLATES WITH TEMPLATE ARGUMENT GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 GO HERE.
 */
 
 // The following may be included once or twice (with different values for
-// GAUSS_SIEVE_IS_MULTI_THREADED)
+// GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED)
 
-// TODO: Move to where it is actually used.
-
-// template<class ET>
-// class CompareQueue<ET, GAUSS_SIEVE_IS_MULTI_THREADED>{
-//    public:
-//     bool operator() (const FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el1, const
-//     FilteredPoint<ET, LatticeApproximations::ApproxTypeNorm2> & el2) const
-//     {
-//        return el1.get_sc_prod() > el2.get_sc_prod();  // inner products are in decreasing order
-//    }
-//};
-
-#ifndef GAUSS_SIEVE_IS_MULTI_THREADED
+#ifndef GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 #error Something very bad just happened
 #endif
 
 namespace GaussSieve
 {
 
-template <class SieveTraits> class Sieve<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>
+template <class SieveTraits> class Sieve<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>
 {
 public:
   /*DATA TYPES*/
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
-  using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
-  using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
-  using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+  using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+  using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
   using LengthType       = typename SieveTraits::LengthType;
@@ -115,20 +103,20 @@ public:
   using SimHashGlobalData       = GlobalBitApproxData<CoordinateSelectionUsed>;
 
   // TODO: Remove this typedef
-  using Filtered_Point = FilteredPoint2<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using Filtered_Point = FilteredPoint2<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
 
   using FilteredListType            = std::vector<Filtered_Point>;
   using GlobalStaticDataInitializer = typename SieveTraits::GlobalStaticDataInitializer;
-  using SieveStatistics = GaussSieveStatistics<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using SieveStatistics = GaussSieveStatistics<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
 
   template <class, bool> friend class GaussSieveStatistics;
 
   // Termination condition may be some class *derived from* this.
-  using TermCondType     = TerminationCondition<SieveTraits,GAUSS_SIEVE_IS_MULTI_THREADED>;
+  using TermCondType     = TerminationCondition<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
 
 public:
   /*FRIENDS */
-  friend GaussQueue<SieveTraits, GAUSS_SIEVE_IS_MULTI_THREADED>;
+  friend GaussQueue<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
 
   /*CONSTRUCTORS / DESTRUCTORS */
 
@@ -139,7 +127,7 @@ public:
   Sieve &operator=(Sieve const &) = delete;
   Sieve &operator=(Sieve &&)      = delete;
 
-#if GAUSS_SIEVE_IS_MULTI_THREADED == true
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
   explicit Sieve InputBasisType const &B, unsigned int const k=2,
                   unsigned int const num_threads=0, TermCondType * const termcond = nullptr,
                   unsigned int const verbosity_=2, int seed_sampler = 0);
@@ -147,11 +135,11 @@ public:
   explicit Sieve( InputBasisType const & B, unsigned int const k=2,
                     TermCondType * const termcond = nullptr, unsigned int const verbosity_=2,
                     int seed_sampler = 0);
-#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+#endif // GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 
   //explicit Sieve(std::string const &infilename); // read from dump file (NOT IMPLEMENTED)
   ~Sieve();
-  static bool constexpr class_multithreaded =  GAUSS_SIEVE_IS_MULTI_THREADED;
+  static bool constexpr class_multithreaded =  GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED;
   //class_multithreaded is for introspection, is_multithreaded is what the caller wants (may differ if we dump and re-read with different params)
 
 
@@ -161,7 +149,7 @@ public:
   void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
-#if GAUSS_SIEVE_IS_MULTI_THREADED == true
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
 //  void sieve_2_thread(int const thread_id);   //function for worker threads
 //  void sieve_3_thread(int const thread_id);
 //  void sieve_k_thread(int const thread_id);
@@ -173,9 +161,9 @@ public:
   void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
-  
+
   /* PRINTING / DUMPING ROUTINES */
-  
+
   //prints status to out. verb overrides the verbosity unless set to -1.
   void print_status(int verb = -1, std::ostream &out = std::cout) {dump_status_to_stream(out,verb);};
   void dump_status_to_file(std::string const &outfilename, bool overwrite = false);                   //dumps to file (verbosity overridden to 3)
@@ -201,12 +189,12 @@ public:
   void set_k(unsigned int const new_k)                        {sieve_k=new_k;return;};            //non-thread-safe
   bool is_multithreaded_wanted() const                        {return multi_threaded_wanted;};    //Note: No setter
 
-#if GAUSS_SIEVE_IS_MULTI_THREADED == true
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
   void set_num_threads(unsigned int t);                                                            //non-thread safe, only call while suspended. In SieveMT.cpp
   unsigned int get_num_threads() const                        {return num_threads_wanted;};
 #else
   static unsigned int constexpr get_num_threads()             {return 1;};
-#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+#endif // GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 
   bool update_shortest_vector_found(FastAccess_Point const & newvector);
   LatticeBasisType const & get_basis()                        {return lattice_basis;};
@@ -234,7 +222,7 @@ private:
 //It should also be possible to suspend the run of the sieve, change (certain) parameters (like k!) and resume.
 
   DimensionType ambient_dimension; //consider merging these into a latticespec struct.
-  
+
   GlobalStaticDataInitializer global_static_data;
   StaticInitializer<SimHashGlobalData> static_init_sim_hash_global_data;
   StaticInitializer<FastAccess_Point> static_init_fast_access_point;
@@ -246,7 +234,7 @@ private:
   //main data that is changing.
   MainListType main_list;
   MainQueueType main_queue;
-  
+
   unsigned int lattice_rank;
 
 #ifdef PROGRESSIVE
@@ -254,9 +242,9 @@ private:
 #endif
 
   bool multi_threaded_wanted;
-#if GAUSS_SIEVE_IS_MULTI_THREADED == true
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
   unsigned int num_threads_wanted;        //number of threads that we spawn
-#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+#endif // GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 
 
 #ifdef PROGRESSIVE
@@ -286,11 +274,11 @@ private:
 public:  // switched to public to get list-sizes
   SieveStatistics statistics;
 
-#if GAUSS_SIEVE_IS_MULTI_THREADED==true
+#if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED==true
   GarbageBin<typename MainListType::DataType> * garbage_bins; //dynamically allocated array of garbage bins.
   std::mutex dump_mutex;
   std::mutex shortest_vector_mutex;
-#endif // GAUSS_SIEVE_IS_MULTI_THREADED
+#endif // GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 
 }; // end of class definition
 

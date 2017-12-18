@@ -5,6 +5,7 @@
 
 #include "DefaultIncludes.h"
 #include "GlobalStaticData.h"
+#include "LatticePointConcept.h"
 
 /**
   This files defines the class BlockOrthogonalSimHash, which is a "CoordinateSelection" in the sense
@@ -81,7 +82,7 @@ public:
   PMatrix() = default;
   // creates a random dim-dimensional permutation using rng as a source of randomness.
   // Note that the randomness source is changed (because it changes its state)
-  PMatrix(unsigned int dim, std::mt19937 &rng);
+  inline PMatrix(unsigned int dim, std::mt19937 &rng);
   // apply the stored permutation to the given vector. Changes the argument.
   template <class T> inline void apply(std::vector<T> &vec) const;
   // prints the permutation (as a sequence of permuation[i], not as a matrix)
@@ -105,7 +106,7 @@ public:
   DMatrix() = default;
   // creates a random such DMatrix, using rng as randomness source.
   // Note that the randomness source is changed (because it changes its state)
-  DMatrix(unsigned int const dim, std::mt19937 &rng);
+  inline DMatrix(unsigned int const dim, std::mt19937 &rng);
   template <class T> inline void apply(std::vector<T> &vec) const;
   // prints diagonal (as a sequence of 0's and 1's, not as +/-1's)
   inline void print(std::ostream &os = std::cout) const;

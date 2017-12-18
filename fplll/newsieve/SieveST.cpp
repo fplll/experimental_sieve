@@ -3,7 +3,7 @@
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
 
-#if !defined(SIEVE_GAUSS_SINGLE_THREADED) || GAUSS_SIEVE_IS_MULTI_THREADED == true
+#if !defined(SIEVE_GAUSS_SINGLE_THREADED) || GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
 #error SieveST.cpp included with wrong macro settings
 #endif
 

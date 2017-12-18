@@ -40,6 +40,8 @@
 		<Unit filename="PointWithBitapprox.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
+		<Unit filename="Sieve.cpp" />
+		<Unit filename="Sieve.h" />
 		<Unit filename="SieveGauss.h" />
 		<Unit filename="SieveGauss_main.h" />
 		<Unit filename="SieveJoint.h" />
