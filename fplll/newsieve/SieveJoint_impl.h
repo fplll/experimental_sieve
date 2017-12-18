@@ -1,3 +1,6 @@
+// TO BE CHANGED:
+// clang-format off
+
 //SIEVE_JOINT_CPP_ST and
 //SIEVE_JOINT_CPP_MT are separate include guards for the single and multi-threaded pass over this file.
 //SIEVE_JOINT_CPP is set *after* we have passed over this file once. Use it to condition on the second run.

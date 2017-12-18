@@ -1,6 +1,9 @@
+// TO BE CHANGED:
+// clang-format off
+
 /*
 ------DO NOT INCLUDE THIS FILE MANUALLY.--------
-------     USE SieveGauss.h INSTEAD     --------
+------     USE SieveGauss.h or Sieve.h INSTEAD     --------
 */
 
 // SIEVE_JOINT_H_ST and SIEVE_JOINT_H_MT are separate include guards.
@@ -11,7 +14,7 @@
 
 // clang-format off
 #ifndef GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
-#error wrong usage of SieveJoint.h
+#error wrong usage of SieveJoint.h -- Include either Sieve.h or SieveGauss.h instead!
 #endif
 
 #undef DO_INCLUDE_SIEVE_JOINT_H

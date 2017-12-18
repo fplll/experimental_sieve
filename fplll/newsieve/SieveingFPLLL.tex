@@ -160,9 +160,9 @@
 \item Individual parts should not need to know about each other.
 \item Various ways to achieve this:
 \begin{itemize}
-\item interface classes from which concrete classes are derived.
-\item (either virtual or not)
-\item \alert{pass the used classes as template arguments.}
+\item<2-> interface classes from which concrete classes are derived.
+\item<2-> (either virtual or not)
+\item<2-> \alert<3->{pass the used classes as template arguments.}
 \end{itemize}
 \end{itemize}
 \end{block}
@@ -172,18 +172,20 @@
 \begin{block}{If we (re-)did Z\textunderscore NR with our design patterns}
 Z\textunderscore NR provides a common interface for \textbf{double}, \textbf{long} and \textbf{mpz\textunderscore t}
 \begin{itemize}
- \item Specify the interface (in documentation, not in code)
- \item Write classes / class templates that satisfy this interface:
+ \item<2-> Specify the interface \visible<7->{\alert<7->{(in documentation, not in code)}}
+ \item<3-> Write classes / class templates that satisfy this interface:
+ \visible<4->{
  \begin{itemize}
  \item \textbf{class} Z\textunderscore NRForMPZ ...
  \item \textbf{template} $<$\textbf{class} Integer$>$ \textbf{class} Z\textunderscore NRForIntegralType ...
  \item \textbf{template} $<$\textbf{class} FloatType$>$ \textbf{class} Z\textunderscore NRForFloatType ...
  \end{itemize}
- \item use it as a template parameter\\
+ }
+ \item<5-> use it as a template parameter\\
  \textbf{template} $<$\textbf{class} ZNRType$>$ void foo(ZNRType \&x)\\
- ... (\alert{Assumes that ZNRType satisfies the interface})
- \item call as\quad Z\textunderscore NRForMPZ x; foo(x);
- \item NOT: \textbf{template}$<$\textbf{class} T$>$ void foo(Z\textunderscore NR$<$T$>$ \&x)
+ ... (\alert<7->{Assumes that ZNRType satisfies the interface})
+ \item<6-> call as\quad Z\textunderscore NRForMPZ x; foo(x);
+ \item<6-> NOT: \textbf{template}$<$\textbf{class} T$>$ void foo(Z\textunderscore NR$<$T$>$ \&x)
 \end{itemize}
 \end{block}
 \end{frame}
@@ -207,7 +209,8 @@ Z\textunderscore NR provides a common interface for \textbf{double}, \textbf{lon
 \begin{block}{Limitations}
 \begin{itemize}
  \item Everything is a template, so this is a single translation unit.\\
- $\longrightarrow$ header-only.
+ $\longrightarrow$ preferably header-only.\\
+ (We can get around this)
  \item We use global variables.
 \end{itemize}
 \end{block}
@@ -217,11 +220,11 @@ Z\textunderscore NR provides a common interface for \textbf{double}, \textbf{lon
 
 \begin{frame}{Usage}
 \begin{block}{Usage of class}
- $\#$include "SieveGauss\textunderscore main.h"\\
+ $\#$include "SieveGauss.h"\\
  $\#$include "fplll.h"\\
  ...\\
  \textbf{using} Traits = GaussSieve::DefaultSieveTraits$<$int32\textunderscore t, false, -1, fplll::ZZ\textunderscore  mat$<$mpz\textunderscore t$>>$;\\
- GaussSieve::Sieve$<$Traits,false$>$ sieve(basis, ...); \textbackslash\textbackslash optional args\\
+ GaussSieve::Sieve$<$Traits,false$>$ sieve(basis, ...); // optional args\\
  sieve.run();\\
  sieve.print\textunderscore status();
 \end{block}
@@ -232,11 +235,29 @@ Follow the same syntax as the old sieving code.
 \end{block}
 \end{frame}
 
+\begin{frame}{Alternatives (avoid recompiling templates)}
+\begin{block}{Some shorthands}
+TupleSieve$<$CoefficientType$>$ = Sieve$<$Meaningful Defaults,...$>$;
+\end{block}
+
+\begin{block}<2->{Explicit instantiation}
+\begin{itemize}
+ \item<2-> Compile Sieve.cpp into Sieve.o\\
+ (Sieve.cpp contains explicit instantiations of Sieve for meaningful template arguments)
+ \item<3-> $\#$include "Sieve.h" instead of "SieveGauss.h".\\
+ (This will not instantiate any templates)
+ \item<4-> Compile and link against Sieve.o
+\end{itemize}
+\visible<5->{Only works with certain choices of template arguments to Sieve}
+\end{block}
+\end{frame}
+
+
 \section{Code Structure}
 
-\begin{frame}{TODO}
-Graphic
-\end{frame}
+% \begin{frame}{TODO}
+% Graphic
+% \end{frame}
 
 \begin{frame}{C++ versioning}
 \begin{block}{Compat.h}
@@ -246,7 +267,7 @@ e.g.\ mystd::decay\textunderscore t, mystd::bool\textunderscore constant.
 
 \vspace{2ex}
 
-Genrally, mystd:: features are identical to the std:: features.\\
+Generally, mystd:: features are identical to the std:: features.\\
 Often-used Macros: CPP14CONSTREXPR, TEMPL\textunderscore RESTRICT\textunderscore * 
 \end{block}
 \end{frame}
@@ -309,14 +330,13 @@ Template parameter to most replaceable modules. Think of this as a ``config'' fi
 \begin{block}{SieveJoint.h, SieveJoint\textunderscore impl.h}
 Here, the Sieve class (which the user uses) is declared.
 \end{block}
-\begin{block}{SieveST.cpp, SieveST2.cpp, SieveST3.cpp}
+\begin{block}{SieveST\textunderscore  impl.h, SieveST2\textunderscore impl.h, SieveST3\textunderscore impl.h}
 Definitions for Sieve member functions specific to the single-threaded case.
 \end{block}
-\begin{block}{SieveGauss.h, SieveGauss\textunderscore main.h}
-SieveGauss\textunderscore main.h is the main include file for users.\\
-These file perform evil macro and include shenanigans.
+\begin{block}{Sieve.h, Sieve.cpp, SieveGauss.h}
+SieveGauss.h is the main include file for users.\\
+These file perform evil macro and $\#$include shenanigans.
 \end{block}
-Note that the naming / structure here is subject to change.
 \end{frame}
 
 \begin{frame}{LatticeBases.h}
@@ -406,7 +426,7 @@ Provides functionality to incorporate a simhash into a lattice point.
 \begin{frame}{GaussListBitapprox.h}
 \begin{block}{GaussListBitapprox.h}
 This defines the class used to store the main list of lattice points that we amass during the algorithm.
-Note that, for various efficiency reasons, the use of sim hashes are incorporated into the list class.
+Note that, for various efficiency reasons, sim hashes are incorporated into the list class.
 \end{block}
 \end{frame}
 

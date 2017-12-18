@@ -1,3 +1,7 @@
+// clang-format off
+// turned off for this file, which is only preprocessor stuff
+// because we want to have proper indentation for this file.
+
 /**
   Include this file to use the k-tuple GaussSieve for arbitrary template parameters.
 */
@@ -177,3 +181,5 @@ namespace GaussSieve
 
 
 #endif  // main include guard for Sieve.h
+
+// clang-format on
