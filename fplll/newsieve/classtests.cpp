@@ -1,8 +1,11 @@
-#define USE_REGULAR_QUEUE //priority queue not working atm.
+#define USE_REGULAR_QUEUE  // priority queue is slower
 
 #define DEBUG_SIEVE_SILENT_ALL
 #define DEBUG_SIEVE_SHOW_INITIALIZATIONS
 #define DEBUG_SIEVE_STANDALONE_MODULES_ALL
+
+// indentation of nested ifdef's:
+// clang-format off
 
 //#define TEST_ALL
 //#define TEST_EMV
@@ -92,9 +95,6 @@
   #include "Tests/TestRelevantCoords.h"
 #endif
 
-// clang-reorder-guard
-#define ASSADGDGSDGKHSDLHEFOIEGFOIGFOSGFVOSGVFSAOPIGFASPOFGAPOFG
-
 #ifdef TEST_SHI_SAMPLER
   #include "ShiSampler_impl.h"
   #include "Sampler_impl.h"
@@ -103,6 +103,8 @@
 #ifdef TEST_QUEUE
   #include "GaussQueue_impl.h"
 #endif
+
+// clang-format on
 
 int main(int argc, char **argv)
 {

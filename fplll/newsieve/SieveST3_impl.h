@@ -4,9 +4,9 @@
  MAIN ROUTINES FOR 3-GAUSS SIEVE
  */
 
-namespace GaussSieve{
+namespace GaussSieve
+{
 
-  
 /*
   main 3-sieve iteration
   for the input point p, we check if ||p +/- x1 +/- x2|| < max {||p||, ||x1||, ||x2||}
@@ -32,7 +32,6 @@ start_over:
   // it_comparison_flip stores the point where the list elements become larger than p
   auto it_comparison_flip = main_list.cend();
   filtered_list.clear();
-  
 
   // ||p|| >= ||x1|| >= ||x2||
   for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
@@ -65,7 +64,7 @@ start_over:
     if (cond_x1 > 0)  // We can perform 2-reduction, changing p:
     {
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(it_x1->get_norm2());
-      int const scalar = round(mult);
+      int const scalar  = round(mult);
       p.sub_multiply(*it_x1, scalar);
       if (p.is_zero())  // might move this to after start_over.
       {
@@ -91,12 +90,12 @@ start_over:
     {
       continue;  // for loop over it_x1;
     }
-    
+
     // From here : x1 is a candidate for 3-reduction and will eventually be put into filtered_list.
     //             To avoid checking the triple (p, x1, x1), we only append to filtered_list after
     //             we iterate over candidates for x2.
     bool const sign_px1 = (sc_prod_px1 > 0);
-    for (auto & filtp_x2 : filtered_list) // Note that we know ||p|| >= ||*it_x1|| >= ||x2||
+    for (auto &filtp_x2 : filtered_list)  // Note that we know ||p|| >= ||*it_x1|| >= ||x2||
     {
 
       // (approximate) check if x1 and x2 are close enough to participate in 3-reduction
@@ -178,7 +177,7 @@ start_over:
     if (cond_x1_p > 0)  // In this case, we can perform 2-reduction, changing x1
     {
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(p.get_norm2());
-      int const scalar = round(mult);
+      int const scalar  = round(mult);
       assert(scalar != 0);
 
       // true_pop_point erases it, sio the place to insert p is incremented to avoid segfaults

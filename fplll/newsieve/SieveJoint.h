@@ -12,7 +12,6 @@
 // once already.
 // Use this to condition on the second pass.
 
-// clang-format off
 #ifndef GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
 #error wrong usage of SieveJoint.h -- Include either Sieve.h or SieveGauss.h instead!
 #endif
@@ -31,7 +30,6 @@
 #define DO_INCLUDE_SIEVE_JOINT_H
 #endif
 #endif
-// clang-format on
 
 #ifdef DO_INCLUDE_SIEVE_JOINT_H  // serves as the actual include guard
 

@@ -239,7 +239,7 @@ namespace ConversionHelpers  // namespace for implementation details
 // Integer is the convertion TARGET. There is specialization for mpz_class below
 template <class Integer> struct ConvertMaybeMPZ
 {
-  static_assert(!std::is_same<mystd::decay_t<Integer>, mpz_class>::value,"");
+  static_assert(!std::is_same<mystd::decay_t<Integer>, mpz_class>::value, "");
   static_assert(std::is_integral<Integer>::value, "Use only for integral classes.");
 
   // this restriction comes from mpz_* :

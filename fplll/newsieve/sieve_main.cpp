@@ -11,14 +11,14 @@
   for k=2 and k=3.
 */
 
-#include "fplll.h"
-#include <thread>
-#include <chrono>
 #include "SieveGauss.h"
+#include "fplll.h"
+#include <chrono>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 #include <unistd.h>
 
 using namespace GaussSieve;
@@ -177,7 +177,8 @@ int main(int argc, char **argv)
 
   if (target_norm_conv != 0)
   {
-    termcond = new LengthTerminationCondition<Traits, multithreaded>(convert_to_inttype<long>(target_norm_conv));
+    termcond = new LengthTerminationCondition<Traits, multithreaded>(
+        convert_to_inttype<long>(target_norm_conv));
   }
   else
   {
@@ -196,4 +197,3 @@ int main(int argc, char **argv)
 
   return 1;
 }
-
