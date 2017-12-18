@@ -401,6 +401,8 @@ inline void GaussSieveStatistics<SieveTraits, false>::dump_status_to_stream(std:
   if(howverb >= 1) of << "Number of scalar products level 2=" << number_of_scprods_level2 << endl;
   if(howverb >= 1) of << "Number of scalar products level 3=" << number_of_scprods_level3 << endl;
 
+  if(howverb >=1 ) of << "Number of simhash scalar products level 1=" << number_of_approx_scprods_level1 << endl;
+
   if(howverb >= 1) of << "Number of 2-reductions inside 3-sieve=" << number_of_2reds << endl;
   if(howverb >= 1) of << "Number of 3-reductions inside 3-sieve=" << number_of_3reds << endl;
 

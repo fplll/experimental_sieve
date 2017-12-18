@@ -59,14 +59,14 @@ public:
 #if defined(OVERRIDE_SIM_HASH_LEN)
   static std::size_t constexpr sim_hash_len = OVERRIDE_SIM_HASH_LEN;
 #else
-  static std::size_t constexpr sim_hash_len = 64;
+  static std::size_t constexpr sim_hash_len = 128;
 #endif
 
   // number of SimHashBlocks per SimHash
 #if defined(OVERRIDE_SIM_HASH_NUM)
   static std::size_t constexpr sim_hash_num = OVERRIDE_SIM_HASH_NUM;
 #else
-  static std::size_t constexpr sim_hash_num = 2;
+  static std::size_t constexpr sim_hash_num = 1;
 #endif
   // -> Total number of bits is given by sim_hash_len * sim_hash_num
 
@@ -91,7 +91,7 @@ public:
   using TermCond_QueryType      = ExactLatticePoint<ET,nfixed>;
   using InputBasisType          = InputBT;
   using PlainPoint              = PlainLatticePoint<ET,nfixed>;
-  
+
   // TODO: Remove and forward DimensionType throughout...
   static int constexpr get_nfixed = nfixed;
 
@@ -112,16 +112,16 @@ public:
   //#endif
 
   // clang-format off
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{32-7, 64-12}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{32+7, 64+12}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{47}}; //, 64-18}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{128-47}}; //+9, 64+18}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-5, 64-11}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+5, 64+11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-5}}; //, 64-11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+5}}; //, 64+11}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-3, 64-6}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3, 64+6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-3}}; //, 64-6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3}}; //, 64+6}};
 
   // for 3-sieve: FilteredList is implemented as vector
   // we reserve filtered_list_size_max inside for its length
