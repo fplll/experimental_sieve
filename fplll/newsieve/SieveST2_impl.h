@@ -18,6 +18,8 @@ template <class SieveTraits>
 template <class LHS, class RHS>
 bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
 {
+  statistics.increment_number_of_approx_scprods_level1();
+
   // check if SimHash xor of p1 and p2 is promissing
   // do not perform exact check is the SimHash check returns false
   if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
@@ -27,6 +29,7 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
   }
 
   statistics.increment_number_of_scprods_level1();
+
 
   using std::round;
   using std::abs;
