@@ -170,4 +170,3 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 
 // TODO: #include placement
 #endif
-

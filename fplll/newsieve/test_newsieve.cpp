@@ -20,14 +20,14 @@
 // enables all silent checks
 #define DEBUG_SIEVE_SILENT_ALL
 
-#include "fplll.h"
-#include <thread>
-#include <chrono>
 #include "SieveGauss.h"
+#include "fplll.h"
+#include <chrono>
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 #include <unistd.h>
 
 using namespace GaussSieve;

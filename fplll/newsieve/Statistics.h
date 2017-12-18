@@ -1,5 +1,6 @@
 // TODO: Clang-format this file properly
-// Note that it contains a lot of unused / temporary code that will be removed anyway, which constitutes most of the format-offending parts.
+// Note that it contains a lot of unused / temporary code that will be removed anyway, which
+// constitutes most of the format-offending parts.
 // So we do not bother for now.
 // clang-format off
 

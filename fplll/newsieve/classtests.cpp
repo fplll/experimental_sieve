@@ -127,61 +127,61 @@ int main(int argc, char **argv)
   }
 #endif
 #ifdef TEST_EXACT_LATTICE_POINT
-  if (test_exact_LP() )
+  if (test_exact_LP())
   {
     std::cout << "Exact Lattice Points work as expected." << std::endl;
   }
 #endif
 #ifdef TEST_MTPRNG
-  if (test_mtprng() )
+  if (test_mtprng())
   {
     std::cout << "MTPRNG work as expected." << std::endl;
   }
 #endif
 #ifdef TEST_BASIS_UTILS
-  if (test_basis_utils() )
+  if (test_basis_utils())
   {
     std::cout << "Basis utilities work as expected." << std::endl;
   }
 #endif
 
 #ifdef TEST_SHI_SAMPLER
-  if (test_shi_sampler() )
+  if (test_shi_sampler())
   {
     std::cout << "Sampler works as expected." << std::endl;
   }
 #endif
 
 #ifdef TEST_QUEUE
-  if (test_queue() )
+  if (test_queue())
   {
     std::cout << "Queue works as expected." << std::endl;
   }
 #endif
 
 #ifdef TEST_LIST
-  if (test_list() )
+  if (test_list())
   {
     std::cout << "List works as expected." << std::endl;
   }
 #endif
 
 #ifdef TEST_EMV
-  if (test_emv() )
+  if (test_emv())
   {
     std::cout << "EMV Approximation works as expected." << std::endl;
   }
 #endif
 
 #ifdef TEST_APPROXIMATIONS
-  if( test_approximations() )
+  if (test_approximations())
   {
     std::cout << "Approximations combiner works as expected" << std::endl;
   }
 #endif
 
 #ifdef TEST_LAZY
-  if (test_lazy() )
+  if (test_lazy())
   {
     std::cout << "Lazy Evaluations work as expected" << std::endl;
   }
@@ -190,16 +190,14 @@ int main(int argc, char **argv)
 #ifdef TEST_BITAPPROX
   if (test_bit_approx())
   {
-    std::cout << "Bit Approximation works as expected" <<std::endl;
+    std::cout << "Bit Approximation works as expected" << std::endl;
   }
 #endif
 
 #ifdef TEST_RELEVANT_COORDS
-  if(test_relevant_coords())
+  if (test_relevant_coords())
   {
-
   }
 #endif
-  return 0; // indicating success.
-
+  return 0;  // indicating success.
 }
