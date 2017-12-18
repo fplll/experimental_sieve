@@ -10,6 +10,10 @@
 #include "DefaultIncludes.h"
 //#include "SimHash.h"
 
+
+#define COLLECT_STATISTICS_SCPROD_1
+#define COLLECT_STATISTICS_APPROX_SCPROD_1
+
 /**
  This file defines the SieveStatistics class that is responsible for collecting various types of
  statistics.
@@ -33,9 +37,15 @@ public:
         number_of_points_constructed(0),
         // current_list_size(0),
         filtered_list_size(0),
+//#ifdef COLLECT_STATISTICS_SCPROD_1
         number_of_scprods_level1(0),
+//#endif
         number_of_scprods_level2(0),
         number_of_scprods_level3(0),
+//#ifdef COLLECT_STATISTICS_APPROX_SCPROD_1
+        number_of_approx_scprods_level1(0),
+//#endif
+        number_of_approx_scprods_level2(0),
         number_of_2reds(0),
         number_of_3reds(0),
         number_of_exact_scprods(0),
