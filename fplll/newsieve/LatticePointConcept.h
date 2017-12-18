@@ -681,6 +681,8 @@ template <class LP, class SomeContainer, class DimType,
 LP make_from_any_vector(SomeContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
+  static_assert(Has_InternalRepIsAbsolute<LP>::value && Has_AbsoluteCoos<LP>::value,
+  "This lattice point's coordinates meaning is unclear. Do not use this function");
   using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP for" << LP::class_name())
   LP result(dim);
@@ -700,6 +702,8 @@ template <class LP, class SomeZNRContainer, class DimType,
 LP make_from_znr_vector(SomeZNRContainer const &container, DimType dim)
 {
   static_assert(DoesDeclareCoordinateType<LP>::value, "Not declaring coordinate types");
+  static_assert(Has_InternalRepIsAbsolute<LP>::value && Has_AbsoluteCoos<LP>::value,
+  "This lattice point's coordinates meaning is unclear. Do not use this function");
   using ET = Get_CoordinateType<LP>;
   DEBUG_TRACEGENERIC("generically converting vector to LP and un-ZNRing for" << LP::class_name())
   LP result(dim);

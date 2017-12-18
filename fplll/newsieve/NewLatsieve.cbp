@@ -27,6 +27,7 @@
 		<Unit filename="GPVSamplerExtended.h" />
 		<Unit filename="GPVSamplerExtended_impl.h" />
 		<Unit filename="GPVSampler_impl.h" />
+		<Unit filename="GSOLatticePoint.h" />
 		<Unit filename="GaussListBitapprox.h" />
 		<Unit filename="GaussListBitapprox_impl.h" />
 		<Unit filename="GaussQueue.h" />
@@ -40,11 +41,12 @@
 		<Unit filename="PointWithBitapprox.h" />
 		<Unit filename="Sampler.h" />
 		<Unit filename="Sampler_impl.h" />
-		<Unit filename="Sieve.cpp" />
-		<Unit filename="Sieve.h" />
 		<Unit filename="SieveGauss.h" />
 		<Unit filename="SieveJoint.h" />
 		<Unit filename="SieveJoint_impl.h" />
+		<Unit filename="SieveST2_impl.h" />
+		<Unit filename="SieveST3_impl.h" />
+		<Unit filename="SieveST_impl.h" />
 		<Unit filename="SieveUtility.h" />
 		<Unit filename="SimHash.h" />
 		<Unit filename="Statistics.h" />
