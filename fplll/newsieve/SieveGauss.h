@@ -101,9 +101,9 @@ using SieveMT = Sieve<DefaultSieveTraits,CoefficientType, true, -1>, true>;
   #ifdef SIEVE_GAUSS_SINGLE_THREADED
     #define GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED false
     #include "SieveJoint_impl.h"
-    #include "SieveST.cpp"
-    #include "SieveST2.cpp"
-    #include "SieveST3.cpp"
+    #include "SieveST_impl.h"
+    #include "SieveST2_impl.h"
+    #include "SieveST3_impl.h"
     #undef GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED
   #endif // SIEVE_GAUSS_SINGLE_THREADED
 
