@@ -105,7 +105,6 @@ template <class T> class StaticInitializer;
 template <class T> class DefaultStaticInitializer;
 template <class DimensionType> struct StaticInitializerArg;
 
-
 /**
   IsArgForStaticInitializer<T>    == std::true_type iff T sets the tag StaticInitializerArgTag.
   IsStaticInitializerDefaulted<T> == std::true_type iff T sets the tag HasDefaultStaticInitializer.

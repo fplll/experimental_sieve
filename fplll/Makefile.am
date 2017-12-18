@@ -87,6 +87,13 @@ testsieve_CXXFLAGS=-pthread -pg $(AM_CXXFLAGS)
 thresholdcheck_SOURCES=newsieve/threshold_check.cpp
 thresholdcheck_LDADD=libfplll.la $(LIBQD_LIBADD)
 
+#libnewsieve -- works only if you include it into lib_LTLibraries. TODO Ask someone
+#who is familiar with Makefiles...
+#libnewsieve_la_SOURCES=newsieve/Sieve.cpp
+#libnewsieve_la_LIBADD=-lgmp -lmpfr libfplll.la  $(LIBQD_LIBADD)
+
+
+
 
 # libfplll
 libfplll_la_SOURCES=fplll.cpp fplll.h \

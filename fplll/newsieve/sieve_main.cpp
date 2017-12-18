@@ -11,7 +11,7 @@
   for k=2 and k=3.
 */
 
-#include "SieveGauss_main.h"
+#include "SieveGauss.h"
 #include "fplll.h"
 #include <chrono>
 #include <fstream>

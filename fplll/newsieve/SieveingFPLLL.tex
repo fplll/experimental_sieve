@@ -1,0 +1,446 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}			% Better interword spacing and additional kerning.
+\usepackage{ellipsis}			% Adjusted space with \dots between two words.
+\usepackage{latexsym}			% Fancy symbols, we need this for our itemize environment!
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usetikzlibrary{shapes.misc,shapes}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.callouts,shapes.arrows}
+\usetikzlibrary{arrows, chains, matrix, positioning, scopes, patterns, shapes, fit}
+\usetikzlibrary{decorations.pathreplacing, overlay-beamer-styles}
+\usepackage{paralist}
+\usepackage{graphicx}			% Put images in our document ;-)
+\usepackage{wrapfig}
+\usepackage{caption} 
+\usepackage{subcaption}
+% \usepackage{verbatim}
+
+\usetheme{Frankfurt}
+% \usecolortheme{whale}
+\title[Sieving code]{Implementation of $k$-kuplesieve}
+\date{18.12.2017}
+% \author[G.\ Herold \and E.\ Kirshanova]{Gottfried Herold \and Elena Kirshanova}
+\institute{ENS Lyon}
+\newcommand*{\poly}{\ensuremath{\mathrm{poly}}}
+\newcommand*{\eps}{\ensuremath{\varepsilon}}
+
+% GROUPS/DISTRIBUTIONS/SETS/LISTS
+% \newcommand{\msgspace}{\mathfrak{M}} % Message space
+% \newcommand{\keyspace}{\mathfrak{K}} % Key Space
+% \newcommand{\sigspace}{\mathfrak{S}} % Signature Space
+% \newcommand{\ctspace}{\mathfrak{C}} % Ciphertext Space
+\newcommand{\ints}{\mathbb{Z}} % Set of integers
+% \newcommand{\prm}{\mathbb{P}} % Set of prime numbers
+\newcommand{\N}{{{\mathbb N}}}
+\newcommand{\Z}{{{\mathbb Z}}}
+\newcommand*{\IZ}{\ensuremath{\mathbb{Z}}}
+\newcommand*{\IN}{\ensuremath{\mathbb{N}}}
+\newcommand*{\IQ}{\ensuremath{\mathbb{Q}}}
+\newcommand{\R}{{{\mathbb R}}}
+\newcommand*{\IR}{{{\mathbb R}}}
+\newcommand{\Zp}{\ints_p} % Integers modulo p
+\newcommand{\Zq}{\ints_q} % Integers modulo q
+\newcommand{\Zn}{\ints_N} % Integers modulo N
+\newcommand*{\dDR}{\mathrm{d}} %de-Rham-Differential (the d in dx, dy, dz and so on)
+%\newcommand{\T}{\mathbb{T}} % Additive group of reals mod 1: R/Z
+% \newcommand{\dis}{\mathfrak{D}} % Distributions
+% \newcommand{\grp}{\mathbb{G}} % Group
+% \newcommand{\inr}{\in_{_R}} % Uniformily random in
+% \newcommand{\rnd}{\leftarrow_{\mbox{\tiny{\$}}}} % Randomised algorithm output
+\newcommand{\getsr}{\mathbin{\leftarrow_{\mbox{\tiny{\$}}}}} % Randomised algorithm output
+% \newcommand{\intval}[1]{\llbracket #1 \rrbracket} % Int val
+% \newcommand{\qlist}{\mathcal{Q}}
+\newcommand{\LWEErrorDist}{\ensuremath{D}}
+\newcommand{\transpose}{\mkern-0.1mu^{\mathsf{t}}}
+\newcommand*{\union}{\mathbin{\cup}}
+
+%%% ALGORITHMS/PROCEDURES %%%
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand*{\OLandau}{\bigO}
+\newcommand*{\WLandau}{\Omega}
+\newcommand*{\xOLandau}{\widetilde{\OLandau}}
+\newcommand*{\xWLandau}{\widetilde{\WLandau}}
+\newcommand*{\TLandau}{\Theta}
+\newcommand*{\xTLandau}{\widetilde{\TLandau}}
+\newcommand{\smallo}{o} %technically, an omicron
+\newcommand{\wLandau}{\omega}
+\newcommand{\negl}{\mathrm{negl}}
+% \DeclareMathOperator{\PROB}{Pr}
+%I usually use \PROB (to redefine it to Ws in German texts). Pr is already defined. Do \(no)limits manually -- Gotti
+\newcommand*\PROB\Pr 
+\DeclareMathOperator*{\EXPECT}{\mathbb{E}}
+\DeclareMathOperator*{\VARIANCE}{\mathbb{V}}
+\DeclareMathOperator*{\LOGBIAS}{\mathbb{LB}}
+\newcommand*{\ScProd}[2]{\ensuremath{\langle#1\mathbin{,}#2\rangle}} %Scalar Product
+
+
+% Lattices
+
+% \newcommand{\coset}{\Lambda} % Lambda Lattice
+% \newcommand{\cosetPerp}{\Lambda^{\bot}} % Lambda_Perp Lattice
+% \newcommand{\gadget}{\textbf{G}} %Gaget matrix
+% \newcommand{\mes}{\textbf{m}} %message vector
+% \newcommand{\AMat}{\textbf{A}} %A matrices
+% \newcommand{\BMat}{\textbf{B}} %B matrices
+% \newcommand{\RMat}{\textbf{R}} %R matrices
+% \newcommand{\HMat}{\textbf{H}} %H matrices
+% \newcommand{\XMat}{\textbf{X}} %H matrices
+% \newcommand{\mbar}{\bar{m}} %mBar dimension
+% % \newcommand{\gauss}{\mathcal{D}} % gaussian distribution
+% \newcommand{\Id}{\textbf{I}} % Identity matrix
+% \newcommand{\ZeroM}{\textbf{0}} % Identity matrix
+% \newcommand{\er}{\textbf{e}} % gaussian distr. vectors
+% % \newcommand{\cipher}{\textit{c}} % ciphertext
+% \newcommand{\Olwe}{\mathcal{O}_{\textsf{LWE}}} %LWE oracle
+% \newcommand{\OSample}{\mathcal{O}_{Sample}} %LWE oracle
+% \newcommand{\SigmaB}{\boldsymbol{\Sigma}} %semi-deifinite matrix Sigma%
+% % \newcommand{\mods}{\text{ mod}}
+
+
+%k-tuple-sieve
+
+\newcommand*{\LL}{\ensuremath{\ell}} %\LL_2 - norm, maybe use $\|.\|$
+\newcommand*{\Sphere}[1]{\ensuremath{\mathsf{S}^{#1}}}
+\newcommand*{\B}[2]{\ensuremath{\mathsf{B}_{#1}{(#2)}}}
+\newcommand*{\Config}{\ensuremath{C}}
+\newcommand*{\CONFIGS}{\ensuremath{\mathscr{C}}}
+\newcommand*{\TCONFIGS}{\ensuremath{\overline{\mathscr{C}}}}
+\DeclareMathOperator{\ConfFun}{Conf}
+\newcommand*{\vx}{\vec x}
+\newcommand*{\vv}{\vec v}
+\newcommand*{\vy}{\vec y}
+\newcommand*{\vw}{\vec w}
+\newcommand*{\vp}{\vec p}
+\newcommand*{\zerovec}{\vec 0}
+\newcommand*{\HASHES}{\mathscr{H}}
+\newcommand*{\ConfExt}{\mathsf{ConfExt}}
+\DeclareMathOperator{\SqLen}{L}
+\newcommand*{\Ortho}[1]{\ensuremath{\mathbb{O}_{#1}}}
+\newcommand*{\TC}{\overline{C}}
+\newcommand*{\SamplePoints}{\mathsf{SamplePoints}}
+\newcommand*{\AlgTrim}{\mathsf{Trim}}
+\newcommand*{\ConfigExtMatrix}{\ensuremath{C^{\tiny ext}}}
+
+\newcommand{\AMat}{\mathbf{A}} %A matrices
+\newcommand{\BMat}{\mathbf{B}} %B matrices
+\newcommand{\DMat}{\mathbf{D}} %Diagonal
+\newcommand{\nth}{^{\mathrm{th}}}
+
+\newcommand*\abs[1]{\left\lvert#1\right\rvert}
+\newcommand*\norm[1]{\left\lVert#1\right\rVert}
+
+
+\AtBeginSection[]
+{
+ \begin{frame}<beamer>
+ \frametitle{Outline}
+ \tableofcontents[currentsection]
+ \end{frame}
+}
+
+\begin{document}
+\frame{\maketitle}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+\section{Paradigms}
+
+\begin{frame}{Loose coupling}
+\begin{block}{Loose coupling}
+\begin{itemize}
+\item Make individual components (classes) of the code independent, coupled only by their interface.
+\item Make it possible to replace individual classes by other classes that provide the same functionality / interface by changing at most a few lines of code.
+\item Individual parts should not need to know about each other.
+\item Various ways to achieve this:
+\begin{itemize}
+\item<2-> interface classes from which concrete classes are derived.
+\item<2-> (either virtual or not)
+\item<2-> \alert<3->{pass the used classes as template arguments.}
+\end{itemize}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Example: Z\textunderscore NR}
+\begin{block}{If we (re-)did Z\textunderscore NR with our design patterns}
+Z\textunderscore NR provides a common interface for \textbf{double}, \textbf{long} and \textbf{mpz\textunderscore t}
+\begin{itemize}
+ \item<2-> Specify the interface \visible<7->{\alert<7->{(in documentation, not in code)}}
+ \item<3-> Write classes / class templates that satisfy this interface:
+ \visible<4->{
+ \begin{itemize}
+ \item \textbf{class} Z\textunderscore NRForMPZ ...
+ \item \textbf{template} $<$\textbf{class} Integer$>$ \textbf{class} Z\textunderscore NRForIntegralType ...
+ \item \textbf{template} $<$\textbf{class} FloatType$>$ \textbf{class} Z\textunderscore NRForFloatType ...
+ \end{itemize}
+ }
+ \item<5-> use it as a template parameter\\
+ \textbf{template} $<$\textbf{class} ZNRType$>$ void foo(ZNRType \&x)\\
+ ... (\alert<7->{Assumes that ZNRType satisfies the interface})
+ \item<6-> call as\quad Z\textunderscore NRForMPZ x; foo(x);
+ \item<6-> NOT: \textbf{template}$<$\textbf{class} T$>$ void foo(Z\textunderscore NR$<$T$>$ \&x)
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Use full set of features of C++11}
+\begin{block}{Use modern C++11 feature}
+\begin{itemize}
+ \item Lots of template code (and typedefs)
+ \item Use rvalues and move semantics to avoid copying\\
+ e.g. std::list$<$T$>$ has members\\
+ \textbf{void} push\textunderscore back(\textbf{const} T \&value);\\
+ \textbf{void} push\textunderscore back(T \&\&value);\\
+ $\longrightarrow$ main\textunderscore list.push\textunderscore back(std::move(new\textunderscore point));
+ \item Use of \textbf{constexpr} for compile-time computations.
+ \item Namespaces: Everyhing is in namespace GaussSieve.
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Limitations}
+\begin{block}{Limitations}
+\begin{itemize}
+ \item Everything is a template, so this is a single translation unit.\\
+ $\longrightarrow$ preferably header-only.\\
+ (We can get around this)
+ \item We use global variables.
+\end{itemize}
+\end{block}
+\end{frame}
+
+\section{Usage}
+
+\begin{frame}{Usage}
+\begin{block}{Usage of class}
+ $\#$include "SieveGauss.h"\\
+ $\#$include "fplll.h"\\
+ ...\\
+ \textbf{using} Traits = GaussSieve::DefaultSieveTraits$<$int32\textunderscore t, false, -1, fplll::ZZ\textunderscore  mat$<$mpz\textunderscore t$>>$;\\
+ GaussSieve::Sieve$<$Traits,false$>$ sieve(basis, ...); // optional args\\
+ sieve.run();\\
+ sieve.print\textunderscore status();
+\end{block}
+\begin{block}{Standalone executables}
+Files sieve\textunderscore main.cpp $\rightarrow$ newlatsieve executable\\
+test\textunderscore newsieve.cpp $\rightarrow$ testsieve executable\\
+Follow the same syntax as the old sieving code.
+\end{block}
+\end{frame}
+
+\begin{frame}{Alternatives (avoid recompiling templates)}
+\begin{block}{Some shorthands}
+TupleSieve$<$CoefficientType$>$ = Sieve$<$Meaningful Defaults,...$>$;
+\end{block}
+
+\begin{block}<2->{Explicit instantiation}
+\begin{itemize}
+ \item<2-> Compile Sieve.cpp into Sieve.o\\
+ (Sieve.cpp contains explicit instantiations of Sieve for meaningful template arguments)
+ \item<3-> $\#$include "Sieve.h" instead of "SieveGauss.h".\\
+ (This will not instantiate any templates)
+ \item<4-> Compile and link against Sieve.o
+\end{itemize}
+\visible<5->{Only works with certain choices of template arguments to Sieve}
+\end{block}
+\end{frame}
+
+
+\section{Code Structure}
+
+% \begin{frame}{TODO}
+% Graphic
+% \end{frame}
+
+\begin{frame}{C++ versioning}
+\begin{block}{Compat.h}
+This file contains macros that detect availability of features from C++14 / C++17 or compiler specific features and selectively enables them.\\[2ex]
+We use some library extensions from beyond C++11, collected in \textbf{namespace} mystd.\\
+e.g.\ mystd::decay\textunderscore t, mystd::bool\textunderscore constant.
+
+\vspace{2ex}
+
+Generally, mystd:: features are identical to the std:: features.\\
+Often-used Macros: CPP14CONSTREXPR, TEMPL\textunderscore RESTRICT\textunderscore * 
+\end{block}
+\end{frame}
+
+\begin{frame}{Utility functions}
+\begin{block}{SieveUtility.h}
+Collects some general utility functions and classes.
+\vspace{1ex}
+\begin{itemize}
+ \item convert\textunderscore to\textunderscore double(Source \textbf{const} \&arg);
+ \item convert\textunderscore to\textunderscore inttype$<$TargetType$>$(Source \textbf{const} \&arg);
+\end{itemize}
+Works with arbitary integral, floating types, mpz\textunderscore t and mpz\textunderscore class.
+\begin{itemize}
+ \item template$<$\textbf{int} nfixed, \textbf{class} UIntType = \textbf{unsigned int}$>$\\
+       \textbf{class} MaybeFixed;
+\end{itemize}
+MaybeFixed$<$-1$>$ encapsulates a run-time integer.\\
+MaybeFixed$<$n$>$ encapsulates a compile-time integer.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{DefaultIncludes.h, DebugAll.h}
+\begin{block}{DebugAll.h}
+Defines some DEBUG\textunderscore SIEVE\textunderscore $\ast$  macros
+\end{block}
+\begin{block}{DefaultIncludes.h}
+Since we only have 1 translation unit, we collect all standard library includes in one file:
+\begin{verbatim}
+#include <array>
+#include <atomic>
+#include <bitset>
+#include <cmath>
+#include <cstdint>
+#include <exception>
+...
+\end{verbatim}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Typedefs.h}
+\begin{block}{Typedefs.h}
+Defines a traits class that collects ``global'' typedefs, e.g.\\
+\begin{verbatim}
+template<[...]> class DefaultSieveTraits 
+[...]
+using GaussList_ReturnType = FastAccess_Point;
+using GaussQueue_ReturnType = GaussSampler_ReturnType;
+using GaussQueue_DataType = GaussQueue_ReturnType;
+using InputBasisType = InputBT;
+using PlainPoint = PlainLatticePoint<ET,nfixed>;
+using DimensionType = MaybeFixed<nfixed>;
+[...]
+\end{verbatim}
+Template parameter to most replaceable modules. Think of this as a ``config'' file. 
+\end{block}
+\end{frame}
+
+\begin{frame}{Sieve}
+\begin{block}{SieveJoint.h, SieveJoint\textunderscore impl.h}
+Here, the Sieve class (which the user uses) is declared.
+\end{block}
+\begin{block}{SieveST\textunderscore  impl.h, SieveST2\textunderscore impl.h, SieveST3\textunderscore impl.h}
+Definitions for Sieve member functions specific to the single-threaded case.
+\end{block}
+\begin{block}{Sieve.h, Sieve.cpp, SieveGauss.h}
+SieveGauss.h is the main include file for users.\\
+These file perform evil macro and $\#$include shenanigans.
+\end{block}
+\end{frame}
+
+\begin{frame}{LatticeBases.h}
+\begin{block}{LatticeBases.h}
+This file is responsible for reading the input lattice base, storing appropriate data and converting to our internal data structures.
+\begin{itemize}
+\item We support fplll's Z\textunderscore NR input-types.
+\item Internally, we use normal arithmetic types or mpz\textunderscore class.
+\end{itemize}
+Note: Z\textunderscore NR is restricted to e.g.\ long. We want to be able to use shorter data types.
+\end{block}
+\end{frame}
+
+\begin{frame}{GaussQueue}
+\begin{block}{GaussQueue.h, GaussQueue\textunderscore impl.h}
+These files define the class used to store the queue of points that are yet to be processed by the queue.
+If the queue is empty, trying to retrieve a vector, it automatically samples a fresh one.
+\end{block}
+\end{frame}
+
+\begin{frame}{Sampler}
+\begin{block}{Sampler.h, Sampler\textunderscore impl.h}
+Sampler.h defines an abstract class (template) Sampler for sampling lattice points.
+\begin{itemize}
+\item Abstract class with pure virtual members.
+\item All samplers that are used need to be derived from this class
+\end{itemize}
+\end{block}
+\begin{block}{UniformSampler.h, GPVSampler.h, GPVSamplerExtended.h}
+These are concrete available samplers, derived from Sampler.
+\end{block}
+We use run-time polynomorphism here. The constructor of the sieve can take a user-prodvided sampler that was derived from Sampler.
+\end{frame}
+
+\begin{frame}{Termination Conditions}
+\begin{block}{TerminationConditions.h}
+TerminationConditions.h defines an abstract class (template) TerminationCondition that is queried to decided whether to stop the sieve.
+\begin{itemize}
+ \item Abstract class with pure virtual members.
+ \item All termination conditions need to be derived from this.
+\end{itemize}
+\end{block}
+\begin{block}{DefaultTermConds.h, DefaultTermConds\textunderscore impl.h}
+Here, we provide some meaningful default termination conditions.
+\end{block}
+We use run-time polynomorphism. The user can define and give us his own termination condition class.
+\end{frame}
+
+\begin{frame}{Static Data}
+\begin{block}{GlobalStaticData.h}
+We use global variables. These are initalized and controlled by class templates StaticInitializer$<$Type$>$.
+\begin{itemize}
+\item Initialization status of global variables is tied to the lifetime of RAII - style wrappers.
+\item See GlobalStaticData.h for details.
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{Lattice Points}
+\begin{block}{LatticePointConcept.h}
+This class declares the generic interface (concept) for classes that store lattice points.
+Note that concrete lattice points need to derive from the class declare here.
+\end{block}
+\begin{block}{LatticePointGeneric.h}
+Here, we provide generic functions for lattice points (like addition, scalar products etc.)
+\end{block}
+\begin{block}{ExactLatticePoint.h, PlainLatticePoint.h}
+Concrete classes that store lattice points (ExactLatticePoint stores a pre-computed norm-square, PlainLatticePoint does not)
+\end{block}
+\end{frame}
+
+\begin{frame}{SimHashes}
+\begin{block}{SimHash.h}
+Defines functions and global variables required to use SimHashes.
+
+A SimHash of a point is a small sketch of a point that can be used to give a prediction of whether a lattice point is likely to lead to a reduction.
+Operating on sim hashes is much faster than a full scalar product.
+\end{block}
+\begin{block}{BlockOrthogonalSimHash.h}
+Here, we define the concrete SimHash we are using.
+\end{block}
+\begin{block}{PointWithBitapprox.h}
+Provides functionality to incorporate a simhash into a lattice point.
+\end{block}
+\end{frame}
+
+\begin{frame}{GaussListBitapprox.h}
+\begin{block}{GaussListBitapprox.h}
+This defines the class used to store the main list of lattice points that we amass during the algorithm.
+Note that, for various efficiency reasons, sim hashes are incorporated into the list class.
+\end{block}
+\end{frame}
+
+\begin{frame}{Statistics.h}
+\begin{block}{Statistics.h}
+Used to manage and collect statistics during the run of the sieve. Useful for debugging.
+\end{block}
+\end{frame}
+
+\begin{frame}{Filtered Points}
+\begin{block}{FilteredPoint.h}
+For the $k$-sieve with $k\geq 3$, the algorithm needs to construct temporary sublists of the main list.
+This file is responsible for these sublists. Note that we may want to store more data than just a pointer to the
+lattice point, for reasons of efficiency.
+\end{block}
+\end{frame}
+\end{document}

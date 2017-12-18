@@ -1,9 +1,12 @@
 #error not yet adapted to recent refactoring
-#define USE_REGULAR_QUEUE
+#define USE_REGULAR_QUEUE  // priority queue is slower
 
 #define DEBUG_SIEVE_SILENT_ALL
 #define DEBUG_SIEVE_SHOW_INITIALIZATIONS
 #define DEBUG_SIEVE_STANDALONE_MODULES_ALL
+
+// indentation of nested ifdef's:
+// clang-format off
 
 //#define TEST_ALL
 //#define TEST_EMV
@@ -102,6 +105,8 @@
 #ifdef TEST_QUEUE
   #include "GaussQueue_impl.h"
 #endif
+// clang-format on
+
 // clang-format on
 
 int main(int argc, char **argv)

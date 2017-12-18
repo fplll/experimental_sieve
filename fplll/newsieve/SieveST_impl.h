@@ -3,8 +3,8 @@
 #ifndef SIEVE_GAUSS_SINGLE_THREADED_CPP
 #define SIEVE_GAUSS_SINGLE_THREADED_CPP
 
-#if !defined(SIEVE_GAUSS_SINGLE_THREADED) || GAUSS_SIEVE_IS_MULTI_THREADED == true
-#error SieveST.cpp included with wrong macro settings
+#if !defined(SIEVE_GAUSS_SINGLE_THREADED) || GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
+#error SieveST_impl.h included with wrong macro settings
 #endif
 
 namespace GaussSieve
@@ -169,8 +169,4 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 }  // end namespace
 
 // TODO: #include placement
-
-#include "SieveST2.cpp"
-#include "SieveST3.cpp"
-
 #endif

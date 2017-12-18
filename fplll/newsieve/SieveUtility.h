@@ -92,7 +92,7 @@ public:
   MaybeFixed() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
                            // that we want the same interface in both cases.
   inline operator UIntClass() const { return value; }
-  inline constexpr UIntClass const &get_num() { return value; }
+  inline constexpr UIntClass const &get_num() const { return value; }
   UIntClass value;
 };
 
@@ -219,13 +219,13 @@ template<class T> using AddZNR = fplll::Z_NR<  typename MpzConversionHelper::Ver
 
 // template<class Source> double convert_to_double(Source const & source);
 
-template <class Source> double convert_to_double(Source const &source)
+template <class Source> inline double convert_to_double(Source const &source)
 {
   static_assert(!std::is_same<Source, mpz_class>::value, "Source is mpz_class");
   return static_cast<double>(source);
 }
 
-double convert_to_double(mpz_class const &source) { return source.get_d(); }
+double inline convert_to_double(mpz_class const &source) { return source.get_d(); }
 
 /**
   Conversion to an integer type or mpz_class that works with both mpz_class and non-mpz types
@@ -239,6 +239,7 @@ namespace ConversionHelpers  // namespace for implementation details
 // Integer is the convertion TARGET. There is specialization for mpz_class below
 template <class Integer> struct ConvertMaybeMPZ
 {
+  static_assert(!std::is_same<mystd::decay_t<Integer>, mpz_class>::value, "");
   static_assert(std::is_integral<Integer>::value, "Use only for integral classes.");
 
   // this restriction comes from mpz_* :

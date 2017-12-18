@@ -18,7 +18,7 @@
 // enables all silent checks
 #define DEBUG_SIEVE_SILENT_ALL
 
-#include "SieveGauss_main.h"
+#include "SieveGauss.h"
 #include "fplll.h"
 #include <chrono>
 #include <fstream>

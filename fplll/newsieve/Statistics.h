@@ -1,3 +1,9 @@
+// TODO: Clang-format this file properly
+// Note that it contains a lot of unused / temporary code that will be removed anyway, which
+// constitutes most of the format-offending parts.
+// So we do not bother for now.
+// clang-format off
+
 #ifndef GAUSS_SIEVE_STATISTICS_H
 #define GAUSS_SIEVE_STATISTICS_H
 
@@ -17,9 +23,9 @@ template <class SieveTraits, bool MT> class Sieve;
 template <class SieveTraits, bool MT> struct GaussSieveStatistics;
 
 template <class SieveTraits>
-struct GaussSieveStatistics<SieveTraits, false>
+class GaussSieveStatistics<SieveTraits, false>
 {
-
+public:
   GaussSieveStatistics(Sieve<SieveTraits,false> *backptr)
       : sieveptr(backptr),
         number_of_collisions(0),
@@ -36,14 +42,14 @@ struct GaussSieveStatistics<SieveTraits, false>
         number_of_mispredictions(0)
   {
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
-    unsigned int size_of_stat_arrays = SieveTraits::sim_hash_num * SieveTraits::sim_hash_len+1;
-    
-    for (unsigned int lvl=0; lvl<SieveTraits::sim_hash_num; ++lvl)
+    unsigned int size_of_stat_arrays = SieveTraits::sim_hash_num * SieveTraits::sim_hash_len + 1;
+
+    for (unsigned int lvl = 0; lvl < SieveTraits::sim_hash_num; ++lvl)
     {
-      
+
       (this->red_stat)[lvl].resize(size_of_stat_arrays);
       this->no_red_stat[lvl].resize(size_of_stat_arrays);
-      
+
       this->red_stat_innloop[lvl].resize(size_of_stat_arrays);
       this->no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
     }
@@ -69,7 +75,7 @@ struct GaussSieveStatistics<SieveTraits, false>
 
   unsigned long int get_current_list_size() const { return sieveptr->main_list.size(); }
 
-  inline unsigned long int get_filtered_list_size() const    {return filtered_list_size;};
+  inline unsigned long int get_filtered_list_size() const    { return filtered_list_size; }
   unsigned long int filtered_list_size;  // size of filtered_list
   inline void set_filtered_list_size(unsigned long int const to) { filtered_list_size = to; }
   inline void increment_filtered_list_size() { ++filtered_list_size; }
@@ -91,12 +97,12 @@ struct GaussSieveStatistics<SieveTraits, false>
 
   /* Stats for approximate scalar products */
   unsigned long long int number_of_approx_scprods_level1; //for k=2 case
-  unsigned long long get_number_of_approx_scprods_level1() const  {return number_of_approx_scprods_level1;}
-  inline void increment_number_of_approx_scprods_level1() {++number_of_approx_scprods_level1;}
+  unsigned long long get_number_of_approx_scprods_level1() const  { return number_of_approx_scprods_level1; }
+  inline void increment_number_of_approx_scprods_level1() { ++number_of_approx_scprods_level1; }
 
   unsigned long long int number_of_approx_scprods_level2; //for k=2,3 cases
-  inline unsigned long long get_number_of_approx_scprods_level2() const {return number_of_approx_scprods_level2;}
-  inline void increment_number_of_approx_scprods_level2() {++number_of_approx_scprods_level2;}
+  inline unsigned long long get_number_of_approx_scprods_level2() const { return number_of_approx_scprods_level2; }
+  inline void increment_number_of_approx_scprods_level2() { ++number_of_approx_scprods_level2; }
 
   /* for 3-sieve, to compare number of 2-reds vs. 3-reds */
 
@@ -116,6 +122,7 @@ struct GaussSieveStatistics<SieveTraits, false>
   inline void dump_status_to_stream(std::ostream &of, int howverb);
 
   // Temporary code, to be removed
+
 
   #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
   inline void compute_and_print_statistics_lvl(std::ostream &of, int lvl, bool do_print);
@@ -137,21 +144,22 @@ struct GaussSieveStatistics<SieveTraits, false>
   #endif
 
 
-
 //TODO: total time spent?
 
 /* Old MT Variant : Do not delete
-//note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
-    atomic_ulong number_of_collisions;
-    atomic_ulong number_of_points_sampled;
-    atomic_ullong number_of_points_constructed;
-    atomic_ulong current_list_size;
-    atomic_ullong number_of_scprods;
-    atomic_ullong number_of_total_scprods_level1;
-    atomic_ullong number_of_exact_scprods;
-    atomic_ullong number_of_mispredictions;
+// note: we might collect statistics per-thread and merge occasionally. This means these statistics might be inaccurate.
+  atomic_ulong number_of_collisions;
+  atomic_ulong number_of_points_sampled;
+  atomic_ullong number_of_points_constructed;
+  atomic_ulong current_list_size;
+  atomic_ullong number_of_scprods;
+  atomic_ullong number_of_total_scprods_level1;
+  atomic_ullong number_of_exact_scprods;
+  atomic_ullong number_of_mispredictions;
 */
 };
+
+// Do not bother:
 
 /**
  To be deleted
@@ -369,8 +377,8 @@ inline void GaussSieveStatistics<SieveTraits,false>::compute_and_print_statistic
 }
 #endif
 
-template<class SieveTraits>
-inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::ostream &of, int howverb)
+template <class SieveTraits>
+inline void GaussSieveStatistics<SieveTraits, false>::dump_status_to_stream(std::ostream &of, int howverb)
 {
   using std::endl;
   if(howverb >=1 ) of << "Number of collisions=" << number_of_collisions << endl;
@@ -390,7 +398,7 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
   if(howverb >= 1) of << "Final List Size=" << get_current_list_size() << endl;
   if(howverb >= 1) of << "Final Queue Size="<< get_current_queue_size()<< endl;
 
-// clang-format off
+
   //ONLY TO TEST BITAPPROX. TO BE DELETED
     #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX
     if(howverb >= 1)
@@ -433,9 +441,10 @@ inline void GaussSieveStatistics<SieveTraits,false>::dump_status_to_stream(std::
     compute_and_print_statistics_all(of);
     compute_and_print_statistics_all_innloop(of);
     #endif
-// clang-format on
 }
 
-} // end namespace GaussSieve
+}  // end namespace GaussSieve
 
-#endif // include guard
+#endif  // include guard
+
+// clang-format on
