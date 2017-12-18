@@ -92,7 +92,7 @@ public:
   MaybeFixed() = default;  // Not sure whether we should allow uninitialized dims here. The issue is
                            // that we want the same interface in both cases.
   inline operator UIntClass() const { return value; }
-  inline constexpr UIntClass const &get_num() { return value; }
+  inline constexpr UIntClass const &get_num() const { return value; }
   UIntClass value;
 };
 

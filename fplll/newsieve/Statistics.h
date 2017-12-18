@@ -17,9 +17,9 @@ template <class SieveTraits, bool MT> class Sieve;
 template <class SieveTraits, bool MT> struct GaussSieveStatistics;
 
 template <class SieveTraits>
-struct GaussSieveStatistics<SieveTraits, false>
+class GaussSieveStatistics<SieveTraits, false>
 {
-
+public:
   GaussSieveStatistics(Sieve<SieveTraits,false> *backptr)
       : sieveptr(backptr),
         number_of_collisions(0),
@@ -37,13 +37,13 @@ struct GaussSieveStatistics<SieveTraits, false>
   {
 #ifdef EXACT_LATTICE_POINT_HAS_BITAPPROX_FIXED
     unsigned int size_of_stat_arrays = SieveTraits::sim_hash_num * SieveTraits::sim_hash_len+1;
-    
+
     for (unsigned int lvl=0; lvl<SieveTraits::sim_hash_num; ++lvl)
     {
-      
+
       (this->red_stat)[lvl].resize(size_of_stat_arrays);
       this->no_red_stat[lvl].resize(size_of_stat_arrays);
-      
+
       this->red_stat_innloop[lvl].resize(size_of_stat_arrays);
       this->no_red_stat_innloop[lvl].resize(size_of_stat_arrays);
     }
