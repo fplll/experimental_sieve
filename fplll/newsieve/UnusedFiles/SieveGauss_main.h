@@ -1,3 +1,5 @@
+#error unused
+
 // Don't mess with include order:
 // clang-format off
 

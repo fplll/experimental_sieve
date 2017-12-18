@@ -169,9 +169,5 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 }  // end namespace
 
 // TODO: #include placement
-
-#include "SieveST2.cpp"
-#include "SieveST3.cpp"
-
 #endif
 
