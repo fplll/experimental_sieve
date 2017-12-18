@@ -482,7 +482,7 @@ inline bool GeneralLatticePoint<LatP>::is_zero() const
                 "Did you forget a trait or to overload is_zero()?");
   DEBUG_TRACEGENERIC("Using (possibly inefficient) test for zero for " << LatP::class_name())
 
-  CPP17CONSTEXPRIF(Has_CheapNorm2<LatP>::value)  // constexpr if
+  CPP17CONSTEXPRIF (Has_CheapNorm2<LatP>::value)  // constexpr if
   {
     return (CREALTHIS->get_norm2() == 0);
   }
