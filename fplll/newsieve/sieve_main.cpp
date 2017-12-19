@@ -3,7 +3,7 @@
 #define USE_REGULAR_QUEUE  // only regular queue is implemented for now
                            // For large dimensions priority queue might be faster
 
- #define PROGRESSIVE  // start using (durint sampling) only dim/2 basis vectors
+//#define PROGRESSIVE  // start using (durint sampling) only dim/2 basis vectors
                      // progressively increasing the rank up to dim
 
 /*

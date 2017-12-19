@@ -239,14 +239,14 @@ public:
 #ifdef PROGRESSIVE
   void compute_progressive_bounds()
   {
-    std::cout << "lattice_rank = " << lattice_rank << std::endl;
+    //std::cout << "lattice_rank = " << lattice_rank << std::endl;
     progressive_bounds[0] = log( convert_to_double(get_g(0,0)) ); 
     double accumulate_sum = progressive_bounds[0];
     for (unsigned int i = 1; i<lattice_rank; ++i)
     {
       accumulate_sum+=log(convert_to_double (get_g(i,i)));
       progressive_bounds[i] = exp( (1. / (i+1.) ) * accumulate_sum );
-      std::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
+      //sstd::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
     }
   }
 #endif

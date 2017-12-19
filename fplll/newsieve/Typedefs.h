@@ -116,12 +116,12 @@ public:
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{128-47}}; //+9, 64+18}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{32-5}}; //, 64-11}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{32+5}}; //, 64+11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{47}}; //, 64-11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{128-47}}; //, 64+11}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{32-3}}; //, 64-6}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{32+3}}; //, 64+6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{47}}; //, 64-6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{128-47}}; //, 64+6}};
 
   // for 3-sieve: FilteredList is implemented as vector
   // we reserve filtered_list_size_max inside for its length
