@@ -253,6 +253,8 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::~Sieve()
 template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_done()
 {
+  // sorting here for now, remove to a more appropriate place
+  
   return (term_cond->check() != 0) ? true : false;
 }
 

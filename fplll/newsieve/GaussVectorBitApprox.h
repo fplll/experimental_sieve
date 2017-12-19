@@ -159,7 +159,9 @@ template<class SieveTraits, bool MT> class GaussVectorWithBitApprox;
 template<class SieveTraits, bool MT> class GaussVectorIteratorBitApproxForVector;
 
 
-
+// for sorting
+template<class SieveTraits>
+bool norm_compare (GaussListDetails::STVecNode<SieveTraits> a,GaussListDetails::STVecNode<SieveTraits> b) { return (a<b); }
 
 // clang-format off
 template<class SieveTraits>
@@ -267,6 +269,7 @@ public:
   }
 
   [[deprecated("No sorting for vector")]]void sort() { }
+  //void sort() { std::sort(actual_vector.begin(), actual_vector.end(), norm_compare<SieveTraits>); } //TODO: FAILS
   typename UnderlyingContainer::size_type size() const noexcept { return actual_vector.size(); }
   NODISCARD bool empty() const noexcept { return actual_vector.empty(); }
 

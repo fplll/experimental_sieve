@@ -1,7 +1,7 @@
 #ifndef SIEVE_ST_2_IMPL_H
 #define SIEVE_ST_2_IMPL_H
 
-#if 0
+//#if 0
 
 /*
   MAIN ROUTINES FOR 2-GAUSS SIEVE
@@ -57,6 +57,112 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
   // TODO: Check over- / underflows.
   scalar = round(mult);
   return true;
+}
+
+template <class SieveTraits>
+template <class Iterator>
+bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const & p, 
+                                              Iterator it,
+                                              int &scalar, bool &is_p_max)
+{
+  statistics.increment_number_of_approx_scprods_level1();
+
+  // check if SimHash xor of p1 and p2 is promissing
+  // do not perform exact check is the SimHash check returns false
+  if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
+          p, it, SieveTraits::threshold_lvls_2sieve_lb, SieveTraits::threshold_lvls_2sieve_ub))
+  {
+    return false;
+  }
+
+  statistics.increment_number_of_scprods_level1();
+  using std::round;
+  using std::abs;
+
+  using LengthType = typename SieveTraits::LengthType;
+
+  LengthType sc_prod =
+      compute_sc_product(p, turn_maybe_iterator_to_point(it));
+      
+  LengthType abs_2scprod = abs(sc_prod * 2);
+  
+  LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
+  LengthType norm_needed = it_norm2;  // to compute the scalar
+  
+  is_p_max = (p.get_norm2() > it_norm2);
+  
+  if (is_p_max && abs_2scprod <= it_norm2)
+  {
+    return false;
+  }
+  
+  if (!is_p_max && abs_2scprod <=p.get_norm2())
+  {
+    it_norm2 = p.get_norm2();
+    return false;
+  }
+  
+  double const mult =
+      convert_to_double(sc_prod) / convert_to_double(norm_needed);
+  // TODO: Check over- / underflows.
+  scalar = round(mult);
+  return true;
+
+}
+
+
+template <class SieveTraits>
+void Sieve<SieveTraits, false>::sieve_2_iteration_vec()
+{
+  typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+  
+  bool is_p_max;
+  
+start_over:
+  for (auto it = main_list.cbegin(); it != main_list.cend();)  // while p keeps changing
+  {
+    int scalar = 0;
+    if(check2red_max(p, it, scalar, is_p_max))
+    {
+      if (is_p_max)
+      {
+        p.sub_multiply(*it, scalar);
+        if (p.is_zero())
+        {
+          statistics.increment_number_of_collisions();
+          return;
+        }
+        p.update_bitapprox();
+        goto start_over;
+      }
+      else
+      {
+        //auto v_new = main_list.true_pop_point(it);  // FAILS HERE 
+        /* COMMENTED OUT SINCE THE ABOVE FAILS
+        v_new.sub_multiply(p, scalar);
+        if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
+        {
+          statistics.increment_number_of_collisions();
+        }
+        else
+        {
+          main_queue.push(std::move(v_new));
+        }
+        continue;  // This increments the iterator in the sense that its point to the next element now
+         */
+      }
+      
+    }
+    else
+    {
+       ++it;
+    }
+    
+  }
+  
+  
+  main_list.emplace_back(std::move(p));
+  
 }
 
 /*
@@ -169,6 +275,6 @@ start_over:
 
 }  // End namespace
 
-#endif
+//#endif
 
 #endif

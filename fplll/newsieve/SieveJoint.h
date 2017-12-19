@@ -148,7 +148,8 @@ public:
 
   void run();         //runs the sieve specified by the parameters. Dispatches to the corresponding k-sieve
 
-//  void run_2_sieve(); //calls sieve_2_iteration for 2-reduction until the termination conditions are satisfied
+  void run_2_sieve(); //calls sieve_2_iteration for 2-reduction until the termination conditions are satisfied
+  void run_2_sieve_vec(); // in the switching period to vector
 //  void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
@@ -157,9 +158,13 @@ public:
 //  void sieve_3_thread(int const thread_id);
 //  void sieve_k_thread(int const thread_id);
 #else
-//  void sieve_2_iteration (); //one run through the main_list (of 2-sieve)
-//  template<class LHS, class RHS>
-//  bool check2red(LHS &&p1, RHS &&p2, int &scalar);
+  void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+  template<class LHS, class RHS>
+  bool check2red(LHS &&p1, RHS &&p2, int &scalar);
+  
+  template <class Iterator>
+  bool check2red_max(FastAccess_Point const &p, Iterator it, int &scalar, bool &is_p_max);
+  void sieve_2_iteration_vec();
 
 //  void sieve_3_iteration (); //one run through the main_list (of 3-sieve)
   //void sieve_k_iteration (LatticePoint<ET> &p);

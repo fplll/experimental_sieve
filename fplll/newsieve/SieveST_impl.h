@@ -29,6 +29,7 @@ bool Sieve<SieveTraits, false>::update_shortest_vector_found(FastAccess_Point co
   return false;
 }
 
+
 /*
   Returns the shortest vector found so far
  */
@@ -80,6 +81,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
   {
   case 2:
 //    run_2_sieve();
+      run_2_sieve_vec();
     break;
   case 3:
 //    run_3_sieve();
@@ -96,7 +98,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
  */
 
 // CHANGE TO VECTOR:
-/*
+
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
 {
   int i = 0;
@@ -119,7 +121,8 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
     typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
     // checks if p participates in 2-reduction, inserts p into main_list
-    sieve_2_iteration(p);
+    // sieve_2_iteration(p);
+    //sieve_2_iteration_vec();
     ++i;
     if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
@@ -131,7 +134,54 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
     }
   }
 }
-*/
+
+template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
+{
+  int i = 0;
+
+// set target list-size for progressive sieving
+#ifdef PROGRESSIVE
+  set_target_list_size(list_size_k2);
+#endif
+
+  unsigned int step_check = 1000;
+  //while (!check_if_done())
+  while (true)
+  {
+    // check_if_done (requires sorting) once in a while
+    if (i % step_check ==0 && check_if_done() )
+    {
+      break;
+    }
+#ifdef PROGRESSIVE
+    if ((progressive_rank < lattice_rank) && check_if_enough_short_vectors())
+    {
+      increase_progressive_rank();
+    }
+#endif
+
+
+    // pop p from  main_queue
+    // typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+
+    // checks if p participates in 2-reduction, inserts p into main_list
+    // sieve_2_iteration(p);
+    sieve_2_iteration_vec();
+    
+    ++i;
+    if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
+    {
+      std::cout << "[" << i << "]"
+                << " |L|=" << statistics.get_current_list_size()
+                << " |Q|=" << main_queue.size()  // STAT_MARK
+                << " #samples = " << statistics.get_number_of_points_sampled()
+                << " |sv|= " << get_best_length2() << std::endl;
+    }
+  }
+}
+
+
+
 
 /*
  runs 3-Sieve; after every print_step_2sieve sieve iterations, prints statistics
