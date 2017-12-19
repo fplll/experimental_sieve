@@ -246,7 +246,7 @@ public:
     {
       accumulate_sum+=log(convert_to_double (get_g(i,i)));
       progressive_bounds[i] = exp( (1. / (i+1.) ) * accumulate_sum );
-      //std::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
+      //sstd::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
     }
   }
 #endif
