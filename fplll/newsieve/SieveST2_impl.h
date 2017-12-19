@@ -1,6 +1,8 @@
 #ifndef SIEVE_ST_2_IMPL_H
 #define SIEVE_ST_2_IMPL_H
 
+#if 0
+
 /*
   MAIN ROUTINES FOR 2-GAUSS SIEVE
 */
@@ -166,5 +168,7 @@ start_over:
 }
 
 }  // End namespace
+
+#endif
 
 #endif
