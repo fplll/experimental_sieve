@@ -235,7 +235,7 @@ public:
     static_assert(std::is_reference<LatticePoint>::value == false, "Must call on rvalues");
     GaussListDetails::STVecNode<SieveTraits> new_node{std::move(new_point)};
     actual_vector.push_back(std::move(new_node));
-    return // cback_it();
+    return; // cback_it();
   }
 
   /*
