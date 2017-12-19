@@ -57,7 +57,8 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "GlobalStaticData.h"
 #include "GaussQueue.h"
 #include "DefaultTermConds_impl.h"  // TODO: Change
-#include "GaussListBitapprox.h"
+//#include "GaussListBitapprox.h"
+#include "GaussVectorBitApprox.h"
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "LatticeBases.h"

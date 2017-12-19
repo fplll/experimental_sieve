@@ -1,3 +1,5 @@
+#error Change to vector
+
 #ifndef POINT_LIST_WITH_BITAPPROX_H
 #define POINT_LIST_WITH_BITAPPROX_H
 
