@@ -230,18 +230,20 @@ public:
 
   template<class LatticePoint,
       TEMPL_RESTRICT_DECL2(IsALatticePoint<mystd::decay_t<LatticePoint>>)>
-  Iterator emplace_back(LatticePoint &&new_point)
+  void emplace_back(LatticePoint &&new_point)
   {
     static_assert(std::is_reference<LatticePoint>::value == false, "Must call on rvalues");
     GaussListDetails::STVecNode<SieveTraits> new_node{std::move(new_point)};
     actual_vector.push_back(std::move(new_node));
-    return cback_it();
+    return // cback_it();
   }
 
+  /*
   Iterator cback_it() const
   {
     return Iterator{ static_cast<typename UnderlyingContainer::const_iterator>(&(actual_vector.back())) };
   }
+  */
 
   // removes the element at position pos from the list and returns (and converts) it.
   // "increments" the iterator passed as argument: it now point to the next element.
