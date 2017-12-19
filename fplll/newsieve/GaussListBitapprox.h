@@ -36,6 +36,8 @@ namespace GaussSieve
 // forward declarations
 template <class SieveTraits, bool MT> class GaussListWithBitApprox;
 template <class SieveTraits, bool MT> class GaussIteratorBitApprox;
+template <class SieveTraits, bool MT> class GaussVectorWithBitApprox;
+template <class SieveTraits, bool MT> class GaussIteratorBitApproxForVector;
 
 // we directly store an approximation (which is actually exact in most cases) to norm2 in the list
 // nodes. The class storing this should have a fixed size in memory (no dynamic allocation!)
@@ -67,6 +69,8 @@ class STNode
 {
   friend GaussListWithBitApprox<SieveTraits, false>;
   friend GaussIteratorBitApprox<SieveTraits, false>;
+  friend GaussVectorWithBitApprox<SieveTraits, false>;
+  friend GaussIteratorBitApproxForVector<SieveTraits, false>;
   // retrieve typedefs to avoid having to write long names.
 
 private:  // shorthands
@@ -147,6 +151,13 @@ public:
   erase-modify-reinsert instead)
   Note that large parts of the functionality are defined as members of the iterator below.
 */
+
+template<class SieveTraits, bool MT> class GaussVectorWithBitApprox;
+template<class SieveTraits, bool MT> class GaussIteratorBitApproxForVector;
+
+
+
+
 // clang-format off
 template<class SieveTraits>
 class GaussListWithBitApprox<SieveTraits, false>
