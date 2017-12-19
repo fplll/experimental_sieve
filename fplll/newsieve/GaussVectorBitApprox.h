@@ -79,7 +79,13 @@ private:  // shorthands
 public:
   // we should never need to copy. If we do, we want the compiler to tell us.
   STVecNode(STVecNode const  &)          = delete;
-  STVecNode(STVecNode       &&) noexcept = default;
+  STVecNode(STVecNode       &&old) noexcept
+      : bit_approximations(std::move(old.bit_approximations)),
+        approx_norm2(std::move(old.approx_norm2)),
+        ptr_to_exact(old.ptr_to_exact)
+  {
+    old.ptr_to_exact = nullptr;
+  }
   // clang-format on
 
   // We construct a STVecNode from a lattice point.
@@ -115,6 +121,7 @@ public:
   // currently unused: Takes a pointer to a Lattice Point (of the correct type)
   //                   This version has the advantage of not reallocating memory.
   //                   NOTE: THIS TAKES OWNERSHIP OF THE POINTER
+  /*
   explicit constexpr STVecNode(typename SieveTraits::GaussList_StoredPoint *&&point_ptr) noexcept
       : bit_approximations(
             GlobalSimHashClass::coo_selection.compute_all_bitapproximations(*point_ptr)),
@@ -122,7 +129,7 @@ public:
         ptr_to_exact(std::move(point_ptr))
   {
   }
-
+*/
   ~STVecNode() noexcept { delete ptr_to_exact; }
 
 private:
@@ -226,7 +233,8 @@ public:
   Iterator emplace_back(LatticePoint &&new_point)
   {
     static_assert(std::is_reference<LatticePoint>::value == false, "Must call on rvalues");
-    actual_vector.emplace_back(std::move(new_point));
+    GaussListDetails::STVecNode<SieveTraits> new_node{std::move(new_point)};
+    actual_vector.push_back(std::move(new_node));
     return cback_it();
   }
 

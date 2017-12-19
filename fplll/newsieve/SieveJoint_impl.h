@@ -204,10 +204,12 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::Sieve(
 //    auto it = main_list.cbegin();
     for (unsigned int i=0; i<lattice_rank; ++i)
     {
-        main_list.emplace_back(static_cast<typename SieveTraits::GaussList_StoredPoint> (
-                                     lattice_basis.get_basis_vector(i).make_copy() ) );
+        main_list.emplace_back(
+                                     lattice_basis.get_basis_vector(i).make_copy()  );
 //        ++it;
     }
+
+    std::cout << "emplaced" << std::flush;
 
 //    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
 
