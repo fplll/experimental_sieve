@@ -97,7 +97,7 @@ public:
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
   using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
-  using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+  using MainListType     = GaussVectorWithBitApprox<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
   using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
