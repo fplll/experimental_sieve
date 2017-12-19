@@ -1,3 +1,6 @@
+#ifndef SIEVE_ST_3_IMPL_H
+#define SIEVE_ST_3_IMPL_H
+
 /*
  MAIN ROUTINES FOR 3-GAUSS SIEVE
  */
@@ -300,3 +303,5 @@ start_over:
 }
 
 }  // namespace GaussSieve
+
+#endif
