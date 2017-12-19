@@ -240,14 +240,12 @@ public:
 #ifdef PROGRESSIVE
   void compute_progressive_bounds(GSOType &GSO)
   {
-    //progressive_bounds[0] = log( convert_to_double(get_g(0,0)) );
-    //std::cout << "test = " << convert_to_double( GSO.get_root_det(0, 1).get_d() ) <<" ";
-    //double accumulate_sum = progressive_bounds[0];
     for (unsigned int i = 0; i<lattice_rank; ++i)
     {
-      //std::cout << convert_to_double(get_g(i,i)) << " " <<  g_matrix[i][i] std::endl;
-      //accumulate_sum+=log(convert_to_double (get_g(i,i)));
-      //progressive_bounds[i] = exp( accumulate_sum / (i) );
+      
+      // Gaussian Heuristic (squared) for dimension n+1. We shall expect many vectors of at least this norm
+      // when progressive_rank == i+1; 
+      // GSO.ger_root_det (supposedly) returns the determinant of (i+1)-dim. sublattice
       progressive_bounds[i] =(i+1) * convert_to_double(  GSO.get_root_det(0, i+1).get_d() );
       //std::cout << "progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
 

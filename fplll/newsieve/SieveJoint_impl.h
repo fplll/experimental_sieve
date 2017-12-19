@@ -264,8 +264,11 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_
   // check if the current list is long enough and contains enough short vectors
   // TODO: WE NEED TO SORT HERE IN CASE MAIN_LIST IS NOT SORTED
   
+  
+  // for k=2 we expect saturation at (4/3)^{progressive_rank / 2}
   unsigned long int expected_list_size =pow(this->get_target_list_size(), static_cast<double>( this->get_progressive_rank() / 2 ) );
   
+  // we want to have at least expected_list_size-many vectors of norm (squared) 4/3 * expected_list_size[i] 
   double norm_bound = 1.3333 * lattice_basis.progressive_bounds[this->get_progressive_rank()]; //TODO: adjust to 3-sieve
   
   //std::cout << "norm_bound " << norm_bound << std::endl;
@@ -279,6 +282,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_
   }
   //std::cout << "N = " << N << std:: endl;
   
+  // factor of 2 due to implicit (+/-)v
   return (2 * N > expected_list_size);
 }
 #endif // PROGRESSIVE
