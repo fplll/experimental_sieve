@@ -61,6 +61,7 @@ start_over:
 
     if (cond_x1 > 0)  // We can perform 2-reduction, changing p:
     {
+      statistics.increment_number_of_2reds();
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(it_x1->get_norm2());
       int const scalar  = round(mult);
       p.sub_multiply(*it_x1, scalar);
@@ -115,6 +116,7 @@ start_over:
       // and                        @x2 iff filtp_x2.sign_flip == true
       if (2 * sc_prod_x1x2 < cond_x1 + filtp_x2.cond)  // perform 3-reduction:
       {
+        statistics.increment_number_of_3reds();
         // LengthType const debug_test = p.get_norm2();
         if (sign_px1)
         {
@@ -174,6 +176,7 @@ start_over:
     LengthType const cond_x1_p = twice_abs_sc_prod_px1 - p.get_norm2();
     if (cond_x1_p > 0)  // In this case, we can perform 2-reduction, changing x1
     {
+      statistics.increment_number_of_2reds();
       double const mult = convert_to_double(sc_prod_px1) / convert_to_double(p.get_norm2());
       int const scalar  = round(mult);
       assert(scalar != 0);
