@@ -140,7 +140,7 @@ public:
     maxbistar2 = GSO.get_max_bstar().get_d();
 
     compute_minkowski_bound(GSO);
-    
+
 #ifdef PROGRESSIVE
     progressive_bounds.resize(lattice_rank);
     compute_progressive_bounds();
@@ -235,18 +235,18 @@ public:
     mink_bound          = static_cast<InputET_NOZNRFixed>(mink_bound_d);
     std::cout << "mink_bound is set to: " << mink_bound << std::endl;
   }
-  
+
 #ifdef PROGRESSIVE
   void compute_progressive_bounds()
   {
-    std::cout << "lattice_rank = " << lattice_rank << std::endl;
-    progressive_bounds[0] = log( convert_to_double(get_g(0,0)) ); 
+    //std::cout << "lattice_rank = " << lattice_rank << std::endl;
+    progressive_bounds[0] = log( convert_to_double(get_g(0,0)) );
     double accumulate_sum = progressive_bounds[0];
     for (unsigned int i = 1; i<lattice_rank; ++i)
     {
       accumulate_sum+=log(convert_to_double (get_g(i,i)));
       progressive_bounds[i] = exp( (1. / (i+1.) ) * accumulate_sum );
-      std::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
+      //std::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
     }
   }
 #endif
@@ -263,7 +263,7 @@ public:
                                      // We don't verify linear independence ourselves.
                                      // (even though GSO computation does, probably)
 #ifdef PROGRESSIVE
-  std::vector<double> progressive_bounds; // progressive_bounds[i] stores GH^2 for 
+  std::vector<double> progressive_bounds; // progressive_bounds[i] stores GH^2 for
                                           // L[n_start+i] (to determine when we increase the rank)
 #endif
 private:
