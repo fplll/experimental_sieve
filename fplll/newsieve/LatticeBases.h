@@ -143,7 +143,7 @@ public:
 
 #ifdef PROGRESSIVE
     progressive_bounds.resize(lattice_rank);
-    compute_progressive_bounds();
+    compute_progressive_bounds(GSO);
 #endif
   }
 
@@ -230,23 +230,27 @@ public:
   {
     // returns det(B)^{2/dim}
     // fplll::FP_NR<double> root_det2 =  GSO.get_root_det(1, lattice_rank);
-    double root_det     = GSO.get_root_det(1, lattice_rank).get_d();
-    double mink_bound_d = 0.076 * root_det * static_cast<double>(lattice_rank);
+    double root_det     = GSO.get_root_det(0, lattice_rank).get_d();
+    double mink_bound_d = 0.0644*root_det * static_cast<double>(lattice_rank);
     mink_bound          = static_cast<InputET_NOZNRFixed>(mink_bound_d);
-    std::cout << "mink_bound is set to: " << mink_bound << std::endl;
+    //std::cout << "root_det = " << root_det  << std::endl;
+    //std::cout << "mink_bound is set to: " << mink_bound << std::endl;
   }
 
 #ifdef PROGRESSIVE
-  void compute_progressive_bounds()
+  void compute_progressive_bounds(GSOType &GSO)
   {
-    //std::cout << "lattice_rank = " << lattice_rank << std::endl;
-    progressive_bounds[0] = log( convert_to_double(get_g(0,0)) );
-    double accumulate_sum = progressive_bounds[0];
-    for (unsigned int i = 1; i<lattice_rank; ++i)
+    //progressive_bounds[0] = log( convert_to_double(get_g(0,0)) );
+    //std::cout << "test = " << convert_to_double( GSO.get_root_det(0, 1).get_d() ) <<" ";
+    //double accumulate_sum = progressive_bounds[0];
+    for (unsigned int i = 0; i<lattice_rank; ++i)
     {
-      accumulate_sum+=log(convert_to_double (get_g(i,i)));
-      progressive_bounds[i] = exp( (1. / (i+1.) ) * accumulate_sum );
-      //sstd::cout << i <<" accumulate_prod "<< accumulate_sum << " progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
+      //std::cout << convert_to_double(get_g(i,i)) << " " <<  g_matrix[i][i] std::endl;
+      //accumulate_sum+=log(convert_to_double (get_g(i,i)));
+      //progressive_bounds[i] = exp( accumulate_sum / (i) );
+      progressive_bounds[i] =(i+1) * convert_to_double(  GSO.get_root_det(0, i+1).get_d() );
+      //std::cout << "progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
+
     }
   }
 #endif
