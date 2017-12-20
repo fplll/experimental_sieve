@@ -102,6 +102,51 @@ bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_P
   return true;
 
 }
+  
+// difference to the above is only at computing relevant quantity for 3-sieve, namely
+// the reduction condition abs_2scprod - norm2_min
+template <class SieveTraits>
+template <class Iterator>
+bool Sieve<SieveTraits, false>::check2red_max_for_3red(typename SieveTraits::FastAccess_Point const &p,
+                                              Iterator it, int &scalar, typename SieveTraits::LengthType red_cond, bool &is_p_max)
+{
+  statistics.increment_number_of_approx_scprods_level1();
+  
+  // check if SimHash xor of p1 and p2 is promissing
+  // do not perform exact check is the SimHash check returns false
+  if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                   p, it, SieveTraits::threshold_lvls_2sieve_lb, SieveTraits::threshold_lvls_2sieve_ub))
+  {
+    return false;
+  }
+  
+  statistics.increment_number_of_scprods_level1();
+  using std::round;
+  using std::abs;
+  //  using std::max;
+  
+  using LengthType = typename SieveTraits::LengthType;
+  
+  LengthType const sc_prod = compute_sc_product(p, *it);
+  
+  LengthType const abs_2scprod = abs(sc_prod * 2);
+  
+  //  LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
+  //  LengthType norm_needed = std::max(p.get_norm2(),it->get_norm2();  // to compute the scalar
+  
+  is_p_max = (p.get_norm2() > it->get_norm2());
+  //  LengthType const &norm2_max = is_p_max ? p.get_norm2() : it->get_norm2();
+  LengthType const &norm2_min = is_p_max ? it->get_norm2() : p.get_norm2();
+  
+  if (abs_2scprod <= norm2_min) { return false; }
+  
+  //  double const mult =
+  //      convert_to_double(sc_prod) / convert_to_double(norm_needed);
+  // TODO: Check over- / underflows.
+  scalar = round(convert_to_double(sc_prod) / convert_to_double(norm2_min));
+  return true;
+  
+}
 
 
 template <class SieveTraits>
