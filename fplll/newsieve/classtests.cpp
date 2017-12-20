@@ -1,4 +1,4 @@
-#error not yet adapted to recent refactoring
+#warning not yet adapted to recent refactoring
 #define USE_REGULAR_QUEUE  // priority queue is slower
 
 #define DEBUG_SIEVE_SILENT_ALL
@@ -16,7 +16,8 @@
 //#define TEST_EXACT_LATTICE_POINT
 //#define TEST_BITAPPROX
 //#define TEST_RELEVANT_COORDS
-#define TEST_LIST
+//#define TEST_LIST
+#define TEST_ARRAY_LIST
 
 // clang-format off
 #ifdef TEST_ALL
@@ -33,6 +34,7 @@
   #define TEST_BITAPPROX
   #define TEST_APPROXIMATIONS
   #define TEST_LAZY
+  #define TEST_ARRAY_LIST
 #endif
 
 // very verbose...
@@ -97,6 +99,14 @@
   #include "Tests/TestRelevantCoords.h"
 #endif
 
+#ifdef TEST_ARRAY_LIST
+  #include "Tests/TestArrayList.h"
+#endif
+
+/**
+  Late includes:
+*/
+
 #ifdef TEST_SHI_SAMPLER
   #include "ShiSampler_impl.h"
   #include "Sampler_impl.h"
@@ -105,6 +115,8 @@
 #ifdef TEST_QUEUE
   #include "GaussQueue_impl.h"
 #endif
+
+
 // clang-format on
 
 // clang-format on
@@ -200,6 +212,13 @@ int main(int argc, char **argv)
 #ifdef TEST_RELEVANT_COORDS
   if (test_relevant_coords())
   {
+  }
+#endif
+
+#ifdef TEST_ARRAY_LIST
+  if (test_array_list())
+  {
+    std::cout << "Array list works as expected" << std::endl;
   }
 #endif
   return 0;  // indicating success.

@@ -14,6 +14,7 @@
 			</Target>
 		</Build>
 		<Unit filename="../nr/numvect.h" />
+		<Unit filename="ArrayList.h" />
 		<Unit filename="BlockOrthogonalSimHash.h" />
 		<Unit filename="BlockOrthogonalSimHash_impl.h" />
 		<Unit filename="Compat.h" />
@@ -52,6 +53,7 @@
 		<Unit filename="Statistics.h" />
 		<Unit filename="TerminationConditions.h" />
 		<Unit filename="Tests/TestApproximations.h" />
+		<Unit filename="Tests/TestArrayList.h" />
 		<Unit filename="Tests/TestBasisUtils.h" />
 		<Unit filename="Tests/TestBitApprox.h" />
 		<Unit filename="Tests/TestEMV.h" />
