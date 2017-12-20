@@ -276,15 +276,19 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_
   for (auto it = main_list.cbegin(); it != main_list.cend(); ++it)
   {
     if (it.get_approx_norm2() < norm_bound)
-      ++N;
+    {
+        ++N;
+    }
     else
+    {
       break;
+    }
   }
   //std::cout << "N = " << N << std:: endl;
   
   // factor of 2 due to implicit (+/-)v
   return (2 * N > expected_list_size);
-  }
+}
 #endif // PROGRESSIVE
 
 #ifdef PROGRESSIVE

@@ -105,10 +105,11 @@ bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_P
   
 // difference to the above is only at computing relevant quantity for 3-sieve, namely
 // the reduction condition abs_2scprod - norm2_min
+// TODO: make one function out of the two
 template <class SieveTraits>
 template <class Iterator>
 bool Sieve<SieveTraits, false>::check2red_max_for_3red(typename SieveTraits::FastAccess_Point const &p,
-                                              Iterator it, int &scalar, typename SieveTraits::LengthType red_cond, bool &is_p_max)
+                                              Iterator it, int &scalar, typename SieveTraits::LengthType & sc_prod, bool &is_p_max)
 {
   statistics.increment_number_of_approx_scprods_level1();
   
@@ -127,7 +128,7 @@ bool Sieve<SieveTraits, false>::check2red_max_for_3red(typename SieveTraits::Fas
   
   using LengthType = typename SieveTraits::LengthType;
   
-  LengthType const sc_prod = compute_sc_product(p, *it);
+  sc_prod = compute_sc_product(p, *it);
   
   LengthType const abs_2scprod = abs(sc_prod * 2);
   

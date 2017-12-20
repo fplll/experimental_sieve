@@ -123,7 +123,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
 
     // checks if p participates in 2-reduction, inserts p into main_list
     // sieve_2_iteration(p);
-    //sieve_2_iteration_vec();
+    sieve_2_iteration_vec();
     ++i;
     if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
@@ -200,7 +200,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
     //typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
     
     // checks if p participates in 2-reduction, inserts p into main_list
-    // sieve_3_iteration_vec();
+     sieve_3_iteration_vec();
     
     ++i;
     if ((i % SieveTraits::print_step_3sieve == 0) && (verbosity >= 2))
