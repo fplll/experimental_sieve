@@ -32,10 +32,11 @@ long double constexpr pi_long = 3.1415926535897932384626433832795028841971693993
 double constexpr pi_double    = 3.14159265358979323846264338327950288419716939937510;
 long double constexpr pi      = 3.14159265358979323846264338327950288419716939937510L;
 
-double constexpr list_size_k2 = 0.2075187494;
-double constexpr list_size_k3 = 0.1887218757;
-// double constexpr list_size_k3 = 0.195;
-double constexpr list_size_k4 = 0.1723692862;
+//double constexpr list_size_k2 = 0.2075187494;
+//double constexpr list_size_k3 = 0.1887218757;
+//double constexpr list_size_k4 = 0.1723692862;
+double constexpr list_size_k2 = 1.33333;
+double constexpr list_size_k3 = 1.299038106;
 
 // forward-declarations:
 template <class ET, int nfixed> class MyLatticePoint;
@@ -112,16 +113,19 @@ public:
   //#endif
 
   // clang-format off
+  //constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{64-17}}; //, 64-18}};
+  //constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{64+17}}; //+9, 64+18}};
+  
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{47}}; //, 64-18}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{128 - 47}}; //+9, 64+18}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{55}}; //, 64-11}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{128 - 55}}; //, 64+11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_out = {{64-14}}; //, 64-11}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_out = {{64+14}}; //, 64+11}};
 
   // for 3-sieve: outer loop
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{58}}; //, 64-6}};
-  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{128 - 58}}; //, 64+6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_lb_inn = {{64-10}}; //, 64-6}};
+  constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_3sieve_ub_inn = {{64+10}}; //, 64+6}};
 
   // for 3-sieve: FilteredList is implemented as vector
   // we reserve filtered_list_size_max inside for its length

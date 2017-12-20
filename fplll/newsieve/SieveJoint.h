@@ -65,7 +65,7 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "Statistics.h"
 #include "SimHash.h"
 #include "FilteredPoint.h"
-#include "GaussVectorBitApprox.h"
+// #include "GaussVectorBitApprox.h"
 
 namespace GaussSieve
 {
