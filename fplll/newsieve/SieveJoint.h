@@ -151,6 +151,7 @@ public:
   void run_2_sieve(); //calls sieve_2_iteration for 2-reduction until the termination conditions are satisfied
   void run_2_sieve_vec(); // in the switching period to vector
 //  void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
+//  void run_3_sieve_vec(); // in the switching period to vector
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
 #if GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED == true
@@ -167,6 +168,7 @@ public:
   void sieve_2_iteration_vec();
 
 //  void sieve_3_iteration (); //one run through the main_list (of 3-sieve)
+//  void sieve_3_iteration_vec();
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
 
