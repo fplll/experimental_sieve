@@ -143,7 +143,7 @@ public:
 
 #ifdef PROGRESSIVE
     progressive_bounds.resize(lattice_rank);
-    compute_progressive_bounds();
+    compute_progressive_bounds(GSO);
 #endif
   }
 
