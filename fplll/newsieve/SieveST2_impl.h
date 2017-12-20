@@ -137,8 +137,7 @@ start_over:
       }
       else
       {
-        auto v_new = main_list.true_pop_point(it);  // FAILS HERE
-        /* COMMENTED OUT SINCE THE ABOVE FAILS
+        auto v_new = main_list.true_pop_point(it); 
         v_new.sub_multiply(p, scalar);
         if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
         {
@@ -149,7 +148,7 @@ start_over:
           main_queue.push(std::move(v_new));
         }
         continue;  // This increments the iterator in the sense that its point to the next element now
-         */
+        
       }
 
     }
@@ -159,9 +158,17 @@ start_over:
     }
 
   }
-
-
+  
+  if (update_shortest_vector_found(p))
+  {
+    if (verbosity >= 2)
+    {
+      std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
+    }
+  }
+  
   main_list.emplace_back(std::move(p));
+  
 
 }
 
