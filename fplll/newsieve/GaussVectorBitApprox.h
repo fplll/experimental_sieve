@@ -204,8 +204,8 @@ public:
 
   // behaves like cbegin, cend from STL containers, i.e. gives const-iterator to begin/end.
   // clang-format off
-  CPP14CONSTEXPR Iterator cbegin() const noexcept { return actual_vector.cbegin(); }
-  CPP14CONSTEXPR Iterator cend()   const noexcept { return actual_vector.cend();   }
+  CPP14CONSTEXPR Iterator cbegin() noexcept { return actual_vector.begin(); }
+  CPP14CONSTEXPR Iterator cend()   noexcept { return actual_vector.end();   }
   // clang-format on
 
   // insert_before(pos, point) inserts the point just before pos.
@@ -263,7 +263,10 @@ public:
   Iterator erase(Iterator pos)
   {
     using std::swap;
-    swap(*(pos.it), actual_vector.back());
+    (*(pos.it)).bit_approximations = actual_vector.back().bit_approximations;
+    (*(pos.it)).approx_norm2 =  actual_vector.back().approx_norm2;
+    swap( (*(pos.it)).ptr_to_exact, actual_vector.back().ptr_to_exact );
+//    swap(*(pos.it), actual_vector.back());
     actual_vector.pop_back();
     return pos;
   }
@@ -323,7 +326,7 @@ private:
   // clang-format on
 
 private:
-  CUnderlyingIterator it;
+  UnderlyingIterator it;
 
 public:
   // clang-format off
@@ -339,7 +342,7 @@ public:
 private:
   // clang-format off
   constexpr GaussVectorIteratorBitApprox( UnderlyingIterator const &new_it) noexcept : it(new_it) {}
-  constexpr GaussVectorIteratorBitApprox(CUnderlyingIterator const &new_it) noexcept : it(new_it) {}
+  // constexpr GaussVectorIteratorBitApprox(CUnderlyingIterator const &new_it) noexcept : it(new_it) {}
   // clang-format on
 
 public:

@@ -61,7 +61,7 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
 
 template <class SieveTraits>
 template <class Iterator>
-bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const & p, 
+bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const & p,
                                               Iterator it,
                                               int &scalar, bool &is_p_max)
 {
@@ -83,25 +83,25 @@ bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_P
 
   LengthType sc_prod =
       compute_sc_product(p, turn_maybe_iterator_to_point(it));
-      
+
   LengthType abs_2scprod = abs(sc_prod * 2);
-  
+
   LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
   LengthType norm_needed = it_norm2;  // to compute the scalar
-  
+
   is_p_max = (p.get_norm2() > it_norm2);
-  
+
   if (is_p_max && abs_2scprod <= it_norm2)
   {
     return false;
   }
-  
+
   if (!is_p_max && abs_2scprod <=p.get_norm2())
   {
     it_norm2 = p.get_norm2();
     return false;
   }
-  
+
   double const mult =
       convert_to_double(sc_prod) / convert_to_double(norm_needed);
   // TODO: Check over- / underflows.
@@ -115,9 +115,9 @@ template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_2_iteration_vec()
 {
   typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
-  
+
   bool is_p_max;
-  
+
 start_over:
   for (auto it = main_list.cbegin(); it != main_list.cend();)  // while p keeps changing
   {
@@ -137,7 +137,7 @@ start_over:
       }
       else
       {
-        //auto v_new = main_list.true_pop_point(it);  // FAILS HERE 
+        auto v_new = main_list.true_pop_point(it);  // FAILS HERE
         /* COMMENTED OUT SINCE THE ABOVE FAILS
         v_new.sub_multiply(p, scalar);
         if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
@@ -151,18 +151,18 @@ start_over:
         continue;  // This increments the iterator in the sense that its point to the next element now
          */
       }
-      
+
     }
     else
     {
        ++it;
     }
-    
+
   }
-  
-  
+
+
   main_list.emplace_back(std::move(p));
-  
+
 }
 
 /*
