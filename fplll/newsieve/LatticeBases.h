@@ -223,12 +223,13 @@ public:
 
   
   // we have  1/(2*Pi*exp(1)) =  0.05854983150 for GH
+  // 0.644 is ok 
   void compute_minkowski_bound(GSOType &GSO)
   {
     // returns det(B)^{2/dim}
     // fplll::FP_NR<double> root_det2 =  GSO.get_root_det(1, lattice_rank);
     double root_det     = GSO.get_root_det(0, lattice_rank).get_d();
-    double mink_bound_d = 0.05854983150*root_det * static_cast<double>(lattice_rank);
+    double mink_bound_d = 0.644*root_det * static_cast<double>(lattice_rank);
     mink_bound          = static_cast<InputET_NOZNRFixed>(mink_bound_d);
     std::cout << "mink_bound is set to: " << mink_bound << std::endl;
   }
