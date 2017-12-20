@@ -312,6 +312,8 @@ FORCE_INLINE static inline bool CPP14CONSTEXPR check_simhash_scalar_product_ext(
   for (unsigned int level = 0;
        level < GlobalBitApproxData<CoordinateSelection>::coo_selection.get_sim_hash_num(); ++level)
   {
+//      approx_scprod += __popcountti2(reinterpret_cast<unsigned long long>( Helpers::ObtainSimHashBlock<CoordinateSelection>::get(lhs,level)
+//                                     ^Helpers::ObtainSimHashBlock<CoordinateSelection>::get(rhs,level) ));
     approx_scprod += ( Helpers::ObtainSimHashBlock<CoordinateSelection>::get(lhs,level)
                       ^Helpers::ObtainSimHashBlock<CoordinateSelection>::get(rhs,level) ).count();
     if (approx_scprod >= ub[level])

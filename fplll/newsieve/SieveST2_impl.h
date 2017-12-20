@@ -61,7 +61,7 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
 
 template <class SieveTraits>
 template <class Iterator>
-bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const & p,
+bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const &p,
                                               Iterator it,
                                               int &scalar, bool &is_p_max)
 {
@@ -78,34 +78,27 @@ bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_P
   statistics.increment_number_of_scprods_level1();
   using std::round;
   using std::abs;
+//  using std::max;
 
   using LengthType = typename SieveTraits::LengthType;
 
-  LengthType sc_prod =
-      compute_sc_product(p, turn_maybe_iterator_to_point(it));
+  LengthType const sc_prod = compute_sc_product(p, *it);
 
-  LengthType abs_2scprod = abs(sc_prod * 2);
+  LengthType const abs_2scprod = abs(sc_prod * 2);
 
-  LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
-  LengthType norm_needed = it_norm2;  // to compute the scalar
+//  LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
+//  LengthType norm_needed = std::max(p.get_norm2(),it->get_norm2();  // to compute the scalar
 
-  is_p_max = (p.get_norm2() > it_norm2);
+  is_p_max = (p.get_norm2() > it->get_norm2());
+//  LengthType const &norm2_max = is_p_max ? p.get_norm2() : it->get_norm2();
+  LengthType const &norm2_min = is_p_max ? it->get_norm2() : p.get_norm2();
 
-  if (is_p_max && abs_2scprod <= it_norm2)
-  {
-    return false;
-  }
+  if (abs_2scprod <= norm2_min) { return false; }
 
-  if (!is_p_max && abs_2scprod <=p.get_norm2())
-  {
-    it_norm2 = p.get_norm2();
-    return false;
-  }
-
-  double const mult =
-      convert_to_double(sc_prod) / convert_to_double(norm_needed);
+//  double const mult =
+//      convert_to_double(sc_prod) / convert_to_double(norm_needed);
   // TODO: Check over- / underflows.
-  scalar = round(mult);
+  scalar = round(convert_to_double(sc_prod) / convert_to_double(norm2_min));
   return true;
 
 }
@@ -121,7 +114,7 @@ void Sieve<SieveTraits, false>::sieve_2_iteration_vec()
 start_over:
   for (auto it = main_list.cbegin(); it != main_list.cend();)  // while p keeps changing
   {
-    int scalar = 0;
+    int scalar;
     if(check2red_max(p, it, scalar, is_p_max))
     {
       if (is_p_max)
@@ -137,7 +130,7 @@ start_over:
       }
       else
       {
-        auto v_new = main_list.true_pop_point(it); 
+        auto v_new = main_list.true_pop_point(it);
         v_new.sub_multiply(p, scalar);
         if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
         {
@@ -148,7 +141,7 @@ start_over:
           main_queue.push(std::move(v_new));
         }
         continue;  // This increments the iterator in the sense that its point to the next element now
-        
+
       }
 
     }
@@ -158,7 +151,7 @@ start_over:
     }
 
   }
-  
+
   if (update_shortest_vector_found(p))
   {
     if (verbosity >= 2)
@@ -166,10 +159,8 @@ start_over:
       std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
     }
   }
-  
-  main_list.emplace_back(std::move(p));
-  
 
+  main_list.emplace_back(std::move(p));
 }
 
 /*
