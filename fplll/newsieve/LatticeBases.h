@@ -220,16 +220,9 @@ public:
     assert(i < lattice_rank);
     return basis_vectors[i];
   }
-
-<<<<<<< HEAD
-  
   // we have  1/(2*Pi*exp(1)) =  0.05854983150 for GH
   // 0.644 is ok 
-=======
- 
-  // For GH we have  1/ (2*Pi*exp(1)) = 0.05854983150
-  // 0.0644 is ok
->>>>>>> 9c2ecb8de352207f9deb7ce1e0fbc2356f81efed
+
   void compute_minkowski_bound(GSOType &GSO)
   {
     // returns det(B)^{2/dim}
@@ -246,21 +239,10 @@ public:
   {
     for (unsigned int i = 0; i<lattice_rank; ++i)
     {
-      
-      // Gaussian Heuristic (squared) for dimension n+1. We shall expect many vectors of at least this norm
-<<<<<<< HEAD
-      // when progressive_rank == i+1;
-      // GSO.ger_root_det (supposedly) returns the determinant of (i+1)-dim. sublattice
-      progressive_bounds[i] =0.0644 * (i+1) * convert_to_double(  GSO.get_root_det(0, i+1).get_d() );
-      //std::cout << "progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
-      
-=======
       // when progressive_rank == i+1; 
       // GSO.ger_root_det (supposedly) returns the determinant of (i+1)-dim. sublattice
       progressive_bounds[i] =0.0644 * (i+1) * convert_to_double(  GSO.get_root_det(0, i+1).get_d() );
       //std::cout << "progressive_bounds[i] = " << progressive_bounds[i] << std::endl;
-
->>>>>>> 9c2ecb8de352207f9deb7ce1e0fbc2356f81efed
     }
   }
 #endif

@@ -159,6 +159,7 @@ public:
 //  void sieve_3_thread(int const thread_id);
 //  void sieve_k_thread(int const thread_id);
 #else
+  
   void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
   template<class LHS, class RHS>
   bool check2red(LHS &&p1, RHS &&p2, int &scalar);
@@ -168,9 +169,9 @@ public:
   void sieve_2_iteration_vec();
   
   template <class Iterator>
-  bool check2red_max_for_3red(FastAccess_Point const &p, Iterator it, int &scalar, typename SieveTraits::LengthType red_cond, bool &is_p_max);
+  bool check2red_max_for_3red(FastAccess_Point const &p, Iterator it, int &scalar, typename SieveTraits::LengthType &sc_prod, bool &is_p_max);
 
-//  void sieve_3_iteration (); //one run through the main_list (of 3-sieve)
+  void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   void sieve_3_iteration_vec();
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif

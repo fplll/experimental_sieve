@@ -1,8 +1,6 @@
 #ifndef SIEVE_ST_3_IMPL_H
 #define SIEVE_ST_3_IMPL_H
 
-#if 0
-
 /*
  MAIN ROUTINES FOR 3-GAUSS SIEVE
  */
@@ -20,6 +18,8 @@ void Sieve<SieveTraits, false>::sieve_3_iteration_vec()
   
   bool is_p_max;
   
+  int scalar = 0;
+  
   static FilteredListType filtered_list;
   filtered_list.reserve(SieveTraits::filtered_list_size_max);
   
@@ -27,16 +27,91 @@ start_over:
   
   filtered_list.clear();
   
-  for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
+  for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend();)
   {
     if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
                                                                                    p, it_x1, SieveTraits::threshold_lvls_3sieve_lb_out,
                                                                                    SieveTraits::threshold_lvls_3sieve_ub_out))
     {
+      ++it_x1;
       continue;
     }
     
+    // CHECK FOR 2-REDUCTION
+    LengthType sc_prod_px1 = 0; // annoyingly warns otherwise
+    if(check2red_max_for_3red(p, it_x1, scalar, sc_prod_px1, is_p_max))
+    {
+      if (is_p_max)
+      {
+        p.sub_multiply(*it_x1, scalar);
+        if (p.is_zero())
+        {
+          statistics.increment_number_of_collisions();
+          return;
+        }
+        p.update_bitapprox();
+        goto start_over;
+      }
+      else
+      {
+        auto v_new = main_list.true_pop_point(it_x1); // also does ++it_x1
+        v_new.sub_multiply(p, scalar);
+        if (v_new.is_zero())  // this only happens if the list contains a non-trivial multiple of p.
+        {
+          statistics.increment_number_of_collisions();
+        }
+        else
+        {
+          main_queue.push(std::move(v_new));
+        }
+        continue;  // This increments the iterator in the sense that its point to the next element now
+      }
+      
+      // could not perform 2-reduction, but possibly 3-reduction
+      // compute scaled inner-product: <p, x1> / ( ||p||^2 * ||x1||^2)
+      // the result should always be positive
+      double const sc_prod_px1_normalized =
+      convert_to_double(sc_prod_px1) * convert_to_double(sc_prod_px1) /
+      (convert_to_double(p.get_norm2()) * convert_to_double(it_x1->get_norm2()));
+      
+      // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
+      if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
+      {
+        ++it_x1;
+        continue;  // for loop over it_x1;
+      }
+      bool const sign_px1 = (sc_prod_px1 > 0);
+      for (auto &filtp_x2 : filtered_list)
+      {
+        if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                         it_x1, filtp_x2.sim_hashes, SieveTraits::threshold_lvls_3sieve_lb_inn,
+                                                                                         SieveTraits::threshold_lvls_3sieve_ub_inn))
+        {
+          continue;
+        }
+        //TODO: We know max{p, it_x1}
+        
+        
+        
+      }
+
+      
+      
+    }
+    
+    // CHECK FOR 3-REDUCTION
+  
   }
+  
+  if (update_shortest_vector_found(p))
+  {
+    if (verbosity >= 2)
+    {
+      std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
+    }
+  }
+  
+  main_list.emplace_back(std::move(p));
   
 }
 
@@ -49,6 +124,8 @@ start_over:
   This routines also checks for collisions (0-vector after any of the modifications).
 
 */
+  
+
 
 template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_3_iteration(typename SieveTraits::FastAccess_Point &p)
@@ -336,6 +413,5 @@ start_over:
 
 }  // namespace GaussSieve
 
-#endif
 
 #endif
