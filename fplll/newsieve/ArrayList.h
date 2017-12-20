@@ -16,6 +16,15 @@ struct ArrayListBlock
   unsigned int usedsize;
 
   ArrayListBlock() : block(), usedsize(0) {}
+  ArrayListBlock(T const &value): block(), usedsize(1)
+  {
+    block[0] = value;
+  }
+  ArrayListBlock(T &&value): block(), usedsize(1)
+  {
+    block[0] = std::move(value);
+  }
+
   ArrayListBlock(ArrayListBlock const &) = default;
   ArrayListBlock(ArrayListBlock &&) = default;
 };
@@ -28,6 +37,9 @@ template<class T, unsigned int blocksize> class ArrayListConstIterator;
 template<class T, unsigned int blocksize>
 class ArrayList
 {
+  static_assert(blocksize > 0, "");
+  static_assert(std::is_default_constructible<T>::value, "" );
+
 private:
   using Block = ArrayListDetails::ArrayListBlock<T,blocksize>;
   std::list<Block> blocks;
@@ -38,7 +50,7 @@ public:
   using value_type = T;
   friend const_iterator;
 
-  ArrayList() : blocks(1), total_size(0) {}
+  ArrayList() : blocks(), total_size(0) {}
   ArrayList(ArrayList const &) = default;
   ArrayList(ArrayList &&) = default;
 
@@ -46,9 +58,24 @@ public:
   NODISCARD bool empty() const noexcept { return total_size==0; }
   //void clear() noexcept { blocks.clear(); total_size = 0; }
   const_iterator cbegin() const noexcept { return const_iterator{ blocks.cbegin(),0 }; }
-  const_iterator cend() const noexcept
+  const_iterator cend() const noexcept { return const_iterator{blocks.cend(),0}; }
+  void push_back(T const &value)
   {
-    auto it = blocks.cend(); --it;
+    if(total_size==0)  // special case
+    {
+      blocks.emplace_back(T);
+    }
+    else
+    {
+      // TODO: Can improve?
+      auto it = blocks.cend();
+      --it;
+      if( it.index == it.current_block_size)
+      {
+
+      }
+    }
+
   }
 
 };
