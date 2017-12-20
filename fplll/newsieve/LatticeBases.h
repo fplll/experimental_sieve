@@ -221,17 +221,14 @@ public:
     return basis_vectors[i];
   }
 
-  // Computes a bound on (lambda_1)^2 for n-rank lattice:
-  //    const * sqrt(n) * det(B)^{1/n}
-  // DUE TO [KL79], the best know const (for the squared norm) is 1/(pi* exp(1)*2^{2*0.099} ~ 0.102)
-  // Blichfeldt's bound: 1 / (pi*exp(1))=0.117.
-  // Darmstadt's challenge suggests: 1.10 / (2*pi*exp(1)) = 0.0644;
+  
+  // we have  1/(2*Pi*exp(1)) =  0.05854983150 for GH
   void compute_minkowski_bound(GSOType &GSO)
   {
     // returns det(B)^{2/dim}
     // fplll::FP_NR<double> root_det2 =  GSO.get_root_det(1, lattice_rank);
-    double root_det     = GSO.get_root_det(1, lattice_rank).get_d();
-    double mink_bound_d = 0.076 * root_det * static_cast<double>(lattice_rank);
+    double root_det     = GSO.get_root_det(0, lattice_rank).get_d();
+    double mink_bound_d = 0.05854983150*root_det * static_cast<double>(lattice_rank);
     mink_bound          = static_cast<InputET_NOZNRFixed>(mink_bound_d);
     std::cout << "mink_bound is set to: " << mink_bound << std::endl;
   }
