@@ -49,7 +49,6 @@ public:
   const_iterator cend() const noexcept
   {
     auto it = blocks.cend(); --it;
-
   }
 
 };
