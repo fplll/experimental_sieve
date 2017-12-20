@@ -208,9 +208,6 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::Sieve(
                                      lattice_basis.get_basis_vector(i).make_copy()  );
 //        ++it;
     }
-
-    std::cout << "emplaced" << std::flush;
-
 //    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
 
 
@@ -254,7 +251,7 @@ template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_done()
 {
   // sorting here for now, remove to a more appropriate place
-  
+
   return (term_cond->check() != 0) ? true : false;
 }
 
