@@ -85,6 +85,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
     break;
   case 3:
 //    run_3_sieve();
+//      run_2_sieve_vec_vec();
     break;
   // default:run_k_sieve(); break;
   default:
@@ -148,7 +149,6 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
   //while (!check_if_done())
   while (true)
   {
-    // check_if_done (requires sorting) once in a while
     if (i % step_check ==0 && check_if_done() )
     {
       break;

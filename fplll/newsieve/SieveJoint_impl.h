@@ -215,6 +215,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::Sieve(
   assert(lattice_rank > 0);
   // Note : The +1 is to ensure correctness if lattice_rank == 1 -- Gotti
   progressive_rank = ((lattice_rank+1) / 2); //TODO: to adjust
+  // progressive_rank =lattice_rank - 20;
   std::cout << "set progressive_rank to " <<progressive_rank << std::endl;
 #endif
   if(verbosity>=2)    {std::cout << "Sorting ...";}
@@ -257,18 +258,33 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_done()
 
 #ifdef PROGRESSIVE
 //for progressive sieving
-//TODO: currently the function checks only for the size of the list
-//      theoretically, it should check whether we have enough *short* vectors
 template<class SieveTraits>
 bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_short_vectors()
 {
   // check if the current list is long enough and contains enough short vectors
-
-  //TODO:
-  double log_bound = 1.23* double(this->get_progressive_rank())*(this->get_target_list_size());
-  unsigned long int bound = pow(2, log_bound);
-  return (this->statistics.get_current_list_size() > bound);
-}
+  // TODO: WE NEED TO SORT HERE IN CASE MAIN_LIST IS NOT SORTED
+  
+  
+  // for k=2 we expect saturation at (4/3)^{progressive_rank / 2}
+  unsigned long int expected_list_size =pow(this->get_target_list_size(), static_cast<double>( this->get_progressive_rank() / 2 ) );
+  
+  // we want to have at least expected_list_size-many vectors of norm (squared) 4/3 * expected_list_size[i]
+  double norm_bound = 1.3333 * lattice_basis.progressive_bounds[this->get_progressive_rank()]; //TODO: adjust to 3-sieve
+  
+  //std::cout << "norm_bound " << norm_bound << std::endl;
+  unsigned long int N = 0;
+  for (auto it = main_list.cbegin(); it != main_list.cend(); ++it)
+  {
+    if (it.get_approx_norm2() < norm_bound)
+      ++N;
+    else
+      break;
+  }
+  //std::cout << "N = " << N << std:: endl;
+  
+  // factor of 2 due to implicit (+/-)v
+  return (2 * N > expected_list_size);
+  }
 #endif // PROGRESSIVE
 
 #ifdef PROGRESSIVE
