@@ -9,6 +9,36 @@
 
 namespace GaussSieve
 {
+  
+template <class SieveTraits>
+void Sieve<SieveTraits, false>::sieve_3_iteration_vec()
+{
+  using std::abs;
+  using std::round;
+  
+  typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+  
+  bool is_p_max;
+  
+  static FilteredListType filtered_list;
+  filtered_list.reserve(SieveTraits::filtered_list_size_max);
+  
+start_over:
+  
+  filtered_list.clear();
+  
+  for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend(); ++it_x1)
+  {
+    if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
+                                                                                   p, it_x1, SieveTraits::threshold_lvls_3sieve_lb_out,
+                                                                                   SieveTraits::threshold_lvls_3sieve_ub_out))
+    {
+      continue;
+    }
+    
+  }
+  
+}
 
 /*
   main 3-sieve iteration

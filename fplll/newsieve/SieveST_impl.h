@@ -85,7 +85,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
     break;
   case 3:
 //    run_3_sieve();
-//      run_2_sieve_vec_vec();
+      run_3_sieve_vec();
     break;
   // default:run_k_sieve(); break;
   default:
@@ -179,6 +179,41 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
     }
   }
 }
+  
+template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
+{
+  int i = 0;
+  
+#ifdef PROGRESSIVE
+  set_target_list_size(list_size_k3);
+#endif
+  
+  while (!check_if_done())
+  {
+#ifdef PROGRESSIVE
+    if ((progressive_rank < lattice_rank) && check_if_enough_short_vectors())
+    {
+      increase_progressive_rank();
+    }
+#endif
+    // pop p from  main_queue
+    //typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+    
+    // checks if p participates in 2-reduction, inserts p into main_list
+    // sieve_3_iteration_vec();
+    
+    ++i;
+    if ((i % SieveTraits::print_step_3sieve == 0) && (verbosity >= 2))
+    {
+      std::cout << "[" << i << "]"
+      << " |L|=" << statistics.get_current_list_size()
+      << " |Q|=" << main_queue.size()  // STAT_MARK
+      << " #samples = " << statistics.get_number_of_points_sampled()
+      << " |sv|= " << get_best_length2() << std::endl;
+    }
+  }
+}
+  
 
 
 
