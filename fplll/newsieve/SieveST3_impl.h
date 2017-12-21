@@ -7,26 +7,26 @@
 
 namespace GaussSieve
 {
-  
+#ifndef USE_ORDERED_LIST
 template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_3_iteration_vec()
 {
   using std::abs;
   using std::round;
-  
+
   typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
-  
+
   bool is_p_max;
-  
+
   int scalar = 0;
-  
+
   static FilteredListType filtered_list;
   filtered_list.reserve(SieveTraits::filtered_list_size_max);
-  
+
 start_over:
-  
+
   filtered_list.clear();
-  
+
   for (auto it_x1 = main_list.cbegin(); it_x1 != main_list.cend();)
   {
     if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
@@ -36,7 +36,7 @@ start_over:
       ++it_x1;
       continue;
     }
-    
+
     // CHECK FOR 2-REDUCTION
     LengthType sc_prod_px1 = 0; // annoyingly warns otherwise
     if(check2red_max_for_3red(p, it_x1, scalar, sc_prod_px1, is_p_max))
@@ -66,14 +66,14 @@ start_over:
         }
         continue;  // This increments the iterator in the sense that its point to the next element now
       }
-      
+
       // could not perform 2-reduction, but possibly 3-reduction
       // compute scaled inner-product: <p, x1> / ( ||p||^2 * ||x1||^2)
       // the result should always be positive
       double const sc_prod_px1_normalized =
       convert_to_double(sc_prod_px1) * convert_to_double(sc_prod_px1) /
       (convert_to_double(p.get_norm2()) * convert_to_double(it_x1->get_norm2()));
-      
+
       // If the scalar product is too small, we cannot perform 3-reduction, so we take the next x1
       if (sc_prod_px1_normalized < SieveTraits::x1x2_target)
       {
@@ -90,19 +90,19 @@ start_over:
           continue;
         }
         //TODO: We know max{p, it_x1}
-        
-        
-        
+
+
+
       }
 
-      
-      
+
+
     }
-    
+
     // CHECK FOR 3-REDUCTION
-  
+
   }
-  
+
   if (update_shortest_vector_found(p))
   {
     if (verbosity >= 2)
@@ -110,10 +110,11 @@ start_over:
       std::cout << "New shortest vector found. Norm2 = " << get_best_length2() << std::endl;
     }
   }
-  
+
   main_list.emplace_back(std::move(p));
-  
+
 }
+#endif
 
 /*
   main 3-sieve iteration
@@ -124,15 +125,15 @@ start_over:
   This routines also checks for collisions (0-vector after any of the modifications).
 
 */
-  
 
 
+#ifdef USE_ORDERED_LIST
 template <class SieveTraits>
-void Sieve<SieveTraits, false>::sieve_3_iteration(typename SieveTraits::FastAccess_Point &p)
+void Sieve<SieveTraits, false>::sieve_3_iteration()
 {
   using std::abs;
   using std::round;
-
+  typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
   // TODO: may be make  filtered_list a member of the Sieve class
 
   static FilteredListType filtered_list;
@@ -410,6 +411,8 @@ start_over:
   // could be done between the two for-loops, but it would require making a copy of p
   main_list.insert_before(it_comparison_flip, std::move(p));
 }
+
+#endif
 
 }  // namespace GaussSieve
 

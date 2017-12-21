@@ -1,5 +1,6 @@
 // clang-format status:
 
+//#define USE_ORDERED_LIST
 #define USE_REGULAR_QUEUE  // only regular queue is implemented for now
                            // For large dimensions priority queue might be faster
 

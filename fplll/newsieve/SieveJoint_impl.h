@@ -199,17 +199,20 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::Sieve(
     //assert(main_list.empty()); We don't have a function to check that yet...
     if (verbosity>=2) {std::cout <<"Initializing list with original basis..." << std::endl;}
 
-
-
-//    auto it = main_list.cbegin();
-    for (unsigned int i=0; i<lattice_rank; ++i)
+#ifdef USE_ORDERED_LIST
+  auto it = main_list.cbegin();
+  for (unsigned int i=0; i<lattice_rank; ++i)
+  {
+    it = main_list.insert_before(it, static_cast<typename SieveTraits::GaussList_StoredPoint> (
+                                     lattice_basis.get_basis_vector(i).make_copy() ) );
+    ++it;
+  }
+#else
+  for (unsigned int i=0; i<lattice_rank; ++i)
     {
-        main_list.emplace_back(
-                                     lattice_basis.get_basis_vector(i).make_copy()  );
-//        ++it;
+        main_list.emplace_back( lattice_basis.get_basis_vector(i).make_copy() );
     }
-//    statistics.increment_current_list_size_by(lattice_rank); // TODO: Let list manage that itself.
-
+#endif
 
 #ifdef PROGRESSIVE
   assert(lattice_rank > 0);
@@ -223,8 +226,7 @@ Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::Sieve(
 
   if(verbosity>=2)    {std::cout << "is finished." << std::endl;}
 
-
-    //FIXME: Initialize shortest vector
+  //FIXME: Initialize shortest vector
 
   shortest_vector_found = new FastAccess_Point (main_list.cbegin()->make_copy());
   std::cout << "shortest_vector_found is initialized " << std::endl << std::flush;
@@ -263,14 +265,13 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_
 {
   // check if the current list is long enough and contains enough short vectors
   // TODO: WE NEED TO SORT HERE IN CASE MAIN_LIST IS NOT SORTED
-  
-  
+
   // for k=2 we expect saturation at (4/3)^{progressive_rank / 2}
   unsigned long int expected_list_size =pow(this->get_target_list_size(), static_cast<double>( this->get_progressive_rank() / 2 ) );
-  
+
   // we want to have at least expected_list_size-many vectors of norm (squared) 4/3 * expected_list_size[i]
   double norm_bound = 1.3333 * lattice_basis.progressive_bounds[this->get_progressive_rank()]; //TODO: adjust to 3-sieve
-  
+
   //std::cout << "norm_bound " << norm_bound << std::endl;
   unsigned long int N = 0;
   for (auto it = main_list.cbegin(); it != main_list.cend(); ++it)
@@ -285,7 +286,7 @@ bool Sieve<SieveTraits,GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>::check_if_enough_
     }
   }
   //std::cout << "N = " << N << std:: endl;
-  
+
   // factor of 2 due to implicit (+/-)v
   return (2 * N > expected_list_size);
 }

@@ -57,8 +57,13 @@ NEED TO GO HERE OR TO SieveGauss.h:
 #include "GlobalStaticData.h"
 #include "GaussQueue.h"
 #include "DefaultTermConds_impl.h"  // TODO: Change
-//#include "GaussListBitapprox.h"
-#include "GaussVectorBitApprox.h"
+
+#ifdef USE_ORDERED_LIST
+  #include "GaussListBitapprox.h"
+#else
+  #include "GaussVectorBitApprox.h"
+#endif
+
 #include "SieveUtility.h"
 #include "Typedefs.h"
 #include "LatticeBases.h"
@@ -97,7 +102,11 @@ public:
 
   using FastAccess_Point = typename SieveTraits::FastAccess_Point;
   using MainQueueType    = GaussQueue<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+#ifdef USE_ORDERED_LIST
+  using MainListType     = GaussListWithBitApprox<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+#else
   using MainListType     = GaussVectorWithBitApprox<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
+#endif
   using LatticeBasisType = SieveLatticeBasis<SieveTraits, GAUSS_SIEVE_COMPILE_FOR_MULTI_THREADED>;
   using InputBasisType   = typename SieveTraits::InputBasisType;
   using DimensionType    = typename SieveTraits::DimensionType;
@@ -150,7 +159,7 @@ public:
 
   void run_2_sieve(); //calls sieve_2_iteration for 2-reduction until the termination conditions are satisfied
   void run_2_sieve_vec(); // in the switching period to vector
-//  void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
+  void run_3_sieve(); //calls sieve_3_iteration for 3-reduction until the termination conditions are satisfied
   void run_3_sieve_vec(); // in the switching period to vector
   //void run_k_sieve(); //runs Gauss Sieve with arbitrary k
 
@@ -159,20 +168,23 @@ public:
 //  void sieve_3_thread(int const thread_id);
 //  void sieve_k_thread(int const thread_id);
 #else
-  
-  void sieve_2_iteration (FastAccess_Point &p); //one run through the main_list (of 2-sieve)
+
+#ifdef USE_ORDERED_LIST
+  void sieve_2_iteration (); //one run through the main_list (of 2-sieve)
   template<class LHS, class RHS>
   bool check2red(LHS &&p1, RHS &&p2, int &scalar);
-  
+  void sieve_3_iteration (); //one run through the main_list (of 3-sieve)
+#else
   template <class Iterator>
   bool check2red_max(FastAccess_Point const &p, Iterator it, int &scalar, bool &is_p_max);
   void sieve_2_iteration_vec();
-  
+
   template <class Iterator>
   bool check2red_max_for_3red(FastAccess_Point const &p, Iterator it, int &scalar, typename SieveTraits::LengthType &sc_prod, bool &is_p_max);
 
-  void sieve_3_iteration (FastAccess_Point &p); //one run through the main_list (of 3-sieve)
   void sieve_3_iteration_vec();
+#endif
+
   //void sieve_k_iteration (LatticePoint<ET> &p);
 #endif
 

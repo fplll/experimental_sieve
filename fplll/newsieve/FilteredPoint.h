@@ -22,8 +22,11 @@
 #include "DebugAll.h"
 #include "DefaultIncludes.h"
 #include "ExactLatticePoint.h"
-//#include "GaussListBitapprox.h"
-#include "GaussVectorBitApprox.h"
+#ifdef USE_ORDERED_LIST
+  #include "GaussListBitapprox.h"
+#else
+  #include "GaussVectorBitApprox.h"
+#endif
 #include "SieveUtility.h"
 #include "Typedefs.h"
 

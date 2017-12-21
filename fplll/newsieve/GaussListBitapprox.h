@@ -1,4 +1,6 @@
-#error Change to vector
+#ifndef USE_ORDERED_LIST
+  #warning Asked to include GaussListBitapprox.h, but we do not compile for an ordered list.
+#endif
 
 #ifndef POINT_LIST_WITH_BITAPPROX_H
 #define POINT_LIST_WITH_BITAPPROX_H

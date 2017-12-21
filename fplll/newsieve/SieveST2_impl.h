@@ -1,8 +1,6 @@
 #ifndef SIEVE_ST_2_IMPL_H
 #define SIEVE_ST_2_IMPL_H
 
-//#if 0
-
 /*
   MAIN ROUTINES FOR 2-GAUSS SIEVE
 */
@@ -19,6 +17,7 @@ namespace GaussSieve
  it to the value s.t. || p1 - scalar * p2 || < ||p1||
  */
 
+#ifdef USE_ORDERED_LIST
 template <class SieveTraits>
 template <class LHS, class RHS>
 bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
@@ -58,7 +57,9 @@ bool Sieve<SieveTraits, false>::check2red(LHS &&p1, RHS &&p2, int &scalar)
   scalar = round(mult);
   return true;
 }
+#endif
 
+#ifndef USE_ORDERED_LIST
 template <class SieveTraits>
 template <class Iterator>
 bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_Point const &p,
@@ -102,7 +103,10 @@ bool Sieve<SieveTraits, false>::check2red_max(typename SieveTraits::FastAccess_P
   return true;
 
 }
-  
+#endif
+
+
+#ifndef USE_ORDERED_LIST
 // difference to the above is only at computing relevant quantity for 3-sieve, namely
 // the reduction condition abs_2scprod - norm2_min
 // TODO: make one function out of the two
@@ -112,7 +116,7 @@ bool Sieve<SieveTraits, false>::check2red_max_for_3red(typename SieveTraits::Fas
                                               Iterator it, int &scalar, typename SieveTraits::LengthType & sc_prod, bool &is_p_max)
 {
   statistics.increment_number_of_approx_scprods_level1();
-  
+
   // check if SimHash xor of p1 and p2 is promissing
   // do not perform exact check is the SimHash check returns false
   if (!check_simhash_scalar_product<typename SieveTraits::CoordinateSelectionUsed>(
@@ -120,36 +124,38 @@ bool Sieve<SieveTraits, false>::check2red_max_for_3red(typename SieveTraits::Fas
   {
     return false;
   }
-  
+
   statistics.increment_number_of_scprods_level1();
   using std::round;
   using std::abs;
   //  using std::max;
-  
+
   using LengthType = typename SieveTraits::LengthType;
-  
+
   sc_prod = compute_sc_product(p, *it);
-  
+
   LengthType const abs_2scprod = abs(sc_prod * 2);
-  
+
   //  LengthType it_norm2 = turn_maybe_iterator_to_point(it).get_norm2();
   //  LengthType norm_needed = std::max(p.get_norm2(),it->get_norm2();  // to compute the scalar
-  
+
   is_p_max = (p.get_norm2() > it->get_norm2());
   //  LengthType const &norm2_max = is_p_max ? p.get_norm2() : it->get_norm2();
   LengthType const &norm2_min = is_p_max ? it->get_norm2() : p.get_norm2();
-  
+
   if (abs_2scprod <= norm2_min) { return false; }
-  
+
   //  double const mult =
   //      convert_to_double(sc_prod) / convert_to_double(norm_needed);
   // TODO: Check over- / underflows.
   scalar = round(convert_to_double(sc_prod) / convert_to_double(norm2_min));
   return true;
-  
+
 }
+#endif
 
 
+#ifndef USE_ORDERED_LIST
 template <class SieveTraits>
 void Sieve<SieveTraits, false>::sieve_2_iteration_vec()
 {
@@ -208,6 +214,7 @@ start_over:
 
   main_list.emplace_back(std::move(p));
 }
+#endif
 
 /*
   main 2-sieve iteration
@@ -217,9 +224,11 @@ start_over:
   This routines also checks for collisions (0-vector after any of the modifications).
 */
 
+#ifdef USE_ORDERED_LIST
 template <class SieveTraits>
-void Sieve<SieveTraits, false>::sieve_2_iteration(typename SieveTraits::FastAccess_Point &p)
+void Sieve<SieveTraits, false>::sieve_2_iteration()
 {
+  typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
   using std::abs;
   assert(!p.is_zero());
 
@@ -316,6 +325,7 @@ start_over:
   // could be done between the two for-loops, but it would require making a copy of p
   main_list.insert_before(it_comparison_flip, std::move(p));
 }
+#endif
 
 }  // End namespace
 

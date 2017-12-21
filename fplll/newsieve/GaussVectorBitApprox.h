@@ -1,3 +1,8 @@
+#ifdef USE_ORDERED_LIST
+  #warning Asked to include GaussVectorBitapprox.h, but we compile for an ordered list.
+#endif
+
+
 #ifndef GAUSS_VECTOR_LIST_WITH_BITAPPROX_H
 #define GAUSS_VECTOR_LIST_WITH_BITAPPROX_H
 

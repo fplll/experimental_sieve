@@ -80,12 +80,18 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
   switch (sieve_k)
   {
   case 2:
-//    run_2_sieve();
-      run_2_sieve_vec();
+#ifdef USE_ORDERED_LIST
+    run_2_sieve();
+#else
+    run_2_sieve_vec();
+#endif
     break;
   case 3:
-//    run_3_sieve();
-      run_3_sieve_vec();
+#ifdef USE_ORDERED_LIST
+    run_3_sieve();
+#else
+    run_3_sieve_vec();
+#endif
     break;
   // default:run_k_sieve(); break;
   default:
@@ -99,7 +105,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run()
  */
 
 // CHANGE TO VECTOR:
-
+#ifdef USE_ORDERED_LIST
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
 {
   int i = 0;
@@ -119,11 +125,14 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
 #endif
 
     // pop p from  main_queue
-    typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+//    typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
     // checks if p participates in 2-reduction, inserts p into main_list
-    // sieve_2_iteration(p);
+#ifdef USE_ORDERED_LIST
+     sieve_2_iteration();
+#else
     sieve_2_iteration_vec();
+#endif
     ++i;
     if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
@@ -135,6 +144,10 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve()
     }
   }
 }
+#endif
+
+
+#ifndef USE_ORDERED_LIST
 
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
 {
@@ -167,7 +180,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
     // checks if p participates in 2-reduction, inserts p into main_list
     // sieve_2_iteration(p);
     sieve_2_iteration_vec();
-    
+
     ++i;
     if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
@@ -179,15 +192,17 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
     }
   }
 }
-  
+#endif
+
+#ifndef USE_ORDERED_LIST
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
 {
   int i = 0;
-  
+
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k3);
 #endif
-  
+
   while (!check_if_done())
   {
 #ifdef PROGRESSIVE
@@ -198,10 +213,10 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
 #endif
     // pop p from  main_queue
     //typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
-    
+
     // checks if p participates in 2-reduction, inserts p into main_list
      sieve_3_iteration_vec();
-    
+
     ++i;
     if ((i % SieveTraits::print_step_3sieve == 0) && (verbosity >= 2))
     {
@@ -213,7 +228,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
     }
   }
 }
-  
+#endif
 
 
 
@@ -225,7 +240,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
 
  // CHANGE TO VECTOR
 
- /*
+#ifdef USE_ORDERED_LIST
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
 {
   int i = 0;
@@ -243,10 +258,10 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
     }
 #endif
     // pop p from  main_queue
-    typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
+//    typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
 
     // checks if p participates in 2-reduction, inserts p into main_list
-    sieve_3_iteration(p);
+    sieve_3_iteration();
 
     ++i;
     if ((i % SieveTraits::print_step_3sieve == 0) && (verbosity >= 2))
@@ -259,7 +274,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve()
     }
   }
 }
-*/
+#endif
 
 }  // end namespace
 
