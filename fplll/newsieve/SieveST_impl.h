@@ -167,7 +167,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
       break;
     }
 #ifdef PROGRESSIVE
-    if ((progressive_rank < lattice_rank) && check_if_enough_short_vectors())
+    if ( (i %1000 == 0 ) && (progressive_rank < lattice_rank) && check_if_enough_short_vectors())
     {
       increase_progressive_rank();
     }
@@ -228,10 +228,8 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
     }
   }
 }
+
 #endif
-
-
-
 
 /*
  runs 3-Sieve; after every print_step_2sieve sieve iterations, prints statistics
