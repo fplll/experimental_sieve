@@ -38,6 +38,7 @@ GaussQueue<SieveTraits, false>::GaussQueue(Sieve<SieveTraits, false> *const call
     std::seed_seq seed{83, 65, 77, 80, 76, 69, 82, seed_sampler};
     DEBUG_SIEVE_TRACEINITIATLIZATIONS("Initializing our own sampler. Using GPVSamplerExtended")
     sampler = new GPVSamplerExtended<SieveTraits, false, std::mt19937_64, std::seed_seq>(seed, caller_sieve->get_ambient_dimension() / 3 );
+//    sampler = new GPVSampler<SieveTraits, false, std::mt19937_64, std::seed_seq>(seed );
   }
   assert(sampler != nullptr);
 }

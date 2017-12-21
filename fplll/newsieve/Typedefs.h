@@ -35,7 +35,7 @@ long double constexpr pi      = 3.1415926535897932384626433832795028841971693993
 //double constexpr list_size_k2 = 0.2075187494;
 //double constexpr list_size_k3 = 0.1887218757;
 //double constexpr list_size_k4 = 0.1723692862;
-double constexpr list_size_k2 = 1.33333;
+double constexpr list_size_k2 = 1.3;
 double constexpr list_size_k3 = 1.299038106;
 
 // forward-declarations:
@@ -115,7 +115,7 @@ public:
   // clang-format off
   //constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{64-17}}; //, 64-18}};
   //constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{64+17}}; //+9, 64+18}};
-  
+
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_lb = {{47}}; //, 64-18}};
   constexpr static std::array<unsigned int, sim_hash_num> threshold_lvls_2sieve_ub = {{128 - 47}}; //+9, 64+18}};
 

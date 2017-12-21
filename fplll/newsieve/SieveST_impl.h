@@ -154,7 +154,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
       break;
     }
 #ifdef PROGRESSIVE
-    if ((progressive_rank < lattice_rank) && check_if_enough_short_vectors())
+    if ( (i %1000 == 0 ) && (progressive_rank < lattice_rank) && check_if_enough_short_vectors())
     {
       increase_progressive_rank();
     }
@@ -167,7 +167,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
     // checks if p participates in 2-reduction, inserts p into main_list
     // sieve_2_iteration(p);
     sieve_2_iteration_vec();
-    
+
     ++i;
     if ((i % SieveTraits::print_step_2sieve == 0) && (verbosity >= 2))
     {
@@ -179,15 +179,15 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_2_sieve_vec()
     }
   }
 }
-  
+
 template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
 {
   int i = 0;
-  
+
 #ifdef PROGRESSIVE
   set_target_list_size(list_size_k3);
 #endif
-  
+
   while (!check_if_done())
   {
 #ifdef PROGRESSIVE
@@ -198,10 +198,10 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
 #endif
     // pop p from  main_queue
     //typename SieveTraits::FastAccess_Point p = main_queue.true_pop();
-    
+
     // checks if p participates in 2-reduction, inserts p into main_list
      sieve_3_iteration_vec();
-    
+
     ++i;
     if ((i % SieveTraits::print_step_3sieve == 0) && (verbosity >= 2))
     {
@@ -213,7 +213,7 @@ template <class SieveTraits> void Sieve<SieveTraits, false>::run_3_sieve_vec()
     }
   }
 }
-  
+
 
 
 
